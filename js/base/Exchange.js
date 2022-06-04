@@ -34,7 +34,9 @@ const {
 const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
+    , NullResponse
     , InvalidAddress
+    , InvalidOrder
     , NotSupported
     , AuthenticationError
     , DDoSProtection
@@ -78,6 +80,11 @@ module.exports = class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': undefined,
+                'createReduceOnlyOrder': undefined,
+                'createStopOrder': undefined,
+                'createStopLimitOrder': undefined,
+                'createStopMarketOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -96,8 +103,8 @@ module.exports = class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -139,6 +146,7 @@ module.exports = class Exchange {
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
+                'setMargin': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
@@ -216,7 +224,6 @@ module.exports = class Exchange {
             'commonCurrencies': { // gets extended/overwritten in subclasses
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'DRK': 'DASH',
                 'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
@@ -252,6 +259,7 @@ module.exports = class Exchange {
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
         }
 
         this.headers = {}
@@ -553,7 +561,7 @@ module.exports = class Exchange {
                     } else if (typeof config === 'number') {
                         this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
                     } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format not supported, API leafs must strings, objects or numbers');
+                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {
@@ -816,7 +824,7 @@ module.exports = class Exchange {
     }
 
     async fetchPermissions (params = {}) {
-        throw new NotSupported (this.id + ' fetchPermissions() not supported yet')
+        throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
     }
 
     // is async (returns a promise)
@@ -849,12 +857,12 @@ module.exports = class Exchange {
     }
 
     fetchBidsAsks (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
+        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet')
     }
 
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
@@ -864,7 +872,7 @@ module.exports = class Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
@@ -916,21 +924,21 @@ module.exports = class Exchange {
             const tickers = await this.fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
             if (ticker === undefined) {
-                throw new InvalidAddress (this.id + ' fetchTickers could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
             } else {
                 return ticker;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchTicker not supported yet');
+            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
         }
     }
 
     fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers not supported yet')
+        throw new NotSupported (this.id + ' fetchTickers() is not supported yet')
     }
 
     fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder not supported yet');
+        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
     fetchUnifiedOrder (order, params = {}) {
@@ -938,11 +946,11 @@ module.exports = class Exchange {
     }
 
     createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not supported yet');
+        throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
     cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder not supported yet');
+        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
     cancelUnifiedOrder (order, params = {}) {
@@ -950,31 +958,31 @@ module.exports = class Exchange {
     }
 
     fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
     }
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
     }
 
     fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
     }
 
     fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+        throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
     fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
+        throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -982,12 +990,12 @@ module.exports = class Exchange {
             const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
             const depositAddress = this.safeValue (depositAddresses, code);
             if (depositAddress === undefined) {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
             } else {
                 return depositAddress;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
         }
     }
 
@@ -1065,6 +1073,10 @@ module.exports = class Exchange {
 
     marketIds (symbols) {
         return symbols.map ((symbol) => this.marketId (symbol))
+    }
+
+    marketSymbols (symbols) {
+        return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
     }
 
     symbol (symbol) {
@@ -1147,7 +1159,7 @@ module.exports = class Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance not supported yet')
+        throw new NotSupported (this.id + ' fetchBalance() is not supported yet')
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -1178,14 +1190,41 @@ module.exports = class Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
         }
         return await this.fetchTradingFees (params)
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        if (warnOnFetchFundingFee) {
+            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFee (code, params);
+    }
+
+    async fetchFundingFees (codes = undefined, params = {}) {
+        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        if (warnOnFetchFundingFees) {
+            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFees (codes, params);
+    }
+
+    async fetchTransactionFee (code, params = {}) {
+        if (!this.has['fetchTransactionFees']) {
+            throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
+        }
+        return this.fetchTransactionFees ([code], params);
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -1259,119 +1298,66 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeTicker (ticker, market = undefined, legacy = true) {
-        if (legacy) {
-            let symbol = this.safeValue (ticker, 'symbol');
-            if (symbol === undefined) {
-                symbol = this.safeSymbol (undefined, market);
-            }
-            const timestamp = this.safeInteger (ticker, 'timestamp');
-            let baseVolume = this.safeValue (ticker, 'baseVolume');
-            let quoteVolume = this.safeValue (ticker, 'quoteVolume');
-            let vwap = this.safeValue (ticker, 'vwap');
-            if (vwap === undefined) {
-                vwap = this.vwap (baseVolume, quoteVolume);
-            }
-            let open = this.safeValue (ticker, 'open');
-            let close = this.safeValue (ticker, 'close');
-            let last = this.safeValue (ticker, 'last');
-            let change = this.safeValue (ticker, 'change');
-            let percentage = this.safeValue (ticker, 'percentage');
-            let average = this.safeValue (ticker, 'average');
-            if ((last !== undefined) && (close === undefined)) {
-                close = last;
-            } else if ((last === undefined) && (close !== undefined)) {
-                last = close;
-            }
-            if ((last !== undefined) && (open !== undefined)) {
-                if (change === undefined) {
-                    change = last - open;
-                }
-                if (average === undefined) {
-                    average = this.sum (last, open) / 2;
-                }
-            }
-            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
-                percentage = change / open * 100;
-            }
-            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-                change = percentage / 100 * last;
-            }
-            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-                open = last - change;
-            }
-            if ((vwap !== undefined) && (baseVolume !== undefined) && (quoteVolume === undefined)) {
-                quoteVolume = vwap / baseVolume;
-            }
-            if ((vwap !== undefined) && (quoteVolume !== undefined) && (baseVolume === undefined)) {
-                baseVolume = quoteVolume / vwap;
-            }
-            ticker['symbol'] = symbol;
-            ticker['timestamp'] = timestamp;
-            ticker['datetime'] = this.iso8601 (timestamp);
-            ticker['open'] = open;
-            ticker['close'] = close;
-            ticker['last'] = last;
-            ticker['vwap'] = vwap;
-            ticker['change'] = change;
-            ticker['percentage'] = percentage;
-            ticker['average'] = average;
-            return ticker;
-        } else {
-            let open = this.safeValue (ticker, 'open');
-            let close = this.safeValue (ticker, 'close');
-            let last = this.safeValue (ticker, 'last');
-            let change = this.safeValue (ticker, 'change');
-            let percentage = this.safeValue (ticker, 'percentage');
-            let average = this.safeValue (ticker, 'average');
-            let vwap = this.safeValue (ticker, 'vwap');
-            const baseVolume = this.safeValue (ticker, 'baseVolume');
-            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-            if (vwap === undefined) {
-                vwap = Precise.stringDiv (quoteVolume, baseVolume);
-            }
-            if ((last !== undefined) && (close === undefined)) {
-                close = last;
-            } else if ((last === undefined) && (close !== undefined)) {
-                last = close;
-            }
-            if ((last !== undefined) && (open !== undefined)) {
-                if (change === undefined) {
-                    change = Precise.stringSub (last, open);
-                }
-                if (average === undefined) {
-                    average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
-                }
-            }
-            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
-                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-            }
-            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-                change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
-            }
-            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-                open = Precise.stringSub (last, change);
-            }
-            // timestamp and symbol operations don't belong in safeTicker
-            // they should be done in the derived classes
-            return this.extend (ticker, {
-                'bid': this.safeNumber (ticker, 'bid'),
-                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-                'ask': this.safeNumber (ticker, 'ask'),
-                'askVolume': this.safeNumber (ticker, 'askVolume'),
-                'high': this.safeNumber (ticker, 'high'),
-                'low': this.safeNumber (ticker, 'low'),
-                'open': this.parseNumber (open),
-                'close': this.parseNumber (close),
-                'last': this.parseNumber (last),
-                'change': this.parseNumber (change),
-                'percentage': this.parseNumber (percentage),
-                'average': this.parseNumber (average),
-                'vwap': this.parseNumber (vwap),
-                'baseVolume': this.parseNumber (baseVolume),
-                'quoteVolume': this.parseNumber (quoteVolume),
-            });
+    safeTicker (ticker, market = undefined) {
+        let open = this.safeString (ticker, 'open');
+        let close = this.safeString (ticker, 'close');
+        let last = this.safeString (ticker, 'last');
+        let change = this.safeString (ticker, 'change');
+        let percentage = this.safeString (ticker, 'percentage');
+        let average = this.safeString (ticker, 'average');
+        let vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'baseVolume');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        if (vwap === undefined) {
+            vwap = Precise.stringDiv (quoteVolume, baseVolume);
         }
+        if ((last !== undefined) && (close === undefined)) {
+            close = last;
+        } else if ((last === undefined) && (close !== undefined)) {
+            last = close;
+        }
+        if ((last !== undefined) && (open !== undefined)) {
+            if (change === undefined) {
+                change = Precise.stringSub (last, open);
+            }
+            if (average === undefined) {
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+            }
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
+            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        }
+        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
+            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+        }
+        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+            open = Precise.stringSub (last, change);
+        }
+        // timestamp and symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return this.extend (ticker, {
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (close),
+            'last': this.parseNumber (last),
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'vwap': this.parseNumber (vwap),
+            'baseVolume': this.parseNumber (baseVolume),
+            'quoteVolume': this.parseNumber (quoteVolume),
+            'previousClose': this.safeNumber (ticker, 'previousClose'),
+        });
+    }
+
+    parseAccounts (accounts, params = {}) {
+        const array = Object.values (accounts || [])
+        return array.map ((account) => this.extend (this.parseAccount (account, undefined), params))
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
@@ -1411,45 +1397,6 @@ module.exports = class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
-    safeTransfer (transfer, currency = undefined) {
-        currency = this.safeCurrency (undefined, currency);
-        return this.extend ({
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': currency['code'],
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': undefined,
-            'info': undefined,
-        }, transfer);
-    }
-
-    safeTransaction (transaction, currency = undefined) {
-        currency = this.safeCurrency (undefined, currency);
-        return this.extend ({
-            'id': undefined,
-            'currency': currency['code'],
-            'amount': undefined,
-            'network': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'addressFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'tagFrom': undefined,
-            'status': undefined,
-            'type': undefined,
-            'updated': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'fee': undefined,
-            'info': undefined,
-        }, transaction);
-    }
-
     parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (transfers || []).map ((transfer) => this.extend (this.parseTransfer (transfer, currency), params))
         result = this.sortBy (result, 'timestamp');
@@ -1475,6 +1422,59 @@ module.exports = class Exchange {
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    safeLedgerEntry (entry, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        let direction = this.safeString (entry, 'direction');
+        let before = this.safeString (entry, 'before');
+        let after = this.safeString (entry, 'after');
+        let amount = this.safeString (entry, 'amount');
+        let fee = this.safeString (entry, 'fee');
+        if (amount !== undefined && fee !== undefined) {
+            if (before === undefined && after !== undefined) {
+                const amountAndFee = Precise.stringAdd (amount, fee);
+                before = Precise.stringSub (after, amountAndFee);
+            } else if (before !== undefined && after === undefined) {
+                const amountAndFee = Precise.stringAdd (amount, fee);
+                after = Precise.stringAdd (before, amountAndFee);
+            }
+        }
+        if (before !== undefined && after !== undefined) {
+            if (direction === undefined) {
+                if (Precise.stringGt (before, after)) {
+                    direction = 'out';
+                }
+                if (Precise.stringGt (after, before)) {
+                    direction = 'in';
+                }
+            }
+            if (amount === undefined && fee !== undefined) {
+                const betweenAfterBefore = Precise.stringSub (after, before);
+                amount = Precise.stringSub (betweenAfterBefore, fee);
+            }
+            if (amount !== undefined && fee === undefined) {
+                const betweenAfterBefore = Precise.stringSub (after, before);
+                fee = Precise.stringSub (betweenAfterBefore, amount);
+            }
+        }
+        return this.extend ({
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': undefined,
+            'fee': fee,
+            'info': undefined,
+        }, entry);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1581,7 +1581,7 @@ module.exports = class Exchange {
     }
 
     parseFundingRate (contract, market = undefined) {
-        throw new NotSupported (this.id + ' parseFundingRate() not supported yet')
+        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet')
     }
 
     parseFundingRates (response, market = undefined) {
@@ -1600,7 +1600,7 @@ module.exports = class Exchange {
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // this code is commented out temporarily to catch for exchange-specific errors
         // if (!this.isArray (ohlcvs)) {
-        //     throw new ExchangeError (this.id + ' parseOHLCVs expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
+        //     throw new ExchangeError (this.id + ' parseOHLCVs() expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
         // }
         const parsed = ohlcvs.map ((ohlcv) => this.parseOHLCV (ohlcv, market))
         const sorted = this.sortBy (parsed, 0)
@@ -1621,9 +1621,6 @@ module.exports = class Exchange {
     }
 
     async editOrder (id, symbol, ...args) {
-        if (!this.enableRateLimit) {
-            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true')
-        }
         await this.cancelOrder (id, symbol);
         return this.createOrder (symbol, ...args)
     }
@@ -1672,8 +1669,19 @@ module.exports = class Exchange {
         return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
     }
 
-    currencyToPrecision (currency, fee) {
-        return decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode, this.paddingMode);
+    currencyToPrecision (code, fee, networkCode = undefined) {
+        const currency = this.currencies[code];
+        let precision = this.safeValue (currency, 'precision');
+        if (networkCode !== undefined) {
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkItem = this.safeValue (networks, networkCode, {});
+            precision = this.safeValue (networkItem, 'precision', precision);
+        }
+        if (precision === undefined) {
+            return fee;
+        } else {
+            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+        }
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -2050,7 +2058,7 @@ module.exports = class Exchange {
             for (let i = 0; i < reducedLength; i++) {
                 reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
                 if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.parseNumber (reducedFees['i']['rate'])
+                    reducedFees[i]['rate'] = this.parseNumber (reducedFees[i]['rate'])
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
@@ -2132,10 +2140,14 @@ module.exports = class Exchange {
         }
         // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
-        if (this.safeValue (order, 'postOnly', false)) {
-            timeInForce = 'PO';
-        } else if (this.safeString (order, 'type') === 'market') {
-            timeInForce = 'IOC';
+        if (timeInForce === undefined) {
+            if (this.safeString (order, 'type') === 'market') {
+                timeInForce = 'IOC';
+            }
+            // allow postOnly override
+            if (this.safeValue (order, 'postOnly', false)) {
+                timeInForce = 'PO';
+            }
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -2170,6 +2182,11 @@ module.exports = class Exchange {
     safeNumber2 (object, key1, key2, d = undefined) {
         const value = this.safeString2 (object, key1, key2)
         return this.parseNumber (value, d)
+    }
+
+    safeNumberN (object, arr, d = undefined) {
+        const value = this.safeStringN (object, arr)
+        return this.parseNumber(value, d)
     }
 
     parsePrecision (precision) {
@@ -2241,7 +2258,8 @@ module.exports = class Exchange {
         return this.options['timeDifference'];
     }
 
-    parseLeverageTiers (response, symbols, marketIdKey) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        // * marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -2264,14 +2282,114 @@ module.exports = class Exchange {
         if (this.has['fetchLeverageTiers']) {
             const market = await this.market (symbol);
             if (!market['contract']) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+                throw new BadSymbol (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
             const tiers = await this.fetchLeverageTiers ([ symbol ]);
             return this.safeValue (tiers, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
+    }
 
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
+         * @returns {boolean} true if a post only order, false otherwise
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const timeInForcePostOnly = timeInForce === 'PO';
+        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    async createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createPostOnlyOrder']) {
+            throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'postOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price, params = {}) {
+        if (!this.has['createReduceOnlyOrder']) {
+            throw new NotSupported (this.id + 'createReduceOnlyOrder() is not supported yet');
+        }
+        const query = this.extend (params, { 'reduceOnly': true });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopOrder (symbol, type, side, amount, price = undefined, stopPrice = undefined, params = {}) {
+        if (!this.has['createStopOrder']) {
+            throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
+        }
+        if (stopPrice === undefined) {
+            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+        }
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return await this.createOrder (symbol, type, side, amount, price, query);
+    }
+
+    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+        if (!this.has['createStopLimitOrder']) {
+            throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'limit', side, amount, price, query);
+    }
+
+    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+        if (!this.has['createStopMarketOrder']) {
+            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+        }
+        const query = this.extend(params, {'stopPrice': stopPrice});
+        return this.createOrder(symbol, 'market', side, amount, undefined, query);
+    }
+
+    checkOrderArguments (market, type, side, amount, price, params) {
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+             }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+        }
+    }
+
+    parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
     }
 
     parseBorrowInterests (response, market = undefined) {
@@ -2281,5 +2399,100 @@ module.exports = class Exchange {
             interest.push (this.parseBorrowInterest (row, market));
         }
         return interest;
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMarkOHLCV
+         * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchMarkOHLCV']) {
+            const request = {
+                'price': 'mark',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchIndexOHLCV
+         * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchIndexOHLCV']) {
+            const request = {
+                'price': 'index',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPremiumIndexOHLCV
+         * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchPremiumIndexOHLCV']) {
+            const request = {
+                'price': 'premiumIndex',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
+        }
     }
 }

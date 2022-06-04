@@ -46,6 +46,9 @@ class bitrue(Exchange):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
@@ -57,7 +60,6 @@ class bitrue(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
@@ -72,6 +74,7 @@ class bitrue(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
@@ -333,10 +336,10 @@ class bitrue(Exchange):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, currency, fee):
+    def currency_to_precision(self, code, fee, networkCode=None):
         # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[currency], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[currency]['precision'], self.precisionMode, self.paddingMode)
+        if self.safe_value(self.currencies[code], 'precision') is not None:
+            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
         else:
             return self.number_to_string(fee)
 
@@ -344,18 +347,34 @@ class bitrue(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.v1PublicGetPing(params)
+        #
+        # empty means working status.
+        #
+        #     {}
+        #
         keys = list(response.keys())
         keysLength = len(keys)
         formattedStatus = 'maintenance' if keysLength else 'ok'
-        self.status = self.extend(self.status, {
+        return {
             'status': formattedStatus,
-            'updated': self.milliseconds(),
+            'updated': None,
+            'eta': None,
+            'url': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.v1PublicGetTime(params)
         #
         #     {
@@ -436,6 +455,11 @@ class bitrue(Exchange):
         return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.v1PublicGetExchangeInfo(params)
         #
         #     {
@@ -530,6 +554,11 @@ class bitrue(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitrue
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.v1PublicGetExchangeInfo(params)
         #
         #     {
@@ -664,6 +693,11 @@ class bitrue(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.v1PrivateGetAccount(params)
         #
@@ -686,6 +720,13 @@ class bitrue(Exchange):
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -753,9 +794,15 @@ class bitrue(Exchange):
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         uppercaseBaseId = self.safe_string_upper(market, 'baseId')
@@ -793,6 +840,12 @@ class bitrue(Exchange):
         return self.parse_ticker(ticker, market)
 
     def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -808,6 +861,12 @@ class bitrue(Exchange):
         return self.parse_tickers(response, symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {
             'command': 'returnTicker',
@@ -936,6 +995,14 @@ class bitrue(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1058,8 +1125,6 @@ class bitrue(Exchange):
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_value(order, 'fills', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
-        if clientOrderId == '':
-            clientOrderId = None
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
         if type == 'limit_maker':
@@ -1150,7 +1215,7 @@ class bitrue(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1191,7 +1256,7 @@ class bitrue(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1293,7 +1358,7 @@ class bitrue(Exchange):
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits requires a code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1351,7 +1416,7 @@ class bitrue(Exchange):
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1463,11 +1528,7 @@ class bitrue(Exchange):
         id = self.safe_string(transaction, 'id')
         tagType = self.safe_string(transaction, 'tagType')
         addressTo = self.safe_string(transaction, 'addressTo')
-        if addressTo == '':
-            addressTo = None
         addressFrom = self.safe_string(transaction, 'addressFrom')
-        if addressFrom == '':
-            addressFrom = None
         tagTo = None
         tagFrom = None
         if tagType is not None:
@@ -1480,8 +1541,6 @@ class bitrue(Exchange):
                 addressFrom = self.safe_string(parts, 0)
                 tagFrom = self.safe_string(parts, 1)
         txid = self.safe_string(transaction, 'txid')
-        if txid == '':
-            txid = None
         timestamp = self.safe_integer(transaction, 'createdAt')
         updated = self.safe_integer(transaction, 'updatedAt')
         payAmount = ('payAmount' in transaction)
@@ -1536,7 +1595,7 @@ class bitrue(Exchange):
             networkEntry = self.safe_value(networks, network, {})
             chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
             if chainName is None:
-                raise ArgumentsRequired(self.id + ' withdraw requires a network parameter or a chainName parameter')
+                raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter or a chainName parameter')
             params = self.omit(params, 'network')
         request = {
             'coin': currency['id'].upper(),

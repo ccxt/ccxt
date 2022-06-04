@@ -31,16 +31,25 @@ class exmo(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -50,6 +59,7 @@ class exmo(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': True,
@@ -61,10 +71,14 @@ class exmo(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
+                'setMargin': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -171,7 +185,7 @@ class exmo(Exchange):
                 },
                 'funding': {
                     'tierBased': False,
-                    'percentage': False,  # fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage': False,  # fixed funding fees for crypto, see fetchTransactionFees below
                 },
             },
             'options': {
@@ -181,6 +195,9 @@ class exmo(Exchange):
                 },
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
+                },
+                'margin': {
+                    'fillResponseFromRequest': True,
                 },
             },
             'commonCurrencies': {
@@ -212,6 +229,50 @@ class exmo(Exchange):
                 },
             },
         })
+
+    def modify_margin_helper(self, symbol, amount, type, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'position_id': market['id'],
+            'quantity': amount,
+        }
+        method = None
+        if type == 'add':
+            method = 'privatePostMarginUserPositionMarginAdd'
+        elif type == 'reduce':
+            method = 'privatePostMarginUserPositionMarginReduce'
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #      {}
+        #
+        margin = self.parse_margin_modification(response, market)
+        options = self.safe_value(self.options, 'margin', {})
+        fillResponseFromRequest = self.safe_value(options, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            margin['type'] = type
+            margin['amount'] = amount
+        return margin
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #      {}
+        #
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_value(market, 'quote'),
+            'symbol': self.safe_symbol(None, market),
+            'total': None,
+            'status': 'ok',
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    def add_margin(self, symbol, amount, params={}):
+        return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def fetch_trading_fees(self, params={}):
         method = self.safe_string(params, 'method')
@@ -320,10 +381,10 @@ class exmo(Exchange):
         value = parts[0].replace('%', '')
         result = float(value)
         if (result > 0) and isPercentage:
-            raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
+            raise ExchangeError(self.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input)
         return result
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
         self.load_markets()
         currencyList = self.publicGetCurrencyListExtended(params)
         #
@@ -392,6 +453,11 @@ class exmo(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         #
         currencyList = self.publicGetCurrencyListExtended(params)
         #
@@ -505,6 +571,11 @@ class exmo(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for exmo
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetPairSettings(params)
         #
         #     {
@@ -543,7 +614,7 @@ class exmo(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -585,6 +656,15 @@ class exmo(Exchange):
         return result
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -600,7 +680,7 @@ class exmo(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
             else:
                 if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
                 request['from'] = int(now / 1000) - limit * duration - 1
                 request['to'] = int(now / 1000)
         else:
@@ -609,7 +689,7 @@ class exmo(Exchange):
                 request['to'] = int(now / 1000)
             else:
                 if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV will serve ' + str(maxLimit) + ' candles at most')
+                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
                 to = self.sum(since, limit * duration * 1000)
                 request['to'] = int(to / 1000)
         response = self.publicGetCandlesHistory(self.extend(request, params))
@@ -662,6 +742,11 @@ class exmo(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privatePostUserInfo(params)
         #
@@ -679,6 +764,13 @@ class exmo(Exchange):
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -698,7 +790,7 @@ class exmo(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
@@ -757,9 +849,15 @@ class exmo(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': self.safe_string(ticker, 'vol_curr'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetTicker(params)
         #
@@ -788,6 +886,12 @@ class exmo(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetTicker(params)
         market = self.market(symbol)
@@ -874,6 +978,14 @@ class exmo(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -974,7 +1086,7 @@ class exmo(Exchange):
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
             if clientOrderId is None:
-                raise BadRequest(self.id + ' createOrder client order id must be an integer / numeric literal')
+                raise BadRequest(self.id + ' createOrder() client order id must be an integer / numeric literal')
             else:
                 request['client_id'] = clientOrderId
             params = self.omit(params, ['client_id', 'clientOrderId'])
@@ -1103,7 +1215,7 @@ class exmo(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # fetchOrders, fetchOpenOrders, fetchClosedOrders
+        # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "order_id": "14",
@@ -1141,17 +1253,16 @@ class exmo(Exchange):
         timestamp = self.safe_timestamp(order, 'created')
         symbol = None
         side = self.safe_string(order, 'type')
-        if market is None:
-            marketId = None
-            if 'pair' in order:
-                marketId = order['pair']
-            elif ('in_currency' in order) and ('out_currency' in order):
-                if side == 'buy':
-                    marketId = order['in_currency'] + '_' + order['out_currency']
-                else:
-                    marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+        marketId = None
+        if 'pair' in order:
+            marketId = order['pair']
+        elif ('in_currency' in order) and ('out_currency' in order):
+            if side == 'buy':
+                marketId = order['in_currency'] + '_' + order['out_currency']
+            else:
+                marketId = order['out_currency'] + '_' + order['in_currency']
+        if (marketId is not None) and (marketId in self.markets_by_id):
+            market = self.markets_by_id[marketId]
         amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
@@ -1230,6 +1341,31 @@ class exmo(Exchange):
             'fee': fee,
             'info': order,
         }
+
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if since is not None:
+            request['offset'] = limit
+        if limit is not None:
+            request['limit'] = limit
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostUserCancelledOrders(self.extend(request, params))
+        #
+        #     [{
+        #         "order_id": "27056153840",
+        #         "client_id": "0",
+        #         "created": "1653428646",
+        #         "type": "buy",
+        #         "pair": "BTC_USDT",
+        #         "quantity": "0.1",
+        #         "price": "10",
+        #         "amount": "1"
+        #     }]
+        #
+        return self.parse_orders(response, market, since, limit, params)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -1486,7 +1622,131 @@ class exmo(Exchange):
         #         "count": 23
         #     }
         #
-        return self.parse_transactions(response['items'], currency, since, limit)
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'withdraw',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    def fetch_deposit(self, id=None, code=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'order_id': id,
+            'type': 'deposit',
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        first = self.safe_value(items, 0, {})
+        return self.parse_transaction(first, currency)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {
+            'type': 'deposit',
+        }
+        if limit is not None:
+            request['limit'] = limit  # default: 100, maximum: 100
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = self.privatePostWalletOperations(self.extend(request, params))
+        #
+        #     {
+        #         "items": [
+        #         {
+        #             "operation_id": 47412538520634344,
+        #             "created": 1573760013,
+        #             "updated": 1573760013,
+        #             "type": "deposit",
+        #             "currency": "DOGE",
+        #             "status": "Paid",
+        #             "amount": "300",
+        #             "provider": "DOGE",
+        #             "commission": "0",
+        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #             "order_id": 69670170,
+        #             "extra": {
+        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #                 "excode": "",
+        #                 "invoice": ""
+        #             },
+        #             "error": ""
+        #         },
+        #     ],
+        #         "count": 23
+        #     }
+        #
+        items = self.safe_value(response, 'items', [])
+        return self.parse_transactions(items, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

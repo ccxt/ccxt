@@ -9,7 +9,6 @@ echo "CCXT v." . \ccxtpro\Exchange::VERSION . "\n";
 $id = 'binance';
 $exchange_class = '\\ccxtpro\\' . $id;
 $exchange = new $exchange_class(array(
-    'enableRateLimit' => true,
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
 ));

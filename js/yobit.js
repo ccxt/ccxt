@@ -47,6 +47,7 @@ module.exports = class yobit extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -61,11 +62,14 @@ module.exports = class yobit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
@@ -281,6 +285,13 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the yobit api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
         //
@@ -312,6 +323,13 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchMarkets
+         * @description retrieves data on all markets for yobit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInfo (params);
         //
         //     {
@@ -331,7 +349,7 @@ module.exports = class yobit extends Exchange {
         //         },
         //     }
         //
-        const markets = this.safeValue (response, 'pairs');
+        const markets = this.safeValue (response, 'pairs', {});
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -401,6 +419,15 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the yobit api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -426,7 +453,7 @@ module.exports = class yobit extends Exchange {
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' fetchOrderBooks() has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -487,10 +514,18 @@ module.exports = class yobit extends Exchange {
             'baseVolume': this.safeString (ticker, 'vol_cur'),
             'quoteVolume': this.safeString (ticker, 'vol'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the yobit api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         let ids = this.ids;
         if (symbols === undefined) {
@@ -499,7 +534,7 @@ module.exports = class yobit extends Exchange {
             const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if (ids.length > this.options['fetchTickersMaxLength']) {
-                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
+                throw new ArgumentsRequired (this.id + ' fetchTickers() has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
@@ -522,6 +557,14 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the yobit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -606,6 +649,16 @@ module.exports = class yobit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name yobit#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the yobit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -660,7 +713,7 @@ module.exports = class yobit extends Exchange {
         //         },
         //     }
         //
-        const pairs = this.safeValue (response, 'pairs');
+        const pairs = this.safeValue (response, 'pairs', {});
         const marketIds = Object.keys (pairs);
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
@@ -685,7 +738,7 @@ module.exports = class yobit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -696,40 +749,29 @@ module.exports = class yobit extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostTrade (this.extend (request, params));
-        let id = undefined;
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], 'order_id');
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeNumber (response['return'], 'received', 0.0);
-            remaining = this.safeNumber (response['return'], 'remains', amount);
-        }
-        const timestamp = this.milliseconds ();
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            'info': response,
-            'clientOrderId': undefined,
-            'average': undefined,
-            'trades': undefined,
-        };
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "received":0,
+        //              "remains":10,
+        //              "order_id":1101103635125179,
+        //              "funds": {
+        //                  "usdt":27.84756553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //              },
+        //              "funds_incl_orders": {
+        //                  "usdt":30.35256553,
+        //                  "usdttrc20":0,
+        //                  "doge":19.98327206
+        //               },
+        //               "server_time":1650114256
+        //           }
+        //       }
+        //
+        const result = this.safeValue (response, 'return');
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -758,10 +800,7 @@ module.exports = class yobit extends Exchange {
         //      }
         //
         const result = this.safeValue (response, 'return', {});
-        return {
-            'id': this.safeString (result, 'order_id'),
-            'info': result,
-        };
+        return this.parseOrder (result);
     }
 
     parseOrderStatus (status) {
@@ -775,13 +814,79 @@ module.exports = class yobit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const id = this.safeString (order, 'id');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = this.safeTimestamp (order, 'timestamp_created');
+        //
+        // createOrder (private)
+        //
+        //      {
+        //          "received":0,
+        //          "remains":10,
+        //          "order_id":1101103635125179,
+        //          "funds": {
+        //              "usdt":27.84756553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":30.35256553,
+        //              "usdttrc20":0,
+        //              "doge":19.98327206
+        //          },
+        //          "server_time":1650114256
+        //      }
+        //
+        // fetchOrder (private)
+        //
+        //      {
+        //          "id: "1101103635103335",  // id-field is manually added in fetchOrder () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "start_amount":10,
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // fetchOpenOrders (private)
+        //
+        //      {
+        //          "id":"1101103635103335", // id-field is manually added in fetchOpenOrders () from exchange response id-order dictionary structure
+        //          "pair":"doge_usdt",
+        //          "type":"buy",
+        //          "amount":10,
+        //          "rate":0.05,
+        //          "timestamp_created":"1650112553",
+        //          "status":0
+        //      }
+        //
+        // cancelOrder (private)
+        //
+        //      {
+        //          "order_id":1101103634000197,
+        //          "funds": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          },
+        //          "funds_incl_orders": {
+        //              "usdt":31.81275443,
+        //              "usdttrc20":0,
+        //              "doge":9.98327206
+        //          }
+        //      }
+        //
+        let id = this.safeString2 (order, 'id', 'order_id');
+        let status = this.parseOrderStatus (this.safeString (order, 'status', 'open'));
+        if (id === '0') {
+            id = this.safeString (order, 'init_order_id');
+            status = 'closed';
+        }
+        const timestamp = this.safeTimestamp2 (order, 'timestamp_created', 'server_time');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const remaining = this.safeString (order, 'amount');
         const amount = this.safeString (order, 'start_amount');
+        const remaining = this.safeString2 (order, 'amount', 'remains');
+        const filled = this.safeString (order, 'received', '0.0');
         const price = this.safeString (order, 'rate');
         const fee = undefined;
         const type = 'limit';
@@ -803,7 +908,7 @@ module.exports = class yobit extends Exchange {
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': undefined,
+            'filled': filled,
             'status': status,
             'fee': fee,
             'average': undefined,
@@ -819,6 +924,22 @@ module.exports = class yobit extends Exchange {
         const response = await this.privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const orders = this.safeValue (response, 'return', {});
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103635103335": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "start_amount":10,
+        //                  "amount":10,
+        //                  "rate":0.05,
+        //                  "timestamp_created":"1650112553",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
@@ -834,8 +955,31 @@ module.exports = class yobit extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'return', []);
-        return this.parseOrders (orders, market, since, limit);
+        //
+        //      {
+        //          "success":1,
+        //          "return": {
+        //              "1101103634006799": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034937",
+        //                  "status":0
+        //              },
+        //              "1101103634006738": {
+        //                  "pair":"doge_usdt",
+        //                  "type":"buy",
+        //                  "amount":10,
+        //                  "rate":0.1,
+        //                  "timestamp_created":"1650034932",
+        //                  "status":0
+        //              }
+        //          }
+        //      }
+        //
+        const result = this.safeValue (response, 'return', {});
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -39,6 +39,9 @@ class kraken extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -61,6 +64,7 @@ class kraken extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -339,6 +343,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for kraken
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetAssetPairs ($params);
         //
         //     {
@@ -515,6 +524,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetAssets ($params);
         //
         //     {
@@ -526,7 +540,7 @@ class kraken extends Exchange {
         //         ),
         //     }
         //
-        $currencies = $this->safe_value($response, 'result');
+        $currencies = $this->safe_value($response, 'result', array());
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -629,10 +643,17 @@ class kraken extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['darkpool']) {
-            throw new ExchangeError($this->id . ' does not provide an order book for darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchOrderBook() does not provide an order book for darkpool $symbol ' . $symbol);
         }
         $request = array(
             'pair' => $market['id'],
@@ -720,10 +741,16 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         if ($symbols === null) {
             throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
         }
@@ -754,10 +781,16 @@ class kraken extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $darkpool = mb_strpos($symbol, '.d') !== false;
         if ($darkpool) {
-            throw new ExchangeError($this->id . ' does not provide a $ticker for $darkpool $symbol ' . $symbol);
+            throw new ExchangeError($this->id . ' fetchTicker() does not provide a $ticker for $darkpool $symbol ' . $symbol);
         }
         $market = $this->market($symbol);
         $request = array(
@@ -792,6 +825,15 @@ class kraken extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1011,14 +1053,14 @@ class kraken extends Exchange {
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
-        } else if (gettype($trade) === 'string') {
+        } elseif (gettype($trade) === 'string') {
             $id = $trade;
-        } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $marketId = $this->safe_string($trade, 'pair');
             $foundMarket = $this->find_market_by_altname_or_id($marketId);
             if ($foundMarket !== null) {
                 $market = $foundMarket;
-            } else if ($marketId !== null) {
+            } elseif ($marketId !== null) {
                 // delisted $market ids go here
                 $market = $this->get_delisted_market_by_id($marketId);
             }
@@ -1062,6 +1104,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $id = $market['id'];
@@ -1127,6 +1177,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         //
@@ -1167,14 +1222,14 @@ class kraken extends Exchange {
         //
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
-        } else if (($type === 'stop-loss') || ($type === 'take-profit')) {
+        } elseif (($type === 'stop-loss') || ($type === 'take-profit')) {
             $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice', $price);
             if ($stopPrice === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a price/stopPrice parameter for a ' . $type . ' order');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $stopPrice);
             }
-        } else if (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
+        } elseif (($type === 'stop-loss-limit') || ($type === 'take-profit-limit')) {
             $stopPrice = $this->safe_number_2($params, 'price', 'stopPrice');
             $limitPrice = $this->safe_number($params, 'price2');
             $stopPriceDefined = ($stopPrice !== null);
@@ -1182,19 +1237,32 @@ class kraken extends Exchange {
             if ($stopPriceDefined && $limitPriceDefined) {
                 $request['price'] = $this->price_to_precision($symbol, $stopPrice);
                 $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
-            } else if (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
+            } elseif (($price === null) || (!($stopPriceDefined || $limitPriceDefined))) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument and/or price/stopPrice/price2 parameters for a ' . $type . ' order');
             } else {
                 if ($stopPriceDefined) {
                     $request['price'] = $this->price_to_precision($symbol, $stopPrice);
                     $request['price2'] = $this->price_to_precision($symbol, $price);
-                } else if ($limitPriceDefined) {
+                } elseif ($limitPriceDefined) {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                     $request['price2'] = $this->price_to_precision($symbol, $limitPrice);
                 }
             }
         }
-        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2' ));
+        $close = $this->safe_value($params, 'close');
+        if ($close !== null) {
+            $close = array_merge(array(), $close);
+            $closePrice = $this->safe_value($close, 'price');
+            if ($closePrice !== null) {
+                $close['price'] = $this->price_to_precision($symbol, $closePrice);
+            }
+            $closePrice2 = $this->safe_value($close, 'price2'); // $stopPrice
+            if ($closePrice2 !== null) {
+                $close['price2'] = $this->price_to_precision($symbol, $closePrice2);
+            }
+            $request['close'] = $close;
+        }
+        $params = $this->omit($params, array( 'price', 'stopPrice', 'price2', 'close' ));
         $response = $this->privatePostAddOrder (array_merge($request, $params));
         //
         //     {
@@ -1212,7 +1280,7 @@ class kraken extends Exchange {
     public function find_market_by_altname_or_id($id) {
         if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
             return $this->marketsByAltname[$id];
-        } else if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
+        } elseif (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
             return $this->markets_by_id[$id];
         }
         return null;
@@ -1234,7 +1302,7 @@ class kraken extends Exchange {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 8;
-        } else if (strlen($id) === 7) {
+        } elseif (strlen($id) === 7) {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 7;
@@ -1310,7 +1378,7 @@ class kraken extends Exchange {
             if ($type === 'stop') {
                 $stopPrice = $this->safe_string($parts, 6);
                 $price = $this->safe_string($parts, 9);
-            } else if ($type === 'limit') {
+            } elseif ($type === 'limit') {
                 $price = $this->safe_string($parts, 5);
             }
         }
@@ -1321,7 +1389,7 @@ class kraken extends Exchange {
         $symbol = null;
         if ($foundMarket !== null) {
             $market = $foundMarket;
-        } else if ($marketId !== null) {
+        } elseif ($marketId !== null) {
             // delisted $market ids go here
             $market = $this->get_delisted_market_by_id($marketId);
         }
@@ -1350,7 +1418,7 @@ class kraken extends Exchange {
                 );
                 if (mb_strpos($flags, 'fciq') !== false) {
                     $fee['currency'] = $market['quote'];
-                } else if (mb_strpos($flags, 'fcib') !== false) {
+                } elseif (mb_strpos($flags, 'fcib') !== false) {
                     $fee['currency'] = $market['base'];
                 }
             }
@@ -1852,6 +1920,11 @@ class kraken extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         // https://www.kraken.com/en-us/features/api#get-server-time
         $response = $this->publicGetTime ($params);
         //
@@ -2097,12 +2170,14 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                $url .= '?' . $this->urlencode($params);
+                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                $url .= '?' . $this->urlencode_nested($params);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));
+            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+            $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');
             $binary = $this->encode($url);

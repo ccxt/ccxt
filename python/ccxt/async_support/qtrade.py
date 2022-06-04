@@ -64,6 +64,7 @@ class qtrade(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -78,12 +79,15 @@ class qtrade(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': None,
+                'fetchTransfer': False,
+                'fetchTransfers': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -161,6 +165,11 @@ class qtrade(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for qtrade
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetMarkets(params)
         #
         #     {
@@ -262,6 +271,11 @@ class qtrade(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     {
@@ -367,6 +381,15 @@ class qtrade(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -390,6 +413,13 @@ class qtrade(Exchange):
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         marketId = self.market_id(symbol)
         request = {'market_string': marketId}
@@ -482,9 +512,15 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetTickers(params)
         #
@@ -520,6 +556,12 @@ class qtrade(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -549,6 +591,14 @@ class qtrade(Exchange):
         return self.parse_ticker(data, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -767,6 +817,11 @@ class qtrade(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetBalancesAll(params)
         #
@@ -1207,6 +1262,65 @@ class qtrade(Exchange):
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'deposits', [])
         return self.parse_transactions(deposits, currency, since, limit)
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = await self.privateGetTransfers(params)
+        #
+        #     {
+        #         "data": {
+        #             "transfers": [
+        #                 {
+        #                     "amount": "0.5",
+        #                     "created_at": "2018-12-10T00:06:41.066665Z",
+        #                     "currency": "BTC",
+        #                     "id": 9,
+        #                     "reason_code": "referral_payout",
+        #                     "reason_metadata": {
+        #                         "note": "January referral earnings"
+        #                     },
+        #                     "sender_email": "qtrade",
+        #                     "sender_id": 218
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transfers = self.safe_value(data, 'transfers', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "amount": "0.5",
+        #         "created_at": "2018-12-10T00:06:41.066665Z",
+        #         "currency": "BTC",
+        #         "id": 9,
+        #         "reason_code": "referral_payout",
+        #         "reason_metadata": {
+        #             "note": "January referral earnings"
+        #         },
+        #         "sender_email": "qtrade",
+        #         "sender_id": 218
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        dateTime = self.safe_string(transfer, 'created_at')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.parse8601(dateTime),
+            'datetime': dateTime,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'sender_id'),
+            'toAccount': None,
+            'status': 'ok',
+        }
 
     async def fetch_withdrawal(self, id, code=None, params={}):
         await self.load_markets()

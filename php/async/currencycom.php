@@ -39,6 +39,9 @@ class currencycom extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => 'emulated',
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -56,8 +59,6 @@ class currencycom extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFee' => null,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -90,6 +91,8 @@ class currencycom extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
+                'fetchTransactionFee' => null,
+                'fetchTransactionFees' => null,
                 'fetchTransactions' => true,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => null,
@@ -250,12 +253,15 @@ class currencycom extends Exchange {
                     'Combination of parameters invalid' => '\\ccxt\\BadRequest',
                     'Invalid limit price' => '\\ccxt\\BadRequest',
                     'Only leverage symbol allowed here:' => '\\ccxt\\BadSymbol', // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE' => array("code":"-1128","msg":"Only leverage symbol allowed here => BTC/USDT")
+                    'market data service is not available' => '\\ccxt\\ExchangeNotAvailable', // array("code":"-1021","msg":"market data service is not available")
+                    'your time is ahead of server' => '\\ccxt\\InvalidNonce', // array("code":"-1021","msg":"your time is ahead of server")
                 ),
                 'exact' => array(
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                    '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+                    // '-1021' => '\\ccxt\\InvalidNonce', // array("code":"-1021","msg":"your time is ahead of server") // see above in the broad section
                     '-1022' => '\\ccxt\\AuthenticationError', // array("code":-1022,"msg":"Signature for this request is not valid.")
+                    '-1030' => '\\ccxt\\InvalidOrder', // array("code":"-1030","msg":"You mentioned an invalid value for the price parameter.")
                     '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                     '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
                     '-1025' => '\\ccxt\\AuthenticationError', // array("code":-1025,"msg":"Invalid API-key, IP, or permissions for action")
@@ -289,6 +295,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetV2Time ($params);
         //
         //     {
@@ -299,6 +310,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         // requires authentication
         if (!$this->check_required_credentials(false)) {
             return null;
@@ -367,6 +383,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for currencycom
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetV2ExchangeInfo ($params);
         //
         //     {
@@ -420,7 +441,7 @@ class currencycom extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             yield $this->load_time_difference();
         }
-        $markets = $this->safe_value($response, 'symbols');
+        $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -668,6 +689,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetV2Account ($params);
         //
@@ -705,6 +731,13 @@ class currencycom extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -810,10 +843,16 @@ class currencycom extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -844,6 +883,12 @@ class currencycom extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetV2Ticker24hr ($params);
         //
@@ -889,6 +934,15 @@ class currencycom extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -960,7 +1014,7 @@ class currencycom extends Exchange {
         if (is_array($trade) && array_key_exists('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO => needs reason to be mentioned]
             $takerOrMaker = 'taker'; // in public trades, it's always taker
-        } else if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('isBuyer', $trade)) {
             $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
@@ -991,6 +1045,14 @@ class currencycom extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1204,7 +1266,7 @@ class currencycom extends Exchange {
             if ($type === 'stop') {
                 $request['type'] = 'STOP';
                 $request['price'] = $this->price_to_precision($symbol, $price);
-            } else if ($type === 'market') {
+            } elseif ($type === 'market') {
                 $stopPrice = $this->safe_number($params, 'stopPrice');
                 $params = $this->omit($params, 'stopPrice');
                 if ($stopPrice !== null) {
@@ -1263,7 +1325,7 @@ class currencycom extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-        } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
+        } elseif ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
             $symbols = $this->symbols;
             $numSymbols = is_array($symbols) ? count($symbols) : 0;
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
@@ -1665,15 +1727,7 @@ class currencycom extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'positions', array());
-        return $this->parse_positions($data);
-    }
-
-    public function parse_positions($positions) {
-        $result = array();
-        for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
-        }
-        return $result;
+        return $this->parse_positions($data, $symbols);
     }
 
     public function parse_position($position, $market = null) {
@@ -1700,7 +1754,7 @@ class currencycom extends Exchange {
             'unrealizedProfit' => $unrealizedProfit,
             'leverage' => $leverage,
             'percentage' => null,
-            'marginType' => null,
+            'marginMode' => null,
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => null,

@@ -58,6 +58,7 @@ class yobit(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -72,11 +73,14 @@ class yobit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': None,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -289,6 +293,11 @@ class yobit(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
         #
@@ -319,6 +328,11 @@ class yobit(Exchange):
         return self.parse_balance(response)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for yobit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetInfo(params)
         #
         #     {
@@ -338,7 +352,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        markets = self.safe_value(response, 'pairs')
+        markets = self.safe_value(response, 'pairs', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -406,6 +420,13 @@ class yobit(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -428,7 +449,7 @@ class yobit(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -484,9 +505,15 @@ class yobit(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol_cur'),
             'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         ids = self.ids
         if symbols is None:
@@ -495,7 +522,7 @@ class yobit(Exchange):
             maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
             # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchTickersMaxLength']:
-                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -514,6 +541,12 @@ class yobit(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
@@ -592,6 +625,14 @@ class yobit(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -642,7 +683,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        pairs = self.safe_value(response, 'pairs')
+        pairs = self.safe_value(response, 'pairs', {})
         marketIds = list(pairs.keys())
         result = {}
         for i in range(0, len(marketIds)):
@@ -665,7 +706,7 @@ class yobit(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -675,38 +716,29 @@ class yobit(Exchange):
             'rate': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostTrade(self.extend(request, params))
-        id = None
-        status = 'open'
-        filled = 0.0
-        remaining = amount
-        if 'return' in response:
-            id = self.safe_string(response['return'], 'order_id')
-            if id == '0':
-                id = self.safe_string(response['return'], 'init_order_id')
-                status = 'closed'
-            filled = self.safe_number(response['return'], 'received', 0.0)
-            remaining = self.safe_number(response['return'], 'remains', amount)
-        timestamp = self.milliseconds()
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': None,
-            'info': response,
-            'clientOrderId': None,
-            'average': None,
-            'trades': None,
-        }
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "received":0,
+        #              "remains":10,
+        #              "order_id":1101103635125179,
+        #              "funds": {
+        #                  "usdt":27.84756553,
+        #                  "usdttrc20":0,
+        #                  "doge":19.98327206
+        #              },
+        #              "funds_incl_orders": {
+        #                  "usdt":30.35256553,
+        #                  "usdttrc20":0,
+        #                  "doge":19.98327206
+        #               },
+        #               "server_time":1650114256
+        #           }
+        #       }
+        #
+        result = self.safe_value(response, 'return')
+        return self.parse_order(result, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -734,10 +766,7 @@ class yobit(Exchange):
         #      }
         #
         result = self.safe_value(response, 'return', {})
-        return {
-            'id': self.safe_string(result, 'order_id'),
-            'info': result,
-        }
+        return self.parse_order(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -749,13 +778,78 @@ class yobit(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = self.safe_string(order, 'id')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_timestamp(order, 'timestamp_created')
+        #
+        # createOrder(private)
+        #
+        #      {
+        #          "received":0,
+        #          "remains":10,
+        #          "order_id":1101103635125179,
+        #          "funds": {
+        #              "usdt":27.84756553,
+        #              "usdttrc20":0,
+        #              "doge":19.98327206
+        #          },
+        #          "funds_incl_orders": {
+        #              "usdt":30.35256553,
+        #              "usdttrc20":0,
+        #              "doge":19.98327206
+        #          },
+        #          "server_time":1650114256
+        #      }
+        #
+        # fetchOrder(private)
+        #
+        #      {
+        #          "id: "1101103635103335",  # id-field is manually added in fetchOrder() from exchange response id-order dictionary structure
+        #          "pair":"doge_usdt",
+        #          "type":"buy",
+        #          "start_amount":10,
+        #          "amount":10,
+        #          "rate":0.05,
+        #          "timestamp_created":"1650112553",
+        #          "status":0
+        #      }
+        #
+        # fetchOpenOrders(private)
+        #
+        #      {
+        #          "id":"1101103635103335",  # id-field is manually added in fetchOpenOrders() from exchange response id-order dictionary structure
+        #          "pair":"doge_usdt",
+        #          "type":"buy",
+        #          "amount":10,
+        #          "rate":0.05,
+        #          "timestamp_created":"1650112553",
+        #          "status":0
+        #      }
+        #
+        # cancelOrder(private)
+        #
+        #      {
+        #          "order_id":1101103634000197,
+        #          "funds": {
+        #              "usdt":31.81275443,
+        #              "usdttrc20":0,
+        #              "doge":9.98327206
+        #          },
+        #          "funds_incl_orders": {
+        #              "usdt":31.81275443,
+        #              "usdttrc20":0,
+        #              "doge":9.98327206
+        #          }
+        #      }
+        #
+        id = self.safe_string_2(order, 'id', 'order_id')
+        status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
+        if id == '0':
+            id = self.safe_string(order, 'init_order_id')
+            status = 'closed'
+        timestamp = self.safe_timestamp_2(order, 'timestamp_created', 'server_time')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = self.safe_string(order, 'amount')
         amount = self.safe_string(order, 'start_amount')
+        remaining = self.safe_string_2(order, 'amount', 'remains')
+        filled = self.safe_string(order, 'received', '0.0')
         price = self.safe_string(order, 'rate')
         fee = None
         type = 'limit'
@@ -777,7 +871,7 @@ class yobit(Exchange):
             'cost': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': None,
+            'filled': filled,
             'status': status,
             'fee': fee,
             'average': None,
@@ -792,6 +886,22 @@ class yobit(Exchange):
         response = await self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
         orders = self.safe_value(response, 'return', {})
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "1101103635103335": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "start_amount":10,
+        #                  "amount":10,
+        #                  "rate":0.05,
+        #                  "timestamp_created":"1650112553",
+        #                  "status":0
+        #              }
+        #          }
+        #      }
+        #
         return self.parse_order(self.extend({'id': id}, orders[id]))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -804,8 +914,31 @@ class yobit(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
-        orders = self.safe_value(response, 'return', [])
-        return self.parse_orders(orders, market, since, limit)
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "1101103634006799": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "amount":10,
+        #                  "rate":0.1,
+        #                  "timestamp_created":"1650034937",
+        #                  "status":0
+        #              },
+        #              "1101103634006738": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "amount":10,
+        #                  "rate":0.1,
+        #                  "timestamp_created":"1650034932",
+        #                  "status":0
+        #              }
+        #          }
+        #      }
+        #
+        result = self.safe_value(response, 'return', {})
+        return self.parse_orders(result, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

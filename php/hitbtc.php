@@ -20,7 +20,7 @@ class hitbtc extends Exchange {
             'countries' => array( 'HK' ),
             // 300 requests per second => 1000ms / 300 = 3.333ms between requests on average (Trading)
             // 100 requests per second => ( 1000ms / rateLimit ) / 100 => cost = 3.0003 (Market Data)
-            // 10 requests per second => ( 1000ms / rateLimit ) / 10 => cost = 30.003 (Other Requests)
+            // 20 requests per second => ( 1000ms / rateLimit ) / 20 => cost = 15.0015 (Other Requests)
             'rateLimit' => 3.333,
             'version' => '2',
             'pro' => true,
@@ -58,6 +58,7 @@ class hitbtc extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -133,32 +134,32 @@ class hitbtc extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'trading/balance' => 30, // Get trading balance
-                        'order' => 30, // List your current open orders
-                        'order/{clientOrderId}' => 30, // Get a single order by clientOrderId
-                        'trading/fee/all' => 30, // Get trading fee rate
-                        'trading/fee/{symbol}' => 30, // Get trading fee rate
-                        'margin/account' => 30,
-                        'margin/account/{symbol}' => 30,
-                        'margin/position' => 30,
-                        'margin/position/{symbol}' => 30,
-                        'margin/order' => 30,
-                        'margin/order/{clientOrderId}' => 30,
-                        'history/order' => 30, // Get historical orders
-                        'history/trades' => 30, // Get historical trades
-                        'history/order/{orderId}/trades' => 30, // Get historical trades by specified order
-                        'account/balance' => 30, // Get main acccount balance
-                        'account/crypto/address/{currency}' => 30, // Get current address
-                        'account/crypto/addresses/{currency}' => 30, // Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}' => 30, // Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw' => 30,
-                        'account/crypto/is-mine/{address}' => 30,
-                        'account/transactions' => 30, // Get account transactions
-                        'account/transactions/{id}' => 30, // Get account transaction by id
-                        'sub-acc' => 30,
-                        'sub-acc/acl' => 30,
-                        'sub-acc/balance/{subAccountUserID}' => 30,
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}' => 30,
+                        'trading/balance' => 15.0015, // Get trading balance
+                        'order' => 15.0015, // List your current open orders
+                        'order/{clientOrderId}' => 15.0015, // Get a single order by clientOrderId
+                        'trading/fee/all' => 15.0015, // Get trading fee rate
+                        'trading/fee/{symbol}' => 15.0015, // Get trading fee rate
+                        'margin/account' => 15.0015,
+                        'margin/account/{symbol}' => 15.0015,
+                        'margin/position' => 15.0015,
+                        'margin/position/{symbol}' => 15.0015,
+                        'margin/order' => 15.0015,
+                        'margin/order/{clientOrderId}' => 15.0015,
+                        'history/order' => 15.0015, // Get historical orders
+                        'history/trades' => 15.0015, // Get historical trades
+                        'history/order/{orderId}/trades' => 15.0015, // Get historical trades by specified order
+                        'account/balance' => 15.0015, // Get main acccount balance
+                        'account/crypto/address/{currency}' => 15.0015, // Get current address
+                        'account/crypto/addresses/{currency}' => 15.0015, // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}' => 15.0015, // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw' => 15.0015,
+                        'account/crypto/is-mine/{address}' => 15.0015,
+                        'account/transactions' => 15.0015, // Get account transactions
+                        'account/transactions/{id}' => 15.0015, // Get account transaction by id
+                        'sub-acc' => 15.0015,
+                        'sub-acc/acl' => 15.0015,
+                        'sub-acc/balance/{subAccountUserID}' => 15.0015,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}' => 15.0015,
                     ),
                     'post' => array(
                         'order' => 1, // Create new order
@@ -215,13 +216,8 @@ class hitbtc extends Exchange {
                 ),
                 'defaultTimeInForce' => 'FOK',
                 'accountsByType' => array(
-                    'bank' => 'bank',
-                    'exchange' => 'exchange',
-                    'main' => 'bank',  // alias of the above
                     'funding' => 'bank',
                     'spot' => 'exchange',
-                    'trade' => 'exchange',
-                    'trading' => 'exchange',
                 ),
                 'fetchBalanceMethod' => array(
                     'account' => 'account',
@@ -278,6 +274,11 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for hitbtc
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetSymbol ($params);
         //
         //     array(
@@ -378,38 +379,54 @@ class hitbtc extends Exchange {
         $type = $this->safe_string($params, 'type');
         if ($type === null) {
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount);
-            $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-            if ($fromId === null) {
-                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $fromId);
-            }
-            if ($toId === null) {
-                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys) . ' instead of ' . $toId);
-            }
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId === $toId) {
-                throw new ExchangeError($this->id . ' from and to cannot be the same account');
+                throw new ExchangeError($this->id . ' $transfer() from and to cannot be the same account');
             }
             $type = $fromId . 'To' . $this->capitalize($toId);
         }
         $request['type'] = $type;
         $response = $this->privatePostAccountTransfer (array_merge($request, $params));
-        // array( $id => '2db6ebab-fb26-4537-9ef8-1a689472d236' )
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
-            'amount' => $requestAmount,
-            'currency' => $code,
+        //
+        //     {
+        //         'id' => '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
+            'amount' => $this->parse_number($requestAmount),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         'id' => '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
             'status' => null,
+            'info' => $transfer,
         );
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrency ($params);
         //
         //     array(
@@ -536,12 +553,17 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $fetchBalanceAccounts = $this->safe_value($this->options, 'fetchBalanceMethod', array());
         $typeId = $this->safe_string($fetchBalanceAccounts, $type);
         if ($typeId === null) {
-            throw new ExchangeError($this->id . ' fetchBalance account $type must be either main or trading');
+            throw new ExchangeError($this->id . ' fetchBalance() account $type must be either main or trading');
         }
         $method = 'privateGet' . $this->capitalize($typeId) . 'Balance';
         $query = $this->omit($params, 'type');
@@ -579,6 +601,15 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -603,6 +634,13 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -642,10 +680,16 @@ class hitbtc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
         $result = array();
@@ -660,6 +704,12 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -860,6 +910,14 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1233,7 +1291,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new ExchangeError($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         $request = array(
             'fromCurrency' => $currency['id'] . $fromNetwork,
@@ -1294,7 +1352,7 @@ class hitbtc extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($query) {
+            } elseif ($query) {
                 $body = $this->json($query);
             }
             $payload = $this->encode($this->apiKey . ':' . $this->secret);

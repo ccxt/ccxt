@@ -13,7 +13,6 @@ const fs = require ('fs')
         unCamelCase,
         precisionConstants,
         safeString,
-        unique,
     } = functions
     , { basename } = require ('path')
     , {
@@ -23,6 +22,7 @@ const fs = require ('fs')
     } = require ('./fs.js')
     , Exchange = require ('../js/base/Exchange.js')
     , tsFilename = './ccxt.d.ts'
+    , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 
 class Transpiler {
 
@@ -47,6 +47,15 @@ class Transpiler {
             [ /\.safeStringLower\s/g, '.safe_string_lower'],
             [ /\.safeStringUpper\s/g, '.safe_string_upper'],
             [ /\.safeValue\s/g, '.safe_value'],
+            [ /\.safeFloatN\s/g, '.safe_float_n'],
+            [ /\.safeIntegerN\s/g, '.safe_integer_n'],
+            [ /\.safeIntegerProductN\s/g, '.safe_integer_product_n'],
+            [ /\.safeTimestampN\s/g, '.safe_timestamp_n'],
+            [ /\.safeStringN\s/g, '.safe_string_n'],
+            [ /\.safeNumberN\s/g, '.safe_number_n'],
+            [ /\.safeStringLowerN\s/g, '.safe_string_lower_n'],
+            [ /\.safeStringUpperN\s/g, '.safe_string_upper_n'],
+            [ /\.safeValueN\s/g, '.safe_value_n'],
             [ /\.inArray\s/g, '.in_array'],
             [ /\.toArray\s/g, '.to_array'],
             [ /\.isEmpty\s/g, '.is_empty'],
@@ -60,6 +69,8 @@ class Transpiler {
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
             [ /\.safeBalance\s/g, '.safe_balance'],
+            [ /\.parseAccounts\s/g, '.parse_accounts' ],
+            [ /\.parseAccount\s/g, '.parse_account' ],
             [ /\.parseBalance\s/g, '.parse_balance'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
@@ -83,6 +94,13 @@ class Transpiler {
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
             [ /\.parseOrder\s/g, '.parse_order'],
             [ /\.parseJson\s/g, '.parse_json'],
+            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
+            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
+            [ /\.parsePositions\s/g, '.parse_positions' ],
+            [ /\.parseIncome\s/g, '.parse_income' ],
+            [ /\.parseIncomes\s/g, '.parse_incomes' ],
+            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
+            [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
             [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
@@ -93,9 +111,11 @@ class Transpiler {
             [ /\.sortBy2\s/g, '.sort_by_2'],
             [ /\.filterBy\s/g, '.filter_by'],
             [ /\.groupBy\s/g, '.group_by'],
+            [ /\.marketSymbols\s/g, '.market_symbols'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
-            [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
+            [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
+            [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
             [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
             [ /\.fetchFees\s/g, '.fetch_fees'],
@@ -129,6 +149,11 @@ class Transpiler {
             [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
             [ /\.fetchCategories\s/g, '.fetch_categories'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
+            [ /\.createOrder\s/g, '.create_order'],
+            [ /\.createPostOnlyOrder\s/g, '.create_post_only_order'],
+            [ /\.createStopOrder\s/g, '.create_stop_order'],
+            [ /\.createStopLimitOrder\s/g, '.create_stop_limit_order'],
+            [ /\.createStopMarketOrder\s/g, '.create_stop_market_order'],
             [ /\.editLimitBuyOrder\s/g, '.edit_limit_buy_order'],
             [ /\.editLimitSellOrder\s/g, '.edit_limit_sell_order'],
             [ /\.editLimitOrder\s/g, '.edit_limit_order'],
@@ -150,15 +175,8 @@ class Transpiler {
             [ /\.safeMarket\s/g, '.safe_market'],
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
-            [ /\.safeTransaction\s/g, '.safe_transaction'],
-            [ /\.safeTransfer\s/g, '.safe_transfer'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
             [ /\.calculateRateLimiterCost\s/g, '.calculate_rate_limiter_cost' ],
-            [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
-            [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
-            [ /\.parseIncome\s/g, '.parse_income' ],
-            [ /\.parseIncomes\s/g, '.parse_incomes' ],
-            [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.findBroadlyMatchedKey\s/g, '.find_broadly_matched_key' ],
             [ /\.throwBroadlyMatchedException\s/g, '.throw_broadly_matched_exception' ],
             [ /\.throwExactlyMatchedException\s/g, '.throw_exactly_matched_exception' ],
@@ -167,18 +185,20 @@ class Transpiler {
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.base16ToBinary/g, '.base16_to_binary'],
             [ /\'use strict\';?\s+/g, '' ],
+            [ /\.urlencodeNested\s/g, '.urlencode_nested' ],
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
+            [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
+            [ /\.isPostOnly\s/g, '.is_post_only'],
         ]
     }
 
     getPythonRegexes () {
 
         return [
-
             [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
@@ -331,12 +351,14 @@ class Transpiler {
             [ /(?<!#.+)null/, 'None' ],
             [ /\/\*\*/, '\"\"\"' ], // Doc strings
             [ / \*\//, '\"\"\"' ], // Doc strings
-            [ /\[(.*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
+            [ /\[([^\[\]]*)\]\{@link (.*)\}/g, '`$1 <$2>`' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @returns/g, '$1:returns:' ], // docstring return
-            [ /(\s+) \* @([a-z]+) \{([a-z]+)\} ([a-zA-Z0-9_\-\.]+)/g, '$1:$2 $3 $4:' ], // docstring param
+            [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
+            [ /(\s+) \* @returns \{([\]\[a-zA-Z]*)\}/g, '$1:returns $2:' ], // docstring return
+            [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
+            [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
     }
 
@@ -378,8 +400,8 @@ class Transpiler {
             // That is done at the very last regex steps.
             // All of that is a workaround for PHP-arrays vs dictionaries vs url-imploded params in other langs.
             //
-            [ /\{([a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-            [ /\[(.*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
+            [ /\{([\]\[\|a-zA-Z0-9_-]+?)\}/g, '~$1~' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\[([^\]\[]*)\]\{(@link .*)\}/g, '~$2 $1~' ], // docstring item with link
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
@@ -418,6 +440,7 @@ class Transpiler {
             [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'number\'/g, "!(is_float($1) || is_int($1))" ],
 
             [ /undefined/g, 'null' ],
+            [ /\} else if/g, '} elseif' ],
             [ /this\.extend\s/g, 'array_merge' ],
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
@@ -524,7 +547,7 @@ class Transpiler {
             [ /process\.exit/g, 'exit'],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
-            [ /\~([@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
+            [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
     }
 
@@ -610,7 +633,7 @@ class Transpiler {
 
     createPythonClassHeader (imports, bodyAsString) {
         return [
-            "# -*- coding: utf-8 -*-",
+            pythonCodingUtf8,
             "",
             "# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
             "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
@@ -643,10 +666,6 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        const baseClasses = {
-            'Exchange': 'base.exchange',
-        }
-
         async = (async ? '.async_support' : '')
 
         const imports = this.createPythonClassImports (baseClass, async)
@@ -658,7 +677,7 @@ class Transpiler {
         const libraries = []
 
         for (let library in pythonStandardLibraries) {
-            const regex = new RegExp ("[^\\'a-zA-Z]" + library + "[^\\'a-zA-Z]")
+            const regex = new RegExp ("[^\\'\\\"a-zA-Z]" + library + "[^\\'\\\"a-zA-Z]")
             if (bodyAsString.match (regex))
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
@@ -722,7 +741,6 @@ class Transpiler {
             return false // capabilities not found
         }
         let capabilities = found[0].split (lineBreak);
-        const exchange = new Exchange ()
         const sortingOrder = {
             'CORS': 'undefined,',
             'spot': 'true,',
@@ -1300,7 +1318,7 @@ class Transpiler {
         const message = 'Transpiling error hierachy →'
         const root = errorHierarchy['BaseError']
 
-        const { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js })
+        const { python3Body } = this.transpileJavaScriptToPythonAndPHP ({ js })
 
         // a helper to generate a list of exception class declarations
         // properly derived from corresponding parent classes according
@@ -1415,7 +1433,7 @@ class Transpiler {
             [/^\/\*.*\s+/mg, ''],
         ])
 
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
 
@@ -1528,7 +1546,7 @@ class Transpiler {
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
-        let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
         const pythonHeader = [
             "",
@@ -1618,6 +1636,16 @@ class Transpiler {
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
             },
+            {
+                'jsFile': './js/test/Exchange/test.account.js',
+                'pyFile': './python/ccxt/test/test_account.py',
+                'phpFile': './php/test/test_account.php',
+            },
+            {
+                'jsFile': './js/test/Exchange/test.marginModification.js',
+                'pyFile': './python/ccxt/test/test_margin_modification.py',
+                'phpFile': './php/test/test_margin_modification.php',
+            },
         ]
         for (const test of tests) {
             this.transpileTest (test)
@@ -1636,15 +1664,23 @@ class Transpiler {
             [ /module.exports\s+=\s+[^;]+;/g, '' ],
         ])
 
-        const pythonHeader = [
-            'import numbers  # noqa: E402',
-            '',
-            '',
-        ].join('\n')
+        let { python3Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
-        let { python3Body, python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-        const python = pythonHeader + python3Body;
-        const php = this.getPHPPreamble (false) + phpBody;
+        let pythonHeader = []
+
+        if (python3Body.indexOf ('numbers.') >= 0) {
+            pythonHeader.push ('import numbers  # noqa E402')
+        }
+
+        if (pythonHeader.length > 0) {
+            pythonHeader.unshift ('')
+            pythonHeader.push ('', '')
+        }
+
+        pythonHeader = pythonCodingUtf8 + '\n\n' + pythonHeader.join ('\n')
+
+        const python = pythonHeader + python3Body
+        const php = this.getPHPPreamble (false) + phpBody
 
         log.magenta ('→', test.pyFile.yellow)
         log.magenta ('→', test.phpFile.yellow)

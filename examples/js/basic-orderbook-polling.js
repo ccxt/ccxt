@@ -2,7 +2,7 @@
 
 const ccxt = require ('../../ccxt.js')
     , id = 'huobipro'
-    , exchange = new ccxt[id] ({ enableRateLimit: true })
+    , exchange = new ccxt[id] ()
     , symbol = 'ETH/BTC'
 
 ;(async function main () {

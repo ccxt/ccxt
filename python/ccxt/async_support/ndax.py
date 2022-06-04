@@ -58,6 +58,7 @@ class ndax(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -77,6 +78,7 @@ class ndax(Exchange):
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -302,6 +304,11 @@ class ndax(Exchange):
         return response
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         request = {
             'omsId': omsId,
@@ -358,6 +365,11 @@ class ndax(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for ndax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         request = {
             'omsId': omsId,
@@ -505,6 +517,13 @@ class ndax(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
@@ -576,24 +595,23 @@ class ndax(Exchange):
         marketId = self.safe_string(ticker, 'InstrumentId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'LastTradedPx')
-        percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
-        change = self.safe_number(ticker, 'Rolling24HrPxChange')
-        open = self.safe_number(ticker, 'SessionOpen')
-        baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
-        quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'LastTradedPx')
+        percentage = self.safe_string(ticker, 'Rolling24HrPxChangePercent')
+        change = self.safe_string(ticker, 'Rolling24HrPxChange')
+        open = self.safe_string(ticker, 'SessionOpen')
+        baseVolume = self.safe_string(ticker, 'Rolling24HrVolume')
+        quoteVolume = self.safe_string(ticker, 'Rolling24HrNotional')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'SessionHigh'),
-            'low': self.safe_number(ticker, 'SessionLow'),
-            'bid': self.safe_number(ticker, 'BestBid'),
+            'high': self.safe_string(ticker, 'SessionHigh'),
+            'low': self.safe_string(ticker, 'SessionLow'),
+            'bid': self.safe_string(ticker, 'BestBid'),
             'bidVolume': None,  # self.safe_number(ticker, 'BidQty'), always shows 0
-            'ask': self.safe_number(ticker, 'BestOffer'),
+            'ask': self.safe_string(ticker, 'BestOffer'),
             'askVolume': None,  # self.safe_number(ticker, 'AskQty'), always shows 0
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -607,6 +625,12 @@ class ndax(Exchange):
         }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
@@ -671,6 +695,15 @@ class ndax(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
@@ -867,6 +900,14 @@ class ndax(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         market = self.market(symbol)
@@ -929,6 +970,11 @@ class ndax(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()

@@ -28,6 +28,9 @@ class bigone extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
@@ -148,6 +151,7 @@ class bigone extends Exchange {
                     '40601' => '\\ccxt\\ExchangeError', // resource is locked
                     '40602' => '\\ccxt\\ExchangeError', // resource is depleted
                     '40603' => '\\ccxt\\InsufficientFunds', // insufficient resource
+                    '40604' => '\\ccxt\\InvalidOrder', // array("code":40604,"message":"Price exceed the maximum order price")
                     '40605' => '\\ccxt\\InvalidOrder', // array("code":40605,"message":"Price less than the minimum order price")
                     '40120' => '\\ccxt\\InvalidOrder', // Order is in trading
                     '40121' => '\\ccxt\\InvalidOrder', // Order is already cancelled or filled
@@ -167,6 +171,11 @@ class bigone extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bigone
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetAssetPairs ($params);
         //
         //     {
@@ -316,10 +325,16 @@ class bigone extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -347,6 +362,12 @@ class bigone extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -394,6 +415,11 @@ class bigone extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer $timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {int} the current integer $timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetPing ($params);
         //
         //     {
@@ -408,6 +434,13 @@ class bigone extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -495,7 +528,7 @@ class bigone extends Exchange {
         } else {
             if ($side === 'BID') {
                 $side = 'buy';
-            } else if ($side === 'ASK') {
+            } elseif ($side === 'ASK') {
                 $side = 'sell';
             }
         }
@@ -508,7 +541,7 @@ class bigone extends Exchange {
             } else {
                 $orderId = $makerOrderId;
             }
-        } else if ($takerOrderId !== null) {
+        } elseif ($takerOrderId !== null) {
             $orderId = $takerOrderId;
         }
         $id = $this->safe_string($trade, 'id');
@@ -546,11 +579,11 @@ class bigone extends Exchange {
                     $takerCurrencyCode = $market['quote'];
                 }
             }
-        } else if ($side === 'SELF_TRADING') {
+        } elseif ($side === 'SELF_TRADING') {
             if ($takerSide === 'BID') {
                 $makerCurrencyCode = $market['quote'];
                 $takerCurrencyCode = $market['base'];
-            } else if ($takerSide === 'ASK') {
+            } elseif ($takerSide === 'ASK') {
                 $makerCurrencyCode = $market['base'];
                 $takerCurrencyCode = $market['quote'];
             }
@@ -566,7 +599,7 @@ class bigone extends Exchange {
             } else {
                 $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
             }
-        } else if ($takerFeeCost !== null) {
+        } elseif ($takerFeeCost !== null) {
             $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
         } else {
             $result['fee'] = null;
@@ -575,6 +608,14 @@ class bigone extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -628,6 +669,15 @@ class bigone extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -692,6 +742,11 @@ class bigone extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $type = $this->safe_string($params, 'type', '');
         $params = $this->omit($params, 'type');
@@ -1012,7 +1067,7 @@ class bigone extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json($query);
             }

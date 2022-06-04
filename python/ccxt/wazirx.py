@@ -24,7 +24,7 @@ class wazirx(Exchange):
             'name': 'WazirX',
             'countries': ['IN'],
             'version': 'v2',
-            'rateLimit': 100,
+            'rateLimit': 1000,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -35,6 +35,9 @@ class wazirx(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': False,
@@ -42,7 +45,6 @@ class wazirx(Exchange):
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -52,6 +54,7 @@ class wazirx(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -64,6 +67,7 @@ class wazirx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
@@ -136,6 +140,11 @@ class wazirx(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for wazirx
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetExchangeInfo(params)
         #
         # {
@@ -239,6 +248,13 @@ class wazirx(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -264,6 +280,12 @@ class wazirx(Exchange):
         return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -288,6 +310,12 @@ class wazirx(Exchange):
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         tickers = self.publicGetTickers24hr()
         #
@@ -316,6 +344,14 @@ class wazirx(Exchange):
         return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -374,20 +410,33 @@ class wazirx(Exchange):
         }, market)
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.publicGetSystemStatus(params)
         #
-        #  {"status":"normal","message":"System is running normally."}
+        #     {
+        #         "status":"normal",  # normal, system maintenance
+        #         "message":"System is running normally."
+        #     }
         #
         status = self.safe_string(response, 'status')
-        status = 'ok' if (status == 'normal') else 'maintenance'
-        self.status = self.extend(self.status, {
-            'status': status,
-            'updated': self.milliseconds(),
+        return {
+            'status': 'ok' if (status == 'normal') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
             'info': response,
-        })
-        return self.status
+        }
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTime(params)
         #
         #     {
@@ -422,7 +471,7 @@ class wazirx(Exchange):
         baseVolume = self.safe_string(ticker, 'volume')
         bid = self.safe_string(ticker, 'bidPrice')
         ask = self.safe_string(ticker, 'askPrice')
-        timestamp = self.safe_string(ticker, 'at')
+        timestamp = self.safe_integer(ticker, 'at')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -444,7 +493,7 @@ class wazirx(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def parse_balance(self, response):
         result = {}
@@ -459,6 +508,11 @@ class wazirx(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetFunds(params)
         #
@@ -474,7 +528,7 @@ class wazirx(Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -556,7 +610,7 @@ class wazirx(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -566,7 +620,7 @@ class wazirx(Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder requires a `symbol` argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

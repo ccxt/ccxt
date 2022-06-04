@@ -43,7 +43,6 @@ class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -55,6 +54,7 @@ class bitstamp extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -66,6 +66,7 @@ class bitstamp extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -250,6 +251,24 @@ class bitstamp extends Exchange {
                         'nexo_address/' => 1,
                         'ust_withdrawal/' => 1,
                         'ust_address/' => 1,
+                        'ant_withdrawal/' => 1,
+                        'ant_address/' => 1,
+                        'gods_withdrawal/' => 1,
+                        'gods_address/' => 1,
+                        'rad_withdrawal/' => 1,
+                        'rad_address/' => 1,
+                        'band_withdrawal/' => 1,
+                        'band_address/' => 1,
+                        'inj_withdrawal/' => 1,
+                        'inj_address/' => 1,
+                        'rly_withdrawal/' => 1,
+                        'rly_address/' => 1,
+                        'rndr_withdrawal/' => 1,
+                        'rndr_address/' => 1,
+                        'vega_withdrawal/' => 1,
+                        'vega_address/' => 1,
+                        '1inch_withdrawal/' => 1,
+                        '1inch_address/' => 1,
                         'transfer-to-main/' => 1,
                         'transfer-from-main/' => 1,
                         'withdrawal-requests/' => 1,
@@ -355,6 +374,11 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for bitstamp
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->fetch_markets_from_cache($params);
         //
         //     array(
@@ -491,6 +515,11 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->fetch_markets_from_cache($params);
         //
         //     array(
@@ -533,6 +562,13 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'pair' => $this->market_id($symbol),
@@ -603,10 +639,16 @@ class bitstamp extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -682,7 +724,7 @@ class bitstamp extends Exchange {
         $currencyIds = is_array($trade) ? array_keys($trade) : array();
         $numCurrencyIds = is_array($currencyIds) ? count($currencyIds) : 0;
         if ($numCurrencyIds > 2) {
-            throw new ExchangeError($this->id . ' getMarketFromTrade too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($trade));
+            throw new ExchangeError($this->id . ' getMarketFromTrade() too many keys => ' . $this->json($currencyIds) . ' in the $trade => ' . $this->json($trade));
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
@@ -796,7 +838,7 @@ class bitstamp extends Exchange {
             $side = $this->safe_string($trade, 'type');
             if ($side === '1') {
                 $side = 'sell';
-            } else if ($side === '0') {
+            } elseif ($side === '0') {
                 $side = 'buy';
             } else {
                 $side = null;
@@ -830,6 +872,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -880,6 +930,15 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -944,6 +1003,11 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         //
@@ -1026,7 +1090,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
         return $this->parse_funding_fees($balance);
@@ -1042,7 +1106,7 @@ class bitstamp extends Exchange {
         );
         if ($type === 'market') {
             $method .= 'Market';
-        } else if ($type === 'instant') {
+        } elseif ($type === 'instant') {
             $method .= 'Instant';
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1285,10 +1349,10 @@ class bitstamp extends Exchange {
         $amount = null;
         if (is_array($transaction) && array_key_exists('amount', $transaction)) {
             $amount = $this->safe_number($transaction, 'amount');
-        } else if ($currency !== null) {
+        } elseif ($currency !== null) {
             $amount = $this->safe_number($transaction, $currency['id'], $amount);
             $feeCurrency = $currency['code'];
-        } else if (($code !== null) && ($currencyId !== null)) {
+        } elseif (($code !== null) && ($currencyId !== null)) {
             $amount = $this->safe_number($transaction, $currencyId, $amount);
             $feeCurrency = $code;
         }
@@ -1306,7 +1370,7 @@ class bitstamp extends Exchange {
             $rawType = $this->safe_string($transaction, 'type');
             if ($rawType === '0') {
                 $type = 'deposit';
-            } else if ($rawType === '1') {
+            } elseif ($rawType === '1') {
                 $type = 'withdrawal';
             }
         } else {
@@ -1529,7 +1593,7 @@ class bitstamp extends Exchange {
             if (is_array($item) && array_key_exists('amount', $item)) {
                 $amount = $this->safe_number($item, 'amount');
                 $direction = ($amount > 0) ? 'in' : 'out';
-            } else if ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
                 $amount = $this->safe_number($item, $currency['id']);
@@ -1639,7 +1703,7 @@ class bitstamp extends Exchange {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
                 }
-            } else if ($code === 'XLM' || $code === 'HBAR') {
+            } elseif ($code === 'XLM' || $code === 'HBAR') {
                 if ($tag !== null) {
                     $request['memo_id'] = $tag;
                 }
@@ -1718,7 +1782,7 @@ class bitstamp extends Exchange {
             $errors = array();
             if (gettype($error) === 'string') {
                 $errors[] = $error;
-            } else if ($error !== null) {
+            } elseif ($error !== null) {
                 $keys = is_array($error) ? array_keys($error) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];

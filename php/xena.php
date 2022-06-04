@@ -66,7 +66,11 @@ class xena extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -187,6 +191,11 @@ class xena extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetMarketDataV2ServerTime ($params);
         //
         //     {
@@ -199,6 +208,11 @@ class xena extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for xena
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetCommonInstruments ($params);
         //
         //     array(
@@ -313,7 +327,7 @@ class xena extends Exchange {
                     $symbol = $symbol . '-' . $this->yymmdd($expiryTimestamp);
                     $type = 'future';
                     $future = true;
-                } else if ($marginType === 'XenaListedPerpetual') {
+                } elseif ($marginType === 'XenaListedPerpetual') {
                     $type = 'swap';
                     $swap = true;
                 }
@@ -374,6 +388,11 @@ class xena extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = $this->publicGetCommonCurrencies ($params);
         //
         //     {
@@ -483,19 +502,31 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $tickers = $this->fetch_tickers(null, $params);
         if (is_array($tickers) && array_key_exists($symbol, $tickers)) {
             return $tickers[$symbol];
         }
-        throw new BadSymbol($this->id . ' fetchTicker could not find a ticker with $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' fetchTicker() could not find a ticker with $symbol ' . $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $tickers = $this->publicGetMarketDataMarketWatch ($params);
         //
@@ -523,6 +554,13 @@ class xena extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -575,7 +613,7 @@ class xena extends Exchange {
         //         )
         //     }
         //
-        $accounts = $this->safe_value($response, 'accounts');
+        $accounts = $this->safe_value($response, 'accounts', array());
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
             $account = $accounts[$i];
@@ -649,6 +687,11 @@ class xena extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $this->load_accounts();
         $accountId = $this->get_account_id($params);
@@ -721,7 +764,7 @@ class xena extends Exchange {
         $side = $this->safe_string_lower_2($trade, 'side', 'aggressorSide');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $orderId = $this->safe_string($trade, 'orderId');
@@ -863,6 +906,15 @@ class xena extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -898,6 +950,14 @@ class xena extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the xena api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -989,17 +1049,17 @@ class xena extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side === '1') {
             $side = 'buy';
-        } else if ($side === '2') {
+        } elseif ($side === '2') {
             $side = 'sell';
         }
         $type = $this->safe_string($order, 'ordType');
         if ($type === '1') {
             $type = 'market';
-        } else if ($type === '2') {
+        } elseif ($type === '2') {
             $type = 'limit';
-        } else if ($type === '3') {
+        } elseif ($type === '3') {
             $type = 'stop';
-        } else if ($type === '4') {
+        } elseif ($type === '4') {
             $type = 'stop-limit';
         }
         return $this->safe_order(array(
@@ -1039,7 +1099,7 @@ class xena extends Exchange {
         );
         $orderType = $this->safe_string($orderTypes, $type);
         if ($orderType === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $type ' . $type . ', supported order types are $market, limit, stop, stop-limit');
         }
         $orderSides = array(
             'buy' => '1',
@@ -1047,7 +1107,7 @@ class xena extends Exchange {
         );
         $orderSide = $this->safe_string($orderSides, $side);
         if ($orderSide === null) {
-            throw new InvalidOrder($this->id . ' createOrder does not support order $side ' . $side . ', supported order sides are buy, sell');
+            throw new InvalidOrder($this->id . ' createOrder() does not support order $side ' . $side . ', supported order sides are buy, sell');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1117,7 +1177,7 @@ class xena extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $this->load_accounts();
@@ -1876,8 +1936,8 @@ class xena extends Exchange {
                 $tiers[] = array(
                     'tier' => $this->sum($j, 1),
                     'currency' => $market['base'],
-                    'notionalFloor' => $floor,
-                    'notionalCap' => $cap,
+                    'minNotional' => $floor,
+                    'maxNotional' => $cap,
                     'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),
                     'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialRate)),
                     'info' => $tier,
@@ -1899,7 +1959,7 @@ class xena extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             // php does not format it properly
@@ -1921,7 +1981,7 @@ class xena extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($method === 'POST') {
+            } elseif ($method === 'POST') {
                 $body = $this->json($query);
                 $headers['Content-Type'] = 'application/json';
             }

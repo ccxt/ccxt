@@ -45,6 +45,7 @@ class zonda extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
@@ -258,6 +259,11 @@ class zonda extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for zonda
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->v1_01PublicGetTradingTicker ($params);
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         //
@@ -280,7 +286,7 @@ class zonda extends Exchange {
         //     }
         //
         $result = array();
-        $items = $this->safe_value($response, 'items');
+        $items = $this->safe_value($response, 'items', array());
         $keys = is_array($items) ? array_keys($items) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
@@ -466,12 +472,24 @@ class zonda extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
         return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -545,10 +563,16 @@ class zonda extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -945,6 +969,15 @@ class zonda extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
@@ -1060,6 +1093,14 @@ class zonda extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
@@ -1081,6 +1122,7 @@ class zonda extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
+        $amount = floatval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'symbol' => $tradingSymbol,
             'offerType' => $side,
@@ -1089,9 +1131,8 @@ class zonda extends Exchange {
         );
         if ($type === 'limit') {
             $request['rate'] = $price;
-            $price = floatval($price);
+            $price = floatval($this->price_to_precision($symbol, $price));
         }
-        $amount = floatval($amount);
         $response = yield $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
         //
         // unfilled (open order)
@@ -1403,13 +1444,13 @@ class zonda extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'v1_01Public') {
+        } elseif ($api === 'v1_01Public') {
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'v1_01Private') {
+        } elseif ($api === 'v1_01Private') {
             $this->check_required_credentials();
             $query = $this->omit($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
@@ -1420,7 +1461,7 @@ class zonda extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $payload = $this->apiKey . $nonce;
-            } else if ($body === null) {
+            } elseif ($body === null) {
                 $body = $this->json($query);
                 $payload = $this->apiKey . $nonce . $body;
             }
@@ -1480,7 +1521,7 @@ class zonda extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
             throw new ExchangeError($feedback);
-        } else if (is_array($response) && array_key_exists('status', $response)) {
+        } elseif (is_array($response) && array_key_exists('status', $response)) {
             //
             //      array("status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"])
             //

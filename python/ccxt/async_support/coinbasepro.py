@@ -33,14 +33,17 @@ class coinbasepro(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,  # has but not fully inplemented
-                'swap': None,  # has but not fully inplemented
-                'future': None,  # has but not fully inplemented
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -228,6 +231,11 @@ class coinbasepro(Exchange):
         })
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     [
@@ -290,6 +298,11 @@ class coinbasepro(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for coinbasepro
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetProducts(params)
         #
         #    [
@@ -399,19 +412,26 @@ class coinbasepro(Exchange):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            account = response[i]
-            accountId = self.safe_string(account, 'id')
-            currencyId = self.safe_string(account, 'currency')
-            code = self.safe_currency_code(currencyId)
-            result.append({
-                'id': accountId,
-                'type': None,
-                'currency': code,
-                'info': account,
-            })
-        return result
+        return self.parse_accounts(response, params)
+
+    def parse_account(self, account):
+        #
+        #     {
+        #         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
+        #         currency: 'BTC',
+        #         balance: '0.0000000000000000',
+        #         available: '0',
+        #         hold: '0.0000000000000000',
+        #         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #     }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        return {
+            'id': self.safe_string(account, 'id'),
+            'type': None,
+            'code': self.safe_currency_code(currencyId),
+            'info': account,
+        }
 
     def parse_balance(self, response):
         result = {'info': response}
@@ -427,11 +447,23 @@ class coinbasepro(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         # level 1 - only the best bid and ask
         # level 2 - top 50 bids and asks(aggregated)
@@ -537,9 +569,15 @@ class coinbasepro(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         request = {}
         response = await self.publicGetProductsSparkLines(self.extend(request, params))
@@ -576,6 +614,12 @@ class coinbasepro(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -692,6 +736,14 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -748,6 +800,15 @@ class coinbasepro(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         granularity = self.timeframes[timeframe]
@@ -774,6 +835,11 @@ class coinbasepro(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {
@@ -1166,7 +1232,7 @@ class coinbasepro(Exchange):
         await self.load_markets()
         await self.load_accounts()
         currency = self.currency(code)
-        accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+        accountsByCurrencyCode = self.index_by(self.accounts, 'code')
         account = self.safe_value(accountsByCurrencyCode, code)
         if account is None:
             raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
@@ -1196,7 +1262,7 @@ class coinbasepro(Exchange):
         if id is None:
             if code is not None:
                 currency = self.currency(code)
-                accountsByCurrencyCode = self.index_by(self.accounts, 'currency')
+                accountsByCurrencyCode = self.index_by(self.accounts, 'code')
                 account = self.safe_value(accountsByCurrencyCode, code)
                 if account is None:
                     raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
@@ -1212,7 +1278,7 @@ class coinbasepro(Exchange):
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
-                code = self.safe_string(account, 'currency')
+                code = self.safe_string(account, 'code')
                 response[i]['currency'] = code
         else:
             response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
@@ -1298,7 +1364,7 @@ class coinbasepro(Exchange):
         account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
         if account is None:
             # eslint-disable-next-line quotes
-            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+            raise InvalidAddress(self.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
         request = {
             'id': account['id'],
         }

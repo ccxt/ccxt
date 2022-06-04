@@ -49,13 +49,11 @@ class bkex(Exchange):
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
                 'fetchFundingRateHistory': None,
@@ -81,7 +79,7 @@ class bkex(Exchange):
                 'fetchPositions': None,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': None,
-                'fetchStatus': None,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -89,9 +87,12 @@ class bkex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
-                'fetchWithdrawal': None,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'loadMarkets': True,
                 'privateAPI': True,
@@ -101,8 +102,8 @@ class bkex(Exchange):
                 'setMarginMode': None,
                 'setPositionMode': None,
                 'signIn': None,
-                'transfer': None,
-                'withdraw': None,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -227,6 +228,11 @@ class bkex(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bkex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetCommonSymbols(params)
         #
         # {
@@ -245,7 +251,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -304,6 +310,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCommonCurrencys(params)
         #
         # {
@@ -324,7 +335,7 @@ class bkex(Exchange):
         #     "status": 0
         # }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             currency = data[i]
@@ -355,6 +366,11 @@ class bkex(Exchange):
         return result
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetCommonTimestamp(params)
         #
         # {
@@ -366,7 +382,42 @@ class bkex(Exchange):
         #
         return self.safe_integer(response, 'data')
 
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
+        response = await self.publicGetCommonTimestamp(params)
+        #
+        #     {
+        #         "code": '0',
+        #         "data": 1573542445411,
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        statusRaw = self.safe_integer(response, 'status')
+        codeRaw = self.safe_integer(response, 'code')
+        updated = self.safe_integer(response, 'data')
+        return {
+            'status': 'ok' if (statusRaw == 0 and codeRaw == 0) else statusRaw,
+            'updated': updated,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -418,6 +469,12 @@ class bkex(Exchange):
         ]
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -449,6 +506,12 @@ class bkex(Exchange):
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         request = {}
         if symbols is not None:
@@ -462,6 +525,19 @@ class bkex(Exchange):
         return self.parse_tickers(tickers, symbols, params)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #          "change":-0.46,
+        #          "close":29664.46,
+        #          "high":30784.99,
+        #          "low":29455.36,
+        #          "open":29803.38,
+        #          "quoteVolume":714653752.6991,
+        #          "symbol":"BTC_USDT",
+        #          "ts":1652812048118,
+        #          "volume":23684.9416
+        #    }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(ticker, 'ts')
@@ -481,15 +557,22 @@ class bkex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_string(ticker, 'change'),
-            'percentage': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'change'),  # 24h percentage change(close - open) / open * 100
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -521,6 +604,14 @@ class bkex(Exchange):
         return self.parse_order_book(data, symbol, None, 'bid', 'ask')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -601,6 +692,11 @@ class bkex(Exchange):
         return id
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         query = self.omit(params, 'type')
         response = await self.privateGetUAccountBalance(query)
@@ -628,7 +724,7 @@ class bkex(Exchange):
         # }
         #
         balances = self.safe_value(response, 'data')
-        wallets = self.safe_value(balances, 'WALLET')
+        wallets = self.safe_value(balances, 'WALLET', [])
         result = {'info': wallets}
         for i in range(0, len(wallets)):
             wallet = wallets[i]
@@ -725,7 +821,7 @@ class bkex(Exchange):
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires code argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -880,7 +976,7 @@ class bkex(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -957,7 +1053,7 @@ class bkex(Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

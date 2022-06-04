@@ -43,13 +43,11 @@ module.exports = class bkex extends Exchange {
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposit': undefined,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
-                'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -75,7 +73,7 @@ module.exports = class bkex extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
-                'fetchStatus': undefined,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -83,9 +81,12 @@ module.exports = class bkex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
-                'fetchWithdrawal': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'loadMarkets': true,
                 'privateAPI': true,
@@ -95,8 +96,8 @@ module.exports = class bkex extends Exchange {
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
                 'signIn': undefined,
-                'transfer': undefined,
-                'withdraw': undefined,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -222,6 +223,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchMarkets
+         * @description retrieves data on all markets for bkex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetCommonSymbols (params);
         //
         // {
@@ -240,7 +248,7 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -301,6 +309,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCommonCurrencys (params);
         //
         // {
@@ -321,7 +336,7 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
@@ -354,6 +369,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetCommonTimestamp (params);
         //
         // {
@@ -366,7 +388,47 @@ module.exports = class bkex extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
+        const response = await this.publicGetCommonTimestamp (params);
+        //
+        //     {
+        //         "code": '0',
+        //         "data": 1573542445411,
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        const statusRaw = this.safeInteger (response, 'status');
+        const codeRaw = this.safeInteger (response, 'code');
+        const updated = this.safeInteger (response, 'data');
+        return {
+            'status': (statusRaw === 0 && codeRaw === 0) ? 'ok' : statusRaw,
+            'updated': updated,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -423,6 +485,14 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -455,11 +525,19 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new BadRequest (this.id + ' fetchTickers() symbols argument should be an array');
+                throw new BadRequest (this.id + ' fetchTickers () symbols argument should be an array');
             }
         }
         if (symbols !== undefined) {
@@ -472,6 +550,19 @@ module.exports = class bkex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //    {
+        //          "change":-0.46,
+        //          "close":29664.46,
+        //          "high":30784.99,
+        //          "low":29455.36,
+        //          "open":29803.38,
+        //          "quoteVolume":714653752.6991,
+        //          "symbol":"BTC_USDT",
+        //          "ts":1652812048118,
+        //          "volume":23684.9416
+        //    }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 'ts');
@@ -491,16 +582,25 @@ module.exports = class bkex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString (ticker, 'change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change'), // 24h percentage change (close - open) / open * 100
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -534,6 +634,16 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -626,6 +736,13 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
         const response = await this.privateGetUAccountBalance (query);
@@ -653,7 +770,7 @@ module.exports = class bkex extends Exchange {
         // }
         //
         const balances = this.safeValue (response, 'data');
-        const wallets = this.safeValue (balances, 'WALLET');
+        const wallets = this.safeValue (balances, 'WALLET', []);
         const result = { 'info': wallets };
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
@@ -759,7 +876,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires code argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires code argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -926,7 +1043,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1007,7 +1124,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

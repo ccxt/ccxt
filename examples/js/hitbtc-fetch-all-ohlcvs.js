@@ -2,9 +2,7 @@
 
 const ccxt = require ('../../ccxt')
 
-const exchange = new ccxt.hitbtc ({
-    'enableRateLimit': true,
-})
+const exchange = new ccxt.hitbtc ()
 
 ;(async () => {
 

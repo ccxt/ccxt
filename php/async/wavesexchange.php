@@ -35,6 +35,9 @@ class wavesexchange extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -54,6 +57,7 @@ class wavesexchange extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -473,6 +477,11 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for wavesexchange
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $response = yield $this->marketGetTickers ();
         //
         //   array(
@@ -510,7 +519,9 @@ class wavesexchange extends Exchange {
             $id = $baseId . '/' . $quoteId;
             $marketId = $this->safe_string($entry, 'symbol');
             list($base, $quote) = explode('/', $marketId);
-            $symbol = $this->safe_currency_code($base) . '/' . $this->safe_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
+            $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -564,6 +575,13 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
@@ -658,7 +676,7 @@ class wavesexchange extends Exchange {
             if (strlen($queryString) > 0) {
                 $url .= '?' . $queryString;
             }
-        } else if ($api === 'matcher') {
+        } elseif ($api === 'matcher') {
             if ($method === 'POST') {
                 $headers = array(
                     'Accept' => 'application/json',
@@ -783,10 +801,16 @@ class wavesexchange extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -822,6 +846,15 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the $open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the $length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, $open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -990,7 +1023,7 @@ class wavesexchange extends Exchange {
         }
         if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
             $codes = is_array($currencies) ? array_keys($currencies) : array();
-            throw new ExchangeError($this->id . ' fetch ' . $code . ' deposit $address not supported. Currency $code must be one of ' . implode(', ', $codes));
+            throw new ExchangeError($this->id . ' fetchDepositAddress() ' . $code . ' not supported. Currency $code must be one of ' . implode(', ', $codes));
         }
         $response = null;
         if ($network === null) {
@@ -1102,8 +1135,8 @@ class wavesexchange extends Exchange {
         return intval(floatval($this->to_precision($amount, $this->markets[$symbol]['precision']['amount'])));
     }
 
-    public function currency_to_precision($currency, $amount) {
-        return intval(floatval($this->to_precision($amount, $this->currencies[$currency]['precision'])));
+    public function currency_to_precision($code, $amount, $networkCode = null) {
+        return intval(floatval($this->to_precision($amount, $this->currencies[$code]['precision'])));
     }
 
     public function from_precision($amount, $scale) {
@@ -1265,6 +1298,32 @@ class wavesexchange extends Exchange {
         if ($matcherFeeAssetId !== 'WAVES') {
             $body['matcherFeeAssetId'] = $matcherFeeAssetId;
         }
+        //
+        //     {
+        //         "success":true,
+        //         "message":array(
+        //             "version":3,
+        //             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
+        //             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        //             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        //             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //             "assetPair":array(
+        //                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
+        //                 "priceAsset":"WAVES"
+        //             ),
+        //             "orderType":"buy",
+        //             "amount":110874978,
+        //             "price":514397851,
+        //             "timestamp":1650473255988,
+        //             "expiration":1652892455988,
+        //             "matcherFee":7074571,
+        //             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
+        //             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
+        //             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        //         ),
+        //         "status":"OrderAccepted"
+        //     }
+        //
         if ($isMarketOrder) {
             $response = yield $this->matcherPostMatcherOrderbookMarket ($body);
             $value = $this->safe_value($response, 'message');
@@ -1274,27 +1333,6 @@ class wavesexchange extends Exchange {
             $value = $this->safe_value($response, 'message');
             return $this->parse_order($value, $market);
         }
-        // { success => true,
-        //   message:
-        //    array( version => 3,
-        //      id => 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        //      sender => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //      senderPublicKey => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //      $matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //      $assetPair:
-        //       array( $amountAsset => null,
-        //         $priceAsset => '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS' ),
-        //      $orderType => 'sell',
-        //      $amount => 1,
-        //      $price => 100000000,
-        //      $timestamp => 1591593117995,
-        //      $expiration => 1594012317995,
-        //      $matcherFee => 300000,
-        //      $matcherFeeAssetId => null,
-        //      $signature => '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq',
-        //      proofs:
-        //       array( '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ) ),
-        //   status => 'OrderAccepted' }
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1477,32 +1515,33 @@ class wavesexchange extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        //     createOrder
+        // createOrder
         //
         //     {
-        //         version => 3,
-        //         $id => 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        //         sender => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //         senderPublicKey => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //         matcherPublicKey => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //         $assetPair => array(
-        //             amountAsset => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //             priceAsset => 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        //         'version' => 3,
+        //         'id' => 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        //         'sender' => '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        //         'senderPublicKey' => 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        //         'matcherPublicKey' => '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        //         'assetPair' => array(
+        //             'amountAsset' => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             'priceAsset' => 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
         //         ),
-        //         orderType => 'buy',
-        //         $amount => 10000,
-        //         $price => 400000000,
-        //         $timestamp => 1599848586891,
-        //         expiration => 1602267786891,
-        //         matcherFee => 3008,
-        //         matcherFeeAssetId => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //         signature => '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        //         proofs => array(
-        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        //         )
+        //         'orderType' => 'buy',
+        //         'amount' => 10000,
+        //         'price' => 400000000,
+        //         'timestamp' => 1599848586891,
+        //         'expiration' => 1602267786891,
+        //         'matcherFee' => 3008,
+        //         'matcherFeeAssetId' => '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //         'signature' => '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         'proofs' => array(
+        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         ),
         //     }
         //
-        //     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         $id => '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1540,7 +1579,7 @@ class wavesexchange extends Exchange {
         $symbol = null;
         if ($assetPair !== null) {
             $symbol = $this->get_symbol_from_asset_pair($assetPair);
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
         }
         $amountCurrency = $this->safe_currency_code($this->safe_string($assetPair, 'amountAsset', 'WAVES'));
@@ -1603,6 +1642,11 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for $balance and get the $amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         */
         // makes a lot of different requests to get all the $data
         // in particular:
         // fetchMarkets, getWavesAddress,
@@ -1651,7 +1695,7 @@ class wavesexchange extends Exchange {
         //     }
         //   )
         // }
-        $balances = $this->safe_value($totalBalance, 'balances');
+        $balances = $this->safe_value($totalBalance, 'balances', array());
         $result = array();
         $timestamp = null;
         $assetIds = array();
@@ -1682,7 +1726,7 @@ class wavesexchange extends Exchange {
                 'ids' => $assetIds,
             );
             $response = yield $this->publicGetAssets ($request);
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $balance = $nonStandardBalances[$i];
@@ -1827,6 +1871,14 @@ class wavesexchange extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1976,7 +2028,7 @@ class wavesexchange extends Exchange {
         $assetPair = $this->safe_value($order, 'assetPair');
         if ($assetPair !== null) {
             $symbol = $this->get_symbol_from_asset_pair($assetPair);
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
         }
         $side = $this->safe_string($order, 'orderType');
@@ -2033,7 +2085,7 @@ class wavesexchange extends Exchange {
             }
             if (!(is_array($currencies) && array_key_exists($code, $currencies))) {
                 $codes = is_array($currencies) ? array_keys($currencies) : array();
-                throw new ExchangeError($this->id . ' fetch ' . $code . ' withdrawals are not supported. Currency $code must be one of ' . (string) $codes);
+                throw new ExchangeError($this->id . ' withdraw() ' . $code . ' not supported. Currency $code must be one of ' . (string) $codes);
             }
         }
         yield $this->load_markets();

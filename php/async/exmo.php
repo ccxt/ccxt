@@ -24,16 +24,25 @@ class exmo extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -43,6 +52,7 @@ class exmo extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrderBook' => true,
@@ -54,10 +64,14 @@ class exmo extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
+                'setMargin' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -164,7 +178,7 @@ class exmo extends Exchange {
                 ),
                 'funding' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
+                    'percentage' => false, // fixed funding fees for crypto, see fetchTransactionFees below
                 ),
             ),
             'options' => array(
@@ -174,6 +188,9 @@ class exmo extends Exchange {
                 ),
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                ),
+                'margin' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
             'commonCurrencies' => array(
@@ -205,6 +222,56 @@ class exmo extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'position_id' => $market['id'],
+            'quantity' => $amount,
+        );
+        $method = null;
+        if ($type === 'add') {
+            $method = 'privatePostMarginUserPositionMarginAdd';
+        } elseif ($type === 'reduce') {
+            $method = 'privatePostMarginUserPositionMarginReduce';
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //      array()
+        //
+        $margin = $this->parse_margin_modification($response, $market);
+        $options = $this->safe_value($this->options, 'margin', array());
+        $fillResponseFromRequest = $this->safe_value($options, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $margin['type'] = $type;
+            $margin['amount'] = $amount;
+        }
+        return $margin;
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        //
+        //      array()
+        //
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $this->safe_value($market, 'quote'),
+            'symbol' => $this->safe_symbol(null, $market),
+            'total' => null,
+            'status' => 'ok',
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -322,12 +389,12 @@ class exmo extends Exchange {
         $value = str_replace('%', '', $parts[0]);
         $result = floatval($value);
         if (($result > 0) && $isPercentage) {
-            throw new ExchangeError($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
+            throw new ExchangeError($this->id . ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' . $input);
         }
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $currencyList = yield $this->publicGetCurrencyListExtended ($params);
         //
@@ -400,6 +467,11 @@ class exmo extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         //
         $currencyList = yield $this->publicGetCurrencyListExtended ($params);
         //
@@ -482,13 +554,13 @@ class exmo extends Exchange {
                     if ($type === 'deposit') {
                         if ($activeProvider && !$depositEnabled) {
                             $depositEnabled = true;
-                        } else if (!$activeProvider) {
+                        } elseif (!$activeProvider) {
                             $depositEnabled = false;
                         }
-                    } else if ($type === 'withdraw') {
+                    } elseif ($type === 'withdraw') {
                         if ($activeProvider && !$withdrawEnabled) {
                             $withdrawEnabled = true;
-                        } else if (!$activeProvider) {
+                        } elseif (!$activeProvider) {
                             $withdrawEnabled = false;
                         }
                     }
@@ -524,6 +596,11 @@ class exmo extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for exmo
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->publicGetPairSettings ($params);
         //
         //     {
@@ -562,7 +639,7 @@ class exmo extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => false,
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -606,6 +683,15 @@ class exmo extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market $to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of $candles $to fetch
+         * @param {dict} $params extra parameters specific $to the exmo api endpoint
+         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -621,7 +707,7 @@ class exmo extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $request['from'] = intval($now / 1000) - $limit * $duration - 1;
                 $request['to'] = intval($now / 1000);
@@ -632,7 +718,7 @@ class exmo extends Exchange {
                 $request['to'] = intval($now / 1000);
             } else {
                 if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV will serve ' . (string) $maxLimit . ' $candles at most');
+                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
                 }
                 $to = $this->sum($since, $limit * $duration * 1000);
                 $request['to'] = intval($to / 1000);
@@ -694,6 +780,11 @@ class exmo extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostUserInfo ($params);
         //
@@ -712,6 +803,13 @@ class exmo extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -733,7 +831,7 @@ class exmo extends Exchange {
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
                 $numIds = is_array($this->ids) ? count($this->ids) : 0;
-                throw new ExchangeError($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
             $ids = $this->market_ids($symbols);
@@ -798,10 +896,16 @@ class exmo extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => $this->safe_string($ticker, 'vol_curr'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetTicker ($params);
         //
@@ -832,6 +936,12 @@ class exmo extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetTicker ($params);
         $market = $this->market($symbol);
@@ -925,6 +1035,14 @@ class exmo extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1034,7 +1152,7 @@ class exmo extends Exchange {
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
             if ($clientOrderId === null) {
-                throw new BadRequest($this->id . ' createOrder client order $id must be an integer / numeric literal');
+                throw new BadRequest($this->id . ' createOrder() client order $id must be an integer / numeric literal');
             } else {
                 $request['client_id'] = $clientOrderId;
             }
@@ -1176,7 +1294,7 @@ class exmo extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "order_id" => "14",
@@ -1214,20 +1332,18 @@ class exmo extends Exchange {
         $timestamp = $this->safe_timestamp($order, 'created');
         $symbol = null;
         $side = $this->safe_string($order, 'type');
-        if ($market === null) {
-            $marketId = null;
-            if (is_array($order) && array_key_exists('pair', $order)) {
-                $marketId = $order['pair'];
-            } else if ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
-                if ($side === 'buy') {
-                    $marketId = $order['in_currency'] . '_' . $order['out_currency'];
-                } else {
-                    $marketId = $order['out_currency'] . '_' . $order['in_currency'];
-                }
+        $marketId = null;
+        if (is_array($order) && array_key_exists('pair', $order)) {
+            $marketId = $order['pair'];
+        } elseif ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
+            if ($side === 'buy') {
+                $marketId = $order['in_currency'] . '_' . $order['out_currency'];
+            } else {
+                $marketId = $order['out_currency'] . '_' . $order['in_currency'];
             }
-            if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
-            }
+        }
+        if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+            $market = $this->markets_by_id[$marketId];
         }
         $amount = $this->safe_number($order, 'quantity');
         if ($amount === null) {
@@ -1322,6 +1438,35 @@ class exmo extends Exchange {
             'fee' => $fee,
             'info' => $order,
         );
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($since !== null) {
+            $request['offset'] = $limit;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $response = yield $this->privatePostUserCancelledOrders (array_merge($request, $params));
+        //
+        //     [array(
+        //         "order_id" => "27056153840",
+        //         "client_id" => "0",
+        //         "created" => "1653428646",
+        //         "type" => "buy",
+        //         "pair" => "BTC_USDT",
+        //         "quantity" => "0.1",
+        //         "price" => "10",
+        //         "amount" => "1"
+        //     )]
+        //
+        return $this->parse_orders($response, $market, $since, $limit, $params);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1461,7 +1606,7 @@ class exmo extends Exchange {
         $account = $this->safe_string($transaction, 'account');
         if ($type === 'deposit') {
             $comment = $account;
-        } else if ($type === 'withdrawal') {
+        } elseif ($type === 'withdrawal') {
             $address = $account;
             if ($address !== null) {
                 $parts = explode(':', $address);
@@ -1605,7 +1750,138 @@ class exmo extends Exchange {
         //         "count" => 23
         //     }
         //
-        return $this->parse_transactions($response['items'], $currency, $since, $limit);
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_transactions($items, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array(
+            'order_id' => $id,
+            'type' => 'withdraw',
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = yield $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        $first = $this->safe_value($items, 0, array());
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function fetch_deposit($id = null, $code = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array(
+            'order_id' => $id,
+            'type' => 'deposit',
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = yield $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        $first = $this->safe_value($items, 0, array());
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = null;
+        $request = array(
+            'type' => 'deposit',
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default => 100, maximum => 100
+        }
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = yield $this->privatePostWalletOperations (array_merge($request, $params));
+        //
+        //     {
+        //         "items" => array(
+        //         array(
+        //             "operation_id" => 47412538520634344,
+        //             "created" => 1573760013,
+        //             "updated" => 1573760013,
+        //             "type" => "deposit",
+        //             "currency" => "DOGE",
+        //             "status" => "Paid",
+        //             "amount" => "300",
+        //             "provider" => "DOGE",
+        //             "commission" => "0",
+        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //             "order_id" => 69670170,
+        //             "extra" => array(
+        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //                 "excode" => "",
+        //                 "invoice" => ""
+        //             ),
+        //             "error" => ""
+        //         ),
+        //     ),
+        //         "count" => 23
+        //     }
+        //
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1618,7 +1894,7 @@ class exmo extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $body = $this->urlencode(array_merge(array( 'nonce' => $nonce ), $params));

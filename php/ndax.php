@@ -54,6 +54,7 @@ class ndax extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -73,6 +74,7 @@ class ndax extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'signIn' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -304,6 +306,11 @@ class ndax extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
             'omsId' => $omsId,
@@ -362,6 +369,11 @@ class ndax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for ndax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
             'omsId' => $omsId,
@@ -515,6 +527,13 @@ class ndax extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -587,24 +606,23 @@ class ndax extends Exchange {
         $marketId = $this->safe_string($ticker, 'InstrumentId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'LastTradedPx');
-        $percentage = $this->safe_number($ticker, 'Rolling24HrPxChangePercent');
-        $change = $this->safe_number($ticker, 'Rolling24HrPxChange');
-        $open = $this->safe_number($ticker, 'SessionOpen');
-        $baseVolume = $this->safe_number($ticker, 'Rolling24HrVolume');
-        $quoteVolume = $this->safe_number($ticker, 'Rolling24HrNotional');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $last = $this->safe_string($ticker, 'LastTradedPx');
+        $percentage = $this->safe_string($ticker, 'Rolling24HrPxChangePercent');
+        $change = $this->safe_string($ticker, 'Rolling24HrPxChange');
+        $open = $this->safe_string($ticker, 'SessionOpen');
+        $baseVolume = $this->safe_string($ticker, 'Rolling24HrVolume');
+        $quoteVolume = $this->safe_string($ticker, 'Rolling24HrNotional');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'SessionHigh'),
-            'low' => $this->safe_number($ticker, 'SessionLow'),
-            'bid' => $this->safe_number($ticker, 'BestBid'),
+            'high' => $this->safe_string($ticker, 'SessionHigh'),
+            'low' => $this->safe_string($ticker, 'SessionLow'),
+            'bid' => $this->safe_string($ticker, 'BestBid'),
             'bidVolume' => null, // $this->safe_number($ticker, 'BidQty'), always shows 0
-            'ask' => $this->safe_number($ticker, 'BestOffer'),
+            'ask' => $this->safe_string($ticker, 'BestOffer'),
             'askVolume' => null, // $this->safe_number($ticker, 'AskQty'), always shows 0
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -619,6 +637,12 @@ class ndax extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -685,6 +709,15 @@ class ndax extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -888,6 +921,14 @@ class ndax extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $market = $this->market($symbol);
@@ -958,6 +999,11 @@ class ndax extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $this->load_accounts();
@@ -1053,7 +1099,7 @@ class ndax extends Exchange {
         if ($credit > 0) {
             $amount = $credit;
             $direction = 'in';
-        } else if ($debit > 0) {
+        } elseif ($debit > 0) {
             $amount = $debit;
             $direction = 'out';
         }
@@ -1062,7 +1108,7 @@ class ndax extends Exchange {
         $after = $this->safe_number($item, 'Balance');
         if ($direction === 'out') {
             $before = $this->sum($after, $amount);
-        } else if ($direction === 'in') {
+        } elseif ($direction === 'in') {
             $before = max (0, $after - $amount);
         }
         $status = 'ok';
@@ -2027,7 +2073,7 @@ class ndax extends Exchange {
         if (is_array($transaction) && array_key_exists('DepositId', $transaction)) {
             $id = $this->safe_string($transaction, 'DepositId');
             $type = 'deposit';
-        } else if (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('WithdrawId', $transaction)) {
             $id = $this->safe_string($transaction, 'WithdrawId');
             $type = 'withdrawal';
         }
@@ -2170,7 +2216,7 @@ class ndax extends Exchange {
                     'Authorization' => 'Basic ' . $this->decode($auth64),
                     // 'Content-Type' => 'application/json',
                 );
-            } else if ($path === 'Authenticate2FA') {
+            } elseif ($path === 'Authenticate2FA') {
                 $pending2faToken = $this->safe_string($this->options, 'pending2faToken');
                 if ($pending2faToken !== null) {
                     $headers = array(
@@ -2183,7 +2229,7 @@ class ndax extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             $sessionToken = $this->safe_string($this->options, 'sessionToken');
             if ($sessionToken === null) {

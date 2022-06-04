@@ -33,13 +33,15 @@ class whitebit extends Exchange {
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -48,6 +50,7 @@ class whitebit extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
@@ -58,6 +61,8 @@ class whitebit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchTransactionFees' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -165,6 +170,7 @@ class whitebit extends Exchange {
                             'main-account/history',
                             'main-account/withdraw',
                             'main-account/withdraw-pay',
+                            'main-account/transfer',
                             'trade-account/balance',
                             'trade-account/executed-history',
                             'trade-account/order',
@@ -191,6 +197,14 @@ class whitebit extends Exchange {
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
+                'accountsByType' => array(
+                    'main' => 'main',
+                    'spot' => 'trade',
+                    'margin' => 'margin', // api does not suppot transfers to margin
+                ),
+                'transfer' => array(
+                    'fillTransferResponseFromRequest' => true,
+                ),
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -218,6 +232,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for whitebit
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = yield $this->v2PublicGetMarkets ($params);
         //
         //    {
@@ -242,7 +261,7 @@ class whitebit extends Exchange {
         //        )
         //    }
         //
-        $markets = $this->safe_value($response, 'result');
+        $markets = $this->safe_value($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -309,6 +328,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->v4PublicGetAssets ($params);
         //
         //      "BTC" => array(
@@ -360,7 +384,7 @@ class whitebit extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_fees($params = array ()) {
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->v4PublicGetFee ($params);
         //
@@ -448,6 +472,12 @@ class whitebit extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -476,36 +506,35 @@ class whitebit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
         //  FetchTicker (v1)
         //
-        //      {
-        //          "bid":"0.021979",
-        //          "ask":"0.021996",
-        //          "open":"0.02182",
-        //          "high":"0.022039",
-        //          "low":"0.02161",
-        //          "last":"0.021987",
-        //          "volume":"2810.267",
-        //          "deal":"61.383565474",
-        //          "change":"0.76",
-        //      }
+        //    {
+        //        "bid" => "0.021979",
+        //        "ask" => "0.021996",
+        //        "open" => "0.02182",
+        //        "high" => "0.022039",
+        //        "low" => "0.02161",
+        //        "last" => "0.021987",
+        //        "volume" => "2810.267",
+        //        "deal" => "61.383565474",
+        //        "change" => "0.76",
+        //    }
         //
         // FetchTickers (v4)
         //
-        //      "BCH_RUB":array(
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12" // in percent
-        //      ),
+        //    "BCH_RUB" => {
+        //        "base_id" => 1831,
+        //        "quote_id" => 0,
+        //        "last_price" => "32830.21",
+        //        "quote_volume" => "1494659.8024096",
+        //        "base_volume" => "46.1083",
+        //        "isFrozen" => false,
+        //        "change" => "2.12" // in percent
+        //    }
         //
         $market = $this->safe_market(null, $market);
         $last = $this->safe_string($ticker, 'last_price');
-        $change = $this->safe_string($ticker, 'change');
-        $percentage = Precise::string_mul($change, '0.01');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => null,
@@ -522,15 +551,21 @@ class whitebit extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage,
+            'percentage' => $this->safe_string($ticker, 'change'),
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
             'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->v4PublicGetTicker ($params);
         //
@@ -557,6 +592,13 @@ class whitebit extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -590,6 +632,14 @@ class whitebit extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -677,6 +727,15 @@ class whitebit extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -737,23 +796,33 @@ class whitebit extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+         */
         $response = yield $this->v4PublicGetPing ($params);
         //
         //      array(
         //          "pong"
         //      )
         //
-        $status = $this->safe_string($response, 0, null);
-        $status = ($status === null) ? 'maintenance' : 'ok';
-        $this->status = array_merge($this->status, array(
-            'status' => $status,
-            'updated' => $this->milliseconds(),
+        $status = $this->safe_string($response, 0);
+        return array(
+            'status' => ($status === 'pong') ? 'ok' : $status,
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
             'info' => $response,
-        ));
-        return $this->status;
+        );
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->v4PublicGetTime ($params);
         //
         //     {
@@ -779,7 +848,7 @@ class whitebit extends Exchange {
             if ($type === 'limit' || $type === 'stopLimit') {
                 // it's a stop-limit-order
                 $method = 'v4PrivateOPostOrderStopLimit';
-            } else if ($type === 'market' || $type === 'stopMarket') {
+            } elseif ($type === 'market' || $type === 'stopMarket') {
                 // it's a stop-$market-order
                 $method = 'v4PrivatePostOrderStopMarket';
             }
@@ -796,7 +865,7 @@ class whitebit extends Exchange {
         // aggregate common assignments regardless stop or not
         if ($type === 'limit' || $type === 'stopLimit') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a stopLimit order');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for a stopLimit order');
             }
             $convertedPrice = $this->price_to_precision($symbol, $price);
             $request['price'] = $convertedPrice;
@@ -810,7 +879,7 @@ class whitebit extends Exchange {
                         if ($cost === null) {
                             $cost = $amount * $price;
                         }
-                    } else if ($cost === null) {
+                    } elseif ($cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
                     }
                 } else {
@@ -820,7 +889,7 @@ class whitebit extends Exchange {
             }
         }
         if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' Invalid $type =>  createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires one of the following order types => $market, limit, stopLimit or stopMarket');
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response);
@@ -855,6 +924,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->v4PrivatePostTradeAccountBalance ($params);
         //
@@ -996,9 +1070,6 @@ class whitebit extends Exchange {
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
-        if ($clientOrderId === '') {
-            $clientOrderId = null;
-        }
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_string($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
@@ -1156,6 +1227,58 @@ class whitebit extends Exchange {
         );
     }
 
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $type = null;
+        if ($fromAccountId === 'main' && $toAccountId === 'trade') {
+            $type = 'deposit';
+        } elseif ($fromAccountId === 'trade' && $toAccountId === 'main') {
+            $type = 'withdraw';
+        }
+        if ($type === null) {
+            throw new ExchangeError($this->id . ' $transfer() only allows transfers between main account and spot account');
+        }
+        $request = array(
+            'ticker' => $currency['id'],
+            'method' => $type,
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->v4PrivatePostMainAccountTransfer (array_merge($request, $params));
+        //
+        //    array()
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        $transferOptions = $this->safe_value($this->options, 'transfer', array());
+        $fillTransferResponseFromRequest = $this->safe_value($transferOptions, 'fillTransferResponseFromRequest', true);
+        if ($fillTransferResponseFromRequest) {
+            $transfer['amount'] = $amount;
+            $transfer['fromAccount'] = $fromAccount;
+            $transfer['toAccount'] = $toAccount;
+        }
+        return $transfer;
+    }
+
+    public function parse_transfer($transfer, $currency) {
+        //
+        //    array()
+        //
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => 'pending',
+        );
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         yield $this->load_markets();
         $currency = $this->currency($code); // check if it has canDeposit
@@ -1175,7 +1298,7 @@ class whitebit extends Exchange {
         if ($this->is_fiat($code)) {
             $provider = $this->safe_value($params, 'provider');
             if ($provider === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a $provider when the ticker is fiat');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $provider when the ticker is fiat');
             }
             $request['provider'] = $provider;
         }

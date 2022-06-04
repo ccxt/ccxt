@@ -37,6 +37,9 @@ class hitbtc3 extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => null,
@@ -312,9 +315,7 @@ class hitbtc3 extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'spot',
                     'funding' => 'wallet',
-                    'wallet' => 'wallet',
                     'future' => 'derivatives',
-                    'derivatives' => 'derivatives',
                 ),
             ),
             'commonCurrencies' => array(
@@ -348,6 +349,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for hitbtc3
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetPublicSymbol ($params);
         //
         //     {
@@ -480,6 +486,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
         $response = $this->publicGetPublicCurrency ($params);
         //
         //     {
@@ -525,10 +536,7 @@ class hitbtc3 extends Exchange {
             $withdrawEnabled = null;
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
-                $networkId = $this->safe_string($rawNetwork, 'protocol');
-                if (strlen($networkId) === 0) {
-                    $networkId = $this->safe_string($rawNetwork, 'network');
-                }
+                $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $precision = $this->safe_number($rawNetwork, 'precision_payout');
@@ -537,12 +545,12 @@ class hitbtc3 extends Exchange {
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;
-                } else if (!$payinEnabledNetwork) {
+                } elseif (!$payinEnabledNetwork) {
                     $depositEnabled = false;
                 }
                 if ($payoutEnabledNetwork && !$withdrawEnabled) {
                     $withdrawEnabled = true;
-                } else if (!$payoutEnabledNetwork) {
+                } elseif (!$payoutEnabledNetwork) {
                     $withdrawEnabled = false;
                 }
                 $networks[$network] = array(
@@ -642,16 +650,21 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $account = $this->safe_string($accountsByType, $type);
+        $account = $this->safe_string($accountsByType, $type, $type);
         $response = null;
         if ($account === 'wallet') {
             $response = $this->privateGetWalletBalance ($params);
-        } else if ($account === 'spot') {
+        } elseif ($account === 'spot') {
             $response = $this->privateGetSpotBalance ($params);
-        } else if ($account === 'derivatives') {
+        } elseif ($account === 'derivatives') {
             $response = $this->privateGetFuturesBalance ($params);
         } else {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
@@ -672,11 +685,23 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $response = $this->fetch_tickers(array( $symbol ), $params);
         return $this->safe_value($response, $symbol);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -753,10 +778,18 @@ class hitbtc3 extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1085,6 +1118,13 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $result = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $result[$symbol];
     }
@@ -1156,6 +1196,15 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1173,9 +1222,9 @@ class hitbtc3 extends Exchange {
         $method = 'publicGetPublicCandles';
         if ($price === 'mark') {
             $method = 'publicGetPublicFuturesCandlesMarkPrice';
-        } else if ($price === 'index') {
+        } elseif ($price === 'index') {
             $method = 'publicGetPublicFuturesCandlesIndexPrice';
-        } else if ($price === 'premiumIndex') {
+        } elseif ($price === 'premiumIndex') {
             $method = 'publicGetPublicFuturesCandlesPremiumIndex';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1212,27 +1261,6 @@ class hitbtc3 extends Exchange {
         //
         $ohlcvs = $this->safe_value($response, $market['id']);
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-    }
-
-    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'mark',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'index',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
-    }
-
-    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        $request = array(
-            'price' => 'premiumIndex',
-        );
-        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1492,7 +1520,7 @@ class hitbtc3 extends Exchange {
         );
         if (($type === 'limit') || ($type === 'stopLimit')) {
             if ($price === null) {
-                throw new ExchangeError($this->id . ' limit order requires price');
+                throw new ExchangeError($this->id . ' editOrder() limit order requires price');
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -1512,12 +1540,6 @@ class hitbtc3 extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $reduceOnly = $this->safe_value_2($params, 'reduce_only', 'reduceOnly');
-        if ($reduceOnly !== null) {
-            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
-            }
-        }
         $request = array(
             'type' => $type,
             'side' => $side,
@@ -1535,6 +1557,15 @@ class hitbtc3 extends Exchange {
             // 'take_rate' => 0.001, // Optional
             // 'make_rate' => 0.001, // Optional
         );
+        $reduceOnly = $this->safe_value($params, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+            }
+        }
+        if ($reduceOnly === true) {
+            $request['reduce_only'] = $reduceOnly;
+        }
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
         $expireTime = $this->safe_string($params, 'expire_time');
         $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
@@ -1564,13 +1595,6 @@ class hitbtc3 extends Exchange {
         ));
         $response = $this->$method (array_merge($request, $query));
         return $this->parse_order($response, $market);
-    }
-
-    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $request = array(
-            'reduce_only' => true,
-        );
-        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function parse_order_status($status) {
@@ -1689,6 +1713,7 @@ class hitbtc3 extends Exchange {
             'side' => $side,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
+            'reduceOnly' => $this->safe_value($order, 'reduce_only'),
             'filled' => $filled,
             'remaining' => null,
             'cost' => null,
@@ -1707,17 +1732,10 @@ class hitbtc3 extends Exchange {
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromAccount = strtolower($fromAccount);
         $toAccount = strtolower($toAccount);
-        $fromId = $this->safe_string($accountsByType, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount);
-        $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
-        if ($fromId === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() $fromAccount argument must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() $toAccount argument must be one of ' . implode(', ', $keys));
-        }
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId === $toId) {
-            throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
+            throw new BadRequest($this->id . ' $transfer() $fromAccount and $toAccount arguments cannot be the same account');
         }
         $request = array(
             'currency' => $currency['id'],
@@ -1726,18 +1744,38 @@ class hitbtc3 extends Exchange {
             'destination' => $toId,
         );
         $response = $this->privatePostWalletTransfer (array_merge($request, $params));
-        // array( '2db6ebab-fb26-4537-9ef8-1a689472d236' )
-        $id = $this->safe_string($response, 0);
-        return array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
-            'amount' => $this->parse_number($requestAmount),
-            'currency' => $code,
+        //
+        //     array(
+        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     )
+        //
+        $transfer = $this->parse_transfer($response, $currency);
+        return array_merge($transfer, array(
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
+            'amount' => $this->parse_number($requestAmount),
+        ));
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // $transfer
+        //
+        //     array(
+        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     )
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'id' => $this->safe_string($transfer, 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
             'status' => null,
+            'info' => $transfer,
         );
     }
 
@@ -1752,7 +1790,7 @@ class hitbtc3 extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new BadRequest($this->id . ' $fromNetwork cannot be the same as toNetwork');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();
@@ -1802,6 +1840,14 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
         $this->load_markets();
         $market = null;
         $request = array(
@@ -1992,7 +2038,7 @@ class hitbtc3 extends Exchange {
         //         ),
         //     )
         //
-        $marginType = $this->safe_string($position, 'type');
+        $marginMode = $this->safe_string($position, 'type');
         $leverage = $this->safe_number($position, 'leverage');
         $datetime = $this->safe_string($position, 'updated_at');
         $positions = $this->safe_value($position, 'positions', array());
@@ -2018,7 +2064,8 @@ class hitbtc3 extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'notional' => null,
-            'marginType' => $marginType,
+            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => null,
@@ -2116,12 +2163,12 @@ class hitbtc3 extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $leverage = $this->safe_string($params, 'leverage');
-        $amount = $this->amount_to_precision($symbol, $amount);
         if ($market['type'] === 'swap') {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $leverage parameter for swap markets');
             }
         }
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'symbol' => $market['id'], // swap and margin
             'margin_balance' => $amount, // swap and margin
@@ -2155,13 +2202,20 @@ class hitbtc3 extends Exchange {
         //         "positions" => null
         //     }
         //
-        $currencies = $this->safe_value($response, 'currencies', array());
-        $data = $this->safe_value($currencies, 0);
-        return array(
-            'info' => $response,
+        return array_merge($this->parse_margin_modification($response, $market), array(
+            'amount' => $this->safe_number($amount),
             'type' => $type,
-            'amount' => $amount,
-            'code' => $this->safe_string($data, 'code'),
+        ));
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        $currencies = $this->safe_value($data, 'currencies', array());
+        $currencyInfo = $this->safe_value($currencies, 0);
+        return array(
+            'info' => $data,
+            'type' => null,
+            'amount' => null,
+            'code' => $this->safe_string($currencyInfo, 'code'),
             'symbol' => $market['symbol'],
             'status' => null,
         );

@@ -48,6 +48,9 @@ module.exports = class ftx extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -59,7 +62,6 @@ module.exports = class ftx extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': undefined,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -71,6 +73,7 @@ module.exports = class ftx extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -86,6 +89,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': undefined,
                 'fetchTransfer': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawals': true,
@@ -341,6 +345,7 @@ module.exports = class ftx extends Exchange {
                     'Account does not have enough balances': InsufficientFunds, // {"success":false,"error":"Account does not have enough balances"}
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
+                    'Internal Error': ExchangeNotAvailable, // {"success":false,"error":"Internal Error"}
                 },
                 'broad': {
                     // {"error":"Not logged in","success":false}
@@ -354,6 +359,7 @@ module.exports = class ftx extends Exchange {
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
+                    'Cannot send more than': RateLimitExceeded, // {"success":false,"error":"Cannot send more than 1500 requests per minute"}
                     'An unexpected error occurred': ExchangeNotAvailable, // {"error":"An unexpected error occurred, please try again later (58BC21C795).","success":false}
                     'Please retry request': ExchangeNotAvailable, // {"error":"Please retry request","success":false}
                     'Please try again': ExchangeNotAvailable, // {"error":"Please try again","success":false}
@@ -404,6 +410,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCoins (params);
         const currencies = this.safeValue (response, 'result', []);
         //
@@ -444,6 +457,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchMarkets
+         * @description retrieves data on all markets for ftx
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         //     {
@@ -731,10 +751,18 @@ module.exports = class ftx extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeString (ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -770,7 +798,16 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarkets (params);
         //
         //     {
@@ -803,6 +840,15 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -873,6 +919,17 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         // max 1501 candles, including the current candle when since is not specified
@@ -934,13 +991,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market = undefined) {
@@ -1081,6 +1131,16 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
         const request = {
@@ -1186,15 +1246,17 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Gets a history of funding rates with their timestamps
-        //  (param) symbol: Future currency pair (e.g. "BTC-PERP")
-        //  (param) limit: Not used by ftx
-        //  (param) since: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  (param) params: Object containing more params for the request
-        //             - until: Unix timestamp in miliseconds for the time of the earliest requested funding rate
-        //  return: [{symbol, fundingRate, timestamp}]
-        //
+        /**
+         * @method
+         * @name ftx#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {str|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @param {int|undefined} params.till extra parameters specific to the ftx api endpoint
+         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
@@ -1226,12 +1288,12 @@ module.exports = class ftx extends Exchange {
         //        ]
         //      }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
             const marketId = this.safeString (entry, 'future');
-            const timestamp = this.parse8601 (this.safeString (result[i], 'time'));
+            const timestamp = this.parse8601 (this.safeString (entry, 'time'));
             rates.push ({
                 'info': entry,
                 'symbol': this.safeSymbol (marketId),
@@ -1261,6 +1323,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
         //
@@ -1423,6 +1492,14 @@ module.exports = class ftx extends Exchange {
         const clientOrderId = this.safeString (order, 'clientId');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
         const postOnly = this.safeValue (order, 'postOnly');
+        const ioc = this.safeValue (order, 'ioc');
+        let timeInForce = undefined;
+        if (ioc) {
+            timeInForce = 'IOC';
+        }
+        if (postOnly) {
+            timeInForce = 'PO';
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1432,8 +1509,9 @@ module.exports = class ftx extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
@@ -1461,30 +1539,64 @@ module.exports = class ftx extends Exchange {
             // 'ioc': false, // optional, default is false, limit or market orders only
             // 'postOnly': false, // optional, default is false, limit or market orders only
             // 'clientId': 'abcdef0123456789', // string, optional, client order id, limit or market orders only
+            // 'triggerPrice': 0.306525, // required for stop and takeProfit orders
+            // 'trailValue': -0.306525, // required for trailingStop orders, negative for "sell"; positive for "buy"
+            // 'orderPrice': 0.306525, // optional, for stop and takeProfit orders only (market by default). If not specified, a market order will be submitted
         };
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        if (reduceOnly === true) {
+            request['reduceOnly'] = reduceOnly;
+        }
         const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientId'] = clientOrderId;
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
         let method = undefined;
-        if (type === 'limit') {
+        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (((type === 'limit') || (type === 'market')) && (stopPrice === undefined)) {
             method = 'privatePostOrders';
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-        } else if (type === 'market') {
-            method = 'privatePostOrders';
-            request['price'] = null;
-        } else if ((type === 'stop') || (type === 'takeProfit')) {
+            if (type === 'limit') {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            } else if (type === 'market') {
+                request['price'] = null;
+            }
+            const timeInForce = this.safeString (params, 'timeInForce');
+            const postOnly = this.safeValue (params, 'postOnly', false);
+            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+            if (timeInForce !== undefined) {
+                if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
+                    throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
+                }
+            }
+            const maker = ((timeInForce === 'PO') || postOnly);
+            if ((type === 'market') && maker) {
+                throw new InvalidOrder (this.id + ' createOrder () does not accept postOnly: true or timeInForce: PO for market orders');
+            }
+            const ioc = (timeInForce === 'IOC');
+            if (maker) {
+                request['postOnly'] = true;
+            }
+            if (ioc) {
+                request['ioc'] = true;
+            }
+        } else if ((type === 'stop') || (type === 'takeProfit') || (stopPrice !== undefined)) {
             method = 'privatePostConditionalOrders';
-            const stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
             if (stopPrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
             } else {
-                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
                 request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            }
+            if ((type === 'limit') && (price === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for stop limit orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
+            if ((type === 'limit') || (type === 'market')) {
+                // default to stop orders for main argument
+                request['type'] = 'stop';
             }
         } else if (type === 'trailingStop') {
             const trailValue = this.safeNumber (params, 'trailValue', price);
@@ -1550,13 +1662,6 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
-    }
-
-    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'reduceOnly': true,
-        };
-        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -1763,10 +1868,11 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        const stop = this.safeValue (params, 'stop');
+        if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
             method = 'privateGetConditionalOrders';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1858,15 +1964,34 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchMyTrades
+         * @description fetch trades specific to you account
+         * @param {str} symbol unified market symbol
+         * @param {int} since timestamp in ms of the earliest trade
+         * @param {int} limit not sent to exchange but filtered internally by CCXT
+         * @param {dict} params exchange specific parameters
+         * @param {int} params.till timestamp in ms of the latest trade
+         * @returns A list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market', params);
         const request = {};
         if (marketId !== undefined) {
             request['market'] = marketId;
         }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const till = this.safeInteger (params, 'till');
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
             request['end_time'] = this.seconds ();
+        }
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+            params = this.omit (params, 'till');
         }
         const response = await this.privateGetFills (this.extend (request, params));
         //
@@ -2043,11 +2168,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const results = [];
-        for (let i = 0; i < result.length; i++) {
-            results.push (this.parsePosition (result[i]));
-        }
-        return this.filterByArray (results, 'symbol', symbols, false);
+        return this.parsePositions (result, symbols);
     }
 
     parsePosition (position, market = undefined) {
@@ -2123,7 +2244,7 @@ module.exports = class ftx extends Exchange {
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': this.parseNumber (collateral),
-            'marginType': 'cross',
+            'marginMode': 'cross',
             'side': side,
             'percentage': percentage,
         };
@@ -2404,7 +2525,7 @@ module.exports = class ftx extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 20)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+            throw new BadRequest (this.id + ' setLeverage () leverage should be between 1 and 20');
         }
         const request = {
             'leverage': leverage,
@@ -2550,17 +2671,44 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description Gets the history of the borrow rate for mutiple currencies
+         * @param {str} code Unified currency code
+         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
+         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return per currency, max=48 for multiple currencies, max=5000 for a single currency
+         * @param {dict} params Exchange specific parameters
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns A dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} with unified currency codes as keys
+         */
         await this.loadMarkets ();
         const request = {};
+        let numCodes = 0;
         let endTime = this.safeNumber2 (params, 'till', 'end_time');
-        if (limit > 48) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() limit cannot exceed 48');
+        if (codes !== undefined) {
+            numCodes = codes.length;
+        }
+        if (numCodes === 1) {
+            const millisecondsPer5000Hours = 18000000000;
+            if ((limit !== undefined) && (limit > 5000)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () limit cannot exceed 5000 for a single currency');
+            }
+            if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer5000Hours)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () requires the time range between the since time and the end time to be less than 5000 hours for a single currency');
+            }
+            const currency = this.currency (codes[0]);
+            request['coin'] = currency['id'];
+        } else {
+            const millisecondsPer2Days = 172800000;
+            if ((limit !== undefined) && (limit > 48)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () limit cannot exceed 48 for multiple currencies');
+            }
+            if ((endTime !== undefined) && (since !== undefined) && ((endTime - since) > millisecondsPer2Days)) {
+                throw new BadRequest (this.id + ' fetchBorrowRateHistories () requires the time range between the since time and the end time to be less than 48 hours for multiple currencies');
+            }
         }
         const millisecondsPerHour = 3600000;
-        const millisecondsPer2Days = 172800000;
-        if ((endTime - since) > millisecondsPer2Days) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistories() requires the time range between the since time and the end time to be less than 48 hours');
-        }
         if (since !== undefined) {
             request['start_time'] = parseInt (since / 1000);
             if (endTime === undefined) {
@@ -2601,10 +2749,21 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const histories = await this.fetchBorrowRateHistories (since, limit, params);
+        /**
+         * @method
+         * @name ftx#fetchBorrowRateHistory
+         * @description retrieves a history of a currencies borrow interest rate at specific time slots
+         * @param {str} code unified currency code
+         * @param {int|undefined} since timestamp for the earliest borrow rate
+         * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
-            throw new BadRequest (this.id + ' fetchBorrowRateHistory() returned no data for ' + code);
+            throw new BadRequest (this.id + ' fetchBorrowRateHistory () returned no data for ' + code);
         }
         return borrowRateHistory;
     }
@@ -2618,7 +2777,7 @@ module.exports = class ftx extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const code = this.safeCurrencyCode (this.safeString (item, 'coin'));
-            if (codes === undefined || codes.includes (code)) {
+            if (codes === undefined || this.inArray (code, codes)) {
                 if (!(code in borrowRateHistories)) {
                     borrowRateHistories[code] = [];
                 }
@@ -2697,7 +2856,7 @@ module.exports = class ftx extends Exchange {
         return {
             'account': 'cross',
             'symbol': undefined,
-            'marginType': 'cross',
+            'marginMode': 'cross',
             'currency': this.safeCurrencyCode (coin),
             'interest': this.safeNumber (info, 'cost'),
             'interestRate': this.safeNumber (info, 'rate'),

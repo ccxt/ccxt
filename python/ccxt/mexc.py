@@ -33,6 +33,7 @@ class mexc(Exchange):
             'rateLimit': 50,  # default rate limit is 20 times per second
             'version': 'v2',
             'certified': True,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -46,6 +47,9 @@ class mexc(Exchange):
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': False,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -65,6 +69,7 @@ class mexc(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -150,6 +155,7 @@ class mexc(Exchange):
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -166,6 +172,7 @@ class mexc(Exchange):
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -268,11 +275,11 @@ class mexc(Exchange):
                     'ERC20': 'ERC-20',
                     'BEP20': 'BEP20(BSC)',
                 },
+                'accountsByType': {
+                    'spot': 'MAIN',
+                    'swap': 'CONTRACT',
+                },
                 'transfer': {
-                    'accounts': {
-                        'spot': 'MAIN',
-                        'swap': 'CONTRACT',
-                    },
                     'accountsById': {
                         'MAIN': 'spot',
                         'CONTRACT': 'swap',
@@ -313,6 +320,7 @@ class mexc(Exchange):
                 'exact': {
                     '400': BadRequest,  # Invalid parameter
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
+                    '402': AuthenticationError,  # {"success":false,"code":402,"message":"API key expired!"}
                     '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
                     '703': PermissionDenied,  # Require trade read permission!
@@ -344,6 +352,11 @@ class mexc(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
@@ -369,21 +382,31 @@ class mexc(Exchange):
         return self.safe_integer(response, 'data')
 
     def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = self.spotPublicGetCommonPing(params)
         #
-        # {"code":200}
+        #     {"code":200}
         #
         code = self.safe_integer(response, 'code')
-        if code is not None:
-            status = 'ok' if (code == 200) else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        status = 'ok' if (code == 200) else 'maintenance'
+        return {
+            'status': status,
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.spotPublicGetMarketCoinList(params)
         #
         #     {
@@ -494,13 +517,18 @@ class mexc(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for mexc
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         query = self.omit(params, 'type')
         spot = (type == 'spot')
         swap = (type == 'swap')
         if not spot and not swap:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'")  # eslint-disable-line quotes
+            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot' or 'swap''")  # eslint-disable-line quotes
         if spot:
             return self.fetch_spot_markets(query)
         elif swap:
@@ -642,6 +670,19 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        response2 = self.spotPublicGetMarketApiDefaultSymbols(params)
+        #
+        #     {
+        #         "code":200,
+        #         "data":{
+        #             "symbol":[
+        #                 "ALEPH_USDT","OGN_USDT","HC_USDT",
+        #              ]
+        #         }
+        #     }
+        #
+        data2 = self.safe_value(response2, 'data', {})
+        symbols = self.safe_value(data2, 'symbol', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -652,6 +693,12 @@ class mexc(Exchange):
             priceScale = self.safe_string(market, 'price_scale')
             quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
+            active = False
+            for j in range(0, len(symbols)):
+                if symbols[j] == id:
+                    if state == 'ENABLED':
+                        active = True
+                    break
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -667,7 +714,7 @@ class mexc(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (state == 'ENABLED'),
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -705,6 +752,12 @@ class mexc(Exchange):
         return result
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -743,6 +796,12 @@ class mexc(Exchange):
         return self.parse_tickers(data, symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -879,9 +938,16 @@ class mexc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -948,6 +1014,14 @@ class mexc(Exchange):
         return orderbook
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1121,6 +1195,15 @@ class mexc(Exchange):
         return result
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
@@ -1206,25 +1289,12 @@ class mexc(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'premiumIndex',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1601,7 +1671,7 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_positions(data)
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -1636,7 +1706,7 @@ class mexc(Exchange):
         rawSide = self.safe_string(position, 'positionType')
         side = 'long' if (rawSide == '1') else 'short'
         openType = self.safe_string(position, 'margin_mode')
-        marginType = 'isolated' if (openType == '1') else 'cross'
+        marginMode = 'isolated' if (openType == '1') else 'cross'
         leverage = self.safe_string(position, 'leverage')
         liquidationPrice = self.safe_number(position, 'liquidatePrice')
         timestamp = self.safe_number(position, 'updateTime')
@@ -1651,7 +1721,7 @@ class mexc(Exchange):
             'unrealizedProfit': None,
             'leverage': self.parse_number(leverage),
             'percentage': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
             'notional': None,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -1663,12 +1733,6 @@ class mexc(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -1688,13 +1752,22 @@ class mexc(Exchange):
         elif side == 'sell':
             orderSide = 'ASK'
         orderType = type.upper()
-        postOnly = self.safe_value(params, 'postOnly', False)
+        isMarketOrder = orderType == 'MARKET'
+        if isMarketOrder:
+            raise InvalidOrder(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
+        if orderType == 'LIMIT':
+            orderType = 'LIMIT_ORDER'
+        postOnly = self.is_post_only(isMarketOrder, orderType == 'POST_ONLY', params)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        ioc = (timeInForce == 'IOC')
         if postOnly:
             orderType = 'POST_ONLY'
-        elif orderType == 'LIMIT':
-            orderType = 'LIMIT_ORDER'
-        elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
-            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
+        elif ioc:
+            orderType = 'IMMEDIATE_OR_CANCEL'
+        if timeInForce == 'FOK':
+            raise InvalidOrder(self.id + ' createOrder() does not support timeInForce FOK, only IOC, PO, and GTC are allowed')
+        if ((orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL') and (orderType != 'LIMIT_ORDER')):
+            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, only LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL are allowed')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
@@ -1705,7 +1778,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly'])
+        params = self.omit(params, ['type', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce'])
         response = self.spotPrivatePostOrderPlace(self.extend(request, params))
         #
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
@@ -1720,13 +1793,21 @@ class mexc(Exchange):
             raise ArgumentsRequired(self.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin')
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        isMarketOrder = (type == 'market') or (type == 5)
+        postOnly = self.is_post_only(isMarketOrder, type == 2, params)
         if postOnly:
             type = 2
         elif type == 'limit':
             type = 1
         elif type == 'market':
-            type = 6
+            type = 5
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        ioc = (timeInForce == 'IOC')
+        fok = (timeInForce == 'FOK')
+        if ioc:
+            type = 3
+        elif fok:
+            type = 4
         if (side != 1) and (side != 2) and (side != 3) and (side != 4):
             raise InvalidOrder(self.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long')
         request = {
@@ -1757,14 +1838,14 @@ class mexc(Exchange):
         }
         method = 'contractPrivatePostOrderSubmit'
         stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'timeInForce', 'postOnly'])
         if stopPrice is not None:
             method = 'contractPrivatePostPlanorderPlace'
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
             request['trend'] = self.safe_integer(params, 'trend', 1)
-            request['orderType'] = self.safe_integer(params, 'orderType', 1)
+            request['orderType'] = self.safe_integer(params, 'orderType', type)
         if (type != 5) and (type != 6) and (type != 'market'):
             request['price'] = float(self.price_to_precision(symbol, price))
         if openType == 1:
@@ -1774,7 +1855,7 @@ class mexc(Exchange):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly'])
+        params = self.omit(params, ['clientOrderId', 'externalOid'])
         response = getattr(self, method)(self.extend(request, params))
         #
         # Swap
@@ -1877,6 +1958,7 @@ class mexc(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        # TODO update parseOrder to reflect type, timeInForce, and postOnly from fetchOrder()
         #
         # createOrder
         #
@@ -1904,7 +1986,7 @@ class mexc(Exchange):
         #         "order_type":"LIMIT_ORDER"
         #     }
         #
-        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        # swap fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrder
         #
         #     {
         #         "orderId": "266578267438402048",
@@ -2002,7 +2084,7 @@ class mexc(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'vol')
         remaining = self.safe_string(order, 'remain_quantity')
         filled = self.safe_string_2(order, 'deal_quantity', 'dealVol')
-        cost = self.safe_string_2(order, 'deal_amount', 'dealAvgPrice')
+        cost = self.safe_string(order, 'deal_amount')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         sideCheck = self.safe_integer(order, 'side')
@@ -2022,11 +2104,40 @@ class mexc(Exchange):
             side = 'close long'
         status = self.parse_order_status(state, market)
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'orderId')
-        if clientOrderId == '':
-            clientOrderId = None
-        orderType = self.safe_string_lower(order, 'order_type')
-        if orderType is not None:
-            orderType = orderType.replace('_order', '')
+        rawOrderType = self.safe_string_2(order, 'orderType', 'order_type')
+        orderType = None
+        # swap: 1:price limited order, 2:Post Only Maker, 3:transact or cancel instantly, 4:transact completely or cancel completely，5:market orders, 6:convert market price to current price
+        # spot: LIMIT_ORDER, POST_ONLY, IMMEDIATE_OR_CANCEL
+        timeInForce = None
+        postOnly = None
+        if rawOrderType is not None:
+            postOnly = False
+            if rawOrderType == '1':
+                orderType = 'limit'
+                timeInForce = 'GTC'
+            elif rawOrderType == '2':
+                orderType = 'limit'
+                timeInForce = 'PO'
+                postOnly = True
+            elif rawOrderType == '3':
+                orderType = 'limit'
+                timeInForce = 'IOC'
+            elif rawOrderType == '4':
+                orderType = 'limit'
+                timeInForce = 'FOK'
+            elif (rawOrderType == '5') or (rawOrderType == '6'):
+                orderType = 'market'
+                timeInForce = 'GTC'
+            elif rawOrderType == 'LIMIT_ORDER':
+                orderType = 'limit'
+                timeInForce = 'GTC'
+            elif rawOrderType == 'POST_ONLY':
+                orderType = 'limit'
+                timeInForce = 'PO'
+                postOnly = True
+            elif rawOrderType == 'IMMEDIATE_OR_CANCEL':
+                orderType = 'limit'
+                timeInForce = 'IOC'
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -2036,11 +2147,12 @@ class mexc(Exchange):
             'status': status,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'average': None,
+            'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,
@@ -2162,7 +2274,7 @@ class mexc(Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -2416,6 +2528,8 @@ class mexc(Exchange):
         if positionId is None:
             raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionId parameter')
         self.load_markets()
+        market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'positionId': positionId,
             'amount': amount,
@@ -2427,7 +2541,24 @@ class mexc(Exchange):
         #         "success": True,
         #         "code": 0
         #     }
-        return response
+        #
+        type = 'add' if (addOrReduce == 'ADD') else 'reduce'
+        return self.extend(self.parse_margin_modification(response, market), {
+            'amount': self.safe_number(amount),
+            'type': type,
+        })
+
+    def parse_margin_modification(self, data, market=None):
+        statusRaw = self.safe_string(data, 'success')
+        status = 'ok' if (statusRaw is True) else 'failed'
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': None,
+            'symbol': self.safe_symbol(None, market),
+            'status': status,
+        }
 
     def reduce_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
@@ -2436,17 +2567,26 @@ class mexc(Exchange):
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     def set_leverage(self, leverage, symbol=None, params={}):
-        positionId = self.safe_integer(params, 'positionId')
-        if positionId is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter')
         self.load_markets()
         request = {
-            'positionId': positionId,
             'leverage': leverage,
         }
+        positionId = self.safe_integer(params, 'positionId')
+        if positionId is None:
+            openType = self.safe_number(params, 'openType')  # 1 or 2
+            positionType = self.safe_number(params, 'positionType')  # 1 or 2
+            market = self.market(symbol) if (symbol is not None) else None
+            if (openType is None) or (positionType is None) or (market is None):
+                raise ArgumentsRequired(self.id + ' setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions')
+            else:
+                request['openType'] = openType
+                request['symbol'] = market['id']
+                request['positionType'] = positionType
+        else:
+            request['positionId'] = positionId
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
-    def fetch_transfer(self, id, since=None, limit=None, params={}):
+    def fetch_transfer(self, id, code=None, params={}):
         request = {
             'transact_id': id,
         }
@@ -2507,16 +2647,9 @@ class mexc(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         self.load_markets()
         currency = self.currency(code)
-        transferOptions = self.safe_value(self.options, 'transfer', {})
-        accounts = self.safe_value(transferOptions, 'accounts', {})
-        fromId = self.safe_string(accounts, fromAccount)
-        toId = self.safe_string(accounts, toAccount)
-        if fromId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
-        if toId is None:
-            keys = list(accounts.keys())
-            raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': amount,
@@ -2785,14 +2918,14 @@ class mexc(Exchange):
         return self.parse_funding_rate(result, market)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Gets a history of funding rates with their timestamps
-        #  (param) symbol: Future currency pair
-        #  (param) limit: mexc limit is page_size default 20, maximum is 100
-        #  (param) since: not used by mexc
-        #  (param) params: Object containing more params for the request
-        #  return: [{symbol, fundingRate, timestamp, dateTime}]
-        #
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: not used by mexc, but filtered internally by ccxt
+        :param int|None limit: mexc limit is page_size default 20, maximum is 100
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
@@ -2806,31 +2939,31 @@ class mexc(Exchange):
             request['page_size'] = limit
         response = self.contractPublicGetFundingRateHistory(self.extend(request, params))
         #
-        # {
-        #     "success": True,
-        #     "code": 0,
-        #     "data": {
-        #         "pageSize": 2,
-        #         "totalCount": 21,
-        #         "totalPage": 11,
-        #         "currentPage": 1,
-        #         "resultList": [
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.000266,
-        #                 "settleTime": 1609804800000
-        #             },
-        #             {
-        #                 "symbol": "BTC_USDT",
-        #                 "fundingRate": 0.00029,
-        #                 "settleTime": 1609776000000
-        #             }
-        #         ]
-        #     }
-        # }
+        #    {
+        #        "success": True,
+        #        "code": 0,
+        #        "data": {
+        #            "pageSize": 2,
+        #            "totalCount": 21,
+        #            "totalPage": 11,
+        #            "currentPage": 1,
+        #            "resultList": [
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.000266,
+        #                    "settleTime": 1609804800000
+        #                },
+        #                {
+        #                    "symbol": "BTC_USDT",
+        #                    "fundingRate": 0.00029,
+        #                    "settleTime": 1609776000000
+        #                }
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList')
+        result = self.safe_value(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -2956,8 +3089,8 @@ class mexc(Exchange):
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'currency': self.safe_currency_code(quoteId),
-                'notionalFloor': self.parse_number(floor),
-                'notionalCap': self.parse_number(cap),
+                'minNotional': self.parse_number(floor),
+                'maxNotional': self.parse_number(cap),
                 'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                 'info': info,

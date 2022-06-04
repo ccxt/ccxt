@@ -17,7 +17,7 @@ module.exports = class hitbtc extends Exchange {
             'countries': [ 'HK' ],
             // 300 requests per second => 1000ms / 300 = 3.333ms between requests on average (Trading)
             // 100 requests per second => ( 1000ms / rateLimit ) / 100 => cost = 3.0003 (Market Data)
-            // 10 requests per second => ( 1000ms / rateLimit ) / 10 => cost = 30.003 (Other Requests)
+            // 20 requests per second => ( 1000ms / rateLimit ) / 20 => cost = 15.0015 (Other Requests)
             'rateLimit': 3.333,
             'version': '2',
             'pro': true,
@@ -55,6 +55,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -130,32 +131,32 @@ module.exports = class hitbtc extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'trading/balance': 30, // Get trading balance
-                        'order': 30, // List your current open orders
-                        'order/{clientOrderId}': 30, // Get a single order by clientOrderId
-                        'trading/fee/all': 30, // Get trading fee rate
-                        'trading/fee/{symbol}': 30, // Get trading fee rate
-                        'margin/account': 30,
-                        'margin/account/{symbol}': 30,
-                        'margin/position': 30,
-                        'margin/position/{symbol}': 30,
-                        'margin/order': 30,
-                        'margin/order/{clientOrderId}': 30,
-                        'history/order': 30, // Get historical orders
-                        'history/trades': 30, // Get historical trades
-                        'history/order/{orderId}/trades': 30, // Get historical trades by specified order
-                        'account/balance': 30, // Get main acccount balance
-                        'account/crypto/address/{currency}': 30, // Get current address
-                        'account/crypto/addresses/{currency}': 30, // Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}': 30, // Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw': 30,
-                        'account/crypto/is-mine/{address}': 30,
-                        'account/transactions': 30, // Get account transactions
-                        'account/transactions/{id}': 30, // Get account transaction by id
-                        'sub-acc': 30,
-                        'sub-acc/acl': 30,
-                        'sub-acc/balance/{subAccountUserID}': 30,
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 30,
+                        'trading/balance': 15.0015, // Get trading balance
+                        'order': 15.0015, // List your current open orders
+                        'order/{clientOrderId}': 15.0015, // Get a single order by clientOrderId
+                        'trading/fee/all': 15.0015, // Get trading fee rate
+                        'trading/fee/{symbol}': 15.0015, // Get trading fee rate
+                        'margin/account': 15.0015,
+                        'margin/account/{symbol}': 15.0015,
+                        'margin/position': 15.0015,
+                        'margin/position/{symbol}': 15.0015,
+                        'margin/order': 15.0015,
+                        'margin/order/{clientOrderId}': 15.0015,
+                        'history/order': 15.0015, // Get historical orders
+                        'history/trades': 15.0015, // Get historical trades
+                        'history/order/{orderId}/trades': 15.0015, // Get historical trades by specified order
+                        'account/balance': 15.0015, // Get main acccount balance
+                        'account/crypto/address/{currency}': 15.0015, // Get current address
+                        'account/crypto/addresses/{currency}': 15.0015, // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}': 15.0015, // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw': 15.0015,
+                        'account/crypto/is-mine/{address}': 15.0015,
+                        'account/transactions': 15.0015, // Get account transactions
+                        'account/transactions/{id}': 15.0015, // Get account transaction by id
+                        'sub-acc': 15.0015,
+                        'sub-acc/acl': 15.0015,
+                        'sub-acc/balance/{subAccountUserID}': 15.0015,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 15.0015,
                     },
                     'post': {
                         'order': 1, // Create new order
@@ -212,13 +213,8 @@ module.exports = class hitbtc extends Exchange {
                 },
                 'defaultTimeInForce': 'FOK',
                 'accountsByType': {
-                    'bank': 'bank',
-                    'exchange': 'exchange',
-                    'main': 'bank',  // alias of the above
                     'funding': 'bank',
                     'spot': 'exchange',
-                    'trade': 'exchange',
-                    'trading': 'exchange',
                 },
                 'fetchBalanceMethod': {
                     'account': 'account',
@@ -275,6 +271,13 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchMarkets
+         * @description retrieves data on all markets for hitbtc
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetSymbol (params);
         //
         //     [
@@ -375,38 +378,56 @@ module.exports = class hitbtc extends Exchange {
         let type = this.safeString (params, 'type');
         if (type === undefined) {
             const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            const fromId = this.safeString (accountsByType, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount);
-            const keys = Object.keys (accountsByType);
-            if (fromId === undefined) {
-                throw new ExchangeError (this.id + ' fromAccount must be one of ' + keys.join (', ') + ' instead of ' + fromId);
-            }
-            if (toId === undefined) {
-                throw new ExchangeError (this.id + ' toAccount must be one of ' + keys.join (', ') + ' instead of ' + toId);
-            }
+            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+            const toId = this.safeString (accountsByType, toAccount, toAccount);
             if (fromId === toId) {
-                throw new ExchangeError (this.id + ' from and to cannot be the same account');
+                throw new ExchangeError (this.id + ' transfer() from and to cannot be the same account');
             }
             type = fromId + 'To' + this.capitalize (toId);
         }
         request['type'] = type;
         const response = await this.privatePostAccountTransfer (this.extend (request, params));
-        // { id: '2db6ebab-fb26-4537-9ef8-1a689472d236' }
-        const id = this.safeString (response, 'id');
-        return {
-            'info': response,
-            'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'amount': requestAmount,
-            'currency': code,
+        //
+        //     {
+        //         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        return this.extend (transfer, {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
+            'amount': this.parseNumber (requestAmount),
+        });
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        return {
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
             'status': undefined,
+            'info': transfer,
         };
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrency (params);
         //
         //     [
@@ -533,12 +554,19 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'trading');
         const fetchBalanceAccounts = this.safeValue (this.options, 'fetchBalanceMethod', {});
         const typeId = this.safeString (fetchBalanceAccounts, type);
         if (typeId === undefined) {
-            throw new ExchangeError (this.id + ' fetchBalance account type must be either main or trading');
+            throw new ExchangeError (this.id + ' fetchBalance() account type must be either main or trading');
         }
         const method = 'privateGet' + this.capitalize (typeId) + 'Balance';
         const query = this.omit (params, 'type');
@@ -576,6 +604,17 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -600,6 +639,15 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -639,10 +687,18 @@ module.exports = class hitbtc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
         const result = {};
@@ -657,6 +713,14 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -857,6 +921,16 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1230,7 +1304,7 @@ module.exports = class hitbtc extends Exchange {
         fromNetwork = this.safeString (networks, fromNetwork, fromNetwork); // handle ETH>ERC20 alias
         toNetwork = this.safeString (networks, toNetwork, toNetwork); // handle ETH>ERC20 alias
         if (fromNetwork === toNetwork) {
-            throw new ExchangeError (this.id + ' fromNetwork cannot be the same as toNetwork');
+            throw new ExchangeError (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
         const request = {
             'fromCurrency': currency['id'] + fromNetwork,

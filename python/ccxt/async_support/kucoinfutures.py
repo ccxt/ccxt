@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -44,6 +45,9 @@ class kucoinfutures(kucoin):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -55,7 +59,6 @@ class kucoinfutures(kucoin):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFee': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -78,6 +81,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTransactionFee': True,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -205,6 +209,9 @@ class kucoinfutures(kucoin):
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                 },
+                'broad': {
+                    'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
+                },
             },
             'fees': {
                 'trading': {
@@ -280,6 +287,7 @@ class kucoinfutures(kucoin):
                 'symbolSeparator': '-',
                 'defaultType': 'swap',
                 'code': 'USDT',
+                'marginModes': {},
                 'marginTypes': {},
                 # endpoint versions
                 'versions': {
@@ -307,31 +315,40 @@ class kucoinfutures(kucoin):
         })
 
     async def fetch_accounts(self, params={}):
-        raise BadRequest(self.id + ' has no method fetchAccounts')
+        raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.futuresPublicGetStatus(params)
         #
         #     {
         #         "code":"200000",
         #         "data":{
-        #             "msg":"",
-        #             "status":"open"
+        #             "status": "open",  # open, close, cancelonly
+        #             "msg": "upgrade match engine"  # remark for operation when status not open
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        status = self.safe_value(data, 'status')
-        if status is not None:
-            status = 'ok' if (status == 'open') else 'maintenance'
-            self.status = self.extend(self.status, {
-                'status': status,
-                'updated': self.milliseconds(),
-                'info': response,
-            })
-        return self.status
+        status = self.safe_string(data, 'status')
+        return {
+            'status': 'ok' if (status == 'open') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for kucoinfutures
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.futuresPublicGetContractsActive(params)
         #
         #    {
@@ -403,7 +420,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -483,6 +500,11 @@ class kucoinfutures(kucoin):
         return result
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.futuresPublicGetTimestamp(params)
         #
         #    {
@@ -493,6 +515,15 @@ class kucoinfutures(kucoin):
         return self.safe_number(response, 'data')
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
@@ -547,7 +578,7 @@ class kucoinfutures(kucoin):
         ]
 
     async def create_deposit_address(self, code, params={}):
-        raise BadRequest(self.id + ' has no method createDepositAddress')
+        raise BadRequest(self.id + ' createDepositAddress() is not supported yet')
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -580,10 +611,17 @@ class kucoinfutures(kucoin):
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         level = self.safe_number(params, 'level')
         if level != 2 and level is not None:
-            raise BadRequest(self.id + ' fetchOrderBook can only return level 2')
+            raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -592,7 +630,7 @@ class kucoinfutures(kucoin):
             if (limit == 20) or (limit == 100):
                 request['limit'] = limit
             else:
-                raise BadRequest(self.id + ' fetchOrderBook limit argument must be 20 or 100')
+                raise BadRequest(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
         else:
             request['limit'] = 20
         response = await self.futuresPublicGetLevel2DepthLimit(self.extend(request, params))
@@ -621,9 +659,15 @@ class kucoinfutures(kucoin):
         return orderbook
 
     async def fetch_l3_order_book(self, symbol, limit=None, params={}):
-        raise BadRequest(self.id + ' only can only fetch the L2 order book')
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -672,7 +716,7 @@ class kucoinfutures(kucoin):
         last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
-        timestamp = Precise.string_div(self.safe_string(ticker, 'ts'), '1000000')
+        timestamp = self.safe_integer_product(ticker, 'ts', 0.000001)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -694,7 +738,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -741,7 +785,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList')
+        dataList = self.safe_value(data, 'dataList', [])
         fees = []
         for i in range(0, len(dataList)):
             listItem = dataList[i]
@@ -810,13 +854,8 @@ class kucoinfutures(kucoin):
         #        ]
         #    }
         #
-        return self.parse_positions(self.safe_value(response, 'data'))
-
-    def parse_positions(self, positions):
-        result = []
-        for i in range(0, len(positions)):
-            result.append(self.parse_position(positions[i]))
-        return result
+        data = self.safe_value(response, 'data')
+        return self.parse_positions(data, symbols)
 
     def parse_position(self, position, market=None):
         #
@@ -881,7 +920,7 @@ class kucoinfutures(kucoin):
         unrealisedPnl = self.safe_string(position, 'unrealisedPnl')
         crossMode = self.safe_value(position, 'crossMode')
         # currently crossMode is always set to False and only isolated positions are supported
-        marginType = 'cross' if crossMode else 'isolated'
+        marginMode = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
@@ -902,7 +941,7 @@ class kucoinfutures(kucoin):
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),
             'collateral': self.safe_number(position, 'maintMargin'),
-            'marginType': marginType,
+            'marginMode': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }
@@ -911,22 +950,22 @@ class kucoinfutures(kucoin):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market" *"market" is contract only*
+        :param str type: "limit" or "market"
         :param str side: "buy" or "sell"
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params.leverage: Leverage size of the order
-        :param float params.stopPrice: The price at which a trigger order is triggered at
-        :param bool params.reduceOnly: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
-        :param str params.timeInForce: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-        :param str params.postOnly: Post only flag, invalid when timeInForce is IOC or FOK
-        :param str params.clientOid: client order id, defaults to uuid if not passed
-        :param str params.remark: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params.stop: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        :param str params.stopPriceType:  TP, IP or MP, defaults to TP
-        :param bool params.closeOrder: set to True to close position
-        :param bool params.forceHold: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :param float params['leverage']: Leverage size of the order
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
+        :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+        :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
+        :param str params['clientOid']: client order id, defaults to uuid if not passed
+        :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
+        :param str params['stop']: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+        :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
+        :param bool params['closeOrder']: set to True to close position
+        :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1027,7 +1066,7 @@ class kucoinfutures(kucoin):
         Cancels all orders in one api call
         :param str symbol: Assign to cancel only the orders in the market matching the unified symbol
         :param dict params: Exchange specific parameters
-        :param dict params.stop: When True, all the trigger orders will be cancelled
+        :param dict params['stop']: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """
         await self.load_markets()
@@ -1055,10 +1094,126 @@ class kucoinfutures(kucoin):
         uuid = self.uuid()
         request = {
             'symbol': market['id'],
-            'margin': amount,
+            'margin': self.amount_to_precision(symbol, amount),
             'bizNo': uuid,
         }
-        return await self.futuresPrivatePostPositionMarginDepositMargin(self.extend(request, params))
+        response = await self.futuresPrivatePostPositionMarginDepositMargin(self.extend(request, params))
+        #
+        #    {
+        #        code: '200000',
+        #        data: {
+        #            id: '62311d26064e8f00013f2c6d',
+        #            symbol: 'XRPUSDTM',
+        #            autoDeposit: False,
+        #            maintMarginReq: 0.01,
+        #            riskLimit: 200000,
+        #            realLeverage: 0.88,
+        #            crossMode: False,
+        #            delevPercentage: 0.4,
+        #            openingTimestamp: 1647385894798,
+        #            currentTimestamp: 1647414510672,
+        #            currentQty: -1,
+        #            currentCost: -7.658,
+        #            currentComm: 0.0053561,
+        #            unrealisedCost: -7.658,
+        #            realisedGrossCost: 0,
+        #            realisedCost: 0.0053561,
+        #            isOpen: True,
+        #            markPrice: 0.7635,
+        #            markValue: -7.635,
+        #            posCost: -7.658,
+        #            posCross: 1.00016084,
+        #            posInit: 7.658,
+        #            posComm: 0.00979006,
+        #            posLoss: 0,
+        #            posMargin: 8.6679509,
+        #            posMaint: 0.08637006,
+        #            maintMargin: 8.6909509,
+        #            realisedGrossPnl: 0,
+        #            realisedPnl: -0.0038335,
+        #            unrealisedPnl: 0.023,
+        #            unrealisedPnlPcnt: 0.003,
+        #            unrealisedRoePcnt: 0.003,
+        #            avgEntryPrice: 0.7658,
+        #            liquidationPrice: 1.6239,
+        #            bankruptPrice: 1.6317,
+        #            settleCurrency: 'USDT'
+        #        }
+        #    }
+        #
+        #
+        #    {
+        #        "code":"200000",
+        #        "msg":"Position does not exist"
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.extend(self.parseModifyMargin(data, market), {
+            'amount': self.amount_to_precision(symbol, amount),
+            'direction': 'in',
+        })
+
+    def parse_margin_modification(self, info, market=None):
+        #
+        #    {
+        #        id: '62311d26064e8f00013f2c6d',
+        #        symbol: 'XRPUSDTM',
+        #        autoDeposit: False,
+        #        maintMarginReq: 0.01,
+        #        riskLimit: 200000,
+        #        realLeverage: 0.88,
+        #        crossMode: False,
+        #        delevPercentage: 0.4,
+        #        openingTimestamp: 1647385894798,
+        #        currentTimestamp: 1647414510672,
+        #        currentQty: -1,
+        #        currentCost: -7.658,
+        #        currentComm: 0.0053561,
+        #        unrealisedCost: -7.658,
+        #        realisedGrossCost: 0,
+        #        realisedCost: 0.0053561,
+        #        isOpen: True,
+        #        markPrice: 0.7635,
+        #        markValue: -7.635,
+        #        posCost: -7.658,
+        #        posCross: 1.00016084,
+        #        posInit: 7.658,
+        #        posComm: 0.00979006,
+        #        posLoss: 0,
+        #        posMargin: 8.6679509,
+        #        posMaint: 0.08637006,
+        #        maintMargin: 8.6909509,
+        #        realisedGrossPnl: 0,
+        #        realisedPnl: -0.0038335,
+        #        unrealisedPnl: 0.023,
+        #        unrealisedPnlPcnt: 0.003,
+        #        unrealisedRoePcnt: 0.003,
+        #        avgEntryPrice: 0.7658,
+        #        liquidationPrice: 1.6239,
+        #        bankruptPrice: 1.6317,
+        #        settleCurrency: 'USDT'
+        #    }
+        #
+        #    {
+        #        "code":"200000",
+        #        "msg":"Position does not exist"
+        #    }
+        #
+        id = self.safe_string(info, 'id')
+        market = self.safe_market(id, market)
+        currencyId = self.safe_string(info, 'settleCurrency')
+        crossMode = self.safe_value(info, 'crossMode')
+        mode = 'cross' if crossMode else 'isolated'
+        marketId = self.safe_string(market, 'symbol')
+        return {
+            'info': info,
+            'direction': None,
+            'mode': mode,
+            'amount': None,
+            'code': self.safe_currency_code(currencyId),
+            'symbol': self.safe_symbol(marketId, market),
+            'status': None,
+        }
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         """
@@ -1068,32 +1223,52 @@ class kucoinfutures(kucoin):
         :param int since: timestamp in ms of the earliest order to retrieve
         :param int limit: The maximum number of orders to retrieve
         :param dict params: exchange specific parameters
-        :param bool params.stop: set to True to retrieve untriggered stop orders
-        :param str params.side: buy or sell
-        :param str params.type: limit or market
-        :param int params.endAt: End time in ms
+        :param bool params['stop']: set to True to retrieve untriggered stop orders
+        :param int params['till']: End time in ms
+        :param str params['side']: buy or sell
+        :param str params['type']: limit or market
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         stop = self.safe_value(params, 'stop')
         params = self.omit(params, 'stop')
-        status = 'done' if (status == 'closed') else status
+        if status == 'closed':
+            status = 'done'
+        elif status == 'open':
+            status = 'active'
         request = {}
         if not stop:
             request['status'] = status
         elif status != 'active':
-            raise BadRequest(self.id + ' fetchOrdersByStatus can only fetch untriggered stop orders')
+            raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
+        till = self.safe_integer_2(params, 'till', 'endAt')
+        if till is not None:
+            request['endAt'] = till
         method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
         response = await getattr(self, method)(self.extend(request, params))
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch a list of orders
+        :param str symbol: unified market symbol
+        :param int since: timestamp in ms of the earliest order
+        :param int limit: max number of orders to return
+        :param dict params: exchange specific params
+        :param int params['till']: end time in ms
+        :param str params['side']: buy or sell
+        :param str params['type']: limit, or market
+        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     async def fetch_order(self, id=None, symbol=None, params={}):
         await self.load_markets()
@@ -1235,6 +1410,11 @@ class kucoinfutures(kucoin):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         # only fetches one balance at a time
         defaultCode = self.safe_string(self.options, 'code')
@@ -1265,15 +1445,13 @@ class kucoinfutures(kucoin):
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' only supports transfers from contract(future) account to main(funding) account')
-        return self.transfer_out(code, amount, params)
-
-    async def transfer_out(self, code, amount, params={}):
+            raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         await self.load_markets()
         currency = self.currency(code)
+        amountToPrecision = self.currency_to_precision(code, amount)
         request = {
             'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
-            'amount': amount,
+            'amount': amountToPrecision,
         }
         # transfer from usdm futures wallet to spot wallet
         response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
@@ -1286,18 +1464,38 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_string(data, 'updatedAt')
-        return {
-            'info': response,
-            'id': self.safe_string(data, 'applyId'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
+        return self.extend(self.parse_transfer(data, currency), {
+            'amount': self.parse_number(amountToPrecision),
             'fromAccount': 'future',
             'toAccount': 'spot',
-            'status': self.safe_string(data, 'status'),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # transfer
+        #
+        #     {
+        #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+        #     }
+        #
+        timestamp = self.safe_string(transfer, 'updatedAt')
+        return {
+            'id': self.safe_string(transfer, 'applyId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.safe_string(transfer, 'status'),
+            'info': transfer,
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'PROCESSING': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1354,6 +1552,14 @@ class kucoinfutures(kucoin):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1576,17 +1782,17 @@ class kucoinfutures(kucoin):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_funding_fee(self, code, params={}):
-        raise BadRequest(self.id + ' has no method fetchFundingFee')
+    async def fetch_transaction_fee(self, code, params={}):
+        raise BadRequest(self.id + ' fetchTransactionFee() is not supported yet')
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
-        raise BadRequest(self.id + ' has no method fetchLedger')
+        raise BadRequest(self.id + ' fetchLedger() is not supported yet')
 
     async def fetch_market_leverage_tiers(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
-            raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         request = {
             'symbol': market['id'],
         }
@@ -1634,8 +1840,8 @@ class kucoinfutures(kucoin):
             tiers.append({
                 'tier': self.safe_number(tier, 'level'),
                 'currency': market['base'],
-                'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
-                'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
+                'minNotional': self.safe_number(tier, 'minRiskLimit'),
+                'maxNotional': self.safe_number(tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),
                 'info': tier,
