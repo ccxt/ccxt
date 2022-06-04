@@ -2196,7 +2196,8 @@ module.exports = class Exchange {
         return '1e' + Precise.stringNeg (precision)
     }
 
-    precisionToTicksize (precisionDigitsString) {
+    safeTicksizeFromDigit (object, key) {
+        const precisionDigitsString = this.safeString (object, key);
         return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 

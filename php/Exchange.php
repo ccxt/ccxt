@@ -3799,7 +3799,8 @@ class Exchange {
         return '1e' . Precise::string_neg($precision);
     }
 
-    public function precision_to_ticksize($precisionDigitsString) {
+    public function safe_ticksize_from_digit($object, $key) {
+        $precisionDigitsString = $this->safe_string($object, $key);
         return $this->parse_number($this->parse_precision($precisionDigitsString));
     }
 
