@@ -2229,7 +2229,6 @@ class ftx extends Exchange {
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => $this->parse_number($collateral),
             'marginMode' => 'cross',
-            'marginType' => 'cross', // deprecated
             'side' => $side,
             'percentage' => $percentage,
         );
@@ -2838,7 +2837,6 @@ class ftx extends Exchange {
             'account' => 'cross',
             'symbol' => null,
             'marginMode' => 'cross',
-            'marginType' => 'cross', // deprecated
             'currency' => $this->safe_currency_code($coin),
             'interest' => $this->safe_number($info, 'cost'),
             'interestRate' => $this->safe_number($info, 'rate'),

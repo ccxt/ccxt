@@ -942,7 +942,6 @@ class kucoinfutures(kucoin):
             'markPrice': self.safe_number(position, 'markPrice'),
             'collateral': self.safe_number(position, 'maintMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,
             'side': side,
             'percentage': self.parse_number(Precise.string_div(unrealisedPnl, initialMargin)),
         }

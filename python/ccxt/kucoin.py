@@ -251,7 +251,7 @@ class kucoin(Exchange):
                         'orders': 1.3953,
                         'stopOrders': 1.3953,
                         'recentDoneOrders': 1.3953,
-                        'orders/{order-id}': 1.3953,  # ?clientOid={client-order-id}  # get order by orderId
+                        'orders/{orderId}': 1.3953,  # ?clientOid={client-orderId}  # get order by orderId
                         'orders/byClientOid': 1.3953,  # ?clientOid=eresc138b21023a909e5ad59  # get order by clientOid
                         'fills': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'recentFills': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
@@ -271,7 +271,7 @@ class kucoin(Exchange):
                     'delete': {
                         'withdrawals/{withdrawalId}': 1.3953,
                         'cancel/transfer-out': 1.3953,
-                        'orders/{order-id}': 1.3953,  # 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders/{orderId}': 1.3953,  # 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
                         'orders': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'stopOrders': 1.3953,
                     },

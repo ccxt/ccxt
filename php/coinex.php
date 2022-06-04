@@ -2843,7 +2843,6 @@ class coinex extends Exchange {
             'symbol' => $symbol,
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,

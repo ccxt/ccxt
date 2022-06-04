@@ -2136,7 +2136,6 @@ class ftx(Exchange):
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2687,7 +2686,6 @@ class ftx(Exchange):
             'account': 'cross',
             'symbol': None,
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

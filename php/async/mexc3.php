@@ -281,6 +281,7 @@ class mexc3 extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'timeframes' => array(
                 '1m' => '1m', // spot, swap
                 '3m' => '3m', // spot
@@ -530,8 +531,8 @@ class mexc3 extends Exchange {
                 $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 $currencyActive = $active || $currencyActive;
-                $precisionDigits = $this->safe_integer($chain, 'precision');
-                $precision = 1 / pow(10, $precisionDigits);
+                $precisionDigits = $this->safe_string($chain, 'precision');
+                $precision = $this->parse_number($this->parse_precision($precisionDigits));
                 $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');
                 $withdrawMax = $this->safe_string($chain, 'withdraw_limit_max');
                 $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
@@ -637,32 +638,41 @@ class mexc3 extends Exchange {
         //         "exchangeFilters" => array(),
         //         "symbols" => array(
         //           array(
-        //             "symbol" => "BTCUSDT",
-        //             "status" => "ENABLED",
-        //             "baseAsset" => "BTC",
-        //             "baseAssetPrecision" => 6,
-        //             "quoteAsset" => "USDT",
-        //             "quotePrecision" => 2,
-        //             "quoteAssetPrecision" => 2,
-        //             "baseCommissionPrecision" => 6,
-        //             "quoteCommissionPrecision" => 2,
-        //             "orderTypes" => array(
-        //               "LIMIT",
-        //               "LIMIT_MAKER"
-        //             ),
-        //             "icebergAllowed" => false,
-        //             "ocoAllowed" => false,
-        //             "quoteOrderQtyMarketAllowed" => false,
-        //             "isSpotTradingAllowed" => true,
-        //             "isMarginTradingAllowed" => false,
-        //             "permissions" => array(
-        //               "SPOT"
-        //             ),
-        //             "filters" => array()
-        //           ),
+        //                "symbol" => "OGNUSDT",
+        //                "status" => "ENABLED",
+        //                "baseAsset" => "OGN",
+        //                "baseAssetPrecision" => "2",
+        //                "quoteAsset" => "USDT",
+        //                "quotePrecision" => "4",
+        //                "quoteAssetPrecision" => "4",
+        //                "baseCommissionPrecision" => "2",
+        //                "quoteCommissionPrecision" => "4",
+        //                "orderTypes" => array(
+        //                    "LIMIT",
+        //                    "LIMIT_MAKER"
+        //                ),
+        //                "quoteOrderQtyMarketAllowed" => false,
+        //                "isSpotTradingAllowed" => true,
+        //                "isMarginTradingAllowed" => true,
+        //                "permissions" => array(
+        //                    "SPOT",
+        //                    "MARGIN"
+        //                ),
+        //                "filters" => array(),
+        //                "quoteAmountPrecision" => "5",
+        //                "baseSizePrecision" => "0.01",
+        //                "maxQuoteAmount" => "5000000",
+        //                "makerCommission" => "0.002",
+        //                "takerCommission" => "0.002"
+        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+        //            ),
         //         )
         //     }
         //
+        // Notes:
+        // - 'quotePrecision' seems deprecated, in favor of $quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // - 'baseSizePrecision' seems useless at this moment, because in orderbook, mexc might show $base-size in $i->e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use $baseAssetPrecision
+        // - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value $i->e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         $data = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -673,6 +683,15 @@ class mexc3 extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
+            $makerCommission = $this->safe_number($market, 'makerCommission');
+            $takerCommission = $this->safe_number($market, 'takerCommission');
+            $maxQuoteAmount = $this->safe_number($market, 'maxQuoteAmount');
+            $baseAssetPrecision = $this->safe_string($market, 'baseAssetPrecision');
+            $quoteAssetPrecision = $this->safe_string($market, 'quoteAssetPrecision');
+            $precisionBase = $this->parse_number($this->parse_precision($baseAssetPrecision));
+            $precisionQuote = $this->parse_number($this->parse_precision($quoteAssetPrecision));
+            $precisionPrice = $precisionQuote;
+            $precisionCost = $precisionQuote;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -692,18 +711,20 @@ class mexc3 extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
+                'taker' => $takerCommission,
+                'maker' => $makerCommission,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
-                    'price' => $this->safe_integer($market, 'quotePrecision'),
-                    'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                    'quote' => $this->safe_integer($market, 'quoteAssetPrecision'),
+                    'amount' => $precisionBase,
+                    'price' => $precisionPrice,
+                    'cost' => $precisionCost,
+                    // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
+                    // 'base' => $precisionBase,
+                    // 'quote' => $precisionQuote,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -720,7 +741,7 @@ class mexc3 extends Exchange {
                     ),
                     'cost' => array(
                         'min' => null,
-                        'max' => null,
+                        'max' => $maxQuoteAmount,
                     ),
                 ),
                 'info' => $market,
