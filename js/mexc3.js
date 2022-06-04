@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -274,6 +275,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m', // spot, swap
                 '3m': '3m', // spot
@@ -529,8 +531,8 @@ module.exports = class mexc3 extends Exchange {
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
-                const precisionDigits = this.safeInteger (chain, 'precision');
-                const precision = 1 / Math.pow (10, precisionDigits);
+                const precisionDigits = this.safeString (chain, 'precision');
+                const precision = this.parseNumber (this.parsePrecision (precisionDigits));
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
                 const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
                 currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
@@ -638,32 +640,41 @@ module.exports = class mexc3 extends Exchange {
         //         "exchangeFilters": [],
         //         "symbols": [
         //           {
-        //             "symbol": "BTCUSDT",
-        //             "status": "ENABLED",
-        //             "baseAsset": "BTC",
-        //             "baseAssetPrecision": 6,
-        //             "quoteAsset": "USDT",
-        //             "quotePrecision": 2,
-        //             "quoteAssetPrecision": 2,
-        //             "baseCommissionPrecision": 6,
-        //             "quoteCommissionPrecision": 2,
-        //             "orderTypes": [
-        //               "LIMIT",
-        //               "LIMIT_MAKER"
-        //             ],
-        //             "icebergAllowed": false,
-        //             "ocoAllowed": false,
-        //             "quoteOrderQtyMarketAllowed": false,
-        //             "isSpotTradingAllowed": true,
-        //             "isMarginTradingAllowed": false,
-        //             "permissions": [
-        //               "SPOT"
-        //             ],
-        //             "filters": []
-        //           },
+        //                "symbol": "OGNUSDT",
+        //                "status": "ENABLED",
+        //                "baseAsset": "OGN",
+        //                "baseAssetPrecision": "2",
+        //                "quoteAsset": "USDT",
+        //                "quotePrecision": "4",
+        //                "quoteAssetPrecision": "4",
+        //                "baseCommissionPrecision": "2",
+        //                "quoteCommissionPrecision": "4",
+        //                "orderTypes": [
+        //                    "LIMIT",
+        //                    "LIMIT_MAKER"
+        //                ],
+        //                "quoteOrderQtyMarketAllowed": false,
+        //                "isSpotTradingAllowed": true,
+        //                "isMarginTradingAllowed": true,
+        //                "permissions": [
+        //                    "SPOT",
+        //                    "MARGIN"
+        //                ],
+        //                "filters": [],
+        //                "quoteAmountPrecision": "5",
+        //                "baseSizePrecision": "0.01",
+        //                "maxQuoteAmount": "5000000",
+        //                "makerCommission": "0.002",
+        //                "takerCommission": "0.002"
+        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+        //            },
         //         ]
         //     }
         //
+        // Notes:
+        // - 'quotePrecision' seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // - 'baseSizePrecision' seems useless at this moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
+        // - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         const data = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -674,6 +685,15 @@ module.exports = class mexc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
+            const makerCommission = this.safeNumber (market, 'makerCommission');
+            const takerCommission = this.safeNumber (market, 'takerCommission');
+            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
+            const baseAssetPrecision = this.safeString (market, 'baseAssetPrecision');
+            const quoteAssetPrecision = this.safeString (market, 'quoteAssetPrecision');
+            const precisionBase = this.parseNumber (this.parsePrecision (baseAssetPrecision));
+            const precisionQuote = this.parseNumber (this.parsePrecision (quoteAssetPrecision));
+            const precisionPrice = precisionQuote;
+            const precisionCost = precisionQuote;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -693,18 +713,20 @@ module.exports = class mexc3 extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': takerCommission,
+                'maker': makerCommission,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'baseAssetPrecision'),
-                    'price': this.safeInteger (market, 'quotePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quoteAssetPrecision'),
+                    'amount': precisionBase,
+                    'price': precisionPrice,
+                    'cost': precisionCost,
+                    // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
+                    // 'base': precisionBase,
+                    // 'quote': precisionQuote,
                 },
                 'limits': {
                     'leverage': {
@@ -721,7 +743,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                     'cost': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': maxQuoteAmount,
                     },
                 },
                 'info': market,
