@@ -843,6 +843,15 @@ module.exports = class coinmate extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by coinmate cancelOrder ()
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));

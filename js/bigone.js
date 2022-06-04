@@ -886,6 +886,15 @@ module.exports = class bigone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bigone#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bigone cancelOrder ()
+         * @param {dict} params extra parameters specific to the bigone api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = { 'id': id };
         const response = await this.privatePostOrdersIdCancel (this.extend (request, params));

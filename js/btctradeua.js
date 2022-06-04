@@ -419,6 +419,15 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by btctradeua cancelOrder ()
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'id': id,
         };

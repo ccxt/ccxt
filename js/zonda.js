@@ -1245,6 +1245,15 @@ module.exports = class zonda extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const side = this.safeString (params, 'side');
         if (side === undefined) {
             throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');

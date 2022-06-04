@@ -381,6 +381,15 @@ module.exports = class bit2c extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bit2c cancelOrder ()
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'id': id,
         };
