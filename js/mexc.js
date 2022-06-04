@@ -2203,7 +2203,7 @@ module.exports = class mexc extends Exchange {
         const amount = this.safeString2 (order, 'quantity', 'vol');
         const remaining = this.safeString (order, 'remain_quantity');
         const filled = this.safeString2 (order, 'deal_quantity', 'dealVol');
-        const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
+        const cost = this.safeString (order, 'deal_amount');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const sideCheck = this.safeInteger (order, 'side');
@@ -2275,7 +2275,7 @@ module.exports = class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
-            'average': undefined,
+            'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,
