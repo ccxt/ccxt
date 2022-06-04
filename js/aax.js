@@ -2716,6 +2716,7 @@ module.exports = class aax extends Exchange {
         let initialMargin = undefined;
         let maintenanceMargin = undefined;
         let notional = undefined;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
         if (settleType === 'VANILLA') {
             notional = Precise.stringMul (initialQuote, marketPrice);
             // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
