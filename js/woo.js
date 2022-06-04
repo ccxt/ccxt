@@ -24,7 +24,7 @@ module.exports = class woo extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': false,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -316,22 +316,27 @@ module.exports = class woo extends Exchange {
         //     success: true
         // }
         //
-        const data = this.safeValue (response, 'rows', []);
         const result = [];
+        const data = this.safeValue (response, 'rows', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
             const marketTypeVal = this.safeStringLower (parts, 0);
             const isSpot = marketTypeVal === 'spot';
-            const isSwap = false;
-            const isFuture = false;
-            const isOption = false;
+            const isSwap = marketTypeVal === 'perp';
             const baseId = this.safeString (parts, 1);
             const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let settleId = undefined;
+            let settle = undefined;
+            let symbol = base + '/' + quote;
+            if (isSwap) {
+                settleId = this.safeString (parts, 2);
+                settle = this.safeCurrencyCode (settleId);
+                symbol = base + '/' + quote + ':' + settle;
+            }
             const minQuote = this.safeNumber (market, 'quote_min');
             const maxQuote = this.safeNumber (market, 'quote_max');
             const minBase = this.safeNumber (market, 'base_min');
@@ -344,18 +349,18 @@ module.exports = class woo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': marketTypeVal,
                 'spot': isSpot,
                 'margin': true,
-                'swap': false,
+                'swap': isSwap,
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': isSwap || isFuture || isOption,
+                'contract': isSwap,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
