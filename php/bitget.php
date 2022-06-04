@@ -2549,7 +2549,6 @@ class bitget extends Exchange {
             'symbol' => $market['symbol'],
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => null, // deprecated
             'liquidationPrice' => $liquidation,
             'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),

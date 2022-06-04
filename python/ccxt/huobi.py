@@ -4835,7 +4835,6 @@ class huobi(Exchange):
             'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
             'symbol': symbol,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),
@@ -5194,7 +5193,6 @@ class huobi(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': self.parse_number(percentage),
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'notional': self.parse_number(notional),
             'markPrice': None,
             'liquidationPrice': liquidationPrice,

@@ -3689,7 +3689,6 @@ class gateio(Exchange):
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': self.safe_number(position, 'margin'),
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

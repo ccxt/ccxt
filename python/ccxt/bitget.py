@@ -2473,7 +2473,6 @@ class bitget(Exchange):
             'symbol': market['symbol'],
             'notional': None,
             'marginMode': marginMode,
-            'marginType': None,  # deprecated
             'liquidationPrice': liquidation,
             'entryPrice': self.safe_number(position, 'averageOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),

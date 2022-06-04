@@ -3642,7 +3642,6 @@ class zb extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => $percentage,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'notional' => $notional,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,

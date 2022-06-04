@@ -2060,7 +2060,6 @@ class deribit extends Exchange {
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => null,
             'marginMode' => null,
-            'marginType' => null, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

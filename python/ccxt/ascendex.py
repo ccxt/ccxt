@@ -2249,7 +2249,6 @@ class ascendex(Exchange):
             'symbol': market['symbol'],
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'liquidationPrice': None,
             'entryPrice': self.safe_number(position, 'avgOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),

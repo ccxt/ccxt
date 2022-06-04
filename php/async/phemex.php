@@ -2842,7 +2842,6 @@ class phemex extends Exchange {
             'marginRatio' => $this->parse_number($marginRatio),
             'datetime' => null,
             'marginMode' => null,
-            'marginType' => null, // deprecated
             'side' => $side,
             'hedged' => false,
             'percentage' => $this->parse_number($percentage),
