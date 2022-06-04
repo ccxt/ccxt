@@ -3799,6 +3799,10 @@ class Exchange {
         return '1e' . Precise::string_neg($precision);
     }
 
+    public function precision_to_ticksize($precisionDigitsString) {
+        return $this->parse_number($this->parse_precision($precisionDigitsString));
+    }
+
     public function omit_zero($string_number) {
         if ($string_number === null || $string_number === '') {
             return null;

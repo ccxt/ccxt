@@ -2872,6 +2872,9 @@ class Exchange(object):
             return None
         return '1e' + Precise.string_neg(precision)
 
+    def precision_to_ticksize(self, precisionDigitsString):
+        return self.parse_number(self.parse_precision(precisionDigitsString))
+
     def omit_zero(self, string_number):
         if string_number is None or string_number == '':
             return None
