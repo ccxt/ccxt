@@ -2085,7 +2085,7 @@ class mexc(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'vol')
         remaining = self.safe_string(order, 'remain_quantity')
         filled = self.safe_string_2(order, 'deal_quantity', 'dealVol')
-        cost = self.safe_string_2(order, 'deal_amount', 'dealAvgPrice')
+        cost = self.safe_string(order, 'deal_amount')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         sideCheck = self.safe_integer(order, 'side')
@@ -2153,7 +2153,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
-            'average': None,
+            'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,
