@@ -2854,7 +2854,6 @@ module.exports = class coinex extends Exchange {
             'symbol': symbol,
             'notional': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,

@@ -1666,7 +1666,7 @@ module.exports = class coinflex extends Exchange {
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': undefined,
-            'marginType': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': undefined,
             'info': position,
