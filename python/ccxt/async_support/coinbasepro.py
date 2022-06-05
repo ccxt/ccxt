@@ -1310,10 +1310,10 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
+        return await self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
+        return await self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')
