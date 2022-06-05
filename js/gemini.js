@@ -370,6 +370,13 @@ module.exports = class gemini extends Exchange {
 
     async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetV1Symbols (params);
+        //
+        //     [
+        //         "btcusd",
+        //         "linkusd",
+        //         ...
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = response[i];
