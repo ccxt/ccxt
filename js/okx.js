@@ -1947,10 +1947,10 @@ module.exports = class okx extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeString (params, 'tpOrdPx');
+        const tpOrdPx = this.safeString (params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeString (params, 'slOrdPx');
+        const slOrdPx = this.safeString (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (spot) {
