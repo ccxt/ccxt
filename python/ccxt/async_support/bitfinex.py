@@ -251,6 +251,8 @@ class bitfinex(Exchange):
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
                 'MNA': 'MANA',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
                 'PAS': 'PASS',
@@ -259,7 +261,7 @@ class bitfinex(Exchange):
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
-                'TERRAUST': 'UST',
+                'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
                 'YGG': 'YEED',  # conflict with Yield Guild Games
                 'YYW': 'YOYOW',
