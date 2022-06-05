@@ -1352,8 +1352,8 @@ module.exports = class bitfinex2 extends bitfinex {
          * @name bitfinex2#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price price of order
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -1366,6 +1366,7 @@ module.exports = class bitfinex2 extends bitfinex {
          * @param {str} params.price_traling The trailing price for a trailing stop order
          * @param {str} params.price_aux_limit Order price for stop limit orders
          * @param {str} params.price_oco_stop OCO stop price
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
