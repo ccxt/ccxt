@@ -1,7 +1,7 @@
 const Exchange = require ('./base/Exchange');
+const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 module.exports = class hitbtc3 extends Exchange {
     describe () {
@@ -518,7 +518,6 @@ module.exports = class hitbtc3 extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const entry = response[currencyId];
             const name = this.safeString (entry, 'full_name');
-            const precision = this.safeNumber (entry, 'precision_transfer');
             const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
             const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
             const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
@@ -533,7 +532,7 @@ module.exports = class hitbtc3 extends Exchange {
                 const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
                 const network = this.safeNetwork (networkId);
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
-                const precision = this.safeNumber (rawNetwork, 'precision_payout');
+                const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
                 const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
                 const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
@@ -555,7 +554,7 @@ module.exports = class hitbtc3 extends Exchange {
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
                     'withdraw': payoutEnabledNetwork,
-                    'precision': precision,
+                    'precision': networkPrecision,
                     'limits': {
                         'withdraw': {
                             'min': undefined,
@@ -570,7 +569,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'precision': precision,
+                'precision': undefined,
                 'name': name,
                 'active': active,
                 'deposit': depositEnabled,
