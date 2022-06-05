@@ -698,8 +698,8 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const pricePrecision = this.safeTickSize (market, 'precision');
-            const amountPrecision = this.safeTickSize (market, 'amount_precision');
+            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'precision')));
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
             const margin = leverage !== undefined;
@@ -4239,10 +4239,5 @@ module.exports = class gateio extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
             throw new ExchangeError (feedback);
         }
-    }
-
-    safeTickSize (data, key) {
-        const precisionDigitsString = this.safeString (data, key);
-        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
