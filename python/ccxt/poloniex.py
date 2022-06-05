@@ -197,6 +197,7 @@ class poloniex(Exchange):
                 # otherwise the returned withdrawals are filtered out
                 'USDTTRON': 'USDT',
                 'USDTETH': 'USDT',
+                'UST': 'USTC',
             },
             'options': {
                 'networks': {
