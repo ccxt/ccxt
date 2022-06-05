@@ -1944,7 +1944,7 @@ module.exports = class okx extends Exchange {
         };
         const spot = market['spot'];
         const contract = market['contract'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeString (params, 'tpOrdPx');
@@ -1961,10 +1961,10 @@ module.exports = class okx extends Exchange {
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const trigger = (stopPrice !== undefined) || (type === 'trigger');
+        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
@@ -2020,7 +2020,7 @@ module.exports = class okx extends Exchange {
         } else if (trigger) {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
-            request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
         } else if (conditional) {
             method = 'privatePostTradeOrderAlgo';
