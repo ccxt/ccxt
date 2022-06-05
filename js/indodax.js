@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -150,6 +151,7 @@ module.exports = class indodax extends Exchange {
                 'DRK': 'DASH',
                 'NEM': 'XEM',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -247,7 +249,8 @@ module.exports = class indodax extends Exchange {
                 'percentage': true,
                 'precision': {
                     'amount': parseInt ('8'),
-                    'price': this.safeInteger (market, 'price_round'),
+                    'price': this.safeTickSize (market, 'price_round'),
+                    'cost': this.safeTickSize (market, 'volume_precision'),
                 },
                 'limits': {
                     'leverage': {
@@ -927,5 +930,10 @@ module.exports = class indodax extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
+    }
+
+    safeTickSize (data, key) {
+        const precisionDigitsString = this.safeString (data, key);
+        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
