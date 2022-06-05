@@ -647,7 +647,7 @@ module.exports = class exmo extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision ('8')),
-                    'price': this.safeTickSize (market, 'price_precision'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1947,10 +1947,5 @@ module.exports = class exmo extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
-    }
-
-    safeTickSize (data, key) {
-        const precisionDigitsString = this.safeString (data, key);
-        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
