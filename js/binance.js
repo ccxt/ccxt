@@ -5029,8 +5029,7 @@ module.exports = class binance extends Exchange {
         //    }
         //
         const marketId = this.safeString (info, 'symbol');
-        const safeSymbol = this.safeSymbol (marketId);
-        market = this.safeMarket (safeSymbol, market);
+        market = this.safeMarket (marketId, market);
         const brackets = this.safeValue (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
