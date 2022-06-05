@@ -2243,15 +2243,15 @@ class Exchange {
     }
 
     public function safe_ticker($ticker, $market = null) {
-        $open = $this->safe_string($ticker, 'open');
-        $close = $this->safe_string($ticker, 'close');
-        $last = $this->safe_string($ticker, 'last');
-        $change = $this->safe_string($ticker, 'change');
-        $percentage = $this->safe_string($ticker, 'percentage');
-        $average = $this->safe_string($ticker, 'average');
-        $vwap = $this->safe_string($ticker, 'vwap');
-        $baseVolume = $this->safe_string($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
+        $open = $this->safe_value($ticker, 'open');
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
         if ($vwap === null) {
             $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
