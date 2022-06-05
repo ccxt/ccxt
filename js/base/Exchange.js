@@ -2196,11 +2196,6 @@ module.exports = class Exchange {
         return '1e' + Precise.stringNeg (precision)
     }
 
-    safeTicksizeFromDigit (object, key) {
-        const precisionDigitsString = this.safeString (object, key);
-        return this.parseNumber (this.parsePrecision (precisionDigitsString));
-    }
-
     handleWithdrawTagAndParams (tag, params) {
         if (typeof tag === 'object') {
             params = this.extend (tag, params)
