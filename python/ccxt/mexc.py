@@ -395,7 +395,7 @@ class mexc(Exchange):
         status = 'ok' if (code == 200) else 'maintenance'
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -1722,7 +1722,6 @@ class mexc(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -1736,6 +1735,16 @@ class mexc(Exchange):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
@@ -2085,7 +2094,7 @@ class mexc(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'vol')
         remaining = self.safe_string(order, 'remain_quantity')
         filled = self.safe_string_2(order, 'deal_quantity', 'dealVol')
-        cost = self.safe_string_2(order, 'deal_amount', 'dealAvgPrice')
+        cost = self.safe_string(order, 'deal_amount')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         sideCheck = self.safe_integer(order, 'side')
@@ -2153,7 +2162,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
-            'average': None,
+            'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,

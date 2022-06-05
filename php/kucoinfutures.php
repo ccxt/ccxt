@@ -329,7 +329,7 @@ class kucoinfutures extends kucoin {
         $status = $this->safe_string($data, 'status');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -726,7 +726,7 @@ class kucoinfutures extends kucoin {
         $last = $this->safe_string($ticker, 'price');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
-        $timestamp = Precise::string_div($this->safe_string($ticker, 'ts'), '1000000');
+        $timestamp = $this->safe_integer_product($ticker, 'ts', 0.000001);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -960,7 +960,6 @@ class kucoinfutures extends kucoin {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );
@@ -970,8 +969,8 @@ class kucoinfutures extends kucoin {
         /**
          * Create an order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market"
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market'
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -986,7 +985,7 @@ class kucoinfutures extends kucoin {
          * @param {str} $params->stopPriceType  TP, IP or MP, defaults to TP
          * @param {bool} $params->closeOrder set to true to close position
          * @param {bool} $params->forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @return an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1709,7 +1708,7 @@ class kucoinfutures extends kucoin {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $timestamp = $this->safe_integer($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'ts');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp / 1000000);
         } else {

@@ -1527,11 +1527,23 @@ module.exports = class ftx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'side': side, // "buy" or "sell"
+            'side': side, // 'buy' or 'sell'
             // 'price': 0.306525, // send null for market orders
             'type': type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': parseFloat (this.amountToPrecision (symbol, amount)),
@@ -2253,7 +2265,6 @@ module.exports = class ftx extends Exchange {
             'markPrice': this.parseNumber (markPriceString),
             'collateral': this.parseNumber (collateral),
             'marginMode': 'cross',
-            'marginType': 'cross', // deprecated
             'side': side,
             'percentage': percentage,
         };
@@ -2866,7 +2877,6 @@ module.exports = class ftx extends Exchange {
             'account': 'cross',
             'symbol': undefined,
             'marginMode': 'cross',
-            'marginType': 'cross', // deprecated
             'currency': this.safeCurrencyCode (coin),
             'interest': this.safeNumber (info, 'cost'),
             'interestRate': this.safeNumber (info, 'rate'),

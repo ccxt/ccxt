@@ -1474,11 +1474,21 @@ class ftx(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'side': side,  # "buy" or "sell"
+            'side': side,  # 'buy' or 'sell'
             # 'price': 0.306525,  # send null for market orders
             'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
@@ -2136,7 +2146,6 @@ class ftx(Exchange):
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2687,7 +2696,6 @@ class ftx(Exchange):
             'account': 'cross',
             'symbol': None,
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

@@ -1861,6 +1861,16 @@ class phemex(Exchange):
         return self.parse_spot_order(order, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         side = self.capitalize(side)
@@ -2715,7 +2725,6 @@ class phemex(Exchange):
             'marginRatio': self.parse_number(marginRatio),
             'datetime': None,
             'marginMode': None,
-            'marginType': None,  # deprecated
             'side': side,
             'hedged': False,
             'percentage': self.parse_number(percentage),

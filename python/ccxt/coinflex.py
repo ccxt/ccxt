@@ -309,7 +309,7 @@ class coinflex(Exchange):
         status = self.safe_string({'true': 'ok', 'false': 'maintenance'}, statusRaw, statusRaw)
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -454,8 +454,8 @@ class coinflex(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'upperPriceBound'),
-                        'max': self.safe_number(market, 'lowerPriceBound'),
+                        'min': self.safe_number(market, 'lowerPriceBound'),
+                        'max': self.safe_number(market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': None,
@@ -1581,7 +1581,7 @@ class coinflex(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': None,
-            'marginType': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': None,
             'info': position,
@@ -1946,6 +1946,16 @@ class coinflex(Exchange):
             raise ExchangeError(body)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = self.market(symbol)
         self.check_order_arguments(market, type, side, amount, price, params)
         request, query = self.build_order_request(market, type, side, amount, price, params)

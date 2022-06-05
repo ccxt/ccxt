@@ -2340,10 +2340,13 @@ class bybit extends Exchange {
             'CREATED' => 'open',
             'REJECTED' => 'rejected',
             'NEW' => 'open',
+            'PENDING_NEW' => 'open',
             'PARTIALLYFILLED' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'PENDINGCANCEL' => 'canceling',
+            'PENDING_CANCEL' => 'canceling',
             // conditional orders
             'Active' => 'open', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
@@ -2665,6 +2668,16 @@ class bybit extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $symbol = $market['symbol'];

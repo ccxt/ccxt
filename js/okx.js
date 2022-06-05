@@ -755,9 +755,8 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
-        const timestamp = this.milliseconds ();
         const update = {
-            'updated': timestamp,
+            'updated': undefined,
             'status': (dataLength === 0) ? 'ok' : 'maintenance',
             'eta': undefined,
             'url': undefined,
@@ -1903,6 +1902,18 @@ module.exports = class okx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3917,7 +3928,6 @@ module.exports = class okx extends Exchange {
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
@@ -4844,7 +4854,6 @@ module.exports = class okx extends Exchange {
         return {
             'account': account, // deprecated
             'symbol': this.safeString (market, 'symbol'),
-            'marginType': marginMode, // deprecated
             'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),

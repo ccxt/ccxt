@@ -329,7 +329,7 @@ module.exports = class kucoinfutures extends kucoin {
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -736,7 +736,7 @@ module.exports = class kucoinfutures extends kucoin {
         const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -970,7 +970,6 @@ module.exports = class kucoinfutures extends kucoin {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
@@ -982,8 +981,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -998,7 +997,7 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {str} params.stopPriceType  TP, IP or MP, defaults to TP
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1739,7 +1738,7 @@ module.exports = class kucoinfutures extends kucoin {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        let timestamp = this.safeInteger (trade, 'time');
+        let timestamp = this.safeInteger (trade, 'ts');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         } else {

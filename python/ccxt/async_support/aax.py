@@ -1188,6 +1188,16 @@ class aax(Exchange):
         return self.safe_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         orderType = type.upper()
         orderSide = side.upper()
         await self.load_markets()
@@ -2572,33 +2582,57 @@ class aax(Exchange):
         contractSize = self.safe_string(market, 'contractSize')
         initialQuote = Precise.string_mul(currentQty, contractSize)
         marketPrice = self.safe_string(position, 'marketPrice')
-        notional = Precise.string_mul(initialQuote, marketPrice)
         timestamp = self.safe_integer(position, 'ts')
         liquidationPrice = self.safe_string(position, 'liquidationPrice')
-        marginMode = self.safe_string(position, 'settleType')
+        marketInfo = self.safe_value(market, 'info')
+        multiplier = self.safe_string(marketInfo, 'multiplier')
+        settleType = self.safe_string(position, 'settleType')
+        avgEntryPrice = self.safe_string(position, 'avgEntryPrice')
+        commission = self.safe_string(position, 'commission')
+        initialMargin = None
+        maintenanceMargin = None
+        notional = None
+        # https://support.aax.com/en/articles/5295653-what-is-margin
+        if settleType == 'VANILLA':
+            notional = Precise.string_mul(initialQuote, marketPrice)
+            # Initial Margin(Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.string_div(Precise.string_mul(Precise.string_mul(currentQty, avgEntryPrice), multiplier), leverage)
+            # Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            tmp = Precise.string_div(Precise.string_mul(currentQty, multiplier), Precise.string_mul(avgEntryPrice, leverage))
+            maintenanceMargin = Precise.string_add(tmp, commission)
+        else:
+            # inverse contracts
+            notional = Precise.string_div(initialQuote, marketPrice)
+            # Initial Margin(Limit Order) = Number of contracts / Entry Price / Leverage
+            # ^ no brackets /<::>\
+            initialMargin = Precise.string_div(currentQty, Precise.string_mul(leverage, avgEntryPrice))
+            # Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin
+        collateral = self.safe_string(position, 'posMargin')
+        percentage = Precise.string_div(unrealisedPnl, initialMargin)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMargin, notional)),
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_div(maintenanceMargin, notional)),
+            'entryPrice': self.parse_number(avgEntryPrice),
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(size),
             'contractSize': self.parse_number(contractSize),
-            'marginRatio': None,
+            'marginRatio': self.parse_number(marginRatio),
             'liquidationPrice': liquidationPrice,
             'markPrice': self.safe_number(position, 'marketPrice'),
-            'collateral': self.safe_number(position, 'posMargin'),
-            'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
+            'collateral': self.parse_number(collateral),
+            'marginMode': 'isolated',
             'side': side,
-            'percentage': None,
+            'percentage': self.parse_number(percentage),
         }
 
     async def fetch_position(self, symbol=None, params={}):

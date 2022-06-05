@@ -251,6 +251,8 @@ class bitfinex(Exchange):
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
                 'MNA': 'MANA',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
                 'PAS': 'PASS',
@@ -259,7 +261,7 @@ class bitfinex(Exchange):
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
-                'TERRAUST': 'UST',
+                'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
                 'YGG': 'YEED',  # conflict with Yield Guild Games
                 'YYW': 'YOYOW',
@@ -923,6 +925,16 @@ class bitfinex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['postOnly'])

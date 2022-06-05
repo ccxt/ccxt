@@ -386,7 +386,7 @@ module.exports = class mexc extends Exchange {
         const status = (code === 200) ? 'ok' : 'maintenance';
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1807,7 +1807,6 @@ module.exports = class mexc extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -1822,6 +1821,18 @@ module.exports = class mexc extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
@@ -2203,7 +2214,7 @@ module.exports = class mexc extends Exchange {
         const amount = this.safeString2 (order, 'quantity', 'vol');
         const remaining = this.safeString (order, 'remain_quantity');
         const filled = this.safeString2 (order, 'deal_quantity', 'dealVol');
-        const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
+        const cost = this.safeString (order, 'deal_amount');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const sideCheck = this.safeInteger (order, 'side');
@@ -2275,7 +2286,7 @@ module.exports = class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
-            'average': undefined,
+            'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,

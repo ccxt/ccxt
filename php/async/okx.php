@@ -759,9 +759,8 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataLength = is_array($data) ? count($data) : 0;
-        $timestamp = $this->milliseconds();
         $update = array(
-            'updated' => $timestamp,
+            'updated' => null,
             'status' => ($dataLength === 0) ? 'ok' : 'maintenance',
             'eta' => null,
             'url' => null,
@@ -1887,6 +1886,16 @@ class okx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3896,7 +3905,6 @@ class okx extends Exchange {
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
@@ -4818,7 +4826,6 @@ class okx extends Exchange {
         return array(
             'account' => $account, // deprecated
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginType' => $marginMode, // deprecated
             'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),

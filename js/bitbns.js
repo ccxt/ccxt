@@ -171,7 +171,7 @@ module.exports = class bitbns extends Exchange {
         const statusRaw = this.safeString (response, 'status');
         return {
             'status': this.safeString ({ '1': 'ok' }, statusRaw, statusRaw),
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -589,6 +589,18 @@ module.exports = class bitbns extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitbns#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bitbns api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (type !== 'limit' && type !== 'market') {
             throw new ExchangeError (this.id + ' allows limit and market orders only');
         }

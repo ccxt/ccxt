@@ -198,11 +198,14 @@ class kraken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'LUNA' => 'LUNC',
+                'LUNA2' => 'LUNA',
+                'REPV2' => 'REP',
+                'REP' => 'REPV1',
+                'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XBT.M' => 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG' => 'DOGE',
-                'REPV2' => 'REP',
-                'REP' => 'REPV1',
             ),
             'options' => array(
                 'delistedMarketsById' => array(),
@@ -1199,6 +1202,16 @@ class kraken extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

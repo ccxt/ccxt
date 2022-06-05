@@ -2754,8 +2754,8 @@ module.exports = class gateio extends Exchange {
          * @name gateio#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market" *"market" is contract only*
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market' *"market" is contract only*
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -2770,7 +2770,7 @@ module.exports = class gateio extends Exchange {
          * @param {bool} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3886,7 +3886,6 @@ module.exports = class gateio extends Exchange {
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

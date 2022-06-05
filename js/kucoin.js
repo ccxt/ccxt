@@ -234,7 +234,7 @@ module.exports = class kucoin extends Exchange {
                         'orders': 1.3953,
                         'stopOrders': 1.3953,
                         'recentDoneOrders': 1.3953,
-                        'orders/{order-id}': 1.3953, // ?clientOid={client-order-id} // get order by orderId
+                        'orders/{orderId}': 1.3953, // ?clientOid={client-orderId} // get order by orderId
                         'orders/byClientOid': 1.3953, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
                         'fills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'recentFills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
@@ -254,7 +254,7 @@ module.exports = class kucoin extends Exchange {
                     'delete': {
                         'withdrawals/{withdrawalId}': 1.3953,
                         'cancel/transfer-out': 1.3953,
-                        'orders/{order-id}': 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders/{orderId}': 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
                         'orders': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'stopOrders': 1.3953,
                     },
@@ -487,7 +487,7 @@ module.exports = class kucoin extends Exchange {
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1170,8 +1170,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -1195,7 +1195,7 @@ module.exports = class kucoin extends Exchange {
          * @param {str} params.stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} params.marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} params.autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
@@ -1231,8 +1231,9 @@ module.exports = class kucoin extends Exchange {
         params = this.omit (params, 'stopPrice');
         let method = 'privatePostOrders';
         if (stopPrice !== undefined) {
+            const stop = this.safeString (params, 'stop', 'loss');
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['stop'] = 'loss';
+            request['stop'] = stop;
             method = 'privatePostStopOrder';
         } else if (tradeType === 'MARGIN_TRADE') {
             method = 'privatePostMarginOrder';

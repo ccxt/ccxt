@@ -388,7 +388,7 @@ class mexc extends Exchange {
         $status = ($code === 200) ? 'ok' : 'maintenance';
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -1793,7 +1793,6 @@ class mexc extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,
@@ -1808,6 +1807,16 @@ class mexc extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -2189,7 +2198,7 @@ class mexc extends Exchange {
         $amount = $this->safe_string_2($order, 'quantity', 'vol');
         $remaining = $this->safe_string($order, 'remain_quantity');
         $filled = $this->safe_string_2($order, 'deal_quantity', 'dealVol');
-        $cost = $this->safe_string_2($order, 'deal_amount', 'dealAvgPrice');
+        $cost = $this->safe_string($order, 'deal_amount');
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $sideCheck = $this->safe_integer($order, 'side');
@@ -2261,7 +2270,7 @@ class mexc extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
-            'average' => null,
+            'average' => $this->safe_string($order, 'dealAvgPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'filled' => $filled,

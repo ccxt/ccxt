@@ -1579,6 +1579,7 @@ class bitget extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @param {dict} $params->till timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1591,27 +1592,37 @@ class bitget extends Exchange {
             'spot' => 'publicSpotGetMarketCandles',
             'swap' => 'publicMixGetMarketCandles',
         ));
+        $till = $this->safe_integer($params, 'till');
+        if ($limit === null) {
+            $limit = 100;
+        }
         if ($market['type'] === 'spot') {
             $request['period'] = $this->timeframes['spot'][$timeframe];
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
+            $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
+                if ($till === null) {
+                    $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
+                    $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+                }
+            }
+            if ($till !== null) {
+                $request['before'] = $till;
             }
         } elseif ($market['type'] === 'swap') {
             $request['granularity'] = $this->timeframes['swap'][$timeframe];
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
-            if ($limit === null) {
-                $limit = 100;
-            }
             if ($since === null) {
                 $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
                 $request['endTime'] = $now;
             } else {
                 $request['startTime'] = $this->sum($since, $duration * 1000);
-                $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                if ($till !== null) {
+                    $request['endTime'] = $till;
+                } else {
+                    $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                }
             }
         }
         $response = $this->$method (array_merge($request, $query));
@@ -1809,6 +1820,16 @@ class bitget extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -2538,7 +2559,6 @@ class bitget extends Exchange {
             'symbol' => $market['symbol'],
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => null, // deprecated
             'liquidationPrice' => $liquidation,
             'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),

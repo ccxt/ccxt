@@ -396,7 +396,7 @@ class bitfinex2 extends bitfinex {
         $statusRaw = $this->safe_string($response, 0);
         return array(
             'status' => $this->safe_string(array( '0' => 'maintenance', '1' => 'ok' ), $statusRaw, $statusRaw),
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -1338,8 +1338,8 @@ class bitfinex2 extends bitfinex {
         /**
          * Create an $order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market"
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market'
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price price of $order
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -1352,6 +1352,7 @@ class bitfinex2 extends bitfinex {
          * @param {str} $params->price_traling The trailing $price for a trailing stop $order
          * @param {str} $params->price_aux_limit Order $price for stop limit $orders
          * @param {str} $params->price_oco_stop OCO stop $price
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         yield $this->load_markets();
         $market = $this->market($symbol);

@@ -1563,6 +1563,7 @@ class bitget(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
+        :param dict params['till']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -1575,24 +1576,32 @@ class bitget(Exchange):
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         })
+        till = self.safe_integer(params, 'till')
+        if limit is None:
+            limit = 100
         if market['type'] == 'spot':
             request['period'] = self.timeframes['spot'][timeframe]
-            if limit is not None:
-                request['limit'] = limit
+            request['limit'] = limit
             if since is not None:
                 request['after'] = since
+                if till is None:
+                    millisecondsPerTimeframe = self.timeframes['swap'][timeframe] * 1000
+                    request['before'] = self.sum(since, millisecondsPerTimeframe * limit)
+            if till is not None:
+                request['before'] = till
         elif market['type'] == 'swap':
             request['granularity'] = self.timeframes['swap'][timeframe]
             duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
-            if limit is None:
-                limit = 100
             if since is None:
                 request['startTime'] = now - (limit - 1) * (duration * 1000)
                 request['endTime'] = now
             else:
                 request['startTime'] = self.sum(since, duration * 1000)
-                request['endTime'] = self.sum(since, limit * duration * 1000)
+                if till is not None:
+                    request['endTime'] = till
+                else:
+                    request['endTime'] = self.sum(since, limit * duration * 1000)
         response = getattr(self, method)(self.extend(request, query))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
@@ -1780,6 +1789,16 @@ class bitget(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
@@ -2464,7 +2483,6 @@ class bitget(Exchange):
             'symbol': market['symbol'],
             'notional': None,
             'marginMode': marginMode,
-            'marginType': None,  # deprecated
             'liquidationPrice': liquidation,
             'entryPrice': self.safe_number(position, 'averageOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),

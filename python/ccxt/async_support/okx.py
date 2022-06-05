@@ -772,9 +772,8 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         dataLength = len(data)
-        timestamp = self.milliseconds()
         update = {
-            'updated': timestamp,
+            'updated': None,
             'status': 'ok' if (dataLength == 0) else 'maintenance',
             'eta': None,
             'url': None,
@@ -1836,6 +1835,16 @@ class okx(Exchange):
         return self.parse_balance_by_type(marketType, response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3733,7 +3742,6 @@ class okx(Exchange):
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
@@ -4592,7 +4600,6 @@ class okx(Exchange):
         return {
             'account': account,  # deprecated
             'symbol': self.safe_string(market, 'symbol'),
-            'marginType': marginMode,  # deprecated
             'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'interest'),

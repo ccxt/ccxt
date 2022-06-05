@@ -909,7 +909,7 @@ module.exports = class coinex extends Exchange {
         //          "date_ms":  1638990110518
         //      },
         //
-        // Spot fetchMyTrades (private)
+        // Spot and Margin fetchMyTrades (private)
         //
         //      {
         //          "id": 2611520950,
@@ -1407,7 +1407,7 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1667,6 +1667,18 @@ module.exports = class coinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
@@ -1904,10 +1916,18 @@ module.exports = class coinex extends Exchange {
                 method = 'privateDeleteOrderStopPendingId';
             }
         }
-        const query = this.omit (params, 'stop');
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
+            }
+            request['account_id'] = accountId;
+        }
+        const query = this.omit (params, [ 'stop', 'account_id' ]);
         const response = await this[method] (this.extend (request, query));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code": 0,
@@ -2008,7 +2028,7 @@ module.exports = class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     {"code":0,"data":{},"message":"Success"}
         //
@@ -2023,7 +2043,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
-        const accountId = this.safeString (params, 'id', '0');
+        const accountId = this.safeInteger (params, 'account_id', 0);
         const request = {
             'market': marketId,
             // 'account_id': accountId, // SPOT, main account ID: 0, margin account ID: See < Inquire Margin Account Market Info >, future account ID: See < Inquire Future Account Market Info >
@@ -2044,10 +2064,10 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'account_id' ]);
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {"code": 0, "data": null, "message": "Success"}
         //
@@ -2533,9 +2553,18 @@ module.exports = class coinex extends Exchange {
             method = 'privateGetOrderUserDeals';
             request['page'] = 1;
         }
+        const accountId = this.safeInteger (params, 'account_id');
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            if (accountId === undefined) {
+                throw new BadRequest (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
+            }
+            request['account_id'] = accountId;
+            params = this.omit (params, 'account_id');
+        }
         const response = await this[method] (this.extend (request, params));
         //
-        // Spot
+        // Spot and Margin
         //
         //      {
         //          "code": 0,
@@ -2845,7 +2874,6 @@ module.exports = class coinex extends Exchange {
             'symbol': symbol,
             'notional': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,

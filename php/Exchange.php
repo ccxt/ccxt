@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.84.63';
+$version = '1.84.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.84.63';
+    const VERSION = '1.84.87';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2243,15 +2243,15 @@ class Exchange {
     }
 
     public function safe_ticker($ticker, $market = null) {
-        $open = $this->safe_value($ticker, 'open');
-        $close = $this->safe_value($ticker, 'close');
-        $last = $this->safe_value($ticker, 'last');
-        $change = $this->safe_value($ticker, 'change');
-        $percentage = $this->safe_value($ticker, 'percentage');
-        $average = $this->safe_value($ticker, 'average');
-        $vwap = $this->safe_value($ticker, 'vwap');
-        $baseVolume = $this->safe_value($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        $open = $this->safe_string($ticker, 'open');
+        $close = $this->safe_string($ticker, 'close');
+        $last = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $percentage = $this->safe_string($ticker, 'percentage');
+        $average = $this->safe_string($ticker, 'average');
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
             $vwap = Precise::string_div($quoteVolume, $baseVolume);
         }
@@ -2295,6 +2295,7 @@ class Exchange {
             'vwap' => $this->parse_number($vwap),
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
+            'previousClose' => $this->safe_number($ticker, 'previousClose'),
         ));
     }
 
