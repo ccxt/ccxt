@@ -1083,6 +1083,14 @@ module.exports = class cdax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cdax#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by cdax fetchOrder
+         * @param {dict} params extra parameters specific to the cdax api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,

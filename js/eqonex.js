@@ -934,6 +934,14 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by eqonex fetchOrder
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': parseInt (id),

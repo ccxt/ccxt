@@ -855,6 +855,14 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'orderId': id,
         };
@@ -1076,7 +1084,7 @@ module.exports = class idex extends Exchange {
         /**
          * @method
          * @name idex#createOrder
-         * @description create a trade order
+         * @description create a trade order, https://docs.idex.io/#create-order
          * @param {str} symbol unified symbol of the market to create an order in
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
@@ -1085,7 +1093,6 @@ module.exports = class idex extends Exchange {
          * @param {dict} params extra parameters specific to the idex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // https://docs.idex.io/#create-order
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
