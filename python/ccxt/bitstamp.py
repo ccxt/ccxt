@@ -356,6 +356,9 @@ class bitstamp(Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'UST': 'USTC',
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,

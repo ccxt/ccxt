@@ -346,6 +346,9 @@ class bitstamp extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array(
+                'UST' => 'USTC',
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'No permission found' => '\\ccxt\\PermissionDenied',
