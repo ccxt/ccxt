@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -122,6 +123,7 @@ module.exports = class independentreserve extends Exchange {
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -134,16 +136,16 @@ module.exports = class independentreserve extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
         const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limits = await this.publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
-        //         "Bch": 0.001,
-        //         "Bsv": 0.001,
         //         "Eth": 0.001,
         //         "Ltc": 0.01,
-        //         "Xrp": 1,
+        //         "Xrp": 1.0,
         //     }
         //
         const result = [];
@@ -179,7 +181,10 @@ module.exports = class independentreserve extends Exchange {
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
-                    'precision': this.precision,
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
                     'limits': {
                         'leverage': {
                             'min': undefined,
@@ -454,14 +459,6 @@ module.exports = class independentreserve extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name independentreserve#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the independentreserve api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
@@ -633,18 +630,6 @@ module.exports = class independentreserve extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name independentreserve#createOrder
-         * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the independentreserve api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const capitalizedOrderType = this.capitalize (type);
@@ -668,15 +653,6 @@ module.exports = class independentreserve extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name independentreserve#cancelOrder
-         * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the independentreserve api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         await this.loadMarkets ();
         const request = {
             'orderGuid': id,
