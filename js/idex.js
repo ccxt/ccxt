@@ -186,33 +186,51 @@ module.exports = class idex extends Exchange {
          */
         const response = await this.publicGetMarkets (params);
         //
-        // [
-        //   {
-        //     market: 'DIL-ETH',
-        //     status: 'active',
-        //     baseAsset: 'DIL',
-        //     baseAssetPrecision: 8,
-        //     quoteAsset: 'ETH',
-        //     quoteAssetPrecision: 8
-        //   }, ...
-        // ]
+        //    [
+        //        {
+        //            "market": "ETH-USDC",
+        //            "type": "hybrid",
+        //            "status": "activeHybrid",
+        //            "baseAsset": "ETH",
+        //            "baseAssetPrecision": "8",
+        //            "quoteAsset": "USDC",
+        //            "quoteAssetPrecision": "8",
+        //            "makerFeeRate": "0.0000",
+        //            "takerFeeRate": "0.2500",
+        //            "takerIdexFeeRate": "0.0500",
+        //            "takerLiquidityProviderFeeRate": "0.2000",
+        //            "tickSize": "0.01000000"
+        //        },
+        //    ]
         //
         const response2 = await this.publicGetExchange ();
         //
-        // {
-        //     "timeZone": "UTC",
-        //     "serverTime": 1590408000000,
-        //     "ethereumDepositContractAddress": "0x...",
-        //     "ethUsdPrice": "206.46",
-        //     "gasPrice": 7,
-        //     "volume24hUsd": "10416227.98",
-        //     "makerFeeRate": "0.001",
-        //     "takerFeeRate": "0.002",
-        //     "makerTradeMinimum": "0.15000000",
-        //     "takerTradeMinimum": "0.05000000",
-        //     "withdrawalMinimum": "0.04000000",
-        //     "tickSize":"0.00001000"
-        // }
+        //    {
+        //        "timeZone": "UTC",
+        //        "serverTime": "1654460599952",
+        //        "maticDepositContractAddress": "0x3253a7e75539edaeb1db608ce6ef9aa1ac9126b6",
+        //        "maticCustodyContractAddress": "0x3bcc4eca0a40358558ca8d1bcd2d1dbde63eb468",
+        //        "maticUsdPrice": "0.60",
+        //        "gasPrice": "180",
+        //        "volume24hUsd": "10015814.46",
+        //        "totalVolumeUsd": "1589273533.28",
+        //        "totalTrades": "1534904",
+        //        "totalValueLockedUsd": "12041929.44",
+        //        "idexStakingValueLockedUsd": "20133816.98",
+        //        "idexTokenAddress": "0x9Cb74C8032b007466865f060ad2c46145d45553D",
+        //        "idexUsdPrice": "0.07",
+        //        "idexMarketCapUsd": "48012346.00",
+        //        "makerFeeRate": "0.0000",
+        //        "takerFeeRate": "0.0025",
+        //        "takerIdexFeeRate": "0.0005",
+        //        "takerLiquidityProviderFeeRate": "0.0020",
+        //        "makerTradeMinimum": "10.00000000",
+        //        "takerTradeMinimum": "1.00000000",
+        //        "withdrawMinimum": "0.50000000",
+        //        "liquidityAdditionMinimum": "0.50000000",
+        //        "liquidityRemovalMinimum": "0.40000000",
+        //        "blockConfirmationDelay": "64"
+        //    }
         //
         const maker = this.safeNumber (response2, 'makerFeeRate');
         const taker = this.safeNumber (response2, 'takerFeeRate');
@@ -227,11 +245,9 @@ module.exports = class idex extends Exchange {
             const quoteId = this.safeString (entry, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
-            const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
-            const basePrecision = this.parseNumber (this.parsePrecision (basePrecisionString));
-            let quotePrecision = this.parseNumber (this.parsePrecision (quotePrecisionString));
-            quotePrecision = this.safeNumber (entry, 'tickSize', quotePrecision);
+            const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
+            const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
+            const pricePrecision = this.safeNumber (entry, 'tickSize');
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -265,7 +281,7 @@ module.exports = class idex extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': basePrecision,
-                    'price': quotePrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -696,25 +712,25 @@ module.exports = class idex extends Exchange {
          * @param {dict} params extra parameters specific to the idex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        // [
-        //   {
-        //     name: 'Ether',
-        //     symbol: 'ETH',
-        //     contractAddress: '0x0000000000000000000000000000000000000000',
-        //     assetDecimals: 18,
-        //     exchangeDecimals: 8
-        //   }, ..
-        // ]
-        const response = await this.publicGetAssets (params);
+        const response = await this.publicGetAssets (params);//
+        //
+        //     [
+        //        {
+        //            "name": "Ethereum",
+        //            "symbol": "ETH",
+        //            "contractAddress": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        //            "assetDecimals": "18",
+        //            "exchangeDecimals": "8",
+        //            "maticPrice": "3029.38503483"
+        //        },
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const name = this.safeString (entry, 'name');
             const currencyId = this.safeString (entry, 'symbol');
-            const precisionString = this.safeString (entry, 'exchangeDecimals');
             const code = this.safeCurrencyCode (currencyId);
-            const precision = this.parsePrecision (precisionString);
-            const lot = this.parseNumber (precision);
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -725,10 +741,10 @@ module.exports = class idex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': parseInt (precisionString),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals'))),
                 'limits': {
-                    'amount': { 'min': lot, 'max': undefined },
-                    'withdraw': { 'min': lot, 'max': undefined },
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
                 },
             };
         }
@@ -855,14 +871,6 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name idex#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         const request = {
             'orderId': id,
         };
@@ -1081,18 +1089,7 @@ module.exports = class idex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name idex#createOrder
-         * @description create a trade order, https://docs.idex.io/#create-order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+        // https://docs.idex.io/#create-order
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1317,15 +1314,6 @@ module.exports = class idex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name idex#cancelOrder
-         * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let market = undefined;
