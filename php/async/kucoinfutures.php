@@ -1709,7 +1709,7 @@ class kucoinfutures extends kucoin {
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $timestamp = $this->safe_integer($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'ts');
         if ($timestamp !== null) {
             $timestamp = intval($timestamp / 1000000);
         } else {

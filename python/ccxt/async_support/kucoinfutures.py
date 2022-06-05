@@ -1651,7 +1651,7 @@ class kucoinfutures(kucoin):
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        timestamp = self.safe_integer(trade, 'time')
+        timestamp = self.safe_integer(trade, 'ts')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
         else:
