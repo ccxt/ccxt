@@ -1949,8 +1949,8 @@ module.exports = class exmo extends Exchange {
         }
     }
 
-    safeTickSize (object, key) {
-        const precisionDigitsString = this.safeString (object, key);
+    safeTickSize (info, key) {
+        const precisionDigitsString = this.safeString (info, key);
         return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
