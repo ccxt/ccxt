@@ -731,6 +731,7 @@ module.exports = class idex extends Exchange {
             const name = this.safeString (entry, 'name');
             const currencyId = this.safeString (entry, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals')));
             result[code] = {
                 'id': currencyId,
                 'code': code,
@@ -741,10 +742,10 @@ module.exports = class idex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'exchangeDecimals'))),
+                'precision': precision,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'amount': { 'min': precision, 'max': undefined },
+                    'withdraw': { 'min': precision, 'max': undefined },
                 },
             };
         }
