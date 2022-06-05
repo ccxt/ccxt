@@ -216,7 +216,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
-                        'fiat/orders': 20,
+                        'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
@@ -512,6 +512,7 @@ module.exports = class binance extends Exchange {
                         'leverageBracket': 1,
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
+                        'orderAmendment': 1,
                     },
                     'post': {
                         'positionSide/dual': 1,
@@ -525,6 +526,8 @@ module.exports = class binance extends Exchange {
                     },
                     'put': {
                         'listenKey': 1,
+                        'order': 1,
+                        'batchOrders': 5,
                     },
                     'delete': {
                         'order': 1,
@@ -1203,6 +1206,9 @@ module.exports = class binance extends Exchange {
                     '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
                     '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
                     '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
+                    '-21001': AuthenticationError, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
+                    '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
                     '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
                 },
                 'broad': {
