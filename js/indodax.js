@@ -249,8 +249,8 @@ module.exports = class indodax extends Exchange {
                 'percentage': true,
                 'precision': {
                     'amount': parseInt ('8'),
-                    'price': this.safeTickSize (market, 'price_round'),
-                    'cost': this.safeTickSize (market, 'volume_precision'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_round'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -930,10 +930,5 @@ module.exports = class indodax extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
         throw new ExchangeError (feedback); // unknown message
-    }
-
-    safeTickSize (data, key) {
-        const precisionDigitsString = this.safeString (data, key);
-        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
