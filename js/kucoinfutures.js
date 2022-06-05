@@ -1730,7 +1730,7 @@ module.exports = class kucoinfutures extends kucoin {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        let timestamp = this.safeInteger (trade, 'time');
+        let timestamp = this.safeInteger (trade, 'ts');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         } else {
