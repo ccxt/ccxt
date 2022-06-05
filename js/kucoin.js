@@ -1234,8 +1234,9 @@ module.exports = class kucoin extends Exchange {
         params = this.omit (params, 'stopPrice');
         let method = 'privatePostOrders';
         if (stopPrice !== undefined) {
+            const stop = this.safeString (params, 'stop', 'loss');
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['stop'] = 'loss';
+            request['stop'] = stop;
             method = 'privatePostStopOrder';
         } else if (tradeType === 'MARGIN_TRADE') {
             method = 'privatePostMarginOrder';
