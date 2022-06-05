@@ -953,6 +953,13 @@ class bibox(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bibox cancelOrder()
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'cmd': 'orderpending/cancelTrade',
             'body': self.extend({

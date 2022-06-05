@@ -1639,6 +1639,13 @@ class deribit(Exchange):
         return self.parse_order(order)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by deribit cancelOrder()
+        :param dict params: extra parameters specific to the deribit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': id,

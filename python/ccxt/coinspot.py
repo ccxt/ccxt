@@ -342,6 +342,13 @@ class coinspot(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by coinspot cancelOrder()
+        :param dict params: extra parameters specific to the coinspot api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         side = self.safe_string(params, 'side')
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')

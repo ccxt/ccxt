@@ -1218,6 +1218,13 @@ class zonda(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the zonda api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         side = self.safe_string(params, 'side')
         if side is None:
             raise ExchangeError(self.id + ' cancelOrder() requires a `side` parameter("buy" or "sell")')

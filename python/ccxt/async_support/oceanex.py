@@ -764,6 +764,13 @@ class oceanex(Exchange):
         return self.parse_orders(data)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by oceanex cancelOrder()
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostOrderDelete(self.extend({'id': id}, params))
         data = self.safe_value(response, 'data')

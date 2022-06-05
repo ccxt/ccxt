@@ -1697,6 +1697,13 @@ class ftx(Exchange):
         return self.parse_order(result, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by ftx cancelOrder()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         # support for canceling conditional orders

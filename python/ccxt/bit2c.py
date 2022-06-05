@@ -374,6 +374,13 @@ class bit2c(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: Not used by bit2c cancelOrder()
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'id': id,
         }

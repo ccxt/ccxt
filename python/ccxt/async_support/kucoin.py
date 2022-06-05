@@ -1235,12 +1235,12 @@ class kucoin(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
-        Cancels an order
-        :param str id: Order id
-        :param str symbol: Not used by kucoin
-        :param dict params: Exchange specific parameters
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the kucoin api endpoint
         :param bool params['stop']: True if cancelling a stop order
-        :returns: Response fromt the exchange
+        :returns: Response from the exchange
         """
         await self.load_markets()
         request = {}
