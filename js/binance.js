@@ -1206,7 +1206,7 @@ module.exports = class binance extends Exchange {
                     '-13005': BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
                     '-13006': InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
                     '-13007': AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
-                    '-21001': AuthenticationError, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21001': BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
                     '-21002': BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
                     '-21003': BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
                     '100001003': BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
