@@ -1154,8 +1154,8 @@ class kucoin extends Exchange {
         /**
          * Create an $order on the exchange
          * @param {str} $symbol Unified CCXT market $symbol
-         * @param {str} $type "limit" or "market"
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market'
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -1171,7 +1171,7 @@ class kucoin extends Exchange {
          * @param {str} $params->visibleSize $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg $order
          * market orders --------------------------------------------------
          * @param {str} $params->funds // Amount of quote currency to use
-         * stop orders ----------------------------------------------------
+         * $stop orders ----------------------------------------------------
          * @param {str} $params->stop  Either loss or entry, the default is loss. Requires $stopPrice to be defined
          * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
          * margin orders --------------------------------------------------
@@ -1179,7 +1179,7 @@ class kucoin extends Exchange {
          * @param {str} $params->stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} $params->marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} $params->autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
-         * @return an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
         $marketId = $this->market_id($symbol);
@@ -1215,8 +1215,9 @@ class kucoin extends Exchange {
         $params = $this->omit($params, 'stopPrice');
         $method = 'privatePostOrders';
         if ($stopPrice !== null) {
+            $stop = $this->safe_string($params, 'stop', 'loss');
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['stop'] = 'loss';
+            $request['stop'] = $stop;
             $method = 'privatePostStopOrder';
         } elseif ($tradeType === 'MARGIN_TRADE') {
             $method = 'privatePostMarginOrder';
@@ -1258,12 +1259,12 @@ class kucoin extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
-         * Cancels an order
-         * @param {str} $id Order $id
-         * @param {str} $symbol Not used by kucoin
-         * @param {dict} $params Exchange specific parameters
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
          * @param {bool} $params->stop True if cancelling a $stop order
-         * @return Response fromt the exchange
+         * @return Response from the exchange
          */
         $this->load_markets();
         $request = array();

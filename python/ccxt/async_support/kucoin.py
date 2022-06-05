@@ -1134,8 +1134,8 @@ class kucoin(Exchange):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market"
-        :param str side: "buy" or "sell"
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
@@ -1159,7 +1159,7 @@ class kucoin(Exchange):
         :param str params['stp']: '',  # self trade prevention, CN, CO, CB or DC
         :param str params['marginMode']: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :param bool params['autoBorrow']: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
-        :returns: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         marketId = self.market_id(symbol)
@@ -1193,8 +1193,9 @@ class kucoin(Exchange):
         params = self.omit(params, 'stopPrice')
         method = 'privatePostOrders'
         if stopPrice is not None:
+            stop = self.safe_string(params, 'stop', 'loss')
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['stop'] = 'loss'
+            request['stop'] = stop
             method = 'privatePostStopOrder'
         elif tradeType == 'MARGIN_TRADE':
             method = 'privatePostMarginOrder'
@@ -1234,12 +1235,12 @@ class kucoin(Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
-        Cancels an order
-        :param str id: Order id
-        :param str symbol: Not used by kucoin
-        :param dict params: Exchange specific parameters
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the kucoin api endpoint
         :param bool params['stop']: True if cancelling a stop order
-        :returns: Response fromt the exchange
+        :returns: Response from the exchange
         """
         await self.load_markets()
         request = {}

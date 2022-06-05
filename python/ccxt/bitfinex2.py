@@ -813,6 +813,12 @@ class bitfinex2(bitfinex):
         return currencyId
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -1284,8 +1290,8 @@ class bitfinex2(bitfinex):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market"
-        :param str side: "buy" or "sell"
+        :param str type: 'limit' or 'market'
+        :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float price: price of order
         :param dict params:  Extra parameters specific to the exchange API endpoint
@@ -1298,6 +1304,7 @@ class bitfinex2(bitfinex):
         :param str params['price_traling']: The trailing price for a trailing stop order
         :param str params['price_aux_limit']: Order price for stop limit orders
         :param str params['price_oco_stop']: OCO stop price
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1431,6 +1438,13 @@ class bitfinex2(bitfinex):
         return self.parse_orders(orders)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: Not used by bitfinex2 cancelOrder()
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:

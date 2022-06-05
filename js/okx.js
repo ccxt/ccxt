@@ -1902,6 +1902,18 @@ module.exports = class okx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2064,6 +2076,15 @@ module.exports = class okx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             const order = await this.cancelOrders ([ id ], symbol, params);
@@ -2379,12 +2400,11 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchOrder
          * @description fetch an order by the id
-         * @param {string} id the order id
-         * @param {string} symbol unified market symbol
+         * @param {str} id the order id
+         * @param {str} symbol unified market symbol
          * @param {dict} params extra and exchange specific parameters
-         * @param {integer} params.till timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
-         * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {bool|undefined} params.stop true if fetching trigger orders, params.ordtype set to "trigger" if true
+         * @param {str|undefined} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @returns [an order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
         if (symbol === undefined) {

@@ -106,6 +106,7 @@ class huobi(Exchange):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
+                'fetchSettlementHistory': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -2840,6 +2841,12 @@ class huobi(Exchange):
         return self.safe_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrder', None, params)
@@ -3614,6 +3621,16 @@ class huobi(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
@@ -3842,6 +3859,13 @@ class huobi(Exchange):
         return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrder', None, params)
@@ -5900,4 +5924,189 @@ class huobi(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
+        }
+
+    def fetch_settlement_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        Fetches historical settlement records
+        :param str symbol: unified symbol of the market to fetch the settlement history for
+        :param int since: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+        :param int limit: page items, default 20, shall not exceed 50
+        :param dict params: exchange specific params
+        :param int params['till']: timestamp in ms, value range = start_time -> current time，default = current time
+        :param int params['page_index']: page index, default page 1 if not filled
+        :returns: A list of settlement history objects
+        """
+        code = self.safe_string(params, 'code')
+        till = self.safe_integer(params, 'till')
+        params = self.omit(params, 'till')
+        market = None if (symbol is None) else self.market(symbol)
+        type, query = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
+        if type == 'future':
+            if symbol is None and code is None:
+                raise ArgumentsRequired(self.id + ' requires a symbol argument or params["code"] for fetchSettlementHistory future')
+        elif symbol is None:
+            raise ArgumentsRequired(self.id + ' requires a symbol argument for fetchSettlementHistory swap')
+        request = {}
+        if market['future']:
+            request['symbol'] = market['baseId']
+        else:
+            request['contract_code'] = market['id']
+        if since is not None:
+            request['start_at'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        if till is not None:
+            request['end_at'] = till
+        method = 'contractPublicGetApiV1ContractSettlementRecords'
+        if market['swap']:
+            if market['linear']:
+                method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords'
+            else:
+                method = 'contractPublicGetSwapApiV1SwapSettlementRecords'
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # linear swap, coin-m swap
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": {
+        #        "total_page": 14,
+        #        "current_page": 1,
+        #        "total_size": 270,
+        #        "settlement_record": [
+        #            {
+        #                "symbol": "ADA",
+        #                "contract_code": "ADA-USDT",
+        #                "settlement_time": 1652313600000,
+        #                "clawback_ratio": 0E-18,
+        #                "settlement_price": 0.512303000000000000,
+        #                "settlement_type": "settlement",
+        #                "business_type": "swap",
+        #                "pair": "ADA-USDT",
+        #                "trade_partition": "USDT"
+        #            },
+        #            ...
+        #        ],
+        #        "ts": 1652338693256
+        #    }
+        #
+        # coin-m future
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": {
+        #            "total_page": 5,
+        #            "current_page": 1,
+        #            "total_size": 90,
+        #            "settlement_record": [
+        #                {
+        #                    "symbol": "FIL",
+        #                    "settlement_time": 1652342400000,
+        #                    "clawback_ratio": 0E-18,
+        #                    "list": [
+        #                        {
+        #                            "contract_code": "FIL220513",
+        #                            "settlement_price": 7.016000000000000000,
+        #                            "settlement_type": "settlement"
+        #                        },
+        #                        ...
+        #                    ]
+        #                },
+        #            ]
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        settlementRecord = self.safe_value(data, 'settlement_record')
+        settlements = self.parse_settlements(settlementRecord, market)
+        return self.sort_by(settlements, 'timestamp')
+
+    def parse_settlements(self, settlements, market):
+        #
+        # linear swap, coin-m swap, fetchSettlementHistory
+        #
+        #    [
+        #        {
+        #            "symbol": "ADA",
+        #            "contract_code": "ADA-USDT",
+        #            "settlement_time": 1652313600000,
+        #            "clawback_ratio": 0E-18,
+        #            "settlement_price": 0.512303000000000000,
+        #            "settlement_type": "settlement",
+        #            "business_type": "swap",
+        #            "pair": "ADA-USDT",
+        #            "trade_partition": "USDT"
+        #        },
+        #        ...
+        #    ]
+        #
+        # coin-m future, fetchSettlementHistory
+        #
+        #    [
+        #        {
+        #            "symbol": "FIL",
+        #            "settlement_time": 1652342400000,
+        #            "clawback_ratio": 0E-18,
+        #            "list": [
+        #                {
+        #                    "contract_code": "FIL220513",
+        #                    "settlement_price": 7.016000000000000000,
+        #                    "settlement_type": "settlement"
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #    ]
+        #
+        result = []
+        for i in range(0, len(settlements)):
+            settlement = settlements[i]
+            list = self.safe_value(settlement, 'list')
+            if list is not None:
+                timestamp = self.safe_integer(settlement, 'settlement_time')
+                timestampDetails = {
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                }
+                for j in range(0, len(list)):
+                    item = list[j]
+                    parsedSettlement = self.parse_settlement(item, market)
+                    result.append(self.extend(parsedSettlement, timestampDetails))
+            else:
+                result.append(self.parse_settlement(settlements[i], market))
+        return result
+
+    def parse_settlement(self, settlement, market):
+        #
+        # linear swap, coin-m swap, fetchSettlementHistory
+        #
+        #    {
+        #        "symbol": "ADA",
+        #        "contract_code": "ADA-USDT",
+        #        "settlement_time": 1652313600000,
+        #        "clawback_ratio": 0E-18,
+        #        "settlement_price": 0.512303000000000000,
+        #        "settlement_type": "settlement",
+        #        "business_type": "swap",
+        #        "pair": "ADA-USDT",
+        #        "trade_partition": "USDT"
+        #    }
+        #
+        # coin-m future, fetchSettlementHistory
+        #
+        #    {
+        #        "contract_code": "FIL220513",
+        #        "settlement_price": 7.016000000000000000,
+        #        "settlement_type": "settlement"
+        #    }
+        #
+        timestamp = self.safe_integer(settlement, 'settlement_time')
+        marketId = self.safe_string(settlement, 'contract_code')
+        return {
+            'info': settlement,
+            'symbol': self.safe_symbol(marketId, market),
+            'price': self.safe_number(settlement, 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }

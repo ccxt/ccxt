@@ -1884,6 +1884,16 @@ class okx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2046,6 +2056,13 @@ class okx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $stop = $this->safe_value($params, 'stop');
         if ($stop) {
             $order = $this->cancel_orders(array( $id ), $symbol, $params);
@@ -2357,12 +2374,11 @@ class okx extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * fetch an $order by the $id
-         * @param {string} $id the $order $id
-         * @param {string} $symbol unified $market $symbol
+         * @param {str} $id the $order $id
+         * @param {str} $symbol unified $market $symbol
          * @param {dict} $params extra and exchange specific parameters
-         * @param {integer} $params->till timestamp in ms of the latest time to retrieve orders for
-         * @param {boolean} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
-         * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+         * @param {bool|null} $params->stop true if fetching trigger orders, $params->ordtype set to "trigger" if true
+         * @param {str|null} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure an $order structure}
         */
         if ($symbol === null) {

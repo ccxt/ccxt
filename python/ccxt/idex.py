@@ -814,6 +814,12 @@ class idex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'orderId': id,
         }
@@ -1021,7 +1027,16 @@ class idex(Exchange):
         return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        # https://docs.idex.io/#create-order
+        """
+        create a trade order, https://docs.idex.io/#create-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_credentials()
         self.load_markets()
         market = self.market(symbol)
@@ -1229,6 +1244,13 @@ class idex(Exchange):
         return self.parse_transaction(response, currency)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_credentials()
         self.load_markets()
         market = None

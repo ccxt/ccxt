@@ -1833,6 +1833,16 @@ class okx(Exchange):
         return self.parse_balance_by_type(marketType, response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1977,6 +1987,13 @@ class okx(Exchange):
         })
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         stop = self.safe_value(params, 'stop')
         if stop:
             order = self.cancel_orders([id], symbol, params)
@@ -2267,12 +2284,11 @@ class okx(Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         """
         fetch an order by the id
-        :param string id: the order id
-        :param string symbol: unified market symbol
+        :param str id: the order id
+        :param str symbol: unified market symbol
         :param dict params: extra and exchange specific parameters
-        :param integer params['till']: timestamp in ms of the latest time to retrieve orders for
-        :param boolean params['stop']: True if fetching trigger orders, params.ordtype set to "trigger" if True
-        :param string params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param bool|None params['stop']: True if fetching trigger orders, params.ordtype set to "trigger" if True
+        :param str|None params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns: `an order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
        """
         if symbol is None:

@@ -25,7 +25,7 @@ class coinex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => true,
                 'future' => false,
                 'option' => false,
@@ -1491,7 +1491,7 @@ class coinex extends Exchange {
         //     }
         //
         //
-        // Spot fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id" => 0,
@@ -1550,7 +1550,7 @@ class coinex extends Exchange {
         //         "user_id" => 3620173
         //     }
         //
-        // Spot Stop fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id" => 0,
@@ -1657,6 +1657,16 @@ class coinex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
@@ -1877,6 +1887,13 @@ class coinex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $stop = $this->safe_value($params, 'stop');
@@ -2057,6 +2074,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2221,9 +2244,18 @@ class coinex extends Exchange {
             }
             $request['page'] = 1;
         }
-        $response = yield $this->$method (array_merge($request, $query));
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($query, 'account_id');
+        $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -2304,7 +2336,7 @@ class coinex extends Exchange {
         //         "message" => "OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     {
         //         "code" => 0,

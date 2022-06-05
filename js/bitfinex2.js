@@ -831,6 +831,14 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
@@ -1352,8 +1360,8 @@ module.exports = class bitfinex2 extends bitfinex {
          * @name bitfinex2#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price price of order
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -1366,6 +1374,7 @@ module.exports = class bitfinex2 extends bitfinex {
          * @param {str} params.price_traling The trailing price for a trailing stop order
          * @param {str} params.price_aux_limit Order price for stop limit orders
          * @param {str} params.price_oco_stop OCO stop price
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1512,6 +1521,15 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bitfinex2 cancelOrder ()
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
