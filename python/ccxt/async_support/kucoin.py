@@ -1193,8 +1193,9 @@ class kucoin(Exchange):
         params = self.omit(params, 'stopPrice')
         method = 'privatePostOrders'
         if stopPrice is not None:
+            stop = self.safe_string(params, 'stop', 'loss')
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['stop'] = 'loss'
+            request['stop'] = stop
             method = 'privatePostStopOrder'
         elif tradeType == 'MARGIN_TRADE':
             method = 'privatePostMarginOrder'

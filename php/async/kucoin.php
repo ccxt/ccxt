@@ -1172,7 +1172,7 @@ class kucoin extends Exchange {
          * @param {str} $params->visibleSize $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg $order
          * market orders --------------------------------------------------
          * @param {str} $params->funds // Amount of quote currency to use
-         * stop orders ----------------------------------------------------
+         * $stop orders ----------------------------------------------------
          * @param {str} $params->stop  Either loss or entry, the default is loss. Requires $stopPrice to be defined
          * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
          * margin orders --------------------------------------------------
@@ -1216,8 +1216,9 @@ class kucoin extends Exchange {
         $params = $this->omit($params, 'stopPrice');
         $method = 'privatePostOrders';
         if ($stopPrice !== null) {
+            $stop = $this->safe_string($params, 'stop', 'loss');
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['stop'] = 'loss';
+            $request['stop'] = $stop;
             $method = 'privatePostStopOrder';
         } elseif ($tradeType === 'MARGIN_TRADE') {
             $method = 'privatePostMarginOrder';
