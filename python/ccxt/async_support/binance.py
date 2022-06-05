@@ -5115,7 +5115,7 @@ class binance(Exchange):
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
             if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
-                raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
                 # not an error
