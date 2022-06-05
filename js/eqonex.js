@@ -306,8 +306,8 @@ module.exports = class eqonex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeTicksizeFromDigit (market, 'quantity_scale'),
-                'price': this.safeTicksizeFromDigit (market, 'price_scale'),
+                'amount': this.safeTickSize (market, 'quantity_scale'),
+                'price': this.safeTickSize (market, 'price_scale'),
             },
             'limits': {
                 'leverage': {
@@ -392,7 +392,7 @@ module.exports = class eqonex extends Exchange {
             'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
-            'precision': this.safeTicksizeFromDigit (currency, 3),
+            'precision': this.safeTickSize (currency, 3),
             'fee': fee,
             'active': active,
             'deposit': undefined,
@@ -1707,5 +1707,10 @@ module.exports = class eqonex extends Exchange {
         }
         url = this.urls['api'][api] + '/' + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    safeTickSize (object, key) {
+        const precisionDigitsString = this.safeString (object, key);
+        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
