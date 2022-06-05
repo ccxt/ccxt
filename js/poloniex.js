@@ -182,6 +182,7 @@ module.exports = class poloniex extends Exchange {
                 // otherwise the returned withdrawals are filtered out
                 'USDTTRON': 'USDT',
                 'USDTETH': 'USDT',
+                'UST': 'USTC',
             },
             'options': {
                 'networks': {
