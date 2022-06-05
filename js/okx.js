@@ -2076,6 +2076,15 @@ module.exports = class okx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             const order = await this.cancelOrders ([ id ], symbol, params);

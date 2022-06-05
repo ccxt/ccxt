@@ -717,6 +717,15 @@ module.exports = class itbit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const walletIdInParams = ('walletId' in params);
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' cancelOrder() requires a walletId parameter');

@@ -1277,12 +1277,12 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#cancelOrder
-         * @description Cancels an order
-         * @param {str} id Order id
-         * @param {str} symbol Not used by kucoin
-         * @param {dict} params Exchange specific parameters
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.stop True if cancelling a stop order
-         * @returns Response fromt the exchange
+         * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
