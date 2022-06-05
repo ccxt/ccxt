@@ -698,11 +698,10 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const amountPrecisionString = this.safeString (market, 'amount_precision');
-            const pricePrecisionString = this.safeString (market, 'precision');
+            const pricePrecision = this.safeTickSize (market, 'precision');
+            const amountPrecision = this.safeTickSize (market, 'amount_precision');
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
-            const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
             const margin = leverage !== undefined;
             result.push ({
                 'id': id,
@@ -732,8 +731,8 @@ module.exports = class gateio extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -741,7 +740,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', amountPrecision),
                         'max': undefined,
                     },
                     'price': {
@@ -4240,5 +4239,10 @@ module.exports = class gateio extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], label, feedback);
             throw new ExchangeError (feedback);
         }
+    }
+
+    safeTickSize (object, key) {
+        const precisionDigitsString = this.safeString (object, key);
+        return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
