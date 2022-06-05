@@ -30,7 +30,7 @@ class coinex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': True,
                 'future': False,
                 'option': False,
@@ -1452,7 +1452,7 @@ class coinex(Exchange):
         #     }
         #
         #
-        # Spot fetchOpenOrders, fetchClosedOrders
+        # Spot and Margin fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "account_id": 0,
@@ -1511,7 +1511,7 @@ class coinex(Exchange):
         #         "user_id": 3620173
         #     }
         #
-        # Spot Stop fetchOpenOrders, fetchClosedOrders
+        # Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "account_id": 0,
@@ -2145,9 +2145,16 @@ class coinex(Exchange):
             if stop:
                 method = 'privateGetOrderStop' + self.capitalize(status)
             request['page'] = 1
-        response = await getattr(self, method)(self.extend(request, query))
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        params = self.omit(query, 'account_id')
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
@@ -2228,7 +2235,7 @@ class coinex(Exchange):
         #         "message": "OK"
         #     }
         #
-        # Spot Stop
+        # Spot and Margin Stop
         #
         #     {
         #         "code": 0,
