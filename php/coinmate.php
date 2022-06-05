@@ -845,6 +845,13 @@ class coinmate extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by coinmate cancelOrder ()
+         * @param {dict} $params extra parameters specific to the coinmate api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         //   array("error":false,"errorMessage":null,"data":array("success":true,"remainingAmount":0.01))
         $request = array( 'orderId' => $id );
         $response = $this->privatePostCancelOrderWithInfo (array_merge($request, $params));

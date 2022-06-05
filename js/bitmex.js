@@ -1753,6 +1753,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by bitmex cancelOrder ()
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');

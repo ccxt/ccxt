@@ -580,6 +580,13 @@ class tidebit extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol not used by tidebit cancelOrder ()
+         * @param {dict} $params extra parameters specific to the tidebit api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,

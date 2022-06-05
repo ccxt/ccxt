@@ -1501,6 +1501,13 @@ class ndax extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         yield $this->load_markets();
         yield $this->load_accounts();

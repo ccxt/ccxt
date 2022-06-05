@@ -1259,12 +1259,12 @@ class kucoin extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
-         * Cancels an order
-         * @param {str} $id Order $id
-         * @param {str} $symbol Not used by kucoin
-         * @param {dict} $params Exchange specific parameters
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
          * @param {bool} $params->stop True if cancelling a $stop order
-         * @return Response fromt the exchange
+         * @return Response from the exchange
          */
         $this->load_markets();
         $request = array();

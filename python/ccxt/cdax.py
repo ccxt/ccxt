@@ -1263,6 +1263,13 @@ class cdax(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by cdax cancelOrder()
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         response = self.privatePostOrderOrdersIdSubmitcancel({'id': id})
         #
         #     {

@@ -1574,6 +1574,13 @@ class kraken(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = None
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId', id)

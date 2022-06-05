@@ -1432,6 +1432,13 @@ class bitfinex2(bitfinex):
         return self.parse_orders(orders)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: Not used by bitfinex2 cancelOrder()
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
         request = None
         if cid is not None:

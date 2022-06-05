@@ -1021,6 +1021,13 @@ class upbit(Exchange):
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by upbit cancelOrder()
+        :param dict params: extra parameters specific to the upbit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'uuid': id,

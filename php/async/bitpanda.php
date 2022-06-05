@@ -1483,6 +1483,13 @@ class bitpanda extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by bitmex cancelOrder ()
+         * @param {dict} $params extra parameters specific to the bitpanda api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));

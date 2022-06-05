@@ -1218,6 +1218,15 @@ module.exports = class exmo extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by exmo cancelOrder ()
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = { 'order_id': id };
         return await this.privatePostOrderCancel (this.extend (request, params));

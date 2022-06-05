@@ -680,6 +680,13 @@ class timex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by timex cancelOrder ()
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         return yield $this->cancel_orders(array( $id ), $symbol, $params);
     }

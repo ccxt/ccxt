@@ -30,7 +30,7 @@ class coinex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': True,
                 'future': False,
                 'option': False,
@@ -1452,7 +1452,7 @@ class coinex(Exchange):
         #     }
         #
         #
-        # Spot fetchOpenOrders, fetchClosedOrders
+        # Spot and Margin fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "account_id": 0,
@@ -1511,7 +1511,7 @@ class coinex(Exchange):
         #         "user_id": 3620173
         #     }
         #
-        # Spot Stop fetchOpenOrders, fetchClosedOrders
+        # Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         "account_id": 0,
@@ -1813,6 +1813,13 @@ class coinex(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         stop = self.safe_value(params, 'stop')
@@ -2138,9 +2145,16 @@ class coinex(Exchange):
             if stop:
                 method = 'privateGetOrderStop' + self.capitalize(status)
             request['page'] = 1
-        response = await getattr(self, method)(self.extend(request, query))
+        accountId = self.safe_integer(params, 'account_id')
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            if accountId is None:
+                raise BadRequest(self.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders')
+            request['account_id'] = accountId
+        params = self.omit(query, 'account_id')
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 0,
@@ -2221,7 +2235,7 @@ class coinex(Exchange):
         #         "message": "OK"
         #     }
         #
-        # Spot Stop
+        # Spot and Margin Stop
         #
         #     {
         #         "code": 0,
