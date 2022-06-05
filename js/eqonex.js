@@ -1709,8 +1709,8 @@ module.exports = class eqonex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    safeTickSize (object, key) {
-        const precisionDigitsString = this.safeString (object, key);
+    safeTickSize (data, key) {
+        const precisionDigitsString = this.safeString (data, key);
         return this.parseNumber (this.parsePrecision (precisionDigitsString));
     }
 };
