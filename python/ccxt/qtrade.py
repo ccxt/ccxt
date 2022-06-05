@@ -1030,6 +1030,12 @@ class qtrade(Exchange):
         return self.privatePostCancelOrder(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by qtrade fetchOrder
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {'order_id': id}
         response = self.privateGetOrderOrderId(self.extend(request, params))

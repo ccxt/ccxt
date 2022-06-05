@@ -1373,6 +1373,12 @@ class upbit(Exchange):
         return self.fetch_orders_by_state('cancel', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by upbit fetchOrder
+        :param dict params: extra parameters specific to the upbit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'uuid': id,

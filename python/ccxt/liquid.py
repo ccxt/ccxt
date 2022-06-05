@@ -1080,6 +1080,12 @@ class liquid(Exchange):
         })
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by liquid fetchOrder
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,

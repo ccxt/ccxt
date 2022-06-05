@@ -1076,6 +1076,12 @@ class hitbtc(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by hitbtc fetchOrder
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId

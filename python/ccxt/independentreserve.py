@@ -429,6 +429,12 @@ class independentreserve(Exchange):
         return self.safe_string(statuses, status, status)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the independentreserve api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         response = self.privatePostGetOrderDetails(self.extend({
             'orderGuid': id,

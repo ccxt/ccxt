@@ -1044,6 +1044,12 @@ class latoken(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by latoken fetchOrder
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,

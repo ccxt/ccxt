@@ -1278,6 +1278,12 @@ class kucoinfutures(kucoin):
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     def fetch_order(self, id=None, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'futuresPrivateGetOrdersOrderId'

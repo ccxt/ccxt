@@ -887,6 +887,12 @@ class blockchaincom(Exchange):
         return self.safe_balance(result)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by blockchaincom fetchOrder
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # note: only works with exchange-order-id
         # does not work with clientOrderId
         await self.load_markets()

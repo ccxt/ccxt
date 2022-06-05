@@ -1692,6 +1692,12 @@ class ndax extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $this->load_markets();
         $this->load_accounts();

@@ -1146,6 +1146,12 @@ class exmo(Exchange):
         return self.privatePostOrderCancel(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by exmo fetchOrder
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': str(id),

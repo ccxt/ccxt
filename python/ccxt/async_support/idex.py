@@ -814,6 +814,12 @@ class idex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'orderId': id,
         }
@@ -1022,7 +1028,7 @@ class idex(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
-        create a trade order
+        create a trade order, https://docs.idex.io/#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1031,7 +1037,6 @@ class idex(Exchange):
         :param dict params: extra parameters specific to the idex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        # https://docs.idex.io/#create-order
         self.check_required_credentials()
         await self.load_markets()
         market = self.market(symbol)

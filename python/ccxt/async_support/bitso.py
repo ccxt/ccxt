@@ -825,6 +825,12 @@ class bitso(Exchange):
         return orders
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by bitso fetchOrder
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetOrdersOid({
             'oid': id,

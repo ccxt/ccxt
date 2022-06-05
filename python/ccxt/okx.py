@@ -2284,12 +2284,11 @@ class okx(Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         """
         fetch an order by the id
-        :param string id: the order id
-        :param string symbol: unified market symbol
+        :param str id: the order id
+        :param str symbol: unified market symbol
         :param dict params: extra and exchange specific parameters
-        :param integer params['till']: timestamp in ms of the latest time to retrieve orders for
-        :param boolean params['stop']: True if fetching trigger orders, params.ordtype set to "trigger" if True
-        :param string params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+        :param bool|None params['stop']: True if fetching trigger orders, params.ordtype set to "trigger" if True
+        :param str|None params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :returns: `an order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
        """
         if symbol is None:

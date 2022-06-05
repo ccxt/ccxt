@@ -617,6 +617,12 @@ class oceanex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $ids = $id;
         if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) != 0) {
             $ids = array( $id );

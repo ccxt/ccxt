@@ -1319,6 +1319,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_order($id = null, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array();
         $method = 'futuresPrivateGetOrdersOrderId';
