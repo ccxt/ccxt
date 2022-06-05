@@ -3886,7 +3886,6 @@ module.exports = class gateio extends Exchange {
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

@@ -1581,7 +1581,7 @@ class coinflex(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': None,
-            'marginType': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': None,
             'info': position,

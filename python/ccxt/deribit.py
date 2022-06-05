@@ -1995,7 +1995,6 @@ class deribit(Exchange):
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': None,
             'marginMode': None,
-            'marginType': None,  # deprecated
             'side': side,
             'percentage': self.parse_number(percentage),
         }

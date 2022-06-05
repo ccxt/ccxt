@@ -4465,7 +4465,6 @@ class binance(Exchange):
             'markPrice': None,
             'collateral': collateral,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -5373,7 +5372,6 @@ class binance(Exchange):
         return {
             'account': 'cross' if (symbol is None) else symbol,
             'symbol': symbol,
-            'marginType': marginMode,  # deprecated
             'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
             'interest': self.safe_number(info, 'interest'),

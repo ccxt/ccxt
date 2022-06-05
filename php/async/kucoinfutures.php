@@ -961,7 +961,6 @@ class kucoinfutures extends kucoin {
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'collateral' => $this->safe_number($position, 'maintMargin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode,
             'side' => $side,
             'percentage' => $this->parse_number(Precise::string_div($unrealisedPnl, $initialMargin)),
         );

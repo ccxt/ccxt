@@ -2336,7 +2336,6 @@ class ascendex extends Exchange {
             'symbol' => $market['symbol'],
             'notional' => $notional,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),

@@ -2722,7 +2722,6 @@ class coinex(Exchange):
             'symbol': symbol,
             'notional': None,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,

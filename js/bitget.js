@@ -1592,6 +1592,7 @@ module.exports = class bitget extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the bitget api endpoint
+         * @param {dict} params.till timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1604,27 +1605,37 @@ module.exports = class bitget extends Exchange {
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         });
+        const till = this.safeInteger (params, 'till');
+        if (limit === undefined) {
+            limit = 100;
+        }
         if (market['type'] === 'spot') {
             request['period'] = this.timeframes['spot'][timeframe];
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
+            request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
+                if (till === undefined) {
+                    const millisecondsPerTimeframe = this.timeframes['swap'][timeframe] * 1000;
+                    request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
+                }
+            }
+            if (till !== undefined) {
+                request['before'] = till;
             }
         } else if (market['type'] === 'swap') {
             request['granularity'] = this.timeframes['swap'][timeframe];
             const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
-            if (limit === undefined) {
-                limit = 100;
-            }
             if (since === undefined) {
                 request['startTime'] = now - (limit - 1) * (duration * 1000);
                 request['endTime'] = now;
             } else {
                 request['startTime'] = this.sum (since, duration * 1000);
-                request['endTime'] = this.sum (since, limit * duration * 1000);
+                if (till !== undefined) {
+                    request['endTime'] = till;
+                } else {
+                    request['endTime'] = this.sum (since, limit * duration * 1000);
+                }
             }
         }
         const response = await this[method] (this.extend (request, query));
@@ -2553,7 +2564,6 @@ module.exports = class bitget extends Exchange {
             'symbol': market['symbol'],
             'notional': undefined,
             'marginMode': marginMode,
-            'marginType': undefined, // deprecated
             'liquidationPrice': liquidation,
             'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),

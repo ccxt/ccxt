@@ -1651,7 +1651,7 @@ class coinflex extends Exchange {
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => null,
-            'marginType' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side' => $side,
             'percentage' => null,
             'info' => $position,

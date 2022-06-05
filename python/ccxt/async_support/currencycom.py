@@ -1678,7 +1678,6 @@ class currencycom(Exchange):
             'leverage': leverage,
             'percentage': None,
             'marginMode': None,
-            'marginType': None,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': None,

@@ -495,7 +495,6 @@ function test_exchange($exchange) {
 $proxies = array(
     '',
     'https://cors-anywhere.herokuapp.com/',
-    // 'https://crossorigin.me/',
 );
 
 $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {

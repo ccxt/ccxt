@@ -1793,7 +1793,6 @@ class mexc extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,
@@ -2189,7 +2188,7 @@ class mexc extends Exchange {
         $amount = $this->safe_string_2($order, 'quantity', 'vol');
         $remaining = $this->safe_string($order, 'remain_quantity');
         $filled = $this->safe_string_2($order, 'deal_quantity', 'dealVol');
-        $cost = $this->safe_string_2($order, 'deal_amount', 'dealAvgPrice');
+        $cost = $this->safe_string($order, 'deal_amount');
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $sideCheck = $this->safe_integer($order, 'side');
@@ -2261,7 +2260,7 @@ class mexc extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
-            'average' => null,
+            'average' => $this->safe_string($order, 'dealAvgPrice'),
             'amount' => $amount,
             'cost' => $cost,
             'filled' => $filled,
