@@ -708,11 +708,10 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-            amountPrecisionString = self.safe_string(market, 'amount_precision')
-            pricePrecisionString = self.safe_string(market, 'precision')
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'precision')))
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
-            defaultMinAmountLimit = self.parse_number(self.parse_precision(amountPrecisionString))
             margin = leverage is not None
             result.append({
                 'id': id,
@@ -742,8 +741,8 @@ class gateio(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
-                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -751,7 +750,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(spotMarket, 'min_base_amount', defaultMinAmountLimit),
+                        'min': self.safe_number(spotMarket, 'min_base_amount', amountPrecision),
                         'max': None,
                     },
                     'price': {
