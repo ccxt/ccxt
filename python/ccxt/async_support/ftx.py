@@ -2422,6 +2422,13 @@ class ftx(Exchange):
             raise ExchangeError(feedback)  # unknown message
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: not used by ftx setLeverage()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: response from the exchange
+        """
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 20):

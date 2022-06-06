@@ -2582,6 +2582,13 @@ class mexc3(Exchange):
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: response from the exchange
+        """
         await self.load_markets()
         request = {
             'leverage': leverage,

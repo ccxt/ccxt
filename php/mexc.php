@@ -2728,6 +2728,13 @@ class mexc extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} response from the exchange
+         */
         $this->load_markets();
         $request = array(
             'leverage' => $leverage,
