@@ -5285,6 +5285,15 @@ module.exports = class binance extends Exchange {
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {str|undefined} symbol not used by binance setPositionMode ()
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} response from the exchange
+         */
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, [ 'type' ]);

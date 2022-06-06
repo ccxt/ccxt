@@ -4387,6 +4387,15 @@ module.exports = class okx extends Exchange {
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use long_short_mode, false for net_mode
+         * @param {str|undefined} symbol not used by okx setPositionMode
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} response from the exchange
+         */
         let hedgeMode = undefined;
         if (hedged) {
             hedgeMode = 'long_short_mode';
