@@ -1992,7 +1992,7 @@ module.exports = class okx extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    request['sz'] = this.amountToPrecision (symbol, notional);
+                    request['sz'] = this.costToPrecision (symbol, notional);
                 }
             }
             if (marketIOC && contract) {
