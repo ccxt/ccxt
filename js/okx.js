@@ -1970,7 +1970,9 @@ module.exports = class okx extends Exchange {
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
-        request['tgtCcy'] = tgtCcy;
+        if (!market['contract']) {
+            request['tgtCcy'] = tgtCcy;
+        }
         let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
