@@ -3315,6 +3315,14 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchFundingRates (symbols, params = {}) {
+        /**
+         * @method
+         * @name zb#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.contractV2PublicGetPremiumIndex (params);
         //

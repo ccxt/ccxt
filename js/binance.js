@@ -4452,6 +4452,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');

@@ -1334,6 +1334,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));

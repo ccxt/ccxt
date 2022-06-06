@@ -2121,6 +2121,14 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
