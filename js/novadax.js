@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ module.exports = class novadax extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'A99999': ExchangeError, // 500 Failed Internal error
@@ -270,9 +271,9 @@ module.exports = class novadax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amountPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
-                    'cost': this.safeInteger (market, 'valuePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -770,8 +771,7 @@ module.exports = class novadax extends Exchange {
                 } else {
                     value = (value === undefined) ? amount : value;
                 }
-                const precision = market['precision']['price'];
-                request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
+                request['value'] = this.decimalToPrecision (value, TRUNCATE, market['precision']['price'], this.precisionMode);
             }
         }
         request['type'] = uppercaseType;
