@@ -588,8 +588,8 @@ module.exports = class phemex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const status = this.safeString (market, 'status');
-        const precisionAmount = this.parseSafeNumber (this.safeString (market, 'baseTickSize'));
-        const precisionPrice = this.parseSafeNumber (this.safeString (market, 'quoteTickSize'));
+        const precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseTickSize')));
+        const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteTickSize'))); // seems same as pricePrecision
         return {
             'id': id,
             'symbol': base + '/' + quote,
