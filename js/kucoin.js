@@ -1226,9 +1226,9 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         // default is take profit
-        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'stopPrice');
+        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'stopPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         if (isStopLoss && isTakeProfit) {
