@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, NotSupported, InvalidAddress } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -38,6 +38,7 @@ module.exports = class therock extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -73,6 +74,7 @@ module.exports = class therock extends Exchange {
                         'funds/{id}/orderbook': 1,
                         'funds/{id}/ticker': 1,
                         'funds/{id}/trades': 1,
+                        'funds/{id}/ohlc_statistics': 1,
                         'funds/tickers': 1,
                     },
                 },
@@ -1249,6 +1251,92 @@ module.exports = class therock extends Exchange {
         };
         const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents in minutes
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const period = this.convertTimeframeToMinutes (timeframe);
+        const request = {
+            'id': market['id'],
+            'period': period,
+        };
+        if (since === undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetFundsIdOhlcStatistics (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fund_id": "BTCUSDT",
+        //             "open": 31500.0,
+        //             "high": 31500.0,
+        //             "low": 31500.0,
+        //             "close": 31500.0,
+        //             "average": 31500.0,
+        //             "weighted_average": 31500.0,
+        //             "base_volume": 0.0,
+        //             "traded_volume": 0.0,
+        //             "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        //             "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        //         }
+        //         ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    convertTimeframeToMinutes (timeframe) {
+        const timeUnit = timeframe.slice (-1);
+        const time = timeframe.slice (0, -1);
+        if (timeUnit === 'm') {
+            return time;
+        } else if (timeUnit === 'h') {
+            return Precise.stringMul (time, '60');
+        } else if (timeUnit === 'd') {
+            return Precise.stringMul (time, '1440');
+        } else if (timeUnit === 'w') {
+            return Precise.stringMul (time, '10080');
+        }
+        return timeframe;
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "fund_id": "BTCUSDT",
+        //         "open": 31500.0,
+        //         "high": 31500.0,
+        //         "low": 31500.0,
+        //         "close": 31500.0,
+        //         "average": 31500.0,
+        //         "weighted_average": 31500.0,
+        //         "base_volume": 0.0,
+        //         "traded_volume": 0.0,
+        //         "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        //         "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        //     }
+        //
+        const dateTime = this.safeString (ohlcv, 'interval_starts_at');
+        return [
+            this.parse8601 (dateTime),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'base_volume'),
+        ];
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
