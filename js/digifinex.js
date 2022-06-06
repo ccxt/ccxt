@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -26,6 +27,7 @@ module.exports = class digifinex extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -1602,6 +1604,73 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetMarginPositions (this.extend (request, params));
+        //
+        //     {
+        //         "margin": "45.71246418952618",
+        //         "code": 0,
+        //         "margin_rate": "7.141978570340037",
+        //         "positions": [
+        //             {
+        //                 "amount": 0.0006103,
+        //                 "side": "go_long",
+        //                 "entry_price": 31428.72,
+        //                 "liquidation_rate": 0.3,
+        //                 "liquidation_price": 10225.335481159,
+        //                 "unrealized_roe": -0.0076885829266987,
+        //                 "symbol": "BTC_USDT",
+        //                 "unrealized_pnl": -0.049158102631999,
+        //                 "leverage_ratio": 3
+        //             }
+        //         ],
+        //         "unrealized_pnl": "-0.049158102631998504"
+        //     }
+        //
+        const rows = this.safeValue (response, 'positions');
+        const interest = this.parseBorrowInterests (rows, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market) {
+        //
+        //     {
+        //         "amount": 0.0006103,
+        //         "side": "go_long",
+        //         "entry_price": 31428.72,
+        //         "liquidation_rate": 0.3,
+        //         "liquidation_price": 10225.335481159,
+        //         "unrealized_roe": -0.0076885829266987,
+        //         "symbol": "BTC_USDT",
+        //         "unrealized_pnl": -0.049158102631999,
+        //         "leverage_ratio": 3
+        //     }
+        //
+        const symbol = this.safeString (info, 'symbol');
+        const amountString = this.safeString (info, 'amount');
+        const leverageString = this.safeString (info, 'leverage_ratio');
+        const amountInvested = Precise.stringDiv (amountString, leverageString);
+        const amountBorrowed = Precise.stringSub (amountString, amountInvested);
+        const currency = (market === undefined) ? undefined : market['base'];
+        return {
+            'account': this.safeSymbol (symbol, market),
+            'currency': currency,
+            'interest': undefined,
+            'interestRate': 0.001, // all interest rates on digifinex are 0.1%
+            'amountBorrowed': this.parseNumber (amountBorrowed),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
