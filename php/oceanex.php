@@ -118,6 +118,7 @@ class oceanex extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'Plair',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'codes' => array(
                     '-1' => '\\ccxt\\BadRequest',
@@ -201,10 +202,8 @@ class oceanex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_precision'),
-                    'price' => $this->safe_integer($market, 'price_precision'),
-                    'base' => $this->safe_integer($market, 'ask_precision'),
-                    'quote' => $this->safe_integer($market, 'bid_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
