@@ -1271,7 +1271,7 @@ module.exports = class therock extends Exchange {
         const periodInMinutes = parseInt (periodInSeconds / 60);
         const request = {
             'id': market['id'],
-            'period': period,
+            'period': periodInMinutes,
         };
         if (since === undefined) {
             request['after'] = this.iso8601 (since);
