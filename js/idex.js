@@ -712,7 +712,7 @@ module.exports = class idex extends Exchange {
          * @param {dict} params extra parameters specific to the idex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetAssets (params);//
+        const response = await this.publicGetAssets (params);
         //
         //     [
         //        {
