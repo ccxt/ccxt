@@ -1268,7 +1268,7 @@ module.exports = class therock extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodInSeconds = this.parseTimeframe (timeframe);
-        const periodInMinutes = periodInSeconds / 60;
+        const periodInMinutes = parseInt (periodInSeconds / 60);
         const request = {
             'id': market['id'],
             'period': period,
