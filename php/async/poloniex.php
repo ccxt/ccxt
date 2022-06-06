@@ -149,10 +149,6 @@ class poloniex extends Exchange {
                     'max' => 1000000000,
                 ),
             ),
-            'precision' => array(
-                'amount' => 8,
-                'price' => 8,
-            ),
             'commonCurrencies' => array(
                 'AIR' => 'AirCoin',
                 'APH' => 'AphroditeCoin',
@@ -223,6 +219,7 @@ class poloniex extends Exchange {
                     'lending' => 'lending',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -376,8 +373,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => intval('8'),
+                    'amount' => $this->parse_number('0.00000001'),
+                    'price' => $this->parse_number('0.00000001'),
                 ),
                 'limits' => array_merge($this->limits, array(
                     'leverage' => array(
@@ -617,8 +614,6 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $currency = $response[$id];
-            $precision = 8; // default $precision, todo => fix "magic constants"
-            $amountLimit = '1e-8';
             $code = $this->safe_currency_code($id);
             $delisted = $this->safe_integer($currency, 'delisted', 0);
             $disabled = $this->safe_integer($currency, 'disabled', 0);
@@ -637,10 +632,10 @@ class poloniex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->parse_number('0.00000001'),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => $this->parse_number('0.00000001'),
                         'max' => null,
                     ),
                     'withdraw' => array(

@@ -19,6 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -161,10 +162,6 @@ class poloniex(Exchange):
                     'max': 1000000000,
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
-            },
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'APH': 'AphroditeCoin',
@@ -235,6 +232,7 @@ class poloniex(Exchange):
                     'lending': 'lending',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -380,8 +378,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('8'),
-                    'price': int('8'),
+                    'amount': self.parse_number('0.00000001'),
+                    'price': self.parse_number('0.00000001'),
                 },
                 'limits': self.extend(self.limits, {
                     'leverage': {
@@ -604,8 +602,6 @@ class poloniex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            precision = 8  # default precision, todo: fix "magic constants"
-            amountLimit = '1e-8'
             code = self.safe_currency_code(id)
             delisted = self.safe_integer(currency, 'delisted', 0)
             disabled = self.safe_integer(currency, 'disabled', 0)
@@ -624,10 +620,10 @@ class poloniex(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number('0.00000001'),
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': self.parse_number('0.00000001'),
                         'max': None,
                     },
                     'withdraw': {
