@@ -1226,14 +1226,21 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeString (params, 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        // default is take profit
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'stopPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if (isStopLoss && isTakeProfit) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
         const tradeType = this.safeString (params, 'tradeType');
-        params = this.omit (params, 'stopPrice');
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
         let method = 'privatePostOrders';
-        if (stopPrice !== undefined) {
-            const stop = this.safeString (params, 'stop', 'loss');
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['stop'] = stop;
+        if (isStopLoss || isTakeProfit) {
+            request['stop'] = isStopLoss ? 'entry' : 'loss';
+            const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
         } else if (tradeType === 'MARGIN_TRADE') {
             method = 'privatePostMarginOrder';

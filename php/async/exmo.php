@@ -196,6 +196,7 @@ class exmo extends Exchange {
             'commonCurrencies' => array(
                 'GMT' => 'GMT Token',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
@@ -497,17 +498,7 @@ class exmo extends Exchange {
         //             array( "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
         //             array( "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 ),
         //             array( "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 ),
-        //             array(
-        //                 "type":"withdraw",
-        //                 "name":"USDT (ERC20)",
-        //                 "currency_name":"USDT",
-        //                 "min":"55",
-        //                 "max":"200000",
-        //                 "enabled":true,
-        //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
-        //                 "commission_desc":"10 USDT",
-        //                 "currency_confirmations":6
-        //             ),
+        //             array( "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation => Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 ),
         //             array( "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 ),
         //             array( "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 )
         //         ),
@@ -587,7 +578,7 @@ class exmo extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => 8,
+                'precision' => $this->parse_number($this->parse_precision('8')),
                 'limits' => $limits,
                 'info' => $providers,
             );
@@ -655,8 +646,8 @@ class exmo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->parse_number($this->parse_precision('8')),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

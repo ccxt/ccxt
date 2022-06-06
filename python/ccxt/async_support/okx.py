@@ -26,7 +26,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1875,13 +1874,13 @@ class okx(Exchange):
         }
         spot = market['spot']
         contract = market['contract']
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPx')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        tpOrdPx = self.safe_string(params, 'tpOrdPx')
+        tpOrdPx = self.safe_string(params, 'tpOrdPx', price)
         tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
         stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
-        slOrdPx = self.safe_string(params, 'slOrdPx')
+        slOrdPx = self.safe_string(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if spot:
@@ -1891,24 +1890,24 @@ class okx(Exchange):
             request['tdMode'] = self.safe_string_lower(params, 'tdMode', marginMode)  # not ommited so as to be extended into the request
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType'])
+        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
-        trigger = (stopPrice is not None) or (type == 'trigger')
+        trigger = (triggerPrice is not None) or (type == 'trigger')
         conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
+        defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
+        tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
+        request['tgtCcy'] = tgtCcy
         method = defaultMethod
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
             if spot and (side == 'buy'):
                 # spot market buy: "sz" can refer either to base currency units or to quote currency units
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
-                defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
-                tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
-                    request['tgtCcy'] = 'quote_ccy'
                     notional = self.safe_number(params, 'sz')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
@@ -1919,12 +1918,7 @@ class okx(Exchange):
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
-                    precision = market['precision']['price']
-                    request['sz'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
-                else:
-                    # base_ccy: sz refers to units of base currency
-                    request['tgtCcy'] = 'base_ccy'
-                params = self.omit(params, ['tgtCcy'])
+                    request['sz'] = self.cost_to_precision(symbol, notional)
             if marketIOC and contract:
                 request['ordType'] = 'optimal_limit_ioc'
         else:
@@ -1942,7 +1936,7 @@ class okx(Exchange):
         elif trigger:
             method = 'privatePostTradeOrderAlgo'
             request['ordType'] = 'trigger'
-            request['triggerPx'] = self.price_to_precision(symbol, stopPrice)
+            request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
             request['orderPx'] = '-1' if isMarketOrder else self.price_to_precision(symbol, price)
         elif conditional:
             method = 'privatePostTradeOrderAlgo'

@@ -4761,8 +4761,7 @@ class binance(Exchange):
         #    }
         #
         marketId = self.safe_string(info, 'symbol')
-        safeSymbol = self.safe_symbol(marketId)
-        market = self.safe_market(safeSymbol, market)
+        market = self.safe_market(marketId, market)
         brackets = self.safe_value(info, 'brackets', [])
         tiers = []
         for j in range(0, len(brackets)):

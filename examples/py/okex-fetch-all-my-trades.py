@@ -9,7 +9,7 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
-# make sure your version is 1.51+
+# make sure your version is the latest
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.okx({
@@ -21,24 +21,24 @@ exchange = ccxt.okx({
 
 markets = exchange.load_markets ()
 
-# exchange.verbose = True  # uncomment for debugging
+exchange.verbose = True  # uncomment for debugging
 
 all_trades = {}
 symbol = None
 since = None
 limit = 200
-before = None
+after = None
 
 while True:
     print('------------------------------------------------------------------')
     params = {}
-    if before:
-        params['before'] = before
+    if after:
+        params['after'] = after
     trades = exchange.fetch_my_trades(symbol, since, limit, params)
     if len(trades):
         first_trade = trades[0]
         last_trade = trades[len(trades) - 1]
-        before = first_trade['info']['billId']
+        after = first_trade['info']['billId']
         print('Fetched', len(trades), 'trades from', first_trade['datetime'], 'till', last_trade['datetime'])
         fetched_new_trades = False
         for trade in trades:

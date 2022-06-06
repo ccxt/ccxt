@@ -703,11 +703,10 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $amountPrecisionString = $this->safe_string($market, 'amount_precision');
-            $pricePrecisionString = $this->safe_string($market, 'precision');
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
-            $defaultMinAmountLimit = $this->parse_number($this->parse_precision($amountPrecisionString));
             $margin = $leverage !== null;
             $result[] = array(
                 'id' => $id,
@@ -737,8 +736,8 @@ class gateio extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -746,7 +745,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $defaultMinAmountLimit),
+                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $amountPrecision),
                         'max' => null,
                     ),
                     'price' => array(
