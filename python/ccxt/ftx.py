@@ -2621,7 +2621,7 @@ class ftx(Exchange):
         :param int|None since: timestamp for the earliest borrow rate
         :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
-        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :param int|None params['till']: Timestamp in ms of the latest time to fetch the borrow rate
         :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
         histories = self.fetch_borrow_rate_histories([code], since, limit, params)

@@ -2760,7 +2760,7 @@ class ftx extends Exchange {
          * @param {int|null} $since timestamp for the earliest borrow rate
          * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+         * @param {int|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
          * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $histories = $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);

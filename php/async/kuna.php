@@ -286,6 +286,7 @@ class kuna extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'Plair',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
