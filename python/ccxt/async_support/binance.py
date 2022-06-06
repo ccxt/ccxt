@@ -3134,6 +3134,14 @@ class binance(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_dust_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all dust trades made by the user
+        :param str|None symbol: not used by binance fetchMyDustTrades()
+        :param int|None since: the earliest time in ms to fetch my dust trades for
+        :param int|None limit: the maximum number of dust trades to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         #
         # Binance provides an opportunity to trade insignificant(i.e. non-tradable and non-withdrawable)
         # token leftovers(of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.

@@ -3256,6 +3256,14 @@ class binance extends Exchange {
     }
 
     public function fetch_my_dust_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all dust $trades made by the user
+         * @param {str|null} $symbol not used by binance fetchMyDustTrades ()
+         * @param {int|null} $since the earliest time in ms to fetch my dust $trades for
+         * @param {int|null} $limit the maximum number of dust $trades to retrieve
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         //
         // Binance provides an opportunity to trade insignificant ($i->e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
