@@ -409,7 +409,6 @@ module.exports = class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             const platform = this.safeValue (platformsByPriority, 0, {});
-            const precision = this.safeInteger (platform, 'precision');
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
@@ -439,7 +438,7 @@ module.exports = class probit extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (platform, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
