@@ -988,6 +988,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRates']) {
             const response = await this.fetchFundingRates ([ symbol ], params);
