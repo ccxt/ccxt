@@ -142,6 +142,7 @@ class mercado extends Exchange {
                     'XRP' => 0.1,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -208,8 +209,8 @@ class mercado extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => intval('5'),
+                    'amount' => $this->parse_number('0.00000001'),
+                    'price' => $this->parse_number('0.00001'),
                 ),
                 'limits' => array(
                     'leverage' => array(
