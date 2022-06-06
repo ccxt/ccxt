@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -138,6 +139,7 @@ module.exports = class mercado extends Exchange {
                     'XRP': 0.1,
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -206,8 +208,8 @@ module.exports = class mercado extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'),
-                    'price': parseInt ('5'),
+                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.parseNumber ('0.00001'),
                 },
                 'limits': {
                     'leverage': {
