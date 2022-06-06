@@ -2154,7 +2154,7 @@ module.exports = class okcoin extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
+                    request['notional'] = this.costToPrecision (symbol, notional);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
