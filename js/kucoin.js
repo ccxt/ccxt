@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -275,6 +276,7 @@ module.exports = class kucoin extends Exchange {
                 '1d': '1day',
                 '1w': '1week',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'order not exist': OrderNotFound,
@@ -612,8 +614,8 @@ module.exports = class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
+                    'amount': this.safeNumber (market, 'baseIncrement'),
+                    'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
                     'leverage': {
@@ -670,7 +672,7 @@ module.exports = class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (entry, 'precision');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
             const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
