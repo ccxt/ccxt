@@ -10,6 +10,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -153,6 +154,7 @@ class qtrade(Exchange):
             'commonCurrencies': {
                 'BTM': 'Bitmark',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'invalid_auth': AuthenticationError,
@@ -196,8 +198,8 @@ class qtrade(Exchange):
         #                     "market_string":"BAC_BTC",
         #                     "minimum_sell_amount":"0.0001",
         #                     "minimum_buy_value":"0.0001",
-        #                     "market_precision":8,
-        #                     "base_precision":8
+        #                     "market_precision":8,  # note, they have reversed understanding of 'quote' vs 'base' concepts
+        #                     "base_precision":8  # as noted in above comment
         #                 },
         #             ],
         #         }
@@ -245,8 +247,8 @@ class qtrade(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'market_precision'),
-                    'price': self.safe_integer(market, 'base_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'base_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -342,7 +344,7 @@ class qtrade(Exchange):
                 'type': type,
                 'name': name,
                 'fee': self.safe_number(config, 'withdraw_fee'),
-                'precision': self.safe_integer(currency, 'precision'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,

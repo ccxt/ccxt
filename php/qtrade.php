@@ -149,6 +149,7 @@ class qtrade extends Exchange {
             'commonCurrencies' => array(
                 'BTM' => 'Bitmark',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
@@ -193,8 +194,8 @@ class qtrade extends Exchange {
         //                     "market_string":"BAC_BTC",
         //                     "minimum_sell_amount":"0.0001",
         //                     "minimum_buy_value":"0.0001",
-        //                     "market_precision":8,
-        //                     "base_precision":8
+        //                     "market_precision":8, // note, they have reversed understanding of 'quote' vs 'base' concepts
+        //                     "base_precision":8 // as noted in above comment
         //                 ),
         //             ),
         //         }
@@ -242,8 +243,8 @@ class qtrade extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'market_precision'),
-                    'price' => $this->safe_integer($market, 'base_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -341,7 +342,7 @@ class qtrade extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'fee' => $this->safe_number($config, 'withdraw_fee'),
-                'precision' => $this->safe_integer($currency, 'precision'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'active' => $active,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
