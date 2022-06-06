@@ -479,6 +479,14 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by crex24 fetchTransactionFees
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetCurrenciesWithdrawalFees (params);
         //

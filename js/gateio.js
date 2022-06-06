@@ -1625,6 +1625,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by gateio fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
         //

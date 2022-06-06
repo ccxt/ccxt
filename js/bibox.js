@@ -1402,6 +1402,14 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes list of unified currency codes
+         * @param {dict} params extra parameters specific to the bibox api endpoint
+         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();

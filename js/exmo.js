@@ -392,6 +392,14 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes list of unified currency codes
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
+         */
         await this.loadMarkets ();
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //

@@ -927,6 +927,14 @@ module.exports = class bitso extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitso#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by bitso fetchTransactionFees
+         * @param {dict} params extra parameters specific to the bitso api endpoint
+         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //

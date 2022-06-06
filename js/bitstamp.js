@@ -1104,6 +1104,14 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by bitstamp fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
         return this.parseFundingFees (balance);
