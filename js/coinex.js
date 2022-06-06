@@ -3935,9 +3935,9 @@ module.exports = class coinex extends Exchange {
         path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
-        this.checkRequiredCredentials ();
         const nonce = this.nonce ().toString ();
         if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
+            this.checkRequiredCredentials ();
             query = this.extend ({
                 'access_id': this.apiKey,
                 'timestamp': nonce,
@@ -3960,6 +3960,7 @@ module.exports = class coinex extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
+            this.checkRequiredCredentials ();
             query = this.extend ({
                 'access_id': this.apiKey,
                 'tonce': nonce,
