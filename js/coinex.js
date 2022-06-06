@@ -3957,7 +3957,7 @@ module.exports = class coinex extends Exchange {
         return {
             'account': undefined, // deprecated
             'symbol': symbol,
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'marginType': undefined, // deprecated
             'currency': this.safeCurrencyCode (this.safeString (info, 'coin_type')),
             'interest': this.parseNumber (interest),
