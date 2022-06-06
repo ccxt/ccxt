@@ -3721,9 +3721,9 @@ class coinex(Exchange):
         path = self.implode_params(path, params)
         url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
-        self.check_required_credentials()
         nonce = str(self.nonce())
         if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
+            self.check_required_credentials()
             query = self.extend({
                 'access_id': self.apiKey,
                 'timestamp': nonce,
@@ -3744,6 +3744,7 @@ class coinex(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             query = self.extend({
                 'access_id': self.apiKey,
                 'tonce': nonce,

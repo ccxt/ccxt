@@ -3914,9 +3914,9 @@ class coinex extends Exchange {
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
-        $this->check_required_credentials();
         $nonce = (string) $this->nonce();
         if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
+            $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
                 'timestamp' => $nonce,
@@ -3939,6 +3939,7 @@ class coinex extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
+            $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
                 'tonce' => $nonce,
