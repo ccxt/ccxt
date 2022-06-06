@@ -126,6 +126,7 @@ class itbit extends Exchange {
             'commonCurrencies' => array(
                 'XBT' => 'BTC',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 

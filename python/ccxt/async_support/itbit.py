@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -127,6 +128,7 @@ class itbit(Exchange):
             'commonCurrencies': {
                 'XBT': 'BTC',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
