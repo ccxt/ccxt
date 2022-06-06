@@ -289,7 +289,8 @@ class liquid(Exchange):
             depositable = self.safe_value(currency, 'depositable')
             withdrawable = self.safe_value(currency, 'withdrawable')
             active = depositable and withdrawable
-            amountPrecision = self.safe_integer(currency, 'assets_precision')
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'assets_precision')))
+            assetPrecisionInteger = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -302,8 +303,8 @@ class liquid(Exchange):
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -amountPrecision),
-                        'max': math.pow(10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': math.pow(10, assetPrecisionInteger),
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
