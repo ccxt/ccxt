@@ -29,7 +29,8 @@ module.exports = class scallop extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchLedger': true,
+                'fetchLedger': false,
+                'fetchMarginOrder': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': false,
@@ -37,7 +38,6 @@ module.exports = class scallop extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchMarginOrder': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1030,7 +1030,6 @@ module.exports = class scallop extends Exchange {
         //     'side': 'BUY',
         //     'time': '1574329076202'
         // }
-
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeTimestamp (order, 'time');
         const side = this.safeString (order, 'side', undefined);
