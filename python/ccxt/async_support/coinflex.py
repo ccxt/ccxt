@@ -952,6 +952,12 @@ class coinflex(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         # TODO: self can be moved as emulated into base
         if self.has['fetchFundingRates']:
             response = await self.fetch_funding_rates([symbol], params)

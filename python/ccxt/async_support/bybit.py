@@ -1576,6 +1576,12 @@ class bybit(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

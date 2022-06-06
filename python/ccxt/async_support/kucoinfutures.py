@@ -1368,6 +1368,12 @@ class kucoinfutures(kucoin):
         }, market)
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),

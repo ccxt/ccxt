@@ -980,6 +980,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         // TODO => this can be moved as emulated into base
         if ($this->has['fetchFundingRates']) {
             $response = $this->fetch_funding_rates(array( $symbol ), $params);
