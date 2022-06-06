@@ -2562,6 +2562,15 @@ module.exports = class ftx extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ftx#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str|undefined} symbol not used by ftx setLeverage ()
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} response from the exchange
+         */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 20)) {

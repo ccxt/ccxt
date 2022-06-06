@@ -2755,6 +2755,15 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         const request = {
             'leverage': leverage,
