@@ -384,6 +384,14 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
         //

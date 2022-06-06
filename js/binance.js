@@ -4021,6 +4021,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by binance fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //

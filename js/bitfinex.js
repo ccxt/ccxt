@@ -388,6 +388,14 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by bitfinex2 fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[dict]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];

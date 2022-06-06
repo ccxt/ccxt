@@ -1766,6 +1766,14 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by lbank2 fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
