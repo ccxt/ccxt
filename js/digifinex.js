@@ -314,7 +314,11 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchMarketsV2 (params = {}) {
-        const response = await this.publicGetTradesSymbols (params);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const method = (defaultType === 'margin') ? 'publicGetMarginSymbols' : 'publicGetTradesSymbols';
+        const response = await this[method] (params);
+        //
+        // Spot
         //
         //     {
         //         "symbol_list":[
@@ -331,6 +335,27 @@ module.exports = class digifinex extends Exchange {
         //                 "base_asset":"BTC",
         //                 "price_precision":2
         //             }
+        //         ],
+        //         "code":0
+        //     }
+        //
+        // Margin
+        //
+        //     {
+        //         "symbol_list":[
+        //             {
+        //                     "order_types":["LIMIT"],
+        //                     "quote_asset":"USDT",
+        //                     "minimum_value":0,
+        //                     "amount_precision":2,
+        //                     "status":"TRADING",
+        //                     "minimum_amount":22,
+        //                     "liquidation_rate":0.3,
+        //                     "symbol":"TRX_USDT",
+        //                     "zone":"MAIN",
+        //                     "base_asset":"TRX",
+        //                     "price_precision":6
+        //             },
         //         ],
         //         "code":0
         //     }
@@ -355,6 +380,9 @@ module.exports = class digifinex extends Exchange {
             // const active = (status === 'TRADING');
             //
             const isAllowed = this.safeInteger (market, 'is_allow', 1);
+            const type = (defaultType === 'margin') ? 'margin' : 'spot';
+            const spot = (defaultType === 'spot') ? true : undefined;
+            const margin = (defaultType === 'margin') ? true : undefined;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -364,13 +392,13 @@ module.exports = class digifinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': undefined,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
+                'active': isAllowed ? true : undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
