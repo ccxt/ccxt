@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -146,10 +147,6 @@ module.exports = class poloniex extends Exchange {
                     'max': 1000000000,
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
-            },
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'APH': 'AphroditeCoin',
@@ -220,6 +217,7 @@ module.exports = class poloniex extends Exchange {
                     'lending': 'lending',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -377,8 +375,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'),
-                    'price': parseInt ('8'),
+                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.parseNumber ('0.00000001'),
                 },
                 'limits': this.extend (this.limits, {
                     'leverage': {
@@ -626,8 +624,6 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            const precision = 8; // default precision, todo: fix "magic constants"
-            const amountLimit = '1e-8';
             const code = this.safeCurrencyCode (id);
             const delisted = this.safeInteger (currency, 'delisted', 0);
             const disabled = this.safeInteger (currency, 'disabled', 0);
@@ -646,10 +642,10 @@ module.exports = class poloniex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber ('0.00000001'),
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': this.parseNumber ('0.00000001'),
                         'max': undefined,
                     },
                     'withdraw': {
