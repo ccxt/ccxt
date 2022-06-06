@@ -1663,6 +1663,15 @@ class hitbtc3(Exchange):
         }, market)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         # account can be "spot", "wallet", or "derivatives"
         await self.load_markets()
         currency = self.currency(code)

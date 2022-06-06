@@ -3475,13 +3475,13 @@ class gateio(Exchange):
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
-        makes internal transfers of funds between accounts on the same exchange
+        transfer currency internally between wallets on the same account
         :param str code: unified currency code for currency being transferred
         :param float amount: the amount of currency to transfer
         :param str fromAccount: the account to transfer currency from
         :param str toAccount: the account to transfer currency to
-        :param dict params: Exchange specific parameters
-        :param dict params['symbol']: Unified market symbol *required for type == margin*
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['symbol']: Unified market symbol *required for type == margin*
         :returns: A `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()

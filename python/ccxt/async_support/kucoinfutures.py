@@ -1457,6 +1457,15 @@ class kucoinfutures(kucoin):
         return self.parse_balance(response)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
             raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         await self.load_markets()
