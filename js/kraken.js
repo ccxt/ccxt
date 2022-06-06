@@ -330,7 +330,7 @@ module.exports = class kraken extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], TICK_SIZE);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     feeToPrecision (symbol, fee) {
