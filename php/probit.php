@@ -410,7 +410,6 @@ class probit extends Exchange {
             $platforms = $this->safe_value($currency, 'platform', array());
             $platformsByPriority = $this->sort_by($platforms, 'priority');
             $platform = $this->safe_value($platformsByPriority, 0, array());
-            $precision = $this->safe_integer($platform, 'precision');
             $depositSuspended = $this->safe_value($platform, 'deposit_suspended');
             $withdrawalSuspended = $this->safe_value($platform, 'withdrawal_suspended');
             $deposit = !$depositSuspended;
@@ -440,7 +439,7 @@ class probit extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($platform, 'precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
