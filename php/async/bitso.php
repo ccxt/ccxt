@@ -911,6 +911,12 @@ class bitso extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by bitso fetchTransactionFees
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetFees ($params);
         //

@@ -396,6 +396,12 @@ class exmo extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes list of unified $currency $codes
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
+         */
         yield $this->load_markets();
         $currencyList = yield $this->publicGetCurrencyListExtended ($params);
         //

@@ -366,6 +366,12 @@ class buda extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes list of unified $currency $codes
+         * @param {dict} $params extra parameters specific to the buda api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         */
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $codes = array( 'ETH', 'BTC' ) in args it will only load those
         yield $this->load_markets();

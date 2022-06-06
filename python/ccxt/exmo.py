@@ -387,6 +387,12 @@ class exmo(Exchange):
         return result
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
+        """
         self.load_markets()
         currencyList = self.publicGetCurrencyListExtended(params)
         #

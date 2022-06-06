@@ -484,6 +484,12 @@ class crex24 extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by crex24 fetchTransactionFees
+         * @param {dict} $params extra parameters specific to the crex24 api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure transaction fees structures}
+         */
         $this->load_markets();
         $response = $this->publicGetCurrenciesWithdrawalFees ($params);
         //

@@ -391,6 +391,12 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction $fees
+         * @param {[str]|null} $codes not used by bitfinex2 fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the bitfinex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure $fees structures}
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostAccountFees ($params);
         $fees = $response['withdraw'];

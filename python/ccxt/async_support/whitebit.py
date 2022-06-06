@@ -387,6 +387,12 @@ class whitebit(Exchange):
         return result
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by fetchTransactionFees()
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         response = await self.v4PublicGetFee(params)
         #

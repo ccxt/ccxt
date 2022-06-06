@@ -1658,6 +1658,12 @@ class lbank2(Exchange):
         return self.parse_transactions(withdraws, code, since, limit)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by lbank2 fetchTransactionFees()
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         # private only returns information for currencies with non-zero balance
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)

@@ -1750,6 +1750,12 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by lbank2 fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the lbank2 api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         // private only returns information for currencies with non-zero balance
         yield $this->load_markets();
         $isAuthorized = $this->check_required_credentials(false);

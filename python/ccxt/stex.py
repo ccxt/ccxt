@@ -2182,6 +2182,12 @@ class stex(Exchange):
         return self.parse_transaction(data, currency)
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by stex fetchTransactionFees()
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         response = self.publicGetCurrencies(params)
         #

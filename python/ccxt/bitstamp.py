@@ -1054,6 +1054,12 @@ class bitstamp(Exchange):
         }
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         balance = self.privatePostBalance(params)
         return self.parse_funding_fees(balance)

@@ -1576,6 +1576,12 @@ class gateio(Exchange):
         }
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by gateio fetchTransactionFees()
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         response = await self.privateWalletGetWithdrawStatus(params)
         #

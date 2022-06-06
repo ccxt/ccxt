@@ -480,6 +480,12 @@ class crex24(Exchange):
         return result
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by crex24 fetchTransactionFees
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetCurrenciesWithdrawalFees(params)
         #
