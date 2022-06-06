@@ -204,6 +204,7 @@ class bitmex extends Exchange {
                     'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
                     'Server Error' => '\\ccxt\\ExchangeError', // array("error":array("message":"Server Error","name":"HTTPError"))
                     'Unable to cancel order due to existing state' => '\\ccxt\\InvalidOrder',
+                    'We require all new traders to verify' => '\\ccxt\\PermissionDenied', // array("message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError")
                 ),
             ),
             'precisionMode' => TICK_SIZE,
