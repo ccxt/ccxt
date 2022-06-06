@@ -2848,6 +2848,14 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {

@@ -3894,12 +3894,12 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#fetchPositions
-         * @description Fetch trades positions
-         * @param {[str]} symbols Not used by Gateio, but parsed internally by CCXT
-         * @param {dict} params exchange specific parameters
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} params.type swap or future, if not provided this.options['defaultType'] is used
-         * @returns An array of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);

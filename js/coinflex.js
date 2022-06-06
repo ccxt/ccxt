@@ -1611,6 +1611,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         const data = await this.getAccountData (params);
         // response sample inside `getAccountData` method
         this.targetAccount = this.safeValue (data, 0);

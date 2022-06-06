@@ -1948,6 +1948,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols not used by hitbtc3 fetchPositions ()
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);

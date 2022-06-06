@@ -671,6 +671,14 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the bitflyer api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
