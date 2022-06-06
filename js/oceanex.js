@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,6 +115,7 @@ module.exports = class oceanex extends Exchange {
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'codes': {
                     '-1': BadRequest,
@@ -199,10 +201,8 @@ module.exports = class oceanex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amount_precision'),
-                    'price': this.safeInteger (market, 'price_precision'),
-                    'base': this.safeInteger (market, 'ask_precision'),
-                    'quote': this.safeInteger (market, 'bid_precision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
