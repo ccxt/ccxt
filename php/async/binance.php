@@ -4324,6 +4324,15 @@ class binance extends Exchange {
     }
 
     public function futures_transfer($code, $amount, $type, $params = array ()) {
+        /**
+         * transfer between futures account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to transfer
+         * @param {str} $type 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @param {float|null} $params->recvWindow
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#futures-transfer-structure transfer structure}
+         */
         if (($type < 1) || ($type > 4)) {
             throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
         }
