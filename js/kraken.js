@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -302,6 +302,7 @@ module.exports = class kraken extends Exchange {
                     'ZRX': '0x (ZRX)',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol, // {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
@@ -329,11 +330,11 @@ module.exports = class kraken extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], TICK_SIZE);
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], TICK_SIZE);
     }
 
     async fetchMarkets (params = {}) {
@@ -420,7 +421,7 @@ module.exports = class kraken extends Exchange {
             }
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
-            const precisionPrice = this.safeString (market, 'pair_decimals');
+            const precisionPrice = this.parseNumber (this.parsePrecision (this.safeString (market, 'pair_decimals')));
             result.push ({
                 'id': id,
                 'symbol': darkpool ? altname : (base + '/' + quote),
@@ -450,8 +451,8 @@ module.exports = class kraken extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'lot_decimals'),
-                    'price': this.safeInteger (market, 'pair_decimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lot_decimals'))),
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {
@@ -463,7 +464,7 @@ module.exports = class kraken extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (this.parsePrecision (precisionPrice)),
+                        'min': precisionPrice,
                         'max': undefined,
                     },
                     'cost': {
@@ -496,10 +497,13 @@ module.exports = class kraken extends Exchange {
 
     appendInactiveMarkets (result) {
         // result should be an array to append to
-        const precision = { 'amount': 8, 'price': 8 };
+        const precision = {
+            'amount': this.parseNumber (this.parsePrecision ('8')),
+            'price': this.parseNumber (this.parsePrecision ('8')),
+        };
         const costLimits = { 'min': 0, 'max': undefined };
-        const priceLimits = { 'min': Math.pow (10, -precision['price']), 'max': undefined };
-        const amountLimits = { 'min': Math.pow (10, -precision['amount']), 'max': Math.pow (10, precision['amount']) };
+        const priceLimits = { 'min': precision['price'], 'max': undefined };
+        const amountLimits = { 'min': precision['amount'], 'max': precision['amount'] };
         const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
         const defaults = {
             'darkpool': false,
@@ -549,7 +553,8 @@ module.exports = class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'altname'));
-            const precision = this.safeInteger (currency, 'decimals');
+            const decimals = this.safeInteger (currency, 'decimals');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = !this.inArray (code, this.options['inactiveCurrencies']);
             result[code] = {
@@ -564,12 +569,12 @@ module.exports = class kraken extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': precision,
+                        'max': Math.pow (10, decimals),
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'max': Math.pow (10, decimals),
                     },
                 },
             };
