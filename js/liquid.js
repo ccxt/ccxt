@@ -281,7 +281,8 @@ module.exports = class liquid extends Exchange {
             const depositable = this.safeValue (currency, 'depositable');
             const withdrawable = this.safeValue (currency, 'withdrawable');
             const active = depositable && withdrawable;
-            const amountPrecision = this.safeInteger (currency, 'assets_precision');
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'assets_precision')));
+            const assetPrecisionInteger = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -294,8 +295,8 @@ module.exports = class liquid extends Exchange {
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -amountPrecision),
-                        'max': Math.pow (10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': Math.pow (10, assetPrecisionInteger),
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
