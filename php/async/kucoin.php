@@ -1172,8 +1172,8 @@ class kucoin extends Exchange {
          * @param {str} $params->visibleSize $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg $order
          * market orders --------------------------------------------------
          * @param {str} $params->funds // Amount of quote currency to use
-         * $stop orders ----------------------------------------------------
-         * @param {str} $params->stop  Either loss or entry, the default is loss. Requires $stopPrice to be defined
+         * stop orders ----------------------------------------------------
+         * @param {str} $params->stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
          * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
          * margin orders --------------------------------------------------
          * @param {float} $params->leverage Leverage size of the $order
@@ -1211,14 +1211,21 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_string($params, 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        // default is take profit
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'stopPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        if ($isStopLoss && $isTakeProfit) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
         $tradeType = $this->safe_string($params, 'tradeType');
-        $params = $this->omit($params, 'stopPrice');
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
         $method = 'privatePostOrders';
-        if ($stopPrice !== null) {
-            $stop = $this->safe_string($params, 'stop', 'loss');
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['stop'] = $stop;
+        if ($isStopLoss || $isTakeProfit) {
+            $request['stop'] = $isStopLoss ? 'entry' : 'loss';
+            $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $method = 'privatePostStopOrder';
         } elseif ($tradeType === 'MARGIN_TRADE') {
             $method = 'privatePostMarginOrder';

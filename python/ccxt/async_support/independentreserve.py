@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -123,6 +124,7 @@ class independentreserve(Exchange):
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
@@ -132,16 +134,16 @@ class independentreserve(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes(params)
+        #     ['Xbt', 'Eth', 'Usdt', ...]
         quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes(params)
+        #     ['Aud', 'Usd', 'Nzd', 'Sgd']
         limits = await self.publicGetGetOrderMinimumVolumes(params)
         #
         #     {
         #         "Xbt": 0.0001,
-        #         "Bch": 0.001,
-        #         "Bsv": 0.001,
         #         "Eth": 0.001,
         #         "Ltc": 0.01,
-        #         "Xrp": 1,
+        #         "Xrp": 1.0,
         #     }
         #
         result = []
@@ -177,7 +179,10 @@ class independentreserve(Exchange):
                     'expiryDatetime': None,
                     'strike': None,
                     'optionType': None,
-                    'precision': self.precision,
+                    'precision': {
+                        'amount': None,
+                        'price': None,
+                    },
                     'limits': {
                         'leverage': {
                             'min': None,

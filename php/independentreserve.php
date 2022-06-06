@@ -123,6 +123,7 @@ class independentreserve extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'PlayChip',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -133,16 +134,16 @@ class independentreserve extends Exchange {
          * @return {[dict]} an array of objects representing market data
          */
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         $limits = $this->publicGetGetOrderMinimumVolumes ($params);
         //
         //     {
         //         "Xbt" => 0.0001,
-        //         "Bch" => 0.001,
-        //         "Bsv" => 0.001,
         //         "Eth" => 0.001,
         //         "Ltc" => 0.01,
-        //         "Xrp" => 1,
+        //         "Xrp" => 1.0,
         //     }
         //
         $result = array();
@@ -178,7 +179,10 @@ class independentreserve extends Exchange {
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
-                    'precision' => $this->precision,
+                    'precision' => array(
+                        'amount' => null,
+                        'price' => null,
+                    ),
                     'limits' => array(
                         'leverage' => array(
                             'min' => null,

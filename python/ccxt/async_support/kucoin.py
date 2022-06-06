@@ -1188,14 +1188,20 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_string(params, 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        # default is take profit
+        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'stopPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        if isStopLoss and isTakeProfit:
+            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
         tradeType = self.safe_string(params, 'tradeType')
-        params = self.omit(params, 'stopPrice')
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
         method = 'privatePostOrders'
-        if stopPrice is not None:
-            stop = self.safe_string(params, 'stop', 'loss')
-            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['stop'] = stop
+        if isStopLoss or isTakeProfit:
+            request['stop'] = 'entry' if isStopLoss else 'loss'
+            triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
+            request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             method = 'privatePostStopOrder'
         elif tradeType == 'MARGIN_TRADE':
             method = 'privatePostMarginOrder'
