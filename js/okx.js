@@ -4878,11 +4878,11 @@ module.exports = class okx extends Exchange {
          * @description Retrieves the open interest history of a currency
          * @param {str} symbol Unified CCXT currency code instead of a unified symbol
          * @param {str} timeframe "5m", "1h", or "1d"
-         * @param {int} since The time in ms of the earliest record to retrieve as a unix timestamp
-         * @param {int} limit Not used by okx, but parsed internally by CCXT
+         * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {dict} params Exchange specific parameters
-         * @param {int} params.till The time in ms of the latest record to retrieve as a unix timestamp
-         * @returns An array of open interest structures
+         * @param {int|undefined} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @returns An array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue (options, 'timeframes', {});
