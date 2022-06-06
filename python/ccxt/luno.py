@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -145,6 +146,7 @@ class luno(Exchange):
                     'maker': self.parse_number('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def fetch_markets(self, params={}):
@@ -208,8 +210,8 @@ class luno(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'volume_scale'),
-                    'price': self.safe_integer(market, 'price_scale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {

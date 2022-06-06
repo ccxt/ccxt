@@ -145,6 +145,7 @@ class luno extends Exchange {
                     'maker' => $this->parse_number('0'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -209,8 +210,8 @@ class luno extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'volume_scale'),
-                    'price' => $this->safe_integer($market, 'price_scale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_scale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
