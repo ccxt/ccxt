@@ -297,7 +297,7 @@ class ripio(Exchange):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             active = self.safe_value(currency, 'enabled', True)
-            precision = self.safe_integer(currency, 'decimal_places')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal_places')))
             result[code] = {
                 'id': id,
                 'code': code,

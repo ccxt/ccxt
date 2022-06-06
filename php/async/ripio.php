@@ -293,7 +293,7 @@ class ripio extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $active = $this->safe_value($currency, 'enabled', true);
-            $precision = $this->safe_integer($currency, 'decimal_places');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimal_places')));
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
