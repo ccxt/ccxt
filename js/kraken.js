@@ -503,7 +503,7 @@ module.exports = class kraken extends Exchange {
         };
         const costLimits = { 'min': 0, 'max': undefined };
         const priceLimits = { 'min': precision['price'], 'max': undefined };
-        const amountLimits = { 'min': precision['amount'], 'max': precision['amount'] };
+        const amountLimits = { 'min': precision['amount'], 'max': undefined };
         const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };
         const defaults = {
             'darkpool': false,
