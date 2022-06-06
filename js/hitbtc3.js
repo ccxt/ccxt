@@ -1174,6 +1174,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchTradingFees (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const method = this.getSupportedMapping (marketType, {
