@@ -848,6 +848,12 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the lbank2 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $market = $this->market($symbol);
         $result = yield $this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] )));
         return $result;
