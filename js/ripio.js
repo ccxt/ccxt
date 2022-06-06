@@ -295,7 +295,7 @@ module.exports = class ripio extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const active = this.safeValue (currency, 'enabled', true);
-            const precision = this.safeInteger (currency, 'decimal_places');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimal_places')));
             result[code] = {
                 'id': id,
                 'code': code,
