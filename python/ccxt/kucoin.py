@@ -21,6 +21,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -292,6 +293,7 @@ class kucoin(Exchange):
                 '1d': '1day',
                 '1w': '1week',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'order not exist': OrderNotFound,
@@ -618,8 +620,8 @@ class kucoin(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                    'amount': self.safe_number(market, 'baseIncrement'),
+                    'price': self.safe_number(market, 'priceIncrement'),
                 },
                 'limits': {
                     'leverage': {
@@ -672,7 +674,7 @@ class kucoin(Exchange):
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(entry, 'precision')
+            precision = self.parse_number(self.parse_precision(self.safe_string(entry, 'precision')))
             isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
             isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
             fee = self.safe_number(entry, 'withdrawalMinFee')
