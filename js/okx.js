@@ -1968,17 +1968,17 @@ module.exports = class okx extends Exchange {
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+        request['tgtCcy'] = tgtCcy;
         let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
             if (spot && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
-                const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
-                const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    request['tgtCcy'] = 'quote_ccy';
                     let notional = this.safeNumber (params, 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
@@ -1992,13 +1992,8 @@ module.exports = class okx extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    const precision = market['precision']['price'];
-                    request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
-                } else {
-                    // base_ccy: sz refers to units of base currency
-                    request['tgtCcy'] = 'base_ccy';
+                    request['sz'] = this.amountToPrecision (symbol, notional);
                 }
-                params = this.omit (params, [ 'tgtCcy' ]);
             }
             if (marketIOC && contract) {
                 request['ordType'] = 'optimal_limit_ioc';
