@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -147,6 +148,7 @@ module.exports = class qtrade extends Exchange {
             'commonCurrencies': {
                 'BTM': 'Bitmark',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'invalid_auth': AuthenticationError,
@@ -193,8 +195,8 @@ module.exports = class qtrade extends Exchange {
         //                     "market_string":"BAC_BTC",
         //                     "minimum_sell_amount":"0.0001",
         //                     "minimum_buy_value":"0.0001",
-        //                     "market_precision":8,
-        //                     "base_precision":8
+        //                     "market_precision":8, // note, they have reversed understanding of 'quote' vs 'base' concepts
+        //                     "base_precision":8 // as noted in above comment
         //                 },
         //             ],
         //         }
@@ -242,8 +244,8 @@ module.exports = class qtrade extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'market_precision'),
-                    'price': this.safeInteger (market, 'base_precision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'market_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -343,7 +345,7 @@ module.exports = class qtrade extends Exchange {
                 'type': type,
                 'name': name,
                 'fee': this.safeNumber (config, 'withdraw_fee'),
-                'precision': this.safeInteger (currency, 'precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,
