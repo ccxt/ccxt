@@ -855,6 +855,14 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         const market = this.market (symbol);
         const result = await this.fetchTradingFees (this.extend (params, { 'category': market['id'] }));
         return result;
