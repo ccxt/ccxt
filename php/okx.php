@@ -1910,7 +1910,7 @@ class okx extends Exchange {
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false, // MARGIN orders only
             //
-            // 'triggerPx' => 10, // $stopPrice ($trigger orders)
+            // 'triggerPx' => 10, // stopPrice ($trigger orders)
             // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price-> ($trigger orders)
             // 'triggerPxType' => 'last', // Conditional default is last, mark or index ($trigger orders)
             //
@@ -1924,13 +1924,13 @@ class okx extends Exchange {
         );
         $spot = $market['spot'];
         $contract = $market['contract'];
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPx');
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
-        $tpOrdPx = $this->safe_string($params, 'tpOrdPx');
+        $tpOrdPx = $this->safe_string($params, 'tpOrdPx', $price);
         $tpTriggerPxType = $this->safe_string($params, 'tpTriggerPxType', 'last');
         $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
-        $slOrdPx = $this->safe_string($params, 'slOrdPx');
+        $slOrdPx = $this->safe_string($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($spot) {
@@ -1941,24 +1941,24 @@ class okx extends Exchange {
         }
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ));
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
-        $trigger = ($stopPrice !== null) || ($type === 'trigger');
+        $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
+        $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
+        $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
+        $request['tgtCcy'] = $tgtCcy;
         $method = $defaultMethod;
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
             if ($spot && ($side === 'buy')) {
                 // $spot $market buy => "sz" can refer either to base currency units or to quote currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
-                $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
-                $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote currency
-                    $request['tgtCcy'] = 'quote_ccy';
                     $notional = $this->safe_number($params, 'sz');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
@@ -1972,13 +1972,8 @@ class okx extends Exchange {
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $precision = $market['precision']['price'];
-                    $request['sz'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
-                } else {
-                    // base_ccy => sz refers to units of base currency
-                    $request['tgtCcy'] = 'base_ccy';
+                    $request['sz'] = $this->cost_to_precision($symbol, $notional);
                 }
-                $params = $this->omit($params, array( 'tgtCcy' ));
             }
             if ($marketIOC && $contract) {
                 $request['ordType'] = 'optimal_limit_ioc';
@@ -2000,7 +1995,7 @@ class okx extends Exchange {
         } elseif ($trigger) {
             $method = 'privatePostTradeOrderAlgo';
             $request['ordType'] = 'trigger';
-            $request['triggerPx'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['triggerPx'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['orderPx'] = $isMarketOrder ? '-1' : $this->price_to_precision($symbol, $price);
         } elseif ($conditional) {
             $method = 'privatePostTradeOrderAlgo';

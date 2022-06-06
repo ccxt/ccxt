@@ -5006,8 +5006,7 @@ class binance extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($info, 'symbol');
-        $safeSymbol = $this->safe_symbol($marketId);
-        $market = $this->safe_market($safeSymbol, $market);
+        $market = $this->safe_market($marketId, $market);
         $brackets = $this->safe_value($info, 'brackets', array());
         $tiers = array();
         for ($j = 0; $j < count($brackets); $j++) {
