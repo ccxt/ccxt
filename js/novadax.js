@@ -771,7 +771,7 @@ module.exports = class novadax extends Exchange {
                 } else {
                     value = (value === undefined) ? amount : value;
                 }
-                request['value'] = this.decimalToPrecision (value, TRUNCATE, market['precision']['price'], this.precisionMode);
+                request['value'] = this.costToPrecision (symbol, value);
             }
         }
         request['type'] = uppercaseType;
