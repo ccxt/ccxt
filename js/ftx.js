@@ -1566,7 +1566,7 @@ module.exports = class ftx extends Exchange {
         }
         let method = undefined;
         let triggerPrice = this.safeString (params, 'triggerPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stopPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         let isTakeProfit = false;
         let isStopLoss = false;
