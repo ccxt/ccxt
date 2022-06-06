@@ -12,6 +12,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class indodax(Exchange):
@@ -158,6 +159,7 @@ class indodax(Exchange):
                 'DRK': 'DASH',
                 'NEM': 'XEM',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def nonce(self):
@@ -248,7 +250,8 @@ class indodax(Exchange):
                 'percentage': True,
                 'precision': {
                     'amount': int('8'),
-                    'price': self.safe_integer(market, 'price_round'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_round'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },
                 'limits': {
                     'leverage': {

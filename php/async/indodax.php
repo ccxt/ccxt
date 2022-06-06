@@ -153,6 +153,7 @@ class indodax extends Exchange {
                 'DRK' => 'DASH',
                 'NEM' => 'XEM',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -246,7 +247,8 @@ class indodax extends Exchange {
                 'percentage' => true,
                 'precision' => array(
                     'amount' => intval('8'),
-                    'price' => $this->safe_integer($market, 'price_round'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
