@@ -4022,6 +4022,14 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name zb#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
