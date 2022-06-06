@@ -2786,7 +2786,7 @@ module.exports = class ftx extends Exchange {
          * @param {int|undefined} since timestamp for the earliest borrow rate
          * @param {int|undefined} limit the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to retrieve
          * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
+         * @param {int|undefined} params.till Timestamp in ms of the latest time to fetch the borrow rate
          * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         const histories = await this.fetchBorrowRateHistories ([ code ], since, limit, params);
