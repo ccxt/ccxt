@@ -1134,7 +1134,6 @@ class okcoin extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'currency');
                 $code = $this->safe_currency_code($id);
-                $precision = 0.00000001; // default $precision, todo => fix "magic constants"
                 $name = $this->safe_string($currency, 'name');
                 $canDeposit = $this->safe_integer($currency, 'can_deposit');
                 $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
@@ -1151,7 +1150,7 @@ class okcoin extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => null, // todo => redesign
-                    'precision' => $precision,
+                    'precision' => $this->parse_number('0.00000001'),
                     'limits' => array(
                         'amount' => array( 'min' => null, 'max' => null ),
                         'withdraw' => array(
@@ -2140,8 +2139,7 @@ class okcoin extends Exchange {
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $precision = $market['precision']['price'];
-                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+                    $request['notional'] = $this->cost_to_precision($symbol, $notional);
                 } else {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
