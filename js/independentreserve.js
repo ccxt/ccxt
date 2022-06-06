@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -122,6 +123,7 @@ module.exports = class independentreserve extends Exchange {
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -134,16 +136,16 @@ module.exports = class independentreserve extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
         const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limits = await this.publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
-        //         "Bch": 0.001,
-        //         "Bsv": 0.001,
         //         "Eth": 0.001,
         //         "Ltc": 0.01,
-        //         "Xrp": 1,
+        //         "Xrp": 1.0,
         //     }
         //
         const result = [];
@@ -179,7 +181,10 @@ module.exports = class independentreserve extends Exchange {
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
-                    'precision': this.precision,
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
                     'limits': {
                         'leverage': {
                             'min': undefined,
