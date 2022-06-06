@@ -4015,6 +4015,15 @@ module.exports = class zb extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name zb#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
         }
