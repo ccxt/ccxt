@@ -409,15 +409,45 @@ module.exports = class bitfinex2 extends bitfinex {
          */
         // todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
         // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
-        const v2response = await this.publicGetConfPubListPairFutures (params);
-        const v1response = await this.v1GetSymbolsDetails (params);
-        const swapMarketIds = this.safeValue (v2response, 0, []);
+        let spotMarketsInfo = await this.publicGetConfPubInfoPair (params);
+        let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures (params);
+        spotMarketsInfo = this.safeValue (spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeValue (futuresMarketsInfo, 0, []);
+        const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
+        const marginIds = await this.publicGetConfPubListPairMargin (params);
+        // const currencyUnits = await this.publicGetConfPubMapCurrencyUnit (params);
+        // const symbolsNew = await this.publicGetConfPubMapCurrencySym (params);
+        // const labelNew = await this.publicGetConfPubMapCurrencyLabel (params);
+        // console.log (newInfo, newFutures, marginNew, currencyUnits);
+        //
+        //    [
+        //        "1INCH:USD",
+        //        [
+        //           null,
+        //           null,
+        //           null,
+        //           "2.0",
+        //           "100000.0",
+        //           null,
+        //           null,
+        //           null,
+        //           null,
+        //           null,
+        //           null,
+        //           null
+        //        ]
+        //    ]
+        //
+        // const v2response = await this.publicGetConfPubListPairFutures (params);
+        // const v1response = await this.v1GetSymbolsDetails (params);
+        // const swapMarketIds = this.safeValue (v2response, 0, []);
         const result = [];
-        for (let i = 0; i < v1response.length; i++) {
-            const market = v1response[i];
-            const id = this.safeStringUpper (market, 'pair');
+        for (let i = 0; i < markets.length; i++) {
+            const pair = markets[i];
+            const id = this.safeStringUpper (pair, 0);
+            const market = this.safeValue (pair, 1, {});
             let spot = true;
-            if (this.inArray (id, swapMarketIds)) {
+            if (id.indexOf ('F0') >= 0) {
                 spot = false;
             }
             const swap = !spot;
@@ -447,8 +477,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 settle = this.safeCurrencyCode (settleId);
                 symbol = symbol + ':' + settle;
             }
-            const minOrderSizeString = this.safeString (market, 'minimum_order_size');
-            const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
+            const minOrderSizeString = this.safeString (market, 3);
+            const maxOrderSizeString = this.safeString (market, 4);
+            const margin = (id in marginIds) ? true : false;
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -460,7 +491,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'settleId': settleId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
-                'margin': this.safeValue (market, 'margin', false),
+                'margin': margin,
                 'swap': swap,
                 'future': false,
                 'option': false,
