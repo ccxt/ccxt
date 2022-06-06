@@ -2666,6 +2666,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const parts = code.split ('-');
         const currency = this.currency (parts[0]);

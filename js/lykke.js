@@ -1045,6 +1045,14 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

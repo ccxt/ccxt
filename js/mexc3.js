@@ -3155,6 +3155,14 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);

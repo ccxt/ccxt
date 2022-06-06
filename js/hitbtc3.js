@@ -597,6 +597,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

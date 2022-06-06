@@ -1462,6 +1462,14 @@ module.exports = class xena extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name xena#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the xena api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);

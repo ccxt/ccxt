@@ -968,6 +968,14 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchDepositAddress
+         * @description get the address that a currency can be deposited to on the users account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.signIn ();
         const networks = this.safeValue (this.options, 'networks', {});
         const rawNetwork = this.safeStringUpper (params, 'network');
