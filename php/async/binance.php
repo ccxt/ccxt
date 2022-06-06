@@ -5753,11 +5753,11 @@ class binance extends Exchange {
          * Retrieves the open intestest history of a currency
          * @param {str} $symbol Unified CCXT $market $symbol
          * @param {str} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-         * @param {int} $since The time(ms) of the earliest record to retrieve as a unix timestamp
-         * @param {int} $limit default 30, max 500
-         * @param {dict} $params Exchange specific parameters
-         * @param {int} $params->till The time(ms) of the latest record to retrieve as a unix timestamp
-         * @return An array of open interest structures
+         * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int|null} $limit default 30, max 500
+         * @param {dict} $params exchange specific parameters
+         * @param {int|null} $params->till the time(ms) of the latest record to retrieve as a unix timestamp
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest history structure}
          */
         if ($timeframe === '1m') {
             throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');

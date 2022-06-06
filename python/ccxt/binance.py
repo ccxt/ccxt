@@ -5415,11 +5415,11 @@ class binance(Exchange):
         Retrieves the open intestest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int since: The time(ms) of the earliest record to retrieve as a unix timestamp
-        :param int limit: default 30, max 500
-        :param dict params: Exchange specific parameters
-        :param int params['till']: The time(ms) of the latest record to retrieve as a unix timestamp
-        :returns: An array of open interest structures
+        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: default 30, max 500
+        :param dict params: exchange specific parameters
+        :param int|None params['till']: the time(ms) of the latest record to retrieve as a unix timestamp
+        :returns dict: an array of `open interest history structure <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')

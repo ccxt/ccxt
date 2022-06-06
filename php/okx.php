@@ -4843,11 +4843,11 @@ class okx extends Exchange {
          * Retrieves the open interest history of a $currency
          * @param {str} $symbol Unified CCXT $currency code instead of a unified $symbol
          * @param {str} $timeframe "5m", "1h", or "1d"
-         * @param {int} $since The time in ms of the earliest record to retrieve as a unix timestamp
-         * @param {int} $limit Not used by okx, but parsed internally by CCXT
+         * @param {int|null} $since The time in ms of the earliest record to retrieve as a unix timestamp
+         * @param {int|null} $limit Not used by okx, but parsed internally by CCXT
          * @param {dict} $params Exchange specific parameters
-         * @param {int} $params->till The time in ms of the latest record to retrieve as a unix timestamp
-         * @return An array of open interest structures
+         * @param {int|null} $params->till The time in ms of the latest record to retrieve as a unix timestamp
+         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest structures}
          */
         $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
         $timeframes = $this->safe_value($options, 'timeframes', array());

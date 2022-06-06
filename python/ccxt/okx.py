@@ -4614,11 +4614,11 @@ class okx(Exchange):
         Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT currency code instead of a unified symbol
         :param str timeframe: "5m", "1h", or "1d"
-        :param int since: The time in ms of the earliest record to retrieve as a unix timestamp
-        :param int limit: Not used by okx, but parsed internally by CCXT
+        :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int params['till']: The time in ms of the latest record to retrieve as a unix timestamp
-        :returns: An array of open interest structures
+        :param int|None params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
         timeframes = self.safe_value(options, 'timeframes', {})
