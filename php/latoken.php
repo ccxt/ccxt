@@ -417,8 +417,7 @@ class latoken extends Exchange {
             $id = $this->safe_string($currency, 'id');
             $tag = $this->safe_string($currency, 'tag');
             $code = $this->safe_currency_code($tag);
-            $decimals = $this->safe_string($currency, 'decimals');
-            $precision = $this->parse_number('1e-' . $decimals);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             $fee = $this->safe_number($currency, 'fee');
             $currencyType = $this->safe_string($currency, 'type');
             $parts = explode('_', $currencyType);
