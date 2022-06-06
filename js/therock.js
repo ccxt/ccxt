@@ -1298,21 +1298,6 @@ module.exports = class therock extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    convertTimeframeToMinutes (timeframe) {
-        const timeUnit = timeframe.slice (-1);
-        const time = timeframe.slice (0, -1);
-        if (timeUnit === 'm') {
-            return time;
-        } else if (timeUnit === 'h') {
-            return Precise.stringMul (time, '60');
-        } else if (timeUnit === 'd') {
-            return Precise.stringMul (time, '1440');
-        } else if (timeUnit === 'w') {
-            return Precise.stringMul (time, '10080');
-        }
-        return timeframe;
-    }
-
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
