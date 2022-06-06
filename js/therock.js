@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, NotSupported, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -1267,7 +1267,8 @@ module.exports = class therock extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const period = this.convertTimeframeToMinutes (timeframe);
+        const periodInSeconds = this.numberToString (this.parseTimeframe (timeframe));
+        const period = Precise.stringDiv (periodInSeconds, '60');
         const request = {
             'id': market['id'],
             'period': period,
