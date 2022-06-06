@@ -1135,7 +1135,6 @@ module.exports = class okcoin extends Exchange {
                 const currency = response[i];
                 const id = this.safeString (currency, 'currency');
                 const code = this.safeCurrencyCode (id);
-                const precision = 0.00000001; // default precision, todo: fix "magic constants"
                 const name = this.safeString (currency, 'name');
                 const canDeposit = this.safeInteger (currency, 'can_deposit');
                 const canWithdraw = this.safeInteger (currency, 'can_withdraw');
@@ -1152,7 +1151,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': precision,
+                    'precision': this.parseNumber ('0.00000001'),
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -2155,8 +2154,7 @@ module.exports = class okcoin extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    const precision = market['precision']['price'];
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
