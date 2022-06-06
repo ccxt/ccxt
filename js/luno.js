@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -143,6 +144,7 @@ module.exports = class luno extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -209,8 +211,8 @@ module.exports = class luno extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'volume_scale'),
-                    'price': this.safeInteger (market, 'price_scale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {
