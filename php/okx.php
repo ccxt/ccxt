@@ -1950,7 +1950,9 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
-        $request['tgtCcy'] = $tgtCcy;
+        if (!$market['contract']) {
+            $request['tgtCcy'] = $tgtCcy;
+        }
         $method = $defaultMethod;
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';

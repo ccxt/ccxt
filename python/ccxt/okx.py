@@ -1897,7 +1897,8 @@ class okx(Exchange):
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
-        request['tgtCcy'] = tgtCcy
+        if not market['contract']:
+            request['tgtCcy'] = tgtCcy
         method = defaultMethod
         if isMarketOrder or marketIOC:
             request['ordType'] = 'market'
