@@ -26,7 +26,7 @@ exchange.verbose = True  # uncomment for debugging
 all_trades = {}
 symbol = None
 since = None
-limit = 20
+limit = 200
 after = None
 
 while True:
