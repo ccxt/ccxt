@@ -41,6 +41,7 @@ class therock extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -76,6 +77,7 @@ class therock extends Exchange {
                         'funds/{id}/orderbook' => 1,
                         'funds/{id}/ticker' => 1,
                         'funds/{id}/trades' => 1,
+                        'funds/{id}/ohlc_statistics' => 1,
                         'funds/tickers' => 1,
                     ),
                 ),
@@ -1265,6 +1267,76 @@ class therock extends Exchange {
         );
         $response = yield $this->privateDeleteFundsFundIdOrdersId (array_merge($request, $params));
         return $this->parse_order($response);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents in minutes
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $periodInSeconds = $this->parse_timeframe($timeframe);
+        $periodInMinutes = intval($periodInSeconds / 60);
+        $request = array(
+            'id' => $market['id'],
+            'period' => $periodInMinutes,
+        );
+        if ($since === null) {
+            $request['after'] = $this->iso8601($since);
+        }
+        $response = yield $this->publicGetFundsIdOhlcStatistics (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "fund_id" => "BTCUSDT",
+        //             "open" => 31500.0,
+        //             "high" => 31500.0,
+        //             "low" => 31500.0,
+        //             "close" => 31500.0,
+        //             "average" => 31500.0,
+        //             "weighted_average" => 31500.0,
+        //             "base_volume" => 0.0,
+        //             "traded_volume" => 0.0,
+        //             "interval_starts_at" => "2022-06-06T16:40:00.000Z",
+        //             "interval_ends_at" => "2022-06-06T16:50:00.000Z"
+        //         }
+        //         ...
+        //     )
+        //
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "fund_id" => "BTCUSDT",
+        //         "open" => 31500.0,
+        //         "high" => 31500.0,
+        //         "low" => 31500.0,
+        //         "close" => 31500.0,
+        //         "average" => 31500.0,
+        //         "weighted_average" => 31500.0,
+        //         "base_volume" => 0.0,
+        //         "traded_volume" => 0.0,
+        //         "interval_starts_at" => "2022-06-06T16:40:00.000Z",
+        //         "interval_ends_at" => "2022-06-06T16:50:00.000Z"
+        //     }
+        //
+        $dateTime = $this->safe_string($ohlcv, 'interval_starts_at');
+        return array(
+            $this->parse8601($dateTime),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'base_volume'),
+        );
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

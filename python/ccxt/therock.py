@@ -44,6 +44,7 @@ class therock(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -79,6 +80,7 @@ class therock(Exchange):
                         'funds/{id}/orderbook': 1,
                         'funds/{id}/ticker': 1,
                         'funds/{id}/trades': 1,
+                        'funds/{id}/ohlc_statistics': 1,
                         'funds/tickers': 1,
                     },
                 },
@@ -1211,6 +1213,73 @@ class therock(Exchange):
         }
         response = self.privateDeleteFundsFundIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents in minutes
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        periodInSeconds = self.parse_timeframe(timeframe)
+        periodInMinutes = int(periodInSeconds / 60)
+        request = {
+            'id': market['id'],
+            'period': periodInMinutes,
+        }
+        if since is None:
+            request['after'] = self.iso8601(since)
+        response = self.publicGetFundsIdOhlcStatistics(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "fund_id": "BTCUSDT",
+        #             "open": 31500.0,
+        #             "high": 31500.0,
+        #             "low": 31500.0,
+        #             "close": 31500.0,
+        #             "average": 31500.0,
+        #             "weighted_average": 31500.0,
+        #             "base_volume": 0.0,
+        #             "traded_volume": 0.0,
+        #             "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #             "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #         }
+        #         ...
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "fund_id": "BTCUSDT",
+        #         "open": 31500.0,
+        #         "high": 31500.0,
+        #         "low": 31500.0,
+        #         "close": 31500.0,
+        #         "average": 31500.0,
+        #         "weighted_average": 31500.0,
+        #         "base_volume": 0.0,
+        #         "traded_volume": 0.0,
+        #         "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #         "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #     }
+        #
+        dateTime = self.safe_string(ohlcv, 'interval_starts_at')
+        return [
+            self.parse8601(dateTime),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'base_volume'),
+        ]
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
