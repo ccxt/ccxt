@@ -16,6 +16,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -203,6 +204,7 @@ class exmo(Exchange):
             'commonCurrencies': {
                 'GMT': 'GMT Token',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError,  # Authorization error, incorrect signature
@@ -483,17 +485,7 @@ class exmo(Exchange):
         #             {"type":"deposit", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
         #             {"type":"withdraw", "name":"USDT(OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6},
         #             {"type":"deposit", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2},
-        #             {
-        #                 "type":"withdraw",
-        #                 "name":"USDT(ERC20)",
-        #                 "currency_name":"USDT",
-        #                 "min":"55",
-        #                 "max":"200000",
-        #                 "enabled":true,
-        #                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
-        #                 "commission_desc":"10 USDT",
-        #                 "currency_confirmations":6
-        #             },
+        #             {"type":"withdraw", "name":"USDT(ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6},
         #             {"type":"deposit", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2},
         #             {"type":"withdraw", "name":"USDT(TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6}
         #         ],
@@ -564,7 +556,7 @@ class exmo(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': 8,
+                'precision': self.parse_number(self.parse_precision('8')),
                 'limits': limits,
                 'info': providers,
             }
@@ -630,8 +622,8 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('8'),
-                    'price': self.safe_integer(market, 'price_precision'),
+                    'amount': self.parse_number(self.parse_precision('8')),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {

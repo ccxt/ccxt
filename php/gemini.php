@@ -371,6 +371,13 @@ class gemini extends Exchange {
 
     public function fetch_markets_from_api($params = array ()) {
         $response = $this->publicGetV1Symbols ($params);
+        //
+        //     array(
+        //         "btcusd",
+        //         "linkusd",
+        //         ...
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $marketId = $response[$i];

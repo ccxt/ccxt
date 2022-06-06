@@ -319,7 +319,11 @@ class digifinex(Exchange):
         return getattr(self, method)(params)
 
     def fetch_markets_v2(self, params={}):
-        response = self.publicGetTradesSymbols(params)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        method = 'publicGetMarginSymbols' if (defaultType == 'margin') else 'publicGetTradesSymbols'
+        response = getattr(self, method)(params)
+        #
+        # Spot
         #
         #     {
         #         "symbol_list":[
@@ -336,6 +340,27 @@ class digifinex(Exchange):
         #                 "base_asset":"BTC",
         #                 "price_precision":2
         #             }
+        #         ],
+        #         "code":0
+        #     }
+        #
+        # Margin
+        #
+        #     {
+        #         "symbol_list":[
+        #             {
+        #                     "order_types":["LIMIT"],
+        #                     "quote_asset":"USDT",
+        #                     "minimum_value":0,
+        #                     "amount_precision":2,
+        #                     "status":"TRADING",
+        #                     "minimum_amount":22,
+        #                     "liquidation_rate":0.3,
+        #                     "symbol":"TRX_USDT",
+        #                     "zone":"MAIN",
+        #                     "base_asset":"TRX",
+        #                     "price_precision":6
+        #             },
         #         ],
         #         "code":0
         #     }
@@ -360,6 +385,9 @@ class digifinex(Exchange):
             # active = (status == 'TRADING')
             #
             isAllowed = self.safe_integer(market, 'is_allow', 1)
+            type = 'margin' if (defaultType == 'margin') else 'spot'
+            spot = True if (defaultType == 'spot') else None
+            margin = True if (defaultType == 'margin') else None
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -369,13 +397,13 @@ class digifinex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': None,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else False,
+                'active': True if isAllowed else None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,

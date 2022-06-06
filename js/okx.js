@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -1944,13 +1944,13 @@ module.exports = class okx extends Exchange {
         };
         const spot = market['spot'];
         const contract = market['contract'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPx');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const tpOrdPx = this.safeString (params, 'tpOrdPx');
+        const tpOrdPx = this.safeString (params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString (params, 'tpTriggerPxType', 'last');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
-        const slOrdPx = this.safeString (params, 'slOrdPx');
+        const slOrdPx = this.safeString (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (spot) {
@@ -1961,24 +1961,24 @@ module.exports = class okx extends Exchange {
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPx', 'cloOrdId', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slTriggerPx', 'tpTriggerPrice', 'tpOrdPx', 'slOrdPx', 'tpTriggerPxType', 'slTriggerPxType' ]);
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const trigger = (stopPrice !== undefined) || (type === 'trigger');
+        const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
+        const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
+        const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
+        request['tgtCcy'] = tgtCcy;
         let method = defaultMethod;
         if (isMarketOrder || marketIOC) {
             request['ordType'] = 'market';
             if (spot && (side === 'buy')) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
-                const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
-                const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    request['tgtCcy'] = 'quote_ccy';
                     let notional = this.safeNumber (params, 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
@@ -1992,13 +1992,8 @@ module.exports = class okx extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    const precision = market['precision']['price'];
-                    request['sz'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
-                } else {
-                    // base_ccy: sz refers to units of base currency
-                    request['tgtCcy'] = 'base_ccy';
+                    request['sz'] = this.costToPrecision (symbol, notional);
                 }
-                params = this.omit (params, [ 'tgtCcy' ]);
             }
             if (marketIOC && contract) {
                 request['ordType'] = 'optimal_limit_ioc';
@@ -2020,7 +2015,7 @@ module.exports = class okx extends Exchange {
         } else if (trigger) {
             method = 'privatePostTradeOrderAlgo';
             request['ordType'] = 'trigger';
-            request['triggerPx'] = this.priceToPrecision (symbol, stopPrice);
+            request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
         } else if (conditional) {
             method = 'privatePostTradeOrderAlgo';

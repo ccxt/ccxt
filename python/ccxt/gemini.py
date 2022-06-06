@@ -374,6 +374,13 @@ class gemini(Exchange):
 
     def fetch_markets_from_api(self, params={}):
         response = self.publicGetV1Symbols(params)
+        #
+        #     [
+        #         "btcusd",
+        #         "linkusd",
+        #         ...
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             marketId = response[i]
