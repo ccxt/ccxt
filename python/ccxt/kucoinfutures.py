@@ -741,13 +741,14 @@ class kucoinfutures(kucoin):
         }, market)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
-        #
-        # Private
-        # @param symbol(string): The pair for which the contract was traded
-        # @param since(number): The unix start time of the first funding payment requested
-        # @param limit(number): The number of results to return
-        # @param params(dict): Additional parameters to send to the API
-        # @param return: Data for the history of the accounts funding payments for futures contracts
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         #
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')

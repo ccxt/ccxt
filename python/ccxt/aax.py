@@ -2415,6 +2415,14 @@ class aax(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')

@@ -753,13 +753,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Private
-        // @param $symbol (string) => The pair for which the contract was traded
-        // @param $since (number) => The unix start time of the first funding payment requested
-        // @param $limit (number) => The number of results to return
-        // @param $params (dict) => Additional parameters to send to the API
-        // @param return => Data for the history of the accounts funding payments for futures contracts
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         */
         //
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');

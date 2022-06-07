@@ -5023,6 +5023,14 @@ class huobi(Exchange):
                 raise ExchangeError(feedback)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)

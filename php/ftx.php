@@ -2618,6 +2618,14 @@ class ftx extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         */
         $this->load_markets();
         $request = array();
         $market = null;

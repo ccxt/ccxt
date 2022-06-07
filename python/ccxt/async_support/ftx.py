@@ -2497,6 +2497,14 @@ class ftx(Exchange):
         return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         await self.load_markets()
         request = {}
         market = None
