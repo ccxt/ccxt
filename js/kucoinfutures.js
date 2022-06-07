@@ -762,13 +762,16 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // Private
-        // @param symbol (string): The pair for which the contract was traded
-        // @param since (number): The unix start time of the first funding payment requested
-        // @param limit (number): The number of results to return
-        // @param params (dict): Additional parameters to send to the API
-        // @param return: Data for the history of the accounts funding payments for futures contracts
+        /**
+         * @method
+         * @name kucoinfutures#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
         //
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
