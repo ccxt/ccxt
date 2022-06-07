@@ -3314,7 +3314,7 @@ module.exports = class zb extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name zb#fetchFundingRates
