@@ -2185,6 +2185,12 @@ class ascendex(Exchange):
         }
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         await self.load_accounts()
         account = self.safe_value(self.accounts, 0, {})

@@ -2019,6 +2019,12 @@ class kraken(Exchange):
         raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: not used by kraken fetchPositions()
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         request = {
             # 'txid': 'comma delimited list of transaction ids to restrict output to',

@@ -625,6 +625,12 @@ class bitflyer(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str] symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bitflyer api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array')
         self.load_markets()

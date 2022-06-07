@@ -2655,6 +2655,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols list of unified $market $symbols
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         */
         yield $this->load_markets();
         $request = array();
         $market = null;

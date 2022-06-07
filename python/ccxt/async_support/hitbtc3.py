@@ -1861,6 +1861,12 @@ class hitbtc3(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: not used by hitbtc3 fetchPositions()
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)

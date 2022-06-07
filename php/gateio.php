@@ -3902,12 +3902,12 @@ class gateio extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
-         * Fetch trades positions
-         * @param {[str]} $symbols Not used by Gateio, but parsed internally by CCXT
-         * @param {dict} $params exchange specific parameters
+         * fetch all open positions
+         * @param {[str]|null} $symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->type swap or future, if not provided $this->options['defaultType'] is used
-         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structures}
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);

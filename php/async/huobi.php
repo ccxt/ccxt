@@ -5589,6 +5589,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+         */
         yield $this->load_markets();
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');

@@ -1964,6 +1964,12 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols not used by hitbtc3 fetchPositions ()
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         yield $this->load_markets();
         $request = array();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);

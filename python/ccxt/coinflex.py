@@ -1529,6 +1529,12 @@ class coinflex(Exchange):
         return self.safe_value(array, 0)  # exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         data = self.get_account_data(params)
         # response sample inside `getAccountData` method
         self.targetAccount = self.safe_value(data, 0)

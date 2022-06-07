@@ -3733,12 +3733,12 @@ class gateio(Exchange):
 
     async def fetch_positions(self, symbols=None, params={}):
         """
-        Fetch trades positions
-        :param [str] symbols: Not used by Gateio, but parsed internally by CCXT
-        :param dict params: exchange specific parameters
+        fetch all open positions
+        :param [str]|None symbols: Not used by Gateio, but parsed internally by CCXT
+        :param dict params: extra parameters specific to the gateio api endpoint
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         :param str params['type']: swap or future, if not provided self.options['defaultType'] is used
-        :returns: An array of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchPositions', None, params)

@@ -822,6 +822,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $response = $this->futuresPrivateGetPositions ($params);
         //
