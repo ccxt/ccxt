@@ -4047,6 +4047,15 @@ module.exports = class zb extends Exchange {
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name zb#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
         }
