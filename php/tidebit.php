@@ -153,6 +153,7 @@ class tidebit extends Exchange {
                     'withdraw' => array(), // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
@@ -188,6 +189,24 @@ class tidebit extends Exchange {
          * @return {[dict]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
+        //
+        //    [
+        //        array(
+        //            "id" => "btchkd",
+        //            "name" => "BTC/HKD",
+        //            "bid_fixed" => "2",
+        //            "ask_fixed" => "4",
+        //            "price_group_fixed" => null
+        //        ),
+        //        array(
+        //            "id" => "btcusdt",
+        //            "name" => "BTC/USDT",
+        //            "bid_fixed" => "2",
+        //            "ask_fixed" => "3",
+        //            "price_group_fixed" => null
+        //        ),
+        // }
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -218,7 +237,10 @@ class tidebit extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'precision' => $this->precision,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'ask_fixed'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'bid_fixed'))),
+                ),
                 'limits' => array_merge(array(
                     'leverage' => array(
                         'min' => null,
