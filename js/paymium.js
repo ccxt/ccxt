@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -102,6 +103,7 @@ module.exports = class paymium extends Exchange {
                     'taker': this.parseNumber ('0.005'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
