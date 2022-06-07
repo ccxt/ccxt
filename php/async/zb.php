@@ -318,6 +318,7 @@ class zb extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'ws' => array(
                     // '1000' => '\\ccxt\\ExchangeError', // The call is successful.
@@ -677,8 +678,8 @@ class zb extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($amountPrecisionString),
-                    'price' => intval($pricePrecisionString),
+                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -749,7 +750,6 @@ class zb extends Exchange {
             $id = $ids[$i];
             $currency = $currencies[$id];
             $code = $this->safe_currency_code($id);
-            $precision = null;
             $isWithdrawEnabled = true;
             $isDepositEnabled = true;
             $fees = array();
@@ -769,7 +769,7 @@ class zb extends Exchange {
                 'id' => $id,
                 'name' => null,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => null,
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => $isDepositEnabled,

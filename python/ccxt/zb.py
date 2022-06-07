@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -330,6 +331,7 @@ class zb(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'ws': {
                     # '1000': ExchangeError,  # The call is successful.
@@ -686,8 +688,8 @@ class zb(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(amountPrecisionString),
-                    'price': int(pricePrecisionString),
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -756,7 +758,6 @@ class zb(Exchange):
             id = ids[i]
             currency = currencies[id]
             code = self.safe_currency_code(id)
-            precision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
             fees = {}
@@ -775,7 +776,7 @@ class zb(Exchange):
                 'id': id,
                 'name': None,
                 'code': code,
-                'precision': precision,
+                'precision': None,
                 'info': currency,
                 'active': active,
                 'deposit': isDepositEnabled,
