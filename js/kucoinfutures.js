@@ -1126,9 +1126,9 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#cancelAllOrders
-         * @description Cancels all orders in one api call
-         * @param {str} symbol Assign to cancel only the orders in the market matching the unified symbol
-         * @param {dict} params Exchange specific parameters
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
          * @param {dict} params.stop When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */

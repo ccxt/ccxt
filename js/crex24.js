@@ -1395,6 +1395,14 @@ module.exports = class crex24 extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) { // TODO: atm, this doesnt accept an array as symbol argument, because of unification (however, exchange allows multiple symbols)
+        /**
+         * @method
+         * @name crex24#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let response = undefined;
         let market = undefined;
         if (symbol === undefined) {
