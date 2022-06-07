@@ -3003,6 +3003,14 @@ class okcoin(Exchange):
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # okex actually returns ledger entries instead of fills here, so each fill in the order
         # is represented by two trades with opposite buy/sell sides, not one :\
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades

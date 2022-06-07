@@ -2398,20 +2398,20 @@ class gateio extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * Fetch personal trading history
-         * @param {str} $symbol The $symbol for the $market to fetch trades for
-         * @param {int} $since The earliest timestamp, in ms, that fetched trades were made
-         * @param {int} $limit The max number of trades to fetch
-         * @param {dict} $params Exchange specific parameters
-         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
-         * @param {int} $params->till The latest timestamp, in ms, that fetched trades were made
-         * @param {int} $params->page *spot only* Page number
-         * @param {str} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
-         * @param {str} $params->order *$contract only* Futures order ID, return related data only if specified
-         * @param {int} $params->offset *$contract only* list offset, starting from 0
-         * @param {str} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
-         * @param {int} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
-         * @return a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str|null} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
+         * @param {int|null} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|null} $params->page *spot only* Page number
+         * @param {str|null} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
+         * @param {str|null} $params->order *$contract only* Futures order ID, return related data only if specified
+         * @param {int|null} $params->offset *$contract only* list offset, starting from 0
+         * @param {str|null} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int|null} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         yield $this->load_markets();
         $type = null;

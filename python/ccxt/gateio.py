@@ -2313,20 +2313,20 @@ class gateio(Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetch personal trading history
-        :param str symbol: The symbol for the market to fetch trades for
-        :param int since: The earliest timestamp, in ms, that fetched trades were made
-        :param int limit: The max number of trades to fetch
-        :param dict params: Exchange specific parameters
-        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int params['till']: The latest timestamp, in ms, that fetched trades were made
-        :param int params['page']: *spot only* Page number
-        :param str params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
-        :param str params['order']: *contract only* Futures order ID, return related data only if specified
-        :param int params['offset']: *contract only* list offset, starting from 0
-        :param str params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
-        :param int params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
-        :returns: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
+        :param int|None params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['page']: *spot only* Page number
+        :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
+        :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
+        :param int|None params['offset']: *contract only* list offset, starting from 0
+        :param str|None params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
+        :param int|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
         type = None

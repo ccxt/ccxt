@@ -1902,12 +1902,12 @@ class ftx(Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch trades specific to you account
-        :param str symbol: unified market symbol
-        :param int since: timestamp in ms of the earliest trade
-        :param int limit: not sent to exchange but filtered internally by CCXT
-        :param dict params: exchange specific parameters
-        :param int params['till']: timestamp in ms of the latest trade
-        :returns: A list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :param int|None params['till']: timestamp in ms of the latest trade
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         await self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market', params)

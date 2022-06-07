@@ -1981,12 +1981,12 @@ class ftx extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch $trades specific to you account
-         * @param {str} $symbol unified $market $symbol
-         * @param {int} $since timestamp in ms of the earliest trade
-         * @param {int} $limit not sent to exchange but filtered internally by CCXT
-         * @param {dict} $params exchange specific parameters
-         * @param {int} $params->till timestamp in ms of the latest trade
-         * @return A list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {int|null} $params->till timestamp in ms of the latest trade
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
