@@ -327,6 +327,47 @@ module.exports = class bitfinex2 extends Exchange {
                         'settlementCurrencies': [ 'BTC', 'USDT', 'EURT' ],
                     },
                 },
+                'currencyNames': {
+                },
+                'commonCurrencies': {
+                    'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
+                    'AMP': 'AMPL',
+                    'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
+                    'BCHABC': 'XEC',
+                    'BCHN': 'BCH',
+                    'DAT': 'DATA',
+                    'DOG': 'MDOGE',
+                    'DSH': 'DASH',
+                    // https://github.com/ccxt/ccxt/issues/7399
+                    // https://coinmarketcap.com/currencies/pnetwork/
+                    // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
+                    'EDO': 'PNT',
+                    'EUS': 'EURS',
+                    'EUT': 'EURT',
+                    'IDX': 'ID',
+                    'IOT': 'IOTA',
+                    'IQX': 'IQ',
+                    'LUNA': 'LUNC',
+                    'LUNA2': 'LUNA',
+                    'MNA': 'MANA',
+                    'ORS': 'ORS Group', // conflict with Origin Sport #3230
+                    'PAS': 'PASS',
+                    'QSH': 'QASH',
+                    'QTM': 'QTUM',
+                    'RBT': 'RBTC',
+                    'SNG': 'SNGLS',
+                    'STJ': 'STORJ',
+                    'TERRAUST': 'USTC',
+                    'TSD': 'TUSD',
+                    'YGG': 'YEED', // conflict with Yield Guild Games
+                    'YYW': 'YOYOW',
+                    'UDC': 'USDC',
+                    'UST': 'USDT',
+                    'VSY': 'VSYS',
+                    'WAX': 'WAXP',
+                    'XCH': 'XCHF',
+                    'ZBT': 'ZB',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -535,7 +576,8 @@ module.exports = class bitfinex2 extends Exchange {
             'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
             'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
-            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
+            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
         ];
         const config = labels.join (',');
         const request = {
@@ -667,6 +709,34 @@ module.exports = class bitfinex2 extends Exchange {
                     },
                 },
             };
+            const networks = {};
+            const currencyNetworks = this.safeValue (response, 8, []);
+            for (let i = 0; i < currencyNetworks.length; i++) {
+                const pair = currencyNetworks[i];
+                const networkId = this.safeString (pair, 0);
+                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
+                if (currencyId === id) {
+                    networks[networkId] = {
+                        'info': currencyId,
+                        'id': currencyId,
+                        'network': undefined,
+                        'active': undefined,
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'fee': undefined,
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    };
+                }
+            }
+            if (Object.keys (networks).length > 0) {
+                result['networks'] = networks;
+            }
         }
         return result;
     }
