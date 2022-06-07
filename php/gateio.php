@@ -298,13 +298,12 @@ class gateio extends \ccxt\async\gateio {
         //     }
         //
         $result = $this->safe_value($message, 'result');
-        $prevSeqNum = $this->safe_integer($result, 'U');
         $seqNum = $this->safe_integer($result, 'u');
         $nonce = $orderbook['nonce'];
-        // we have to add +1 because if the current seqNumber on iteration X is 5
-        // on the iteration X+1, $prevSeqNum will be (5+1)
-        $nextNonce = $this->sum($nonce, 1);
-        if (($prevSeqNum <= $nextNonce) && ($seqNum >= $nextNonce)) {
+        // we can't use the prevSeqNum (U) here because it is not consistent
+        // with the previous $message sometimes so if the current $seqNum
+        // is 2 in the next $message might be 3 or 4... so it is not safe to use
+        if ($seqNum >= $nonce) {
             $asks = $this->safe_value($result, 'a', array());
             $bids = $this->safe_value($result, 'b', array());
             $this->handle_deltas($orderbook['asks'], $asks);
