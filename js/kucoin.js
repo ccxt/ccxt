@@ -1061,7 +1061,7 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchDepositAddress
-         * @description get the address that a currency can be deposited to on the users account
+         * @description fetch the deposit address associated to this account for a currency
          * @param {str} code unified currency code
          * @param {dict} params extra parameters specific to the kucoin api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
