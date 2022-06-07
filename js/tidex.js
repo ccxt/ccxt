@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
@@ -124,6 +125,7 @@ module.exports = class tidex extends Exchange {
                 'EMGO': 'MGO',
                 'MGO': 'WMGO',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
@@ -194,7 +196,6 @@ module.exports = class tidex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const precision = this.safeInteger (currency, 'amountPoint');
             const code = this.safeCurrencyCode (id);
             const visible = this.safeValue (currency, 'visible');
             let active = visible === true;
@@ -212,7 +213,7 @@ module.exports = class tidex extends Exchange {
                 'active': active,
                 'deposit': depositEnable,
                 'withdraw': withdrawEnable,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'amountPoint'))),
                 'funding': {
                     'withdraw': {
                         'active': withdrawEnable,
@@ -307,8 +308,8 @@ module.exports = class tidex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'decimal_places'),
-                    'price': this.safeInteger (market, 'decimal_places'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
