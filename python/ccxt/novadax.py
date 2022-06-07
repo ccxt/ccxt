@@ -18,7 +18,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class novadax(Exchange):
@@ -160,6 +160,7 @@ class novadax(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'A99999': ExchangeError,  # 500 Failed Internal error
@@ -278,9 +279,9 @@ class novadax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
-                    'cost': self.safe_integer(market, 'valuePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -739,8 +740,7 @@ class novadax(Exchange):
                         raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'value' extra parameter(the exchange-specific behaviour)")
                 else:
                     value = amount if (value is None) else value
-                precision = market['precision']['price']
-                request['value'] = self.decimal_to_precision(value, TRUNCATE, precision, self.precisionMode)
+                request['value'] = self.cost_to_precision(symbol, value)
         request['type'] = uppercaseType
         response = self.privatePostOrdersCreate(self.extend(request, params))
         #

@@ -149,6 +149,7 @@ class novadax extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'A99999' => '\\ccxt\\ExchangeError', // 500 Failed Internal error
@@ -269,9 +270,9 @@ class novadax extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amountPrecision'),
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
-                    'cost' => $this->safe_integer($market, 'valuePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -755,8 +756,7 @@ class novadax extends Exchange {
                 } else {
                     $value = ($value === null) ? $amount : $value;
                 }
-                $precision = $market['precision']['price'];
-                $request['value'] = $this->decimal_to_precision($value, TRUNCATE, $precision, $this->precisionMode);
+                $request['value'] = $this->cost_to_precision($symbol, $value);
             }
         }
         $request['type'] = $uppercaseType;
