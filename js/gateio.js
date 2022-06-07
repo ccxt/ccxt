@@ -292,14 +292,12 @@ module.exports = class gateio extends ccxt.gateio {
         //     }
         //
         const result = this.safeValue (message, 'result');
-        const prevSeqNum = this.safeInteger (result, 'U');
         const seqNum = this.safeInteger (result, 'u');
         const nonce = orderbook['nonce'];
-        // we have to add +1 because if the current seqNumber on iteration X is 5
-        // on the iteration X+1, prevSeqNum will be (5+1)
-        // sometimes randomly we will get u == U so we need to take that into consideration
-        const nextNonce = this.sum (nonce, 1);
-        if ((prevSeqNum <= nextNonce) && (seqNum >= nextNonce) || (seqNum === prevSeqNum && seqNum > nonce)) {
+        // we can't use the prevSeqNum (U) here because it is not consistent
+        // with the previous message sometimes so if the current seqNum
+        // is 2 in the next message might be 3 or 4... so it is not safe to use
+        if (seqNum >= nonce) {
             const asks = this.safeValue (result, 'a', []);
             const bids = this.safeValue (result, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
