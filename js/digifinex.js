@@ -19,9 +19,9 @@ module.exports = class digifinex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
+                'future': false,
                 'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -29,6 +29,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -49,6 +51,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
