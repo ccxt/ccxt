@@ -1938,7 +1938,7 @@ module.exports = class kraken extends Exchange {
          * @description fetch all deposits made to an account
          * @param {str|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of  deposits structures to retrieve
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the kraken api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
