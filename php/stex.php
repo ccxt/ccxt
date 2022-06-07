@@ -275,6 +275,7 @@ class stex extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     // array("success":false,"message":"Wrong parameters","errors":array("candleType":["Invalid Candle Type!"]))
@@ -341,8 +342,7 @@ class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->safe_currency_code($this->safe_string($currency, 'code'));
-            $precision = $this->safe_string($currency, 'precision');
-            $amountLimit = $this->parse_precision($precision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
             $fee = $this->safe_number($currency, 'withdrawal_fee_const'); // todo => redesign
             $active = $this->safe_value($currency, 'active', true);
             $result[$code] = array(
@@ -356,10 +356,10 @@ class stex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => intval($precision),
+                'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'deposit' => array(
@@ -463,8 +463,8 @@ class stex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'currency_precision'),
-                    'price' => $this->safe_integer($market, 'market_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'currency_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

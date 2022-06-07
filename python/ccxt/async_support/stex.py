@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -283,6 +284,7 @@ class stex(Exchange):
                     'fillResponseFromRequest': True,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     # {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
@@ -348,8 +350,7 @@ class stex(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'code'))
-            precision = self.safe_string(currency, 'precision')
-            amountLimit = self.parse_precision(precision)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'precision')))
             fee = self.safe_number(currency, 'withdrawal_fee_const')  # todo: redesign
             active = self.safe_value(currency, 'active', True)
             result[code] = {
@@ -363,10 +364,10 @@ class stex(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': int(precision),
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': precision,
                         'max': None,
                     },
                     'deposit': {
@@ -468,8 +469,8 @@ class stex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'currency_precision'),
-                    'price': self.safe_integer(market, 'market_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'currency_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
                 },
                 'limits': {
                     'leverage': {
