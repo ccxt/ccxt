@@ -1670,8 +1670,9 @@ class okx(Exchange):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            'maker': self.safe_number(fee, 'maker'),
-            'taker': self.safe_number(fee, 'taker'),
+            # OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
+            'maker': self.parse_number(Precise.string_neg(self.safe_string(fee, 'maker'))),
+            'taker': self.parse_number(Precise.string_neg(self.safe_string(fee, 'taker'))),
         }
 
     async def fetch_trading_fee(self, symbol, params={}):

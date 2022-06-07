@@ -1715,8 +1715,9 @@ class okx extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            'maker' => $this->safe_number($fee, 'maker'),
-            'taker' => $this->safe_number($fee, 'taker'),
+            // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
+            'maker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'maker'))),
+            'taker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'taker'))),
         );
     }
 
