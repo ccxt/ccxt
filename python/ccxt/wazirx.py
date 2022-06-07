@@ -13,6 +13,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -118,6 +119,7 @@ class wazirx(Exchange):
             'fees': {
                 'WRX': {'maker': self.parse_number('0.0'), 'taker': self.parse_number('0.0')},
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '-1121': BadSymbol,  # {"code": -1121, "message": "Invalid symbol."}
@@ -222,8 +224,8 @@ class wazirx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(entry, 'baseAssetPrecision'),
-                    'price': self.safe_integer(entry, 'quoteAssetPrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'baseAssetPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'quoteAssetPrecision'))),
                 },
                 'limits': {
                     'leverage': {

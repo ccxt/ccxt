@@ -112,6 +112,7 @@ class wazirx extends Exchange {
             'fees' => array(
                 'WRX' => array( 'maker' => $this->parse_number('0.0'), 'taker' => $this->parse_number('0.0') ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '-1121' => '\\ccxt\\BadSymbol', // array( "code" => -1121, "message" => "Invalid symbol." )
@@ -219,8 +220,8 @@ class wazirx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
-                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
