@@ -2163,6 +2163,13 @@ class hitbtc3(Exchange):
         }
 
     async def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if amount != 0:
             raise BadRequest(self.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount')
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)

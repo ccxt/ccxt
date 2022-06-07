@@ -271,6 +271,13 @@ class exmo(Exchange):
         }
 
     async def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     async def add_margin(self, symbol, amount, params={}):

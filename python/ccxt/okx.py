@@ -4507,6 +4507,13 @@ class okx(Exchange):
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def add_margin(self, symbol, amount, params={}):
