@@ -25,6 +25,7 @@ class coinflex extends Exchange {
             'certified' => false,
             'pro' => true,
             'userAgent' => $this->userAgents['chrome100'],
+            'hostname' => 'coinflex.com',
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -127,8 +128,7 @@ class coinflex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api' => array(
-                    'public' => 'https://v2api.coinflex.com',
-                    'private' => 'https://v2api.coinflex.com',
+                    'rest' => 'https://v2api.{hostname}',
                 ),
                 'www' => 'https://coinflex.com/',
                 'doc' => array(
@@ -138,8 +138,7 @@ class coinflex extends Exchange {
                     'https://coinflex.com/fees/',
                 ),
                 'test' => array(
-                    'public' => 'https://v2stgapi.coinflex.com',
-                    'private' => 'https://v2stgapi.coinflex.com',
+                    'rest' => 'https://v2stgapi.{hostname}',
                 ),
                 'referral' => 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             ),
@@ -246,7 +245,6 @@ class coinflex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'baseApiDomain' => 'v2api.coinflex.com',
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
                     // 'SOLANA' => 'SPL',
@@ -2412,7 +2410,8 @@ class coinflex extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         list($finalPath, $query) = $this->resolve_path($path, $params);
-        $url = $this->urls['api'][$api] . '/' . $finalPath;
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
+        $url = $baseUrl . '/' . $finalPath;
         $encodedParams = '';
         $isGetRequest = ($method === 'GET');
         if ($query) {
@@ -2425,7 +2424,8 @@ class coinflex extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $datetime = $this->ymdhms($this->milliseconds(), 'T');
-            $auth = $datetime . "\n" . $nonce . "\n" . $method . "\n" . $this->options['baseApiDomain'] . "\n" . '/' . $finalPath . "\n"; // eslint-disable-line quotes
+            $baseUrlTrimmed = str_replace('https://', '', $baseUrl);
+            $auth = $datetime . "\n" . $nonce . "\n" . $method . "\n" . $baseUrlTrimmed . "\n" . '/' . $finalPath . "\n"; // eslint-disable-line quotes
             if ($isGetRequest) {
                 $auth .= $encodedParams;
             } else {

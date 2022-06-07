@@ -29,6 +29,7 @@ class coinflex(Exchange):
             'certified': False,
             'pro': True,
             'userAgent': self.userAgents['chrome100'],
+            'hostname': 'coinflex.com',
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -131,8 +132,7 @@ class coinflex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api': {
-                    'public': 'https://v2api.coinflex.com',
-                    'private': 'https://v2api.coinflex.com',
+                    'rest': 'https://v2api.{hostname}',
                 },
                 'www': 'https://coinflex.com/',
                 'doc': [
@@ -142,8 +142,7 @@ class coinflex(Exchange):
                     'https://coinflex.com/fees/',
                 ],
                 'test': {
-                    'public': 'https://v2stgapi.coinflex.com',
-                    'private': 'https://v2stgapi.coinflex.com',
+                    'rest': 'https://v2stgapi.{hostname}',
                 },
                 'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             },
@@ -250,7 +249,6 @@ class coinflex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
                     # 'SOLANA': 'SPL',
@@ -2292,7 +2290,8 @@ class coinflex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         finalPath, query = self.resolve_path(path, params)
-        url = self.urls['api'][api] + '/' + finalPath
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
+        url = baseUrl + '/' + finalPath
         encodedParams = ''
         isGetRequest = (method == 'GET')
         if query:
@@ -2303,7 +2302,8 @@ class coinflex(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             datetime = self.ymdhms(self.milliseconds(), 'T')
-            auth = datetime + "\n" + nonce + "\n" + method + "\n" + self.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"  # eslint-disable-line quotes
+            baseUrlTrimmed = baseUrl.replace('https://', '')
+            auth = datetime + "\n" + nonce + "\n" + method + "\n" + baseUrlTrimmed + "\n" + '/' + finalPath + "\n"  # eslint-disable-line quotes
             if isGetRequest:
                 auth += encodedParams
             else:
