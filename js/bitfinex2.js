@@ -329,45 +329,6 @@ module.exports = class bitfinex2 extends Exchange {
                 },
                 'currencyNames': {
                 },
-                'commonCurrencies': {
-                    'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
-                    'AMP': 'AMPL',
-                    'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
-                    'BCHABC': 'XEC',
-                    'BCHN': 'BCH',
-                    'DAT': 'DATA',
-                    'DOG': 'MDOGE',
-                    'DSH': 'DASH',
-                    // https://github.com/ccxt/ccxt/issues/7399
-                    // https://coinmarketcap.com/currencies/pnetwork/
-                    // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
-                    'EDO': 'PNT',
-                    'EUS': 'EURS',
-                    'EUT': 'EURT',
-                    'IDX': 'ID',
-                    'IOT': 'IOTA',
-                    'IQX': 'IQ',
-                    'LUNA': 'LUNC',
-                    'LUNA2': 'LUNA',
-                    'MNA': 'MANA',
-                    'ORS': 'ORS Group', // conflict with Origin Sport #3230
-                    'PAS': 'PASS',
-                    'QSH': 'QASH',
-                    'QTM': 'QTUM',
-                    'RBT': 'RBTC',
-                    'SNG': 'SNGLS',
-                    'STJ': 'STORJ',
-                    'TERRAUST': 'USTC',
-                    'TSD': 'TUSD',
-                    'YGG': 'YEED', // conflict with Yield Guild Games
-                    'YYW': 'YOYOW',
-                    'UDC': 'USDC',
-                    'UST': 'USDT',
-                    'VSY': 'VSYS',
-                    'WAX': 'WAXP',
-                    'XCH': 'XCHF',
-                    'ZBT': 'ZB',
-                },
             },
             'exceptions': {
                 'exact': {
@@ -389,8 +350,42 @@ module.exports = class bitfinex2 extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'UST': 'USDT',
                 'EUTF0': 'EURT',
                 'USTF0': 'USDT',
+                'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
+                'AMP': 'AMPL',
+                'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
+                'BCHABC': 'XEC',
+                'BCHN': 'BCH',
+                'DAT': 'DATA',
+                'DOG': 'MDOGE',
+                'DSH': 'DASH',
+                'EDO': 'PNT',
+                'EUS': 'EURS',
+                'EUT': 'EURT',
+                'IDX': 'ID',
+                'IOT': 'IOTA',
+                'IQX': 'IQ',
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
+                'MNA': 'MANA',
+                'ORS': 'ORS Group', // conflict with Origin Sport #3230
+                'PAS': 'PASS',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'RBT': 'RBTC',
+                'SNG': 'SNGLS',
+                'STJ': 'STORJ',
+                'TERRAUST': 'USTC',
+                'TSD': 'TUSD',
+                'YGG': 'YEED', // conflict with Yield Guild Games
+                'YYW': 'YOYOW',
+                'UDC': 'USDC',
+                'VSY': 'VSYS',
+                'WAX': 'WAXP',
+                'XCH': 'XCHF',
+                'ZBT': 'ZB',
             },
         });
     }
@@ -675,6 +670,10 @@ module.exports = class bitfinex2 extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            if (id.indexOf ('F0') >= 0) {
+                // we get a lot of F0 currencies, skip those
+                // continue;
+            }
             const code = this.safeCurrencyCode (id);
             const label = this.safeValue (indexed['label'], id, []);
             const name = this.safeString (label, 1);
