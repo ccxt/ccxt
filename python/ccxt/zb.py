@@ -3842,6 +3842,13 @@ class zb(Exchange):
         }
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 1, params)

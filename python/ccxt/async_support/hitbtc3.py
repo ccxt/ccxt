@@ -2175,6 +2175,13 @@ class hitbtc3(Exchange):
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     async def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def fetch_leverage(self, symbol, params={}):

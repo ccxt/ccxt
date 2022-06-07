@@ -2591,6 +2591,13 @@ class mexc3(Exchange):
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     def set_leverage(self, leverage, symbol=None, params={}):

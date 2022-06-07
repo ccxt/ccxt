@@ -1127,6 +1127,13 @@ class kucoinfutures extends kucoin {
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {str} $symbol unified $market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $uuid = $this->uuid();

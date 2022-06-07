@@ -5299,6 +5299,13 @@ class binance(Exchange):
         return await self.modify_margin_helper(symbol, amount, 2, params)
 
     async def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return await self.modify_margin_helper(symbol, amount, 1, params)
 
     async def fetch_borrow_rate(self, code, params={}):

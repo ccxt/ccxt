@@ -4517,6 +4517,13 @@ class okx(Exchange):
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def fetch_market_leverage_tiers(self, symbol, params={}):

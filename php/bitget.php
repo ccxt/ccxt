@@ -2784,6 +2784,13 @@ class bitget extends Exchange {
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         $holdSide = $this->safe_string($params, 'holdSide');
         if ($holdSide === null) {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a $holdSide parameter, either long or short');

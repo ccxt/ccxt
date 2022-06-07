@@ -2294,6 +2294,13 @@ class hitbtc3 extends Exchange {
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 

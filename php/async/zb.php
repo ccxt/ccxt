@@ -4024,6 +4024,13 @@ class zb extends Exchange {
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         if ($params['positionsId'] === null) {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
         }
