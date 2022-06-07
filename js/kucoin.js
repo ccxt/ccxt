@@ -2146,7 +2146,7 @@ module.exports = class kucoin extends Exchange {
          * @description fetch all withdrawals made from an account
          * @param {str|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of  withdrawals structures to retrieve
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the kucoin api endpoint
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
