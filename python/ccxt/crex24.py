@@ -798,6 +798,11 @@ class crex24(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
         if method is None:

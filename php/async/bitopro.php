@@ -609,6 +609,11 @@ class bitopro extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetProvisioningLimitationsAndFees ($params);
         $tradingFeeRate = $this->safe_value($response, 'tradingFeeRate', array());

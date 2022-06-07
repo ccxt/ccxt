@@ -536,6 +536,11 @@ class oceanex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the oceanex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $response = yield $this->publicGetFeesTrading ($params);
         $data = $this->safe_value($response, 'data', array());
         $result = array();

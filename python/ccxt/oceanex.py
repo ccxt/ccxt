@@ -521,6 +521,11 @@ class oceanex(Exchange):
         return self.safe_timestamp(response, 'data')
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         response = self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data', [])
         result = {}

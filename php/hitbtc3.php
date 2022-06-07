@@ -1176,6 +1176,11 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_trading_fees($symbols = null, $params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market $symbols
+         */
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
         $method = $this->get_supported_mapping($marketType, array(

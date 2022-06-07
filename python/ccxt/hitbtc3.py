@@ -1131,6 +1131,11 @@ class hitbtc3(Exchange):
         return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, symbols=None, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
         method = self.get_supported_mapping(marketType, {

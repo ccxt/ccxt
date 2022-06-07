@@ -832,6 +832,11 @@ class lbank2(Exchange):
         return result
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {}
         response = self.privatePostSupplementCustomerTradeFee(self.extend(request, params))
