@@ -561,7 +561,7 @@ module.exports = class mexc extends Exchange {
         //                 "maxLeverage":125,
         //                 "priceScale":2, // price-scale is useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
         //                 "volScale":0, // probably: contract amount precision
-        //                 "amountScale":4, // seems quote currency precision
+        //                 "amountScale":4, // probably: quote currency precision
         //                 "priceUnit":0.5,
         //                 "volUnit":1, // probably: contract tick size
         //                 "minVol":1,
