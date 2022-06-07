@@ -5334,6 +5334,13 @@ class binance extends Exchange {
     }
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @param {bool} $hedged set to true to use $dualSidePosition
+         * @param {str|null} $symbol not used by binance setPositionMode ()
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} response from the exchange
+         */
         $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, array( 'type' ));

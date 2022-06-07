@@ -4396,6 +4396,13 @@ class okx extends Exchange {
     }
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         * @param {bool} $hedged set to true to use long_short_mode, false for net_mode
+         * @param {str|null} $symbol not used by okx setPositionMode
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} $response from the exchange
+         */
         $hedgeMode = null;
         if ($hedged) {
             $hedgeMode = 'long_short_mode';

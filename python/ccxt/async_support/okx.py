@@ -4208,6 +4208,13 @@ class okx(Exchange):
         return response
 
     async def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set hedged to True or False for a market
+        :param bool hedged: set to True to use long_short_mode, False for net_mode
+        :param str|None symbol: not used by okx setPositionMode
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: response from the exchange
+        """
         hedgeMode = None
         if hedged:
             hedgeMode = 'long_short_mode'
