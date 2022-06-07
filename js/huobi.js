@@ -5015,7 +5015,7 @@ module.exports = class huobi extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRates (symbols, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingRates
