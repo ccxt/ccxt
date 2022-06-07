@@ -1375,11 +1375,9 @@ module.exports = class ascendex extends Exchange {
             'side': side, // buy or sell,
             // 'execInst': // Post for postOnly, ReduceOnly for reduceOnly
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
-            // 'posStopLossPrice': position stop loss price
-            // 'posTakeProfitPrice': position take profit price
         };
-        const isMarketOrder = (type === 'market') || (type === 'stop_market');
-        const isLimitOrder = (type === 'limit') || (type === 'stop_limit');
+        const isMarketOrder = ((type === 'market') || (type === 'stop_market'));
+        const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
