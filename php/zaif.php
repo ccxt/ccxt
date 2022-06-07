@@ -133,6 +133,7 @@ class zaif extends Exchange {
                     'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
@@ -181,7 +182,6 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
-            $itemUnitStep = $this->safe_string($market, 'item_unit_step');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -209,8 +209,8 @@ class zaif extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => Precise::string_mul($itemUnitStep, '-1e10'),
-                    'price' => $this->safe_integer($market, 'aux_unit_point'),
+                    'amount' => $this->safe_number($market, 'item_unit_step'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'aux_unit_point'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

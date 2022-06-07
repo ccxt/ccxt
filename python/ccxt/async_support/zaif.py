@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -135,6 +136,7 @@ class zaif(Exchange):
                     'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
@@ -182,7 +184,6 @@ class zaif(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
-            itemUnitStep = self.safe_string(market, 'item_unit_step')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -210,8 +211,8 @@ class zaif(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': Precise.string_mul(itemUnitStep, '-1e10'),
-                    'price': self.safe_integer(market, 'aux_unit_point'),
+                    'amount': self.safe_number(market, 'item_unit_step'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'aux_unit_point'))),
                 },
                 'limits': {
                     'leverage': {
