@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -103,6 +104,7 @@ class paymium(Exchange):
                     'taker': self.parse_number('0.005'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response):

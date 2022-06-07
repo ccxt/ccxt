@@ -103,6 +103,7 @@ class paymium extends Exchange {
                     'taker' => $this->parse_number('0.005'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
