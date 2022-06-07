@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -145,6 +146,7 @@ module.exports = class upbit extends Exchange {
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'This key has expired.': AuthenticationError,
@@ -257,7 +259,6 @@ module.exports = class upbit extends Exchange {
         } else {
             maxWithdrawLimit = maxDailyWithdrawal;
         }
-        const precision = undefined;
         const currencyId = this.safeString (currencyInfo, 'code');
         const code = this.safeCurrencyCode (currencyId);
         return {
@@ -267,7 +268,7 @@ module.exports = class upbit extends Exchange {
             'name': code,
             'active': active,
             'fee': this.safeNumber (currencyInfo, 'withdraw_fee'),
-            'precision': precision,
+            'precision': undefined,
             'limits': {
                 'withdraw': {
                     'min': this.safeNumber (withdrawLimits, 'minimum'),
@@ -363,8 +364,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': parseInt ('8'),
-                'price': parseInt ('8'),
+                'amount': this.parseNumber (this.parsePrecision ('8')),
+                'price': this.parseNumber (this.parsePrecision ('8')),
             },
             'limits': {
                 'leverage': {
@@ -441,8 +442,8 @@ module.exports = class upbit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': 8,
-                    'amount': 8,
+                    'price': this.parseNumber (this.parsePrecision ('8')),
+                    'amount': this.parseNumber (this.parsePrecision ('8')),
                 },
                 'limits': {
                     'leverage': {
