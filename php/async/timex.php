@@ -182,6 +182,7 @@ class timex extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '0' => '\\ccxt\\ExchangeError',
@@ -1022,8 +1023,8 @@ class timex extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'quantityIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'tickSize')),
+                'amount' => $this->safe_number($market, 'quantityIncrement'),
+                'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1088,7 +1089,6 @@ class timex extends Exchange {
         $id = $this->safe_string($currency, 'symbol');
         $code = $this->safe_currency_code($id);
         $name = $this->safe_string($currency, 'name');
-        $precision = $this->safe_integer($currency, 'decimals');
         $depositEnabled = $this->safe_value($currency, 'depositEnabled');
         $withdrawEnabled = $this->safe_value($currency, 'withdrawalEnabled');
         $isActive = $this->safe_value($currency, 'active');
@@ -1122,7 +1122,7 @@ class timex extends Exchange {
             'deposit' => $depositEnabled,
             'withdraw' => $withdrawEnabled,
             'fee' => $fee,
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),

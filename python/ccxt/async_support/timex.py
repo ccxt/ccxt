@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -189,6 +190,7 @@ class timex(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -987,8 +989,8 @@ class timex(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+                'amount': self.safe_number(market, 'quantityIncrement'),
+                'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1052,7 +1054,6 @@ class timex(Exchange):
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(currency, 'name')
-        precision = self.safe_integer(currency, 'decimals')
         depositEnabled = self.safe_value(currency, 'depositEnabled')
         withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
         isActive = self.safe_value(currency, 'active')
@@ -1083,7 +1084,7 @@ class timex(Exchange):
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},
