@@ -711,14 +711,16 @@ module.exports = class bitfinex2 extends Exchange {
             };
             const networks = {};
             const currencyNetworks = this.safeValue (response, 8, []);
+            const cleanId = id.replace ('F0', '');
             for (let i = 0; i < currencyNetworks.length; i++) {
                 const pair = currencyNetworks[i];
                 const networkId = this.safeString (pair, 0);
                 const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
-                if (currencyId === id) {
-                    networks[networkId] = {
-                        'info': currencyId,
-                        'id': currencyId,
+                if (currencyId === cleanId) {
+                    const network = this.safeNetwork (networkId);
+                    networks[network] = {
+                        'info': networkId,
+                        'id': networkId,
                         'network': undefined,
                         'active': undefined,
                         'deposit': undefined,
@@ -735,10 +737,31 @@ module.exports = class bitfinex2 extends Exchange {
                 }
             }
             if (Object.keys (networks).length > 0) {
-                result['networks'] = networks;
+                result[code]['networks'] = networks;
             }
         }
         return result;
+    }
+
+    safeNetwork (networkId) {
+        const networksById = {
+            'BITCOIN': 'BTC',
+            'LITECOIN': 'LTC',
+            'ETHEREUM': 'ERC20',
+            'TETHERUSE': 'ERC20',
+            'TETHERUSO': 'OMNI',
+            'TETHERUSL': 'LIQUID',
+            'TETHERUSX': 'TRC20',
+            'TETHERUSS': 'EOS',
+            'TETHERUSDTAVAX': 'AVAX',
+            'TETHERUSDTSOL': 'SOL',
+            'TETHERUSDTALG': 'ALGO',
+            'TETHERUSDTBCH': 'BCH',
+            'TETHERUSDTKSM': 'KSM',
+            'TETHERUSDTDVF': 'DVF',
+            'TETHERUSDTOMG': 'OMG',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchBalance (params = {}) {
