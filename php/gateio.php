@@ -1335,6 +1335,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
+         */
         $this->load_markets();
         list($request, $query) = $this->prepare_request(null, 'swap', $params);
         $response = $this->publicFuturesGetSettleContracts (array_merge($request, $query));
