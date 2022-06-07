@@ -131,6 +131,7 @@ class tidex extends Exchange {
                 'EMGO' => 'MGO',
                 'MGO' => 'WMGO',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
@@ -199,7 +200,6 @@ class tidex extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $precision = $this->safe_integer($currency, 'amountPoint');
             $code = $this->safe_currency_code($id);
             $visible = $this->safe_value($currency, 'visible');
             $active = $visible === true;
@@ -217,7 +217,7 @@ class tidex extends Exchange {
                 'active' => $active,
                 'deposit' => $depositEnable,
                 'withdraw' => $withdrawEnable,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'amountPoint'))),
                 'funding' => array(
                     'withdraw' => array(
                         'active' => $withdrawEnable,
@@ -310,8 +310,8 @@ class tidex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'decimal_places'),
-                    'price' => $this->safe_integer($market, 'decimal_places'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

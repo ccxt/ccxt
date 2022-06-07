@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -138,6 +139,7 @@ class tidex(Exchange):
                 'EMGO': 'MGO',
                 'MGO': 'WMGO',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -205,7 +207,6 @@ class tidex(Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
-            precision = self.safe_integer(currency, 'amountPoint')
             code = self.safe_currency_code(id)
             visible = self.safe_value(currency, 'visible')
             active = visible is True
@@ -222,7 +223,7 @@ class tidex(Exchange):
                 'active': active,
                 'deposit': depositEnable,
                 'withdraw': withdrawEnable,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'amountPoint'))),
                 'funding': {
                     'withdraw': {
                         'active': withdrawEnable,
@@ -313,8 +314,8 @@ class tidex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'decimal_places'),
-                    'price': self.safe_integer(market, 'decimal_places'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
