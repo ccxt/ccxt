@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class xena extends Exchange {
@@ -159,6 +160,7 @@ module.exports = class xena extends Exchange {
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Validation failed': BadRequest,
@@ -330,6 +332,7 @@ module.exports = class xena extends Exchange {
             }
             const inverse = this.safeValue (market, 'inverse', false);
             const contract = swap || future;
+            const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -356,8 +359,8 @@ module.exports = class xena extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('0'),
-                    'price': this.safeInteger2 (market, 'tickSize', 'pricePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision ('0')),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -426,7 +429,6 @@ module.exports = class xena extends Exchange {
             const currency = response[id];
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'title');
-            const precision = this.safeInteger (currency, 'precision');
             const enabled = this.safeValue (currency, 'enabled');
             const active = (enabled === true);
             const withdraw = this.safeValue (currency, 'withdraw', {});
@@ -439,7 +441,7 @@ module.exports = class xena extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': this.safeNumber (withdraw, 'commission'),
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
