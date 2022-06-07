@@ -2436,6 +2436,13 @@ class ascendex(Exchange):
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: response from the exchange
+        """
         marginMode = marginMode.lower()
         if marginMode == 'cross':
             marginMode = 'crossed'
