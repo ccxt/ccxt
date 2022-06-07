@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -132,6 +133,7 @@ module.exports = class zaif extends Exchange {
                     'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}
@@ -182,7 +184,6 @@ module.exports = class zaif extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
-            const itemUnitStep = this.safeString (market, 'item_unit_step');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -210,8 +211,8 @@ module.exports = class zaif extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': Precise.stringMul (itemUnitStep, '-1e10'),
-                    'price': this.safeInteger (market, 'aux_unit_point'),
+                    'amount': this.safeNumber (market, 'item_unit_step'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'aux_unit_point'))),
                 },
                 'limits': {
                     'leverage': {
