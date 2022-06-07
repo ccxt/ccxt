@@ -87,7 +87,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransfer': undefined,
@@ -1185,6 +1185,31 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchTradingFee
+         * @description fetch the trading fee for a market
+         * @param {str} symbol unified symbol of the market to fetch the fee for
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetAccount (params);
+        const result = this.safeValue (response, 'result', {});
+        const maker = this.safeNumber (result, 'makerFee');
+        const taker = this.safeNumber (result, 'takerFee');
+        const tradingFee = {
+            'info': response,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
+        return tradingFee;
     }
 
     async fetchTradingFees (params = {}) {
