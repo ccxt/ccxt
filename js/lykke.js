@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -132,6 +133,7 @@ module.exports = class lykke extends Exchange {
                     'taker': 0,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1001': ExchangeError,
@@ -230,7 +232,7 @@ module.exports = class lykke extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': this.safeInteger (currency, 'accuracy'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'accuracy'))),
                 'limits': {
                     'withdraw': {
                         'min': this.safeValue (currency, 'cashoutMinimalAmount'),
@@ -285,10 +287,6 @@ module.exports = class lykke extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'priceAccuracy'),
-                'amount': this.safeInteger (market, 'baseAssetAccuracy'),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -314,7 +312,10 @@ module.exports = class lykke extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': precision,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetAccuracy'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
+                },
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'minVolume'),
