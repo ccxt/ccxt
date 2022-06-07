@@ -644,7 +644,7 @@ class woo extends Exchange {
             $id = $this->safe_string($currency, 'balance_token');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
-            $decimals = $this->safe_integer($currency, 'decimals');
+            $decimals = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             $chainedTokenCode = $this->safe_string($currency, 'token');
             $parts = explode('_', $chainedTokenCode);
             $chainNameId = $this->safe_string($parts, 0, $chainedTokenCode);

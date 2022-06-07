@@ -635,7 +635,7 @@ class woo(Exchange):
             id = self.safe_string(currency, 'balance_token')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullname')
-            decimals = self.safe_integer(currency, 'decimals')
+            decimals = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             chainedTokenCode = self.safe_string(currency, 'token')
             parts = chainedTokenCode.split('_')
             chainNameId = self.safe_string(parts, 0, chainedTokenCode)
