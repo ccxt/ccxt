@@ -4822,14 +4822,14 @@ class okx extends Exchange {
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * Obtain the amount of $interest that has accrued for margin trading
-         * @param {str} $code The unified $currency $code for the $currency of the $interest
-         * @param {str} $symbol The $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
-         * @param {int} $since Timestamp in ms of the earliest time to receive $interest records for
-         * @param {int} $limit The number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures} to retrieve
-         * @param {dict} $params Exchange specific parameters
-         * @param {int} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         * fetch the $interest owed by the user for borrowing $currency for margin trading
+         * @param {str|null} $code the unified $currency $code for the $currency of the $interest
+         * @param {str|null} $symbol the $market $symbol of an isolated margin $market, if null, the $interest for cross margin markets is returned
+         * @param {int|null} $since timestamp in ms of the earliest time to receive $interest records for
+         * @param {int|null} $limit the number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures} to retrieve
+         * @param {dict} $params exchange specific parameters
+         * @param {int|null} $params->type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @return {[dict]} An list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
          */
         yield $this->load_markets();
         $request = array(

@@ -4598,14 +4598,14 @@ class okx(Exchange):
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
         """
-        Obtain the amount of interest that has accrued for margin trading
-        :param str code: The unified currency code for the currency of the interest
-        :param str symbol: The market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
-        :param int since: Timestamp in ms of the earliest time to receive interest records for
-        :param int limit: The number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
-        :param dict params: Exchange specific parameters
-        :param int params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-        :returns: An array of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :param str|None code: the unified currency code for the currency of the interest
+        :param str|None symbol: the market symbol of an isolated margin market, if None, the interest for cross margin markets is returned
+        :param int|None since: timestamp in ms of the earliest time to receive interest records for
+        :param int|None limit: the number of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>` to retrieve
+        :param dict params: exchange specific parameters
+        :param int|None params['type']: Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+        :returns [dict]: An list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
         """
         self.load_markets()
         request = {

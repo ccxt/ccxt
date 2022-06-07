@@ -5066,6 +5066,15 @@ class huobi extends Exchange {
     }
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing $currency for margin trading
+         * @param {str|null} $code unified $currency $code
+         * @param {str|null} $symbol unified $market $symbol when fetch $interest in isolated markets
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
         yield $this->load_markets();
         $defaultMargin = $this->safe_string($params, 'marginMode', 'cross'); // cross or isolated
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);

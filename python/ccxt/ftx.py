@@ -2719,6 +2719,15 @@ class ftx(Exchange):
         }
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol when fetch interest in isolated markets
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
         self.load_markets()
         request = {}
         if since is not None:
