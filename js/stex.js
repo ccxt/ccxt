@@ -342,7 +342,7 @@ module.exports = class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
-            const tickSize = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
             const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {
@@ -356,10 +356,10 @@ module.exports = class stex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': tickSize,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': tickSize,
+                        'min': precision,
                         'max': undefined,
                     },
                     'deposit': {
