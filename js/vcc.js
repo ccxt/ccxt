@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, OrderNotFound, InvalidOrder, BadRequest, AuthenticationError, RateLimitExceeded, RequestTimeout, BadSymbol, AddressPending, PermissionDenied, InsufficientFunds } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
+const { ROUND, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -147,6 +147,7 @@ module.exports = class vcc extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -250,9 +251,9 @@ module.exports = class vcc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (precision, 'amount'),
-                    'price': this.safeInteger (precision, 'price'),
-                    'cost': this.safeInteger (precision, 'cost'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (precision, 'amount'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (precision, 'price'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (precision, 'cost'))),
                 },
                 'limits': {
                     'leverage': {
@@ -328,7 +329,7 @@ module.exports = class vcc extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
-                'precision': this.safeInteger (currency, 'decimal'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimal'))),
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdraw'),
