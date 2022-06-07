@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, RateLimitExceeded } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -226,6 +227,7 @@ module.exports = class yobit extends Exchange {
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
@@ -391,8 +393,8 @@ module.exports = class yobit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'decimal_places'),
-                    'price': this.safeInteger (market, 'decimal_places'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
