@@ -5149,6 +5149,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchAccountPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchAccountPositions
+         * @description fetch account positions
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} data on account positions
+         */
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');
