@@ -1352,8 +1352,6 @@ module.exports = class ascendex extends Exchange {
          * @param {str} params.timeInForce "GTC", "IOC", "FOK", or "PO"
          * @param {bool} params.postOnly true or false
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {float} params.stopLossPrice position stop loss price (swap only + currently not working)
-         * @param {float} params.takeProfitPrice position take profit price (swap only + currently not working)
          * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1385,8 +1383,8 @@ module.exports = class ascendex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-        const stopPrice = this.safeString (params, 'stopPrice');
-        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice' ]);
+        const stopPrice = this.safeString2 (params, 'trigger', 'stopPrice');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'trigger' ]);
         if (reduceOnly) {
             if (marketType !== 'swap') {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
