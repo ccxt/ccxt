@@ -4857,6 +4857,12 @@ class binance(Exchange):
             raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account" and "positionRisk"')
 
     def fetch_account_positions(self, symbols=None, params={}):
+        """
+        fetch account positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: data on account positions
+        """
         if symbols is not None:
             if not isinstance(symbols, list):
                 raise ArgumentsRequired(self.id + ' fetchPositions() requires an array argument for symbols')
