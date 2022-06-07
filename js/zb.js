@@ -1794,6 +1794,18 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
@@ -1944,6 +1956,15 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2008,6 +2029,14 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -3125,6 +3154,15 @@ module.exports = class zb extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -3218,6 +3256,14 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name zb#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -3309,6 +3355,17 @@ module.exports = class zb extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const password = this.safeString (params, 'safePwd', this.password);
         if (password === undefined) {
@@ -3651,7 +3708,6 @@ module.exports = class zb extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': percentage,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'notional': notional,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -3816,6 +3872,17 @@ module.exports = class zb extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name zb#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('transfer', undefined, params);
         const currency = this.currency (code);
@@ -3980,6 +4047,15 @@ module.exports = class zb extends Exchange {
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name zb#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
         }
@@ -3987,6 +4063,15 @@ module.exports = class zb extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name zb#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         if (params['positionsId'] === undefined) {
             throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
         }

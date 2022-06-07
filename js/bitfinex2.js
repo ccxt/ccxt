@@ -392,7 +392,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const statusRaw = this.safeString (response, 0);
         return {
             'status': this.safeString ({ '0': 'maintenance', '1': 'ok' }, statusRaw, statusRaw),
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -695,6 +695,17 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
@@ -831,6 +842,14 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
@@ -1352,8 +1371,8 @@ module.exports = class bitfinex2 extends bitfinex {
          * @name bitfinex2#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price price of order
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -1366,6 +1385,7 @@ module.exports = class bitfinex2 extends bitfinex {
          * @param {str} params.price_traling The trailing price for a trailing stop order
          * @param {str} params.price_aux_limit Order price for stop limit orders
          * @param {str} params.price_oco_stop OCO stop price
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1512,6 +1532,15 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bitfinex2 cancelOrder ()
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
         let request = undefined;
         if (cid !== undefined) {
@@ -1904,6 +1933,13 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privatePostAuthRSummary (params);
         //
@@ -2057,6 +2093,17 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex2#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

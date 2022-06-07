@@ -370,6 +370,13 @@ module.exports = class gemini extends Exchange {
 
     async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetV1Symbols (params);
+        //
+        //     [
+        //         "btcusd",
+        //         "linkusd",
+        //         ...
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = response[i];
@@ -759,6 +766,13 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privatePostV1Notionalvolume (params);
         //
@@ -989,6 +1003,14 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1056,6 +1078,18 @@ module.exports = class gemini extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -1138,6 +1172,15 @@ module.exports = class gemini extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1190,6 +1233,17 @@ module.exports = class gemini extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name gemini#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the gemini api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

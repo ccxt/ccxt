@@ -204,6 +204,7 @@ class bitmex extends Exchange {
                     'Service unavailable' => '\\ccxt\\ExchangeNotAvailable', // array("error":array("message":"Service unavailable","name":"HTTPError"))
                     'Server Error' => '\\ccxt\\ExchangeError', // array("error":array("message":"Server Error","name":"HTTPError"))
                     'Unable to cancel order due to existing state' => '\\ccxt\\InvalidOrder',
+                    'We require all new traders to verify' => '\\ccxt\\PermissionDenied', // array("message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError")
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -611,6 +612,12 @@ class bitmex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $filter = array(
             'filter' => array(
                 'orderID' => $id,
@@ -1661,6 +1668,16 @@ class bitmex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $orderType = $this->capitalize($type);
@@ -1725,6 +1742,13 @@ class bitmex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol not used by bitmex cancelOrder ()
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         // https://github.com/ccxt/ccxt/issues/6507
         $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
@@ -2064,6 +2088,15 @@ class bitmex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -2425,6 +2458,13 @@ class bitmex extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -2444,6 +2484,13 @@ class bitmex extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {str} $marginMode 'cross' or 'isolated'
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }

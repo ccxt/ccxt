@@ -627,6 +627,11 @@ class bitso(Exchange):
         return self.parse_trades(response['payload'], market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetFees(params)
         #
@@ -715,6 +720,16 @@ class bitso(Exchange):
         return self.parse_trades(response['payload'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'book': self.market_id(symbol),
@@ -732,6 +747,13 @@ class bitso(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bitso cancelOrder()
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'oid': id,
@@ -808,6 +830,12 @@ class bitso(Exchange):
         return orders
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by bitso fetchOrder
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         response = self.privateGetOrdersOid({
             'oid': id,
@@ -851,6 +879,12 @@ class bitso(Exchange):
         }
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitso fetchTransactionFees
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         response = self.privateGetFees(params)
         #
@@ -918,6 +952,15 @@ class bitso(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()

@@ -198,6 +198,7 @@ module.exports = class bitmex extends Exchange {
                     'Service unavailable': ExchangeNotAvailable, // {"error":{"message":"Service unavailable","name":"HTTPError"}}
                     'Server Error': ExchangeError, // {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state': InvalidOrder,
+                    'We require all new traders to verify': PermissionDenied, // {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -611,6 +612,14 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const filter = {
             'filter': {
                 'orderID': id,
@@ -1669,6 +1678,18 @@ module.exports = class bitmex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.capitalize (type);
@@ -1733,6 +1754,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by bitmex cancelOrder ()
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
@@ -2072,6 +2102,17 @@ module.exports = class bitmex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -2435,6 +2476,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2454,6 +2504,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @param {str} marginMode 'cross' or 'isolated'
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }

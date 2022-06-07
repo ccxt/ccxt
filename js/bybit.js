@@ -1624,6 +1624,14 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2352,10 +2360,13 @@ module.exports = class bybit extends Exchange {
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'PENDINGCANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling',
             // conditional orders
             'Active': 'open', // order is triggered and placed successfully
             'Untriggered': 'open', // order waits to be triggered
@@ -2633,6 +2644,14 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -2677,6 +2696,18 @@ module.exports = class bybit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -2717,7 +2748,7 @@ module.exports = class bybit extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2886,7 +2917,7 @@ module.exports = class bybit extends Exchange {
             request['close_on_trigger'] = closeOnTrigger;
         }
         if (price !== undefined) {
-            request['price'] = price;
+            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
@@ -3082,6 +3113,15 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -4139,6 +4179,17 @@ module.exports = class bybit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -4400,6 +4451,15 @@ module.exports = class bybit extends Exchange {
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @param {str} marginMode 'cross' or 'isolated'
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -4461,6 +4521,15 @@ module.exports = class bybit extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }

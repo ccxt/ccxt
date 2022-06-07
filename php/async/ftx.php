@@ -1179,6 +1179,11 @@ class ftx extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetAccount ($params);
         //
@@ -1514,11 +1519,21 @@ class ftx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'side' => $side, // "buy" or "sell"
+            'side' => $side, // 'buy' or 'sell'
             // 'price' => 0.306525, // send null for $market orders
             'type' => $type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size' => floatval($this->amount_to_precision($symbol, $amount)),
@@ -1750,6 +1765,13 @@ class ftx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by ftx cancelOrder ()
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array();
         // support for canceling conditional orders
@@ -1803,6 +1825,12 @@ class ftx extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol not used by ftx fetchOrder
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array();
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
@@ -2007,6 +2035,15 @@ class ftx extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2074,6 +2111,15 @@ class ftx extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
@@ -2230,7 +2276,6 @@ class ftx extends Exchange {
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => $this->parse_number($collateral),
             'marginMode' => 'cross',
-            'marginType' => 'cross', // deprecated
             'side' => $side,
             'percentage' => $percentage,
         );
@@ -2508,6 +2553,13 @@ class ftx extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str|null} $symbol not used by ftx setLeverage ()
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} response from the exchange
+         */
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 20)) {
@@ -2618,6 +2670,12 @@ class ftx extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2739,7 +2797,7 @@ class ftx extends Exchange {
          * @param {int|null} $since timestamp for the earliest borrow rate
          * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+         * @param {int|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
          * @return {[dict]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $histories = yield $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
@@ -2811,6 +2869,15 @@ class ftx extends Exchange {
     }
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing currency for margin trading
+         * @param {str|null} $code unified currency $code
+         * @param {str|null} $symbol unified market $symbol when fetch $interest in isolated markets
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
         yield $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -2839,7 +2906,6 @@ class ftx extends Exchange {
             'account' => 'cross',
             'symbol' => null,
             'marginMode' => 'cross',
-            'marginType' => 'cross', // deprecated
             'currency' => $this->safe_currency_code($coin),
             'interest' => $this->safe_number($info, 'cost'),
             'interestRate' => $this->safe_number($info, 'rate'),

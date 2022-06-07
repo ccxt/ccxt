@@ -384,6 +384,14 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
         //
@@ -431,6 +439,13 @@ module.exports = class whitebit extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         const response = await this.v4PublicGetAssets (params);
         //
         //      {
@@ -821,7 +836,7 @@ module.exports = class whitebit extends Exchange {
         const status = this.safeString (response, 0);
         return {
             'status': (status === 'pong') ? 'ok' : status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -846,6 +861,18 @@ module.exports = class whitebit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let method = undefined;
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -909,6 +936,15 @@ module.exports = class whitebit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1243,6 +1279,17 @@ module.exports = class whitebit extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name whitebit#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType');
@@ -1295,6 +1342,17 @@ module.exports = class whitebit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code); // check if it has canDeposit
         const request = {

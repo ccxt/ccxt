@@ -306,7 +306,7 @@ class coinflex extends Exchange {
         $status = $this->safe_string(array( 'true' => 'ok', 'false' => 'maintenance' ), $statusRaw, $statusRaw);
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -454,8 +454,8 @@ class coinflex extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'upperPriceBound'),
-                        'max' => $this->safe_number($market, 'lowerPriceBound'),
+                        'min' => $this->safe_number($market, 'lowerPriceBound'),
+                        'max' => $this->safe_number($market, 'upperPriceBound'),
                     ),
                     'cost' => array(
                         'min' => null,
@@ -981,6 +981,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         // TODO => this can be moved as emulated into base
         if ($this->has['fetchFundingRates']) {
             $response = yield $this->fetch_funding_rates(array( $symbol ), $params);
@@ -1315,6 +1321,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str} $symbol unified $symbol of the market the $order was made in
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -1651,7 +1663,7 @@ class coinflex extends Exchange {
             'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'markPrice' => $this->parse_number($markPriceString),
             'collateral' => null,
-            'marginType' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode' => 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side' => $side,
             'percentage' => null,
             'info' => $position,
@@ -2049,6 +2061,16 @@ class coinflex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $market = $this->market($symbol);
         $this->check_order_arguments($market, $type, $side, $amount, $price, $params);
         list($request, $query) = yield $this->build_order_request($market, $type, $side, $amount, $price, $params);
@@ -2211,6 +2233,13 @@ class coinflex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $orders = yield $this->cancel_orders(array( $id ), $symbol, $params);
         return $this->safe_value($orders, 0);
     }
@@ -2244,6 +2273,15 @@ class coinflex extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2270,6 +2308,15 @@ class coinflex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $twoFaCode = $this->safe_string($params, 'code');

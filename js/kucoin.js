@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -234,7 +235,7 @@ module.exports = class kucoin extends Exchange {
                         'orders': 1.3953,
                         'stopOrders': 1.3953,
                         'recentDoneOrders': 1.3953,
-                        'orders/{order-id}': 1.3953, // ?clientOid={client-order-id} // get order by orderId
+                        'orders/{orderId}': 1.3953, // ?clientOid={client-orderId} // get order by orderId
                         'orders/byClientOid': 1.3953, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
                         'fills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'recentFills': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
@@ -254,7 +255,7 @@ module.exports = class kucoin extends Exchange {
                     'delete': {
                         'withdrawals/{withdrawalId}': 1.3953,
                         'cancel/transfer-out': 1.3953,
-                        'orders/{order-id}': 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders/{orderId}': 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
                         'orders': 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'stopOrders': 1.3953,
                     },
@@ -275,6 +276,7 @@ module.exports = class kucoin extends Exchange {
                 '1d': '1day',
                 '1w': '1week',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'order not exist': OrderNotFound,
@@ -487,7 +489,7 @@ module.exports = class kucoin extends Exchange {
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -612,8 +614,8 @@ module.exports = class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
+                    'amount': this.safeNumber (market, 'baseIncrement'),
+                    'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
                     'leverage': {
@@ -670,7 +672,7 @@ module.exports = class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (entry, 'precision');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
             const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
@@ -1170,8 +1172,8 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -1195,7 +1197,7 @@ module.exports = class kucoin extends Exchange {
          * @param {str} params.stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} params.marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} params.autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
@@ -1226,13 +1228,21 @@ module.exports = class kucoin extends Exchange {
             request['size'] = amountString;
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeString (params, 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        // default is take profit
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'stopPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if (isStopLoss && isTakeProfit) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
         const tradeType = this.safeString (params, 'tradeType');
-        params = this.omit (params, 'stopPrice');
+        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
         let method = 'privatePostOrders';
-        if (stopPrice !== undefined) {
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['stop'] = 'loss';
+        if (isStopLoss || isTakeProfit) {
+            request['stop'] = isStopLoss ? 'entry' : 'loss';
+            const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
         } else if (tradeType === 'MARGIN_TRADE') {
             method = 'privatePostMarginOrder';
@@ -1276,12 +1286,12 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#cancelOrder
-         * @description Cancels an order
-         * @param {str} id Order id
-         * @param {str} symbol Not used by kucoin
-         * @param {dict} params Exchange specific parameters
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
          * @param {bool} params.stop True if cancelling a stop order
-         * @returns Response fromt the exchange
+         * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
@@ -1875,6 +1885,14 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1907,6 +1925,17 @@ module.exports = class kucoin extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -2247,6 +2276,17 @@ module.exports = class kucoin extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name kucoin#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const requestedAmount = this.currencyToPrecision (code, amount);

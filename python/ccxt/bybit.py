@@ -1576,6 +1576,12 @@ class bybit(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2259,10 +2265,13 @@ class bybit(Exchange):
             'CREATED': 'open',
             'REJECTED': 'rejected',
             'NEW': 'open',
+            'PENDING_NEW': 'open',
             'PARTIALLYFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'PENDINGCANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling',
             # conditional orders
             'Active': 'open',  # order is triggered and placed successfully
             'Untriggered': 'open',  # order waits to be triggered
@@ -2530,6 +2539,12 @@ class bybit(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -2567,6 +2582,16 @@ class bybit(Exchange):
             return self.safe_value(orders, 0)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -2601,7 +2626,7 @@ class bybit(Exchange):
         if type == 'limit' or type == 'limit_maker':
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = float(self.price_to_precision(symbol, price))
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -2755,7 +2780,7 @@ class bybit(Exchange):
             request['reduce_only'] = reduceOnly
             request['close_on_trigger'] = closeOnTrigger
         if price is not None:
-            request['price'] = price
+            request['price'] = float(self.price_to_precision(symbol, price))
         stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
         basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
         isConditionalOrder = False
@@ -2934,6 +2959,13 @@ class bybit(Exchange):
             return self.edit_contract_order(id, symbol, type, side, amount, price, params)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -3924,6 +3956,15 @@ class bybit(Exchange):
         return self.safe_string(types, type, type)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
@@ -4170,6 +4211,13 @@ class bybit(Exchange):
         }
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
@@ -4224,6 +4272,13 @@ class bybit(Exchange):
         return response
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         self.load_markets()

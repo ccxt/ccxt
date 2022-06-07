@@ -1618,6 +1618,12 @@ class bybit extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2340,10 +2346,13 @@ class bybit extends Exchange {
             'CREATED' => 'open',
             'REJECTED' => 'rejected',
             'NEW' => 'open',
+            'PENDING_NEW' => 'open',
             'PARTIALLYFILLED' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
             'PENDINGCANCEL' => 'canceling',
+            'PENDING_CANCEL' => 'canceling',
             // conditional orders
             'Active' => 'open', // order is triggered and placed successfully
             'Untriggered' => 'open', // order waits to be triggered
@@ -2621,6 +2630,12 @@ class bybit extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -2665,6 +2680,16 @@ class bybit extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
@@ -2705,7 +2730,7 @@ class bybit extends Exchange {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'orderLinkId');
         if ($clientOrderId !== null) {
@@ -2874,7 +2899,7 @@ class bybit extends Exchange {
             $request['close_on_trigger'] = $closeOnTrigger;
         }
         if ($price !== null) {
-            $request['price'] = $price;
+            $request['price'] = floatval($this->price_to_precision($symbol, $price));
         }
         $stopPx = $this->safe_value_2($params, 'stop_px', 'stopPrice');
         $basePrice = $this->safe_value_2($params, 'base_price', 'basePrice');
@@ -3070,6 +3095,13 @@ class bybit extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -4127,6 +4159,15 @@ class bybit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
@@ -4388,6 +4429,13 @@ class bybit extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {str} $marginMode 'cross' or 'isolated'
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} $response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
@@ -4449,6 +4497,13 @@ class bybit extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bybit api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }

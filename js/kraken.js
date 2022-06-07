@@ -188,11 +188,14 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
+                'REPV2': 'REP',
+                'REP': 'REPV1',
+                'UST': 'USTC',
                 'XBT': 'BTC',
                 'XBT.M': 'BTC.M', // https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
                 'XDG': 'DOGE',
-                'REPV2': 'REP',
-                'REP': 'REPV1',
             },
             'options': {
                 'delistedMarketsById': {},
@@ -575,6 +578,14 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1205,6 +1216,18 @@ module.exports = class kraken extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1465,6 +1488,14 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by kraken fetchOrder
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         const request = {
@@ -1661,6 +1692,15 @@ module.exports = class kraken extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let response = undefined;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
@@ -2092,6 +2132,17 @@ module.exports = class kraken extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         if ('key' in params) {

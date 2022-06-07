@@ -1260,6 +1260,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $this->load_accounts();
         $account = $this->safe_value($this->accounts, 0, array());
@@ -1303,6 +1308,16 @@ class ascendex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
@@ -1444,6 +1459,12 @@ class ascendex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $this->load_accounts();
         $market = null;
@@ -1815,6 +1836,13 @@ class ascendex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -2336,7 +2364,6 @@ class ascendex extends Exchange {
             'symbol' => $market['symbol'],
             'notional' => $notional,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => null,
             'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
@@ -2470,6 +2497,13 @@ class ascendex extends Exchange {
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {
+        /**
+         * remove margin from a position
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         */
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
@@ -2478,6 +2512,13 @@ class ascendex extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -2501,6 +2542,13 @@ class ascendex extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {str} $marginMode 'cross' or 'isolated'
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} response from the exchange
+         */
         $marginMode = strtolower($marginMode);
         if ($marginMode === 'cross') {
             $marginMode = 'crossed';
@@ -2608,6 +2656,15 @@ class ascendex extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same $account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount $account to $transfer from
+         * @param {str} $toAccount $account to $transfer to
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         $this->load_markets();
         $this->load_accounts();
         $account = $this->safe_value($this->accounts, 0, array());

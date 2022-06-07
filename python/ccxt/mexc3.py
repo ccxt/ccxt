@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -14,6 +13,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -284,6 +284,7 @@ class mexc3(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m',  # spot, swap
                 '3m': '3m',  # spot
@@ -431,6 +432,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchStatus', None, params)
         response = None
         status = None
+        updated = None
         if marketType == 'spot':
             response = self.spotPublicGetPing(query)
             #
@@ -443,9 +445,11 @@ class mexc3(Exchange):
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
             status = 'ok' if self.safe_value(response, 'success') else self.json(response)
+            updated = self.safe_integer(response, 'data')
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': updated,
+            'url': None,
             'eta': None,
             'info': response,
         }
@@ -525,8 +529,8 @@ class mexc3(Exchange):
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
-                precisionDigits = self.safe_integer(chain, 'precision')
-                precision = 1 / math.pow(10, precisionDigits)
+                precisionDigits = self.safe_string(chain, 'precision')
+                precision = self.parse_number(self.parse_precision(precisionDigits))
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
                 withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
                 currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
@@ -620,32 +624,41 @@ class mexc3(Exchange):
         #         "exchangeFilters": [],
         #         "symbols": [
         #           {
-        #             "symbol": "BTCUSDT",
-        #             "status": "ENABLED",
-        #             "baseAsset": "BTC",
-        #             "baseAssetPrecision": 6,
-        #             "quoteAsset": "USDT",
-        #             "quotePrecision": 2,
-        #             "quoteAssetPrecision": 2,
-        #             "baseCommissionPrecision": 6,
-        #             "quoteCommissionPrecision": 2,
-        #             "orderTypes": [
-        #               "LIMIT",
-        #               "LIMIT_MAKER"
-        #             ],
-        #             "icebergAllowed": False,
-        #             "ocoAllowed": False,
-        #             "quoteOrderQtyMarketAllowed": False,
-        #             "isSpotTradingAllowed": True,
-        #             "isMarginTradingAllowed": False,
-        #             "permissions": [
-        #               "SPOT"
-        #             ],
-        #             "filters": []
-        #           },
+        #                "symbol": "OGNUSDT",
+        #                "status": "ENABLED",
+        #                "baseAsset": "OGN",
+        #                "baseAssetPrecision": "2",
+        #                "quoteAsset": "USDT",
+        #                "quotePrecision": "4",
+        #                "quoteAssetPrecision": "4",
+        #                "baseCommissionPrecision": "2",
+        #                "quoteCommissionPrecision": "4",
+        #                "orderTypes": [
+        #                    "LIMIT",
+        #                    "LIMIT_MAKER"
+        #                ],
+        #                "quoteOrderQtyMarketAllowed": False,
+        #                "isSpotTradingAllowed": True,
+        #                "isMarginTradingAllowed": True,
+        #                "permissions": [
+        #                    "SPOT",
+        #                    "MARGIN"
+        #                ],
+        #                "filters": [],
+        #                "quoteAmountPrecision": "5",
+        #                "baseSizePrecision": "0.01",
+        #                "maxQuoteAmount": "5000000",
+        #                "makerCommission": "0.002",
+        #                "takerCommission": "0.002"
+        #                # note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+        #            },
         #         ]
         #     }
         #
+        # Notes:
+        # - 'quotePrecision' seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        # - 'baseSizePrecision' seems useless at self moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
+        # - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         data = self.safe_value(response, 'symbols', [])
         result = []
         for i in range(0, len(data)):
@@ -656,6 +669,15 @@ class mexc3(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
+            makerCommission = self.safe_number(market, 'makerCommission')
+            takerCommission = self.safe_number(market, 'takerCommission')
+            maxQuoteAmount = self.safe_number(market, 'maxQuoteAmount')
+            baseAssetPrecision = self.safe_string(market, 'baseAssetPrecision')
+            quoteAssetPrecision = self.safe_string(market, 'quoteAssetPrecision')
+            precisionBase = self.parse_number(self.parse_precision(baseAssetPrecision))
+            precisionQuote = self.parse_number(self.parse_precision(quoteAssetPrecision))
+            precisionPrice = precisionQuote
+            precisionCost = precisionQuote
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -675,18 +697,20 @@ class mexc3(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
+                'taker': takerCommission,
+                'maker': makerCommission,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'baseAssetPrecision'),
-                    'price': self.safe_integer(market, 'quotePrecision'),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quoteAssetPrecision'),
+                    'amount': precisionBase,
+                    'price': precisionPrice,
+                    'cost': precisionCost,
+                    # note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
+                    # 'base': precisionBase,
+                    # 'quote': precisionQuote,
                 },
                 'limits': {
                     'leverage': {
@@ -703,7 +727,7 @@ class mexc3(Exchange):
                     },
                     'cost': {
                         'min': None,
-                        'max': None,
+                        'max': maxQuoteAmount,
                     },
                 },
                 'info': market,
@@ -1490,6 +1514,16 @@ class mexc3(Exchange):
         return self.parse_tickers(tickers, symbols)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if market['spot']:
@@ -1628,6 +1662,12 @@ class mexc3(Exchange):
         return self.parse_order(data, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -1941,6 +1981,13 @@ class mexc3(Exchange):
             return self.fetch_orders(symbol, since, limit, params)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
@@ -2309,6 +2356,11 @@ class mexc3(Exchange):
         return result
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.fetch_account_helper('spot', params)
         makerFee = self.safe_string(response, 'makerCommission')
@@ -2529,12 +2581,26 @@ class mexc3(Exchange):
         return response
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         request = {
             'leverage': leverage,
@@ -2657,6 +2723,12 @@ class mexc3(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3334,6 +3406,15 @@ class mexc3(Exchange):
         return self.parse_transfers(resultList, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accounts = {
@@ -3438,6 +3519,15 @@ class mexc3(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH

@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -1135,7 +1135,6 @@ module.exports = class okcoin extends Exchange {
                 const currency = response[i];
                 const id = this.safeString (currency, 'currency');
                 const code = this.safeCurrencyCode (id);
-                const precision = 0.00000001; // default precision, todo: fix "magic constants"
                 const name = this.safeString (currency, 'name');
                 const canDeposit = this.safeInteger (currency, 'can_deposit');
                 const canWithdraw = this.safeInteger (currency, 'can_withdraw');
@@ -1152,7 +1151,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': precision,
+                    'precision': this.parseNumber ('0.00000001'),
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -2085,6 +2084,18 @@ module.exports = class okcoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
@@ -2143,8 +2154,7 @@ module.exports = class okcoin extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    const precision = market['precision']['price'];
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                    request['notional'] = this.costToPrecision (symbol, notional);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
@@ -2169,6 +2179,15 @@ module.exports = class okcoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2394,6 +2413,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2661,6 +2688,17 @@ module.exports = class okcoin extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name okcoin#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -2748,6 +2786,17 @@ module.exports = class okcoin extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

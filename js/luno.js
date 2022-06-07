@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -143,6 +144,7 @@ module.exports = class luno extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -209,8 +211,8 @@ module.exports = class luno extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'volume_scale'),
-                    'price': this.safeInteger (market, 'price_scale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -415,6 +417,14 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name luno#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by luno fetchOrder
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -710,6 +720,13 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name luno#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privateGetFeeInfo (params);
         return {
@@ -720,6 +737,18 @@ module.exports = class luno extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name luno#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let method = 'privatePost';
         const request = {
@@ -748,6 +777,15 @@ module.exports = class luno extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name luno#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the luno api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,

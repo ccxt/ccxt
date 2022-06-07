@@ -19,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class digifinex(Exchange):
@@ -41,6 +42,7 @@ class digifinex(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -319,7 +321,11 @@ class digifinex(Exchange):
         return await getattr(self, method)(params)
 
     async def fetch_markets_v2(self, params={}):
-        response = await self.publicGetTradesSymbols(params)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        method = 'publicGetMarginSymbols' if (defaultType == 'margin') else 'publicGetTradesSymbols'
+        response = await getattr(self, method)(params)
+        #
+        # Spot
         #
         #     {
         #         "symbol_list":[
@@ -336,6 +342,27 @@ class digifinex(Exchange):
         #                 "base_asset":"BTC",
         #                 "price_precision":2
         #             }
+        #         ],
+        #         "code":0
+        #     }
+        #
+        # Margin
+        #
+        #     {
+        #         "symbol_list":[
+        #             {
+        #                     "order_types":["LIMIT"],
+        #                     "quote_asset":"USDT",
+        #                     "minimum_value":0,
+        #                     "amount_precision":2,
+        #                     "status":"TRADING",
+        #                     "minimum_amount":22,
+        #                     "liquidation_rate":0.3,
+        #                     "symbol":"TRX_USDT",
+        #                     "zone":"MAIN",
+        #                     "base_asset":"TRX",
+        #                     "price_precision":6
+        #             },
         #         ],
         #         "code":0
         #     }
@@ -360,6 +387,9 @@ class digifinex(Exchange):
             # active = (status == 'TRADING')
             #
             isAllowed = self.safe_integer(market, 'is_allow', 1)
+            type = 'margin' if (defaultType == 'margin') else 'spot'
+            spot = True if (defaultType == 'spot') else None
+            margin = True if (defaultType == 'margin') else None
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -369,13 +399,13 @@ class digifinex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': None,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else False,
+                'active': True if isAllowed else None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -773,7 +803,7 @@ class digifinex(Exchange):
         status = 'ok' if (code == 0) else 'maintenance'
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -884,6 +914,16 @@ class digifinex(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -918,6 +958,13 @@ class digifinex(Exchange):
         })
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by digifinex cancelOrder()
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
@@ -1132,6 +1179,12 @@ class digifinex(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
@@ -1478,6 +1531,15 @@ class digifinex(Exchange):
         }
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -1504,6 +1566,15 @@ class digifinex(Exchange):
         })
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -1524,6 +1595,70 @@ class digifinex(Exchange):
         #     }
         #
         return self.parse_transaction(response, currency)
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = await self.privateGetMarginPositions(self.extend(request, params))
+        #
+        #     {
+        #         "margin": "45.71246418952618",
+        #         "code": 0,
+        #         "margin_rate": "7.141978570340037",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0006103,
+        #                 "side": "go_long",
+        #                 "entry_price": 31428.72,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": 10225.335481159,
+        #                 "unrealized_roe": -0.0076885829266987,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.049158102631999,
+        #                 "leverage_ratio": 3
+        #             }
+        #         ],
+        #         "unrealized_pnl": "-0.049158102631998504"
+        #     }
+        #
+        rows = self.safe_value(response, 'positions')
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        #
+        #     {
+        #         "amount": 0.0006103,
+        #         "side": "go_long",
+        #         "entry_price": 31428.72,
+        #         "liquidation_rate": 0.3,
+        #         "liquidation_price": 10225.335481159,
+        #         "unrealized_roe": -0.0076885829266987,
+        #         "symbol": "BTC_USDT",
+        #         "unrealized_pnl": -0.049158102631999,
+        #         "leverage_ratio": 3
+        #     }
+        #
+        symbol = self.safe_string(info, 'symbol')
+        amountString = self.safe_string(info, 'amount')
+        leverageString = self.safe_string(info, 'leverage_ratio')
+        amountInvested = Precise.string_div(amountString, leverageString)
+        amountBorrowed = Precise.string_sub(amountString, amountInvested)
+        currency = None if (market is None) else market['base']
+        return {
+            'account': self.safe_symbol(symbol, market),
+            'currency': currency,
+            'interest': None,
+            'interestRate': 0.001,  # all interest rates on digifinex are 0.1%
+            'amountBorrowed': self.parse_number(amountBorrowed),
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version

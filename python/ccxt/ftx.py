@@ -1156,6 +1156,11 @@ class ftx(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetAccount(params)
         #
@@ -1474,11 +1479,21 @@ class ftx(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'side': side,  # "buy" or "sell"
+            'side': side,  # 'buy' or 'sell'
             # 'price': 0.306525,  # send null for market orders
             'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
@@ -1687,6 +1702,13 @@ class ftx(Exchange):
         return self.parse_order(result, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by ftx cancelOrder()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         # support for canceling conditional orders
@@ -1735,6 +1757,12 @@ class ftx(Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by ftx fetchOrder
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
@@ -1923,6 +1951,15 @@ class ftx(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1987,6 +2024,15 @@ class ftx(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
@@ -2136,7 +2182,6 @@ class ftx(Exchange):
             'markPrice': self.parse_number(markPriceString),
             'collateral': self.parse_number(collateral),
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'side': side,
             'percentage': percentage,
         }
@@ -2391,6 +2436,13 @@ class ftx(Exchange):
             raise ExchangeError(feedback)  # unknown message
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: not used by ftx setLeverage()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: response from the exchange
+        """
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 20):
@@ -2492,6 +2544,12 @@ class ftx(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2599,7 +2657,7 @@ class ftx(Exchange):
         :param int|None since: timestamp for the earliest borrow rate
         :param int|None limit: the maximum number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
-        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
+        :param int|None params['till']: Timestamp in ms of the latest time to fetch the borrow rate
         :returns [dict]: an array of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
         histories = self.fetch_borrow_rate_histories([code], since, limit, params)
@@ -2661,6 +2719,15 @@ class ftx(Exchange):
         }
 
     def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :param str|None code: unified currency code
+        :param str|None symbol: unified market symbol when fetch interest in isolated markets
+        :param int|None since: the earliest time in ms to fetch borrrow interest for
+        :param int|None limit: the maximum number of structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns [dict]: a list of `borrow interest structures <https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure>`
+        """
         self.load_markets()
         request = {}
         if since is not None:
@@ -2687,7 +2754,6 @@ class ftx(Exchange):
             'account': 'cross',
             'symbol': None,
             'marginMode': 'cross',
-            'marginType': 'cross',  # deprecated
             'currency': self.safe_currency_code(coin),
             'interest': self.safe_number(info, 'cost'),
             'interestRate': self.safe_number(info, 'rate'),

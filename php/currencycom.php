@@ -617,6 +617,11 @@ class currencycom extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->privateGetV2Account ($params);
         //
@@ -1235,6 +1240,16 @@ class currencycom extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $accountId = null;
@@ -1354,6 +1369,13 @@ class currencycom extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -1754,7 +1776,6 @@ class currencycom extends Exchange {
             'leverage' => $leverage,
             'percentage' => null,
             'marginMode' => null,
-            'marginType' => null, // deprecated
             'notional' => null,
             'markPrice' => null,
             'liquidationPrice' => null,

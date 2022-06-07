@@ -698,11 +698,10 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const amountPrecisionString = this.safeString (market, 'amount_precision');
-            const pricePrecisionString = this.safeString (market, 'precision');
+            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'precision')));
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
-            const defaultMinAmountLimit = this.parseNumber (this.parsePrecision (amountPrecisionString));
             const margin = leverage !== undefined;
             result.push ({
                 'id': id,
@@ -732,8 +731,8 @@ module.exports = class gateio extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -741,7 +740,7 @@ module.exports = class gateio extends Exchange {
                         'max': this.safeNumber (market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': this.safeNumber (spotMarket, 'min_base_amount', defaultMinAmountLimit),
+                        'min': this.safeNumber (spotMarket, 'min_base_amount', amountPrecision),
                         'max': undefined,
                     },
                     'price': {
@@ -1280,6 +1279,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -1546,6 +1553,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1570,6 +1585,13 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privateWalletGetFee (params);
         //
@@ -1626,6 +1648,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by gateio fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
         //
@@ -2630,6 +2660,17 @@ module.exports = class gateio extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -2754,8 +2795,8 @@ module.exports = class gateio extends Exchange {
          * @name gateio#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market" *"market" is contract only*
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market' *"market" is contract only*
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -2770,7 +2811,7 @@ module.exports = class gateio extends Exchange {
          * @param {bool} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3657,13 +3698,13 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#transfer
-         * @description makes internal transfers of funds between accounts on the same exchange
+         * @description transfer currency internally between wallets on the same account
          * @param {str} code unified currency code for currency being transferred
          * @param {float} amount the amount of currency to transfer
          * @param {str} fromAccount the account to transfer currency from
          * @param {str} toAccount the account to transfer currency to
-         * @param {dict} params Exchange specific parameters
-         * @param {dict} params.symbol Unified market symbol *required for type == margin*
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.symbol Unified market symbol *required for type == margin*
          * @returns A [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -3748,6 +3789,15 @@ module.exports = class gateio extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3886,7 +3936,6 @@ module.exports = class gateio extends Exchange {
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

@@ -329,7 +329,7 @@ module.exports = class kucoinfutures extends kucoin {
         const status = this.safeString (data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -736,7 +736,7 @@ module.exports = class kucoinfutures extends kucoin {
         const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
-        const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -970,7 +970,6 @@ module.exports = class kucoinfutures extends kucoin {
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
-            'marginType': marginMode,
             'side': side,
             'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
         };
@@ -982,8 +981,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
          * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type "limit" or "market"
-         * @param {str} side "buy" or "sell"
+         * @param {str} type 'limit' or 'market'
+         * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
@@ -998,7 +997,7 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {str} params.stopPriceType  TP, IP or MP, defaults to TP
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @returns an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1085,6 +1084,15 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
@@ -1135,6 +1143,15 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uuid = this.uuid ();
@@ -1330,6 +1347,14 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = 'futuresPrivateGetOrdersOrderId';
@@ -1420,6 +1445,14 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -1514,6 +1547,17 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
@@ -1731,7 +1775,7 @@ module.exports = class kucoinfutures extends kucoin {
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        let timestamp = this.safeInteger (trade, 'time');
+        let timestamp = this.safeInteger (trade, 'ts');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp / 1000000);
         } else {

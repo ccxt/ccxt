@@ -280,6 +280,7 @@ class mexc3 extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'timeframes' => array(
                 '1m' => '1m', // spot, swap
                 '3m' => '3m', // spot
@@ -428,6 +429,7 @@ class mexc3 extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
         $response = null;
         $status = null;
+        $updated = null;
         if ($marketType === 'spot') {
             $response = $this->spotPublicGetPing ($query);
             //
@@ -440,10 +442,12 @@ class mexc3 extends Exchange {
             //     array("success":true,"code":"0","data":"1648124374985")
             //
             $status = $this->safe_value($response, 'success') ? 'ok' : $this->json($response);
+            $updated = $this->safe_integer($response, 'data');
         }
         return array(
             'status' => $status,
-            'updated' => $this->milliseconds(),
+            'updated' => $updated,
+            'url' => null,
             'eta' => null,
             'info' => $response,
         );
@@ -526,8 +530,8 @@ class mexc3 extends Exchange {
                 $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 $currencyActive = $active || $currencyActive;
-                $precisionDigits = $this->safe_integer($chain, 'precision');
-                $precision = 1 / pow(10, $precisionDigits);
+                $precisionDigits = $this->safe_string($chain, 'precision');
+                $precision = $this->parse_number($this->parse_precision($precisionDigits));
                 $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');
                 $withdrawMax = $this->safe_string($chain, 'withdraw_limit_max');
                 $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
@@ -633,32 +637,41 @@ class mexc3 extends Exchange {
         //         "exchangeFilters" => array(),
         //         "symbols" => array(
         //           array(
-        //             "symbol" => "BTCUSDT",
-        //             "status" => "ENABLED",
-        //             "baseAsset" => "BTC",
-        //             "baseAssetPrecision" => 6,
-        //             "quoteAsset" => "USDT",
-        //             "quotePrecision" => 2,
-        //             "quoteAssetPrecision" => 2,
-        //             "baseCommissionPrecision" => 6,
-        //             "quoteCommissionPrecision" => 2,
-        //             "orderTypes" => array(
-        //               "LIMIT",
-        //               "LIMIT_MAKER"
-        //             ),
-        //             "icebergAllowed" => false,
-        //             "ocoAllowed" => false,
-        //             "quoteOrderQtyMarketAllowed" => false,
-        //             "isSpotTradingAllowed" => true,
-        //             "isMarginTradingAllowed" => false,
-        //             "permissions" => array(
-        //               "SPOT"
-        //             ),
-        //             "filters" => array()
-        //           ),
+        //                "symbol" => "OGNUSDT",
+        //                "status" => "ENABLED",
+        //                "baseAsset" => "OGN",
+        //                "baseAssetPrecision" => "2",
+        //                "quoteAsset" => "USDT",
+        //                "quotePrecision" => "4",
+        //                "quoteAssetPrecision" => "4",
+        //                "baseCommissionPrecision" => "2",
+        //                "quoteCommissionPrecision" => "4",
+        //                "orderTypes" => array(
+        //                    "LIMIT",
+        //                    "LIMIT_MAKER"
+        //                ),
+        //                "quoteOrderQtyMarketAllowed" => false,
+        //                "isSpotTradingAllowed" => true,
+        //                "isMarginTradingAllowed" => true,
+        //                "permissions" => array(
+        //                    "SPOT",
+        //                    "MARGIN"
+        //                ),
+        //                "filters" => array(),
+        //                "quoteAmountPrecision" => "5",
+        //                "baseSizePrecision" => "0.01",
+        //                "maxQuoteAmount" => "5000000",
+        //                "makerCommission" => "0.002",
+        //                "takerCommission" => "0.002"
+        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+        //            ),
         //         )
         //     }
         //
+        // Notes:
+        // - 'quotePrecision' seems deprecated, in favor of $quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // - 'baseSizePrecision' seems useless at this moment, because in orderbook, mexc might show $base-size in $i->e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use $baseAssetPrecision
+        // - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value $i->e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         $data = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -669,6 +682,15 @@ class mexc3 extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
+            $makerCommission = $this->safe_number($market, 'makerCommission');
+            $takerCommission = $this->safe_number($market, 'takerCommission');
+            $maxQuoteAmount = $this->safe_number($market, 'maxQuoteAmount');
+            $baseAssetPrecision = $this->safe_string($market, 'baseAssetPrecision');
+            $quoteAssetPrecision = $this->safe_string($market, 'quoteAssetPrecision');
+            $precisionBase = $this->parse_number($this->parse_precision($baseAssetPrecision));
+            $precisionQuote = $this->parse_number($this->parse_precision($quoteAssetPrecision));
+            $precisionPrice = $precisionQuote;
+            $precisionCost = $precisionQuote;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -688,18 +710,20 @@ class mexc3 extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
+                'taker' => $takerCommission,
+                'maker' => $makerCommission,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'baseAssetPrecision'),
-                    'price' => $this->safe_integer($market, 'quotePrecision'),
-                    'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                    'quote' => $this->safe_integer($market, 'quoteAssetPrecision'),
+                    'amount' => $precisionBase,
+                    'price' => $precisionPrice,
+                    'cost' => $precisionCost,
+                    // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
+                    // 'base' => $precisionBase,
+                    // 'quote' => $precisionQuote,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -716,7 +740,7 @@ class mexc3 extends Exchange {
                     ),
                     'cost' => array(
                         'min' => null,
-                        'max' => null,
+                        'max' => $maxQuoteAmount,
                     ),
                 ),
                 'info' => $market,
@@ -1549,6 +1573,16 @@ class mexc3 extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['spot']) {
@@ -1707,6 +1741,12 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2046,6 +2086,13 @@ class mexc3 extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2437,6 +2484,11 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->fetch_account_helper('spot', $params);
         $makerFee = $this->safe_string($response, 'makerCommission');
@@ -2677,6 +2729,13 @@ class mexc3 extends Exchange {
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {
+        /**
+         * remove margin from a position
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         */
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
@@ -2685,6 +2744,13 @@ class mexc3 extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} response from the exchange
+         */
         $this->load_markets();
         $request = array(
             'leverage' => $leverage,
@@ -2815,6 +2881,12 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3537,6 +3609,15 @@ class mexc3 extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $accounts = array(
@@ -3648,6 +3729,15 @@ class mexc3 extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
         $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH

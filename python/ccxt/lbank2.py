@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class lbank2(Exchange):
@@ -189,6 +190,7 @@ class lbank2(Exchange):
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'cacheSecretAsPem': True,
                 'createMarketBuyOrderRequiresPrice': True,
@@ -332,8 +334,8 @@ class lbank2(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityAccuracy'),
-                    'price': self.safe_integer(market, 'priceAccuracy'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
                     'leverage': {
@@ -374,7 +376,7 @@ class lbank2(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_string(ticker, 'timestamp')
+        timestamp = self.safe_integer(ticker, 'timestamp')
         tickerData = self.safe_value(ticker, 'ticker')
         return self.safe_ticker({
             'symbol': symbol,
@@ -819,11 +821,22 @@ class lbank2(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         market = self.market(symbol)
         result = self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
         return result
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {}
         response = self.privatePostSupplementCustomerTradeFee(self.extend(request, params))
@@ -836,6 +849,16 @@ class lbank2(Exchange):
         return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'custom_id', 'clientOrderId')
@@ -1031,6 +1054,12 @@ class lbank2(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         method = self.safe_string(params, 'method')
         if method is None:
@@ -1251,6 +1280,13 @@ class lbank2(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -1398,6 +1434,15 @@ class lbank2(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1633,6 +1678,12 @@ class lbank2(Exchange):
         return self.parse_transactions(withdraws, code, since, limit)
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by lbank2 fetchTransactionFees()
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         # private only returns information for currencies with non-zero balance
         self.load_markets()
         isAuthorized = self.check_required_credentials(False)

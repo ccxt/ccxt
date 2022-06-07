@@ -94,6 +94,7 @@ class huobi extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
+                'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1229,6 +1230,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2957,6 +2964,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', null, $params);
@@ -3778,6 +3791,16 @@ class huobi extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -4035,6 +4058,13 @@ class huobi extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', null, $params);
@@ -4625,6 +4655,15 @@ class huobi extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
         $this->check_address($address);
@@ -4684,6 +4723,15 @@ class huobi extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $type = $this->safe_string($params, 'type');
@@ -4938,6 +4986,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $method = null;
@@ -5010,6 +5064,15 @@ class huobi extends Exchange {
     }
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the $interest owed by the user for borrowing $currency for margin trading
+         * @param {str|null} $code unified $currency $code
+         * @param {str|null} $symbol unified $market $symbol when fetch $interest in isolated markets
+         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+         * @param {int|null} $limit the maximum number of structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+         */
         $this->load_markets();
         $defaultMargin = $this->safe_string($params, 'marginMode', 'cross'); // cross or isolated
         $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
@@ -5114,7 +5177,6 @@ class huobi extends Exchange {
             'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
             'symbol' => $symbol,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
@@ -5332,6 +5394,13 @@ class huobi extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} $response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -5504,7 +5573,6 @@ class huobi extends Exchange {
             'leverage' => $this->parse_number($leverage),
             'percentage' => $this->parse_number($percentage),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'notional' => $this->parse_number($notional),
             'markPrice' => null,
             'liquidationPrice' => $liquidationPrice,
@@ -6245,6 +6313,205 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
+        );
+    }
+
+    public function fetch_settlement_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * Fetches historical settlement records
+         * @param {str} $symbol unified $symbol of the $market to fetch the settlement history for
+         * @param {int} $since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {int} $limit page items, default 20, shall not exceed 50
+         * @param {dict} $params exchange specific $params
+         * @param {int} $params->till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} $params->page_index page index, default page 1 if not filled
+         * @return A list of settlement history objects
+         */
+        $code = $this->safe_string($params, 'code');
+        $till = $this->safe_integer($params, 'till');
+        $params = $this->omit($params, 'till');
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        list($type, $query) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
+        if ($type === 'future') {
+            if ($symbol === null && $code === null) {
+                throw new ArgumentsRequired($this->id . ' requires a $symbol argument or $params["code"] for fetchSettlementHistory future');
+            }
+        } elseif ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $symbol argument for fetchSettlementHistory swap');
+        }
+        $request = array();
+        if ($market['future']) {
+            $request['symbol'] = $market['baseId'];
+        } else {
+            $request['contract_code'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_at'] = $since;
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        if ($till !== null) {
+            $request['end_at'] = $till;
+        }
+        $method = 'contractPublicGetApiV1ContractSettlementRecords';
+        if ($market['swap']) {
+            if ($market['linear']) {
+                $method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+            } else {
+                $method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+            }
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // linear swap, coin-m swap
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => {
+        //        "total_page" => 14,
+        //        "current_page" => 1,
+        //        "total_size" => 270,
+        //        "settlement_record" => array(
+        //            array(
+        //                "symbol" => "ADA",
+        //                "contract_code" => "ADA-USDT",
+        //                "settlement_time" => 1652313600000,
+        //                "clawback_ratio" => 0E-18,
+        //                "settlement_price" => 0.512303000000000000,
+        //                "settlement_type" => "settlement",
+        //                "business_type" => "swap",
+        //                "pair" => "ADA-USDT",
+        //                "trade_partition" => "USDT"
+        //            ),
+        //            ...
+        //        ),
+        //        "ts" => 1652338693256
+        //    }
+        //
+        // coin-m future
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => {
+        //            "total_page" => 5,
+        //            "current_page" => 1,
+        //            "total_size" => 90,
+        //            "settlement_record" => array(
+        //                array(
+        //                    "symbol" => "FIL",
+        //                    "settlement_time" => 1652342400000,
+        //                    "clawback_ratio" => 0E-18,
+        //                    "list" => array(
+        //                        array(
+        //                            "contract_code" => "FIL220513",
+        //                            "settlement_price" => 7.016000000000000000,
+        //                            "settlement_type" => "settlement"
+        //                        ),
+        //                        ...
+        //                    )
+        //                ),
+        //            )
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $settlementRecord = $this->safe_value($data, 'settlement_record');
+        $settlements = $this->parse_settlements($settlementRecord, $market);
+        return $this->sort_by($settlements, 'timestamp');
+    }
+
+    public function parse_settlements($settlements, $market) {
+        //
+        // linear swap, coin-m swap, fetchSettlementHistory
+        //
+        //    array(
+        //        array(
+        //            "symbol" => "ADA",
+        //            "contract_code" => "ADA-USDT",
+        //            "settlement_time" => 1652313600000,
+        //            "clawback_ratio" => 0E-18,
+        //            "settlement_price" => 0.512303000000000000,
+        //            "settlement_type" => "settlement",
+        //            "business_type" => "swap",
+        //            "pair" => "ADA-USDT",
+        //            "trade_partition" => "USDT"
+        //        ),
+        //        ...
+        //    )
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    array(
+        //        array(
+        //            "symbol" => "FIL",
+        //            "settlement_time" => 1652342400000,
+        //            "clawback_ratio" => 0E-18,
+        //            "list" => array(
+        //                array(
+        //                    "contract_code" => "FIL220513",
+        //                    "settlement_price" => 7.016000000000000000,
+        //                    "settlement_type" => "settlement"
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //    )
+        //
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $settlement = $settlements[$i];
+            $list = $this->safe_value($settlement, 'list');
+            if ($list !== null) {
+                $timestamp = $this->safe_integer($settlement, 'settlement_time');
+                $timestampDetails = array(
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+                for ($j = 0; $j < count($list); $j++) {
+                    $item = $list[$j];
+                    $parsedSettlement = $this->parse_settlement($item, $market);
+                    $result[] = array_merge($parsedSettlement, $timestampDetails);
+                }
+            } else {
+                $result[] = $this->parse_settlement($settlements[$i], $market);
+            }
+        }
+        return $result;
+    }
+
+    public function parse_settlement($settlement, $market) {
+        //
+        // linear swap, coin-m swap, fetchSettlementHistory
+        //
+        //    {
+        //        "symbol" => "ADA",
+        //        "contract_code" => "ADA-USDT",
+        //        "settlement_time" => 1652313600000,
+        //        "clawback_ratio" => 0E-18,
+        //        "settlement_price" => 0.512303000000000000,
+        //        "settlement_type" => "settlement",
+        //        "business_type" => "swap",
+        //        "pair" => "ADA-USDT",
+        //        "trade_partition" => "USDT"
+        //    }
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    {
+        //        "contract_code" => "FIL220513",
+        //        "settlement_price" => 7.016000000000000000,
+        //        "settlement_type" => "settlement"
+        //    }
+        //
+        $timestamp = $this->safe_integer($settlement, 'settlement_time');
+        $marketId = $this->safe_string($settlement, 'contract_code');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'settlement_price'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 }

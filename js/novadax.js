@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, CancelPending, OrderNotFound, InsufficientFunds, RateLimitExceeded, InvalidOrder, AccountSuspended, BadSymbol, OnMaintenance, ArgumentsRequired, AccountNotEnabled } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ module.exports = class novadax extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'A99999': ExchangeError, // 500 Failed Internal error
@@ -270,9 +271,9 @@ module.exports = class novadax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amountPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
-                    'cost': this.safeInteger (market, 'valuePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -709,6 +710,18 @@ module.exports = class novadax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name novadax#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let uppercaseType = type.toUpperCase ();
@@ -758,8 +771,7 @@ module.exports = class novadax extends Exchange {
                 } else {
                     value = (value === undefined) ? amount : value;
                 }
-                const precision = market['precision']['price'];
-                request['value'] = this.decimalToPrecision (value, TRUNCATE, precision, this.precisionMode);
+                request['value'] = this.costToPrecision (symbol, value);
             }
         }
         request['type'] = uppercaseType;
@@ -792,6 +804,15 @@ module.exports = class novadax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name novadax#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by novadax cancelOrder ()
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -811,6 +832,14 @@ module.exports = class novadax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name novadax#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by novadax fetchOrder
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -1028,6 +1057,17 @@ module.exports = class novadax extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name novadax#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (fromAccount !== 'main' && toAccount !== 'main') {
@@ -1092,6 +1132,17 @@ module.exports = class novadax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name novadax#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the novadax api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);

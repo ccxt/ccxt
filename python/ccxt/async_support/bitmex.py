@@ -209,6 +209,7 @@ class bitmex(Exchange):
                     'Service unavailable': ExchangeNotAvailable,  # {"error":{"message":"Service unavailable","name":"HTTPError"}}
                     'Server Error': ExchangeError,  # {"error":{"message":"Server Error","name":"HTTPError"}}
                     'Unable to cancel order due to existing state': InvalidOrder,
+                    'We require all new traders to verify': PermissionDenied,  # {"message":"We require all new traders to verify their identity before their first deposit. Please visit bitmex.com/verify to complete the process.","name":"HTTPError"}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -604,6 +605,12 @@ class bitmex(Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         filter = {
             'filter': {
                 'orderID': id,
@@ -1599,6 +1606,16 @@ class bitmex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
@@ -1650,6 +1667,13 @@ class bitmex(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bitmex cancelOrder()
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
         clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
@@ -1972,6 +1996,15 @@ class bitmex(Exchange):
         return False
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -2320,6 +2353,13 @@ class bitmex(Exchange):
         }
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 0.01) or (leverage > 100):
@@ -2335,6 +2375,13 @@ class bitmex(Exchange):
         return await self.privatePostPositionLeverage(self.extend(request, params))
 
     async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         marginMode = marginMode.lower()

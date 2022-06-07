@@ -710,6 +710,11 @@ class bitvavo(Exchange):
         }, market)
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privateGetAccount(params)
         #
@@ -890,6 +895,16 @@ class bitvavo(Exchange):
         }
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -997,6 +1012,13 @@ class bitvavo(Exchange):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -1031,6 +1053,12 @@ class bitvavo(Exchange):
         return self.parse_orders(response, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -1333,6 +1361,15 @@ class bitvavo(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()

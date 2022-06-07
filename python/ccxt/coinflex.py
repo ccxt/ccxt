@@ -309,7 +309,7 @@ class coinflex(Exchange):
         status = self.safe_string({'true': 'ok', 'false': 'maintenance'}, statusRaw, statusRaw)
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -454,8 +454,8 @@ class coinflex(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.safe_number(market, 'upperPriceBound'),
-                        'max': self.safe_number(market, 'lowerPriceBound'),
+                        'min': self.safe_number(market, 'lowerPriceBound'),
+                        'max': self.safe_number(market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': None,
@@ -952,6 +952,12 @@ class coinflex(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         # TODO: self can be moved as emulated into base
         if self.has['fetchFundingRates']:
             response = self.fetch_funding_rates([symbol], params)
@@ -1261,6 +1267,12 @@ class coinflex(Exchange):
         return self.safe_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         request = {
@@ -1581,7 +1593,7 @@ class coinflex(Exchange):
             'liquidationPrice': self.parse_number(liquidationPriceString),
             'markPrice': self.parse_number(markPriceString),
             'collateral': None,
-            'marginType': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross',  # each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': None,
             'info': position,
@@ -1946,6 +1958,16 @@ class coinflex(Exchange):
             raise ExchangeError(body)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = self.market(symbol)
         self.check_order_arguments(market, type, side, amount, price, params)
         request, query = self.build_order_request(market, type, side, amount, price, params)
@@ -2103,6 +2125,13 @@ class coinflex(Exchange):
         return self.parse_orders(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_value(orders, 0)
 
@@ -2133,6 +2162,15 @@ class coinflex(Exchange):
         return response
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2158,6 +2196,15 @@ class coinflex(Exchange):
         return self.parse_transfer(data, currency)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         twoFaCode = self.safe_string(params, 'code')

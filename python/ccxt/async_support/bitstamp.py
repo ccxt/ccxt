@@ -279,6 +279,12 @@ class bitstamp(Exchange):
                         'vega_address/': 1,
                         '1inch_withdrawal/': 1,
                         '1inch_address/': 1,
+                        'ens_withdrawal/': 1,
+                        'ens_address/': 1,
+                        'mana_withdrawal/': 1,
+                        'mana_address/': 1,
+                        'lrc_withdrawal/': 1,
+                        'lrc_address/': 1,
                         'transfer-to-main/': 1,
                         'transfer-from-main/': 1,
                         'withdrawal-requests/': 1,
@@ -355,6 +361,9 @@ class bitstamp(Exchange):
                         'EUR': 0,
                     },
                 },
+            },
+            'commonCurrencies': {
+                'UST': 'USTC',
             },
             'exceptions': {
                 'exact': {
@@ -994,6 +1003,12 @@ class bitstamp(Exchange):
         return self.parse_balance(response)
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1025,6 +1040,11 @@ class bitstamp(Exchange):
         return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_trading_fees(response)
@@ -1045,11 +1065,27 @@ class bitstamp(Exchange):
         }
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         balance = await self.privatePostBalance(params)
         return self.parse_funding_fees(balance)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
@@ -1075,6 +1111,13 @@ class bitstamp(Exchange):
         })
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1114,6 +1157,12 @@ class bitstamp(Exchange):
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -1590,6 +1639,15 @@ class bitstamp(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

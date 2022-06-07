@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -132,6 +133,7 @@ module.exports = class lykke extends Exchange {
                     'taker': 0,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1001': ExchangeError,
@@ -230,7 +232,7 @@ module.exports = class lykke extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': this.safeInteger (currency, 'accuracy'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'accuracy'))),
                 'limits': {
                     'withdraw': {
                         'min': this.safeValue (currency, 'cashoutMinimalAmount'),
@@ -285,10 +287,6 @@ module.exports = class lykke extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'priceAccuracy'),
-                'amount': this.safeInteger (market, 'baseAssetAccuracy'),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -314,7 +312,10 @@ module.exports = class lykke extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': precision,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetAccuracy'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
+                },
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'minVolume'),
@@ -766,6 +767,18 @@ module.exports = class lykke extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const query = {
@@ -826,6 +839,15 @@ module.exports = class lykke extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'orderId': id,
         };
@@ -858,6 +880,14 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by lykke fetchOrder
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
@@ -1137,6 +1167,17 @@ module.exports = class lykke extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);

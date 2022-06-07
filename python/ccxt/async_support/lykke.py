@@ -10,6 +10,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -138,6 +139,7 @@ class lykke(Exchange):
                     'taker': 0,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1001': ExchangeError,
@@ -233,7 +235,7 @@ class lykke(Exchange):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': None,
-                'precision': self.safe_integer(currency, 'accuracy'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'accuracy'))),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_value(currency, 'cashoutMinimalAmount'),
@@ -284,10 +286,6 @@ class lykke(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'priceAccuracy'),
-                'amount': self.safe_integer(market, 'baseAssetAccuracy'),
-            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -313,7 +311,10 @@ class lykke(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'precision': precision,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
+                },
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'minVolume'),
@@ -739,6 +740,16 @@ class lykke(Exchange):
         }, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the lykke api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         query = {
@@ -796,6 +807,13 @@ class lykke(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the lykke api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'orderId': id,
         }
@@ -825,6 +843,12 @@ class lykke(Exchange):
         return await self.privateDeleteOrders(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by lykke fetchOrder
+        :param dict params: extra parameters specific to the lykke api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'orderId': id,
@@ -1086,6 +1110,15 @@ class lykke(Exchange):
         return self.parse_transactions(payload, currency, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the lykke api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)

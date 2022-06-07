@@ -755,6 +755,11 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privateGetFees(params)
         #
@@ -933,6 +938,12 @@ class coinbasepro(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by coinbasepro fetchOrder
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
@@ -983,6 +994,16 @@ class coinbasepro(Exchange):
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1055,6 +1076,13 @@ class coinbasepro(Exchange):
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             # 'product_id': market['id'],  # the request will be more performant if you include it
@@ -1122,6 +1150,15 @@ class coinbasepro(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -1287,10 +1324,10 @@ class coinbasepro(Exchange):
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
+        return await self.fetch_transactions(code, since, limit, self.extend({'type': 'deposit'}, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
+        return await self.fetch_transactions(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')

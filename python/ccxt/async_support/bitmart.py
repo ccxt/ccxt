@@ -46,6 +46,7 @@ class bitmart(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -435,7 +436,7 @@ class bitmart(Exchange):
                 eta = self.safe_integer(service, 'end_time')
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': eta,
             'url': None,
             'info': response,
@@ -1535,7 +1536,7 @@ class bitmart(Exchange):
         #         "symbol":"BTC_USDT",
         #         "create_time":1591096004000,
         #         "side":"sell",
-        #         "type":"market",
+        #         "type":"market",  # limit, market, limit_maker, ioc
         #         "price":"0.00",
         #         "price_avg":"0.00",
         #         "size":"0.02000",
@@ -1595,6 +1596,15 @@ class bitmart(Exchange):
             type = 'limit'
         elif category == 2:
             type = 'market'
+        timeInForce = None
+        postOnly = None
+        if type == 'limit_maker':
+            type = 'limit'
+            postOnly = True
+            timeInForce = 'PO'
+        if type == 'ioc':
+            type = 'limit'
+            timeInForce = 'IOC'
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -1604,8 +1614,8 @@ class bitmart(Exchange):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1641,19 +1651,37 @@ class bitmart(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {}
+        timeInForce = self.safe_string(params, 'timeInForce')
+        if timeInForce == 'FOK':
+            raise InvalidOrder(self.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO')
+        isMarketOrder = type == 'market'
+        postOnly = self.is_post_only(isMarketOrder, type == 'limit_maker', params)
+        params = self.omit(params, ['timeInForce', 'postOnly'])
+        ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
+        isLimitOrder = (type == 'limit') or postOnly or ioc
         method = None
         if market['spot']:
             request['symbol'] = market['id']
             request['side'] = side
             request['type'] = type
             method = 'privateSpotPostSubmitOrder'
-            if type == 'limit':
+            if isLimitOrder:
                 request['size'] = self.amount_to_precision(symbol, amount)
                 request['price'] = self.price_to_precision(symbol, price)
-            elif type == 'market':
+            elif isMarketOrder:
                 # for market buy it requires the amount of quote currency to spend
                 if side == 'buy':
                     notional = self.safe_number(params, 'notional')
@@ -1672,22 +1700,10 @@ class bitmart(Exchange):
                     request['size'] = self.amount_to_precision(symbol, amount)
         elif market['swap'] or market['future']:
             raise NotSupported(self.id + ' createOrder() does not accept swap or future orders, only spot orders are allowed')
-        timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if (timeInForce is not None) or postOnly or (type == 'limit_maker') or (type == 'ioc'):
-            if timeInForce == 'FOK':
-                raise InvalidOrder(self.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO')
-            maker = ((timeInForce == 'PO') or postOnly or (type == 'limit_maker'))
-            ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
-            if maker and ioc:
-                raise InvalidOrder(self.id + ' createOrder() does not accept IOC postOnly orders, the order cannot be both postOnly and IOC')
-            if type == 'market':
-                raise InvalidOrder(self.id + ' createOrder() does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed')
-            if maker:
-                request['type'] = 'limit_maker'
-            elif ioc:
-                request['type'] = 'ioc'
-            params = self.omit(params, ['timeInForce', 'postOnly'])
+        if postOnly:
+            request['type'] = 'limit_maker'
+        if ioc:
+            request['type'] = 'ioc'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot and contract
@@ -1705,6 +1721,13 @@ class bitmart(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -1897,6 +1920,12 @@ class bitmart(Exchange):
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -2029,6 +2058,15 @@ class bitmart(Exchange):
         return networkId
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()

@@ -303,7 +303,7 @@ module.exports = class coinflex extends Exchange {
         const status = this.safeString ({ 'true': 'ok', 'false': 'maintenance' }, statusRaw, statusRaw);
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -453,8 +453,8 @@ module.exports = class coinflex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'upperPriceBound'),
-                        'max': this.safeNumber (market, 'lowerPriceBound'),
+                        'min': this.safeNumber (market, 'lowerPriceBound'),
+                        'max': this.safeNumber (market, 'upperPriceBound'),
                     },
                     'cost': {
                         'min': undefined,
@@ -988,6 +988,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRates']) {
             const response = await this.fetchFundingRates ([ symbol ], params);
@@ -1330,6 +1338,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1666,7 +1682,7 @@ module.exports = class coinflex extends Exchange {
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
             'collateral': undefined,
-            'marginType': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
+            'marginMode': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': undefined,
             'info': position,
@@ -2064,6 +2080,18 @@ module.exports = class coinflex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const market = this.market (symbol);
         this.checkOrderArguments (market, type, side, amount, price, params);
         const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
@@ -2226,6 +2254,15 @@ module.exports = class coinflex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const orders = await this.cancelOrders ([ id ], symbol, params);
         return this.safeValue (orders, 0);
     }
@@ -2259,6 +2296,17 @@ module.exports = class coinflex extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name coinflex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2285,6 +2333,17 @@ module.exports = class coinflex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const twoFaCode = this.safeString (params, 'code');

@@ -1741,6 +1741,16 @@ class zb(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -1876,6 +1886,13 @@ class zb(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -1934,6 +1951,12 @@ class zb(Exchange):
         return getattr(self, method)(self.extend(request, query))
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2983,6 +3006,13 @@ class zb(Exchange):
         }
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
@@ -3064,6 +3094,12 @@ class zb(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -3151,6 +3187,15 @@ class zb(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
@@ -3480,7 +3525,6 @@ class zb(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': percentage,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'notional': notional,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -3635,6 +3679,15 @@ class zb(Exchange):
         return self.parse_ledger(list, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('transfer', None, params)
         currency = self.currency(code)
@@ -3794,6 +3847,13 @@ class zb(Exchange):
         return self.modify_margin_helper(symbol, amount, 1, params)
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 0, params)

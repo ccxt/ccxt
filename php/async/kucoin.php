@@ -237,7 +237,7 @@ class kucoin extends Exchange {
                         'orders' => 1.3953,
                         'stopOrders' => 1.3953,
                         'recentDoneOrders' => 1.3953,
-                        'orders/{order-id}' => 1.3953, // ?clientOid={client-order-id} // get order by orderId
+                        'orders/{orderId}' => 1.3953, // ?clientOid={client-orderId} // get order by orderId
                         'orders/byClientOid' => 1.3953, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
                         'fills' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'recentFills' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
@@ -257,7 +257,7 @@ class kucoin extends Exchange {
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1.3953,
                         'cancel/transfer-out' => 1.3953,
-                        'orders/{order-id}' => 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders/{orderId}' => 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
                         'orders' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                         'stopOrders' => 1.3953,
                     ),
@@ -278,6 +278,7 @@ class kucoin extends Exchange {
                 '1d' => '1day',
                 '1w' => '1week',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'order not exist' => '\\ccxt\\OrderNotFound',
@@ -486,7 +487,7 @@ class kucoin extends Exchange {
         $status = $this->safe_string($data, 'status');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -609,8 +610,8 @@ class kucoin extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
-                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
+                    'amount' => $this->safe_number($market, 'baseIncrement'),
+                    'price' => $this->safe_number($market, 'priceIncrement'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -665,7 +666,7 @@ class kucoin extends Exchange {
             $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_integer($entry, 'precision');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision')));
             $isWithdrawEnabled = $this->safe_value($entry, 'isWithdrawEnabled', false);
             $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
             $fee = $this->safe_number($entry, 'withdrawalMinFee');
@@ -1155,8 +1156,8 @@ class kucoin extends Exchange {
         /**
          * Create an $order on the exchange
          * @param {str} $symbol Unified CCXT market $symbol
-         * @param {str} $type "limit" or "market"
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market'
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -1173,14 +1174,14 @@ class kucoin extends Exchange {
          * market orders --------------------------------------------------
          * @param {str} $params->funds // Amount of quote currency to use
          * stop orders ----------------------------------------------------
-         * @param {str} $params->stop  Either loss or entry, the default is loss. Requires $stopPrice to be defined
+         * @param {str} $params->stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
          * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
          * margin orders --------------------------------------------------
          * @param {float} $params->leverage Leverage size of the $order
          * @param {str} $params->stp '', // self trade prevention, CN, CO, CB or DC
          * @param {str} $params->marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
          * @param {bool} $params->autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
-         * @return an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         yield $this->load_markets();
         $marketId = $this->market_id($symbol);
@@ -1211,13 +1212,21 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_string($params, 'stopPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        // default is take profit
+        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'stopPrice');
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        if ($isStopLoss && $isTakeProfit) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
         $tradeType = $this->safe_string($params, 'tradeType');
-        $params = $this->omit($params, 'stopPrice');
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
         $method = 'privatePostOrders';
-        if ($stopPrice !== null) {
-            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['stop'] = 'loss';
+        if ($isStopLoss || $isTakeProfit) {
+            $request['stop'] = $isStopLoss ? 'entry' : 'loss';
+            $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
+            $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $method = 'privatePostStopOrder';
         } elseif ($tradeType === 'MARGIN_TRADE') {
             $method = 'privatePostMarginOrder';
@@ -1259,12 +1268,12 @@ class kucoin extends Exchange {
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
-         * Cancels an order
-         * @param {str} $id Order $id
-         * @param {str} $symbol Not used by kucoin
-         * @param {dict} $params Exchange specific parameters
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
          * @param {bool} $params->stop True if cancelling a $stop order
-         * @return Response fromt the exchange
+         * @return Response from the exchange
          */
         yield $this->load_markets();
         $request = array();
@@ -1846,6 +1855,12 @@ class kucoin extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1878,6 +1893,15 @@ class kucoin extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
@@ -2216,6 +2240,15 @@ class kucoin extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $requestedAmount = $this->currency_to_precision($code, $amount);

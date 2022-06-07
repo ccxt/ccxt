@@ -417,8 +417,7 @@ class latoken extends Exchange {
             $id = $this->safe_string($currency, 'id');
             $tag = $this->safe_string($currency, 'tag');
             $code = $this->safe_currency_code($tag);
-            $decimals = $this->safe_string($currency, 'decimals');
-            $precision = $this->parse_number('1e-' . $decimals);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             $fee = $this->safe_number($currency, 'fee');
             $currencyType = $this->safe_string($currency, 'type');
             $parts = explode('_', $currencyType);
@@ -770,6 +769,12 @@ class latoken extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a market
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $method = $this->safe_string($params, 'method');
         $params = $this->omit($params, 'method');
         if ($method === null) {
@@ -1081,6 +1086,12 @@ class latoken extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol not used by latoken fetchOrder
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -1110,6 +1121,16 @@ class latoken extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -1145,6 +1166,13 @@ class latoken extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by latoken cancelOrder ()
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -1343,6 +1371,15 @@ class latoken extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $method = null;

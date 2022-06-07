@@ -38,6 +38,7 @@ module.exports = class therock extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -73,6 +74,7 @@ module.exports = class therock extends Exchange {
                         'funds/{id}/orderbook': 1,
                         'funds/{id}/ticker': 1,
                         'funds/{id}/trades': 1,
+                        'funds/{id}/ohlc_statistics': 1,
                         'funds/tickers': 1,
                     },
                 },
@@ -975,6 +977,17 @@ module.exports = class therock extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1184,6 +1197,14 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {strs} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1227,6 +1248,18 @@ module.exports = class therock extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         if (type === 'market') {
             price = 0;
@@ -1242,6 +1275,15 @@ module.exports = class therock extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -1249,6 +1291,78 @@ module.exports = class therock extends Exchange {
         };
         const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents in minutes
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const periodInSeconds = this.parseTimeframe (timeframe);
+        const periodInMinutes = parseInt (periodInSeconds / 60);
+        const request = {
+            'id': market['id'],
+            'period': periodInMinutes,
+        };
+        if (since === undefined) {
+            request['after'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetFundsIdOhlcStatistics (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "fund_id": "BTCUSDT",
+        //             "open": 31500.0,
+        //             "high": 31500.0,
+        //             "low": 31500.0,
+        //             "close": 31500.0,
+        //             "average": 31500.0,
+        //             "weighted_average": 31500.0,
+        //             "base_volume": 0.0,
+        //             "traded_volume": 0.0,
+        //             "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        //             "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        //         }
+        //         ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     {
+        //         "fund_id": "BTCUSDT",
+        //         "open": 31500.0,
+        //         "high": 31500.0,
+        //         "low": 31500.0,
+        //         "close": 31500.0,
+        //         "average": 31500.0,
+        //         "weighted_average": 31500.0,
+        //         "base_volume": 0.0,
+        //         "traded_volume": 0.0,
+        //         "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        //         "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        //     }
+        //
+        const dateTime = this.safeString (ohlcv, 'interval_starts_at');
+        return [
+            this.parse8601 (dateTime),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'base_volume'),
+        ];
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1359,6 +1473,14 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
@@ -1399,6 +1521,13 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name therock#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetFunds (params);
         //

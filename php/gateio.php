@@ -703,11 +703,10 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $amountPrecisionString = $this->safe_string($market, 'amount_precision');
-            $pricePrecisionString = $this->safe_string($market, 'precision');
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
-            $defaultMinAmountLimit = $this->parse_number($this->parse_precision($amountPrecisionString));
             $margin = $leverage !== null;
             $result[] = array(
                 'id' => $id,
@@ -737,8 +736,8 @@ class gateio extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -746,7 +745,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $defaultMinAmountLimit),
+                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $amountPrecision),
                         'max' => null,
                     ),
                     'price' => array(
@@ -1275,6 +1274,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -1541,6 +1546,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1565,6 +1576,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->privateWalletGetFee ($params);
         //
@@ -1621,6 +1637,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by gateio fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         $this->load_markets();
         $response = $this->privateWalletGetWithdrawStatus ($params);
         //
@@ -2611,6 +2633,15 @@ class gateio extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -2733,8 +2764,8 @@ class gateio extends Exchange {
         /**
          * Create an order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market" *"market" is $contract only*
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market' *"market" is $contract only*
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -2749,7 +2780,7 @@ class gateio extends Exchange {
          * @param {bool} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
          * @param {bool} $params->close *$contract only* Set as true to close the position, with size set to 0
          * @param {bool} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-         * @return {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
+         * @return {dict} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3628,13 +3659,13 @@ class gateio extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * makes internal transfers of funds between accounts on the same exchange
+         * $transfer $currency internally between wallets on the same account
          * @param {str} $code unified $currency $code for $currency being transferred
          * @param {float} $amount the $amount of $currency to $transfer
          * @param {str} $fromAccount the account to $transfer $currency from
          * @param {str} $toAccount the account to $transfer $currency to
-         * @param {dict} $params Exchange specific parameters
-         * @param {dict} $params->symbol Unified $market $symbol *required for type == margin*
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @param {str|null} $params->symbol Unified $market $symbol *required for type == margin*
          * @return A {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         $this->load_markets();
@@ -3719,6 +3750,13 @@ class gateio extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} $response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -3857,7 +3895,6 @@ class gateio extends Exchange {
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

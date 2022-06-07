@@ -1446,6 +1446,12 @@ class bitget(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1476,6 +1482,11 @@ class bitget(Exchange):
         return self.parse_trading_fee(data, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.publicSpotGetPublicProducts(params)
         #
@@ -1563,6 +1574,7 @@ class bitget(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bitget api endpoint
+        :param dict params['till']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -1575,24 +1587,32 @@ class bitget(Exchange):
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         })
+        till = self.safe_integer(params, 'till')
+        if limit is None:
+            limit = 100
         if market['type'] == 'spot':
             request['period'] = self.timeframes['spot'][timeframe]
-            if limit is not None:
-                request['limit'] = limit
+            request['limit'] = limit
             if since is not None:
                 request['after'] = since
+                if till is None:
+                    millisecondsPerTimeframe = self.timeframes['swap'][timeframe] * 1000
+                    request['before'] = self.sum(since, millisecondsPerTimeframe * limit)
+            if till is not None:
+                request['before'] = till
         elif market['type'] == 'swap':
             request['granularity'] = self.timeframes['swap'][timeframe]
             duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
-            if limit is None:
-                limit = 100
             if since is None:
                 request['startTime'] = now - (limit - 1) * (duration * 1000)
                 request['endTime'] = now
             else:
                 request['startTime'] = self.sum(since, duration * 1000)
-                request['endTime'] = self.sum(since, limit * duration * 1000)
+                if till is not None:
+                    request['endTime'] = till
+                else:
+                    request['endTime'] = self.sum(since, limit * duration * 1000)
         response = getattr(self, method)(self.extend(request, query))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
@@ -1780,6 +1800,16 @@ class bitget(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
@@ -1840,6 +1870,13 @@ class bitget(Exchange):
         return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
         self.load_markets()
@@ -1928,6 +1965,12 @@ class bitget(Exchange):
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2464,7 +2507,6 @@ class bitget(Exchange):
             'symbol': market['symbol'],
             'notional': None,
             'marginMode': marginMode,
-            'marginType': None,  # deprecated
             'liquidationPrice': liquidation,
             'entryPrice': self.safe_number(position, 'averageOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),
@@ -2539,6 +2581,12 @@ class bitget(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2632,6 +2680,13 @@ class bitget(Exchange):
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if amount > 0:
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
         holdSide = self.safe_string(params, 'holdSide')
@@ -2702,6 +2757,13 @@ class bitget(Exchange):
         return response
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         holdSide = self.safe_string(params, 'holdSide')
@@ -2718,6 +2780,13 @@ class bitget(Exchange):
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         marginMode = marginMode.lower()

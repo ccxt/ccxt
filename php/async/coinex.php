@@ -25,7 +25,7 @@ class coinex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => true,
                 'future' => false,
                 'option' => false,
@@ -905,7 +905,7 @@ class coinex extends Exchange {
         //          "date_ms" =>  1638990110518
         //      ),
         //
-        // Spot fetchMyTrades (private)
+        // Spot and Margin fetchMyTrades (private)
         //
         //      {
         //          "id" => 2611520950,
@@ -1055,6 +1055,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1082,6 +1088,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetMarketInfo ($params);
         //
@@ -1397,7 +1408,7 @@ class coinex extends Exchange {
         //         "type" => "sell",
         //     }
         //
-        // Spot createOrder, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, cancelOrder, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1491,7 +1502,7 @@ class coinex extends Exchange {
         //     }
         //
         //
-        // Spot fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id" => 0,
@@ -1550,7 +1561,7 @@ class coinex extends Exchange {
         //         "user_id" => 3620173
         //     }
         //
-        // Spot Stop fetchOpenOrders, fetchClosedOrders
+        // Spot and Margin Stop fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "account_id" => 0,
@@ -1657,6 +1668,16 @@ class coinex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
@@ -1877,6 +1898,13 @@ class coinex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $stop = $this->safe_value($params, 'stop');
@@ -1894,10 +1922,18 @@ class coinex extends Exchange {
                 $method = 'privateDeleteOrderStopPendingId';
             }
         }
-        $query = $this->omit($params, 'stop');
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' cancelOrder() requires an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $query = $this->omit($params, array( 'stop', 'account_id' ));
         $response = yield $this->$method (array_merge($request, $query));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -1998,7 +2034,7 @@ class coinex extends Exchange {
         //         "message":"OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     array("code":0,"data":array(),"message":"Success")
         //
@@ -2013,7 +2049,7 @@ class coinex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
-        $accountId = $this->safe_string($params, 'id', '0');
+        $accountId = $this->safe_integer($params, 'account_id', 0);
         $request = array(
             'market' => $marketId,
             // 'account_id' => $accountId, // SPOT, main account ID => 0, margin account ID => See < Inquire Margin Account Market Info >, future account ID => See < Inquire Future Account Market Info >
@@ -2034,10 +2070,10 @@ class coinex extends Exchange {
             }
             $request['account_id'] = $accountId;
         }
-        $params = $this->omit($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'account_id' ));
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     array("code" => 0, "data" => null, "message" => "Success")
         //
@@ -2049,6 +2085,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2213,9 +2255,18 @@ class coinex extends Exchange {
             }
             $request['page'] = 1;
         }
-        $response = yield $this->$method (array_merge($request, $query));
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
+            }
+            $request['account_id'] = $accountId;
+        }
+        $params = $this->omit($query, 'account_id');
+        $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 0,
@@ -2296,7 +2347,7 @@ class coinex extends Exchange {
         //         "message" => "OK"
         //     }
         //
-        // Spot Stop
+        // Spot and Margin Stop
         //
         //     {
         //         "code" => 0,
@@ -2515,9 +2566,18 @@ class coinex extends Exchange {
             $method = 'privateGetOrderUserDeals';
             $request['page'] = 1;
         }
+        $accountId = $this->safe_integer($params, 'account_id');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        if ($defaultType === 'margin') {
+            if ($accountId === null) {
+                throw new BadRequest($this->id . ' fetchMyTrades() requires an account_id parameter for margin trades');
+            }
+            $request['account_id'] = $accountId;
+            $params = $this->omit($params, 'account_id');
+        }
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //      {
         //          "code" => 0,
@@ -2827,7 +2887,6 @@ class coinex extends Exchange {
             'symbol' => $symbol,
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,
@@ -2850,6 +2909,13 @@ class coinex extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {str} $marginMode 'cross' or 'isolated'
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
@@ -2890,6 +2956,13 @@ class coinex extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -3087,6 +3160,13 @@ class coinex extends Exchange {
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {
+        /**
+         * remove margin from a position
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         */
         return yield $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
@@ -3157,6 +3237,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -3252,6 +3338,15 @@ class coinex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
@@ -3460,6 +3555,15 @@ class coinex extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
@@ -3858,9 +3962,9 @@ class coinex extends Exchange {
         $path = $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
-        $this->check_required_credentials();
         $nonce = (string) $this->nonce();
         if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
+            $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
                 'timestamp' => $nonce,
@@ -3883,6 +3987,7 @@ class coinex extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
+            $this->check_required_credentials();
             $query = array_merge(array(
                 'access_id' => $this->apiKey,
                 'tonce' => $nonce,

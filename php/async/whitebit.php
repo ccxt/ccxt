@@ -385,6 +385,12 @@ class whitebit extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         yield $this->load_markets();
         $response = yield $this->v4PublicGetFee ($params);
         //
@@ -432,6 +438,11 @@ class whitebit extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
         $response = yield $this->v4PublicGetAssets ($params);
         //
         //      {
@@ -810,7 +821,7 @@ class whitebit extends Exchange {
         $status = $this->safe_string($response, 0);
         return array(
             'status' => ($status === 'pong') ? 'ok' : $status,
-            'updated' => $this->milliseconds(),
+            'updated' => null,
             'eta' => null,
             'url' => null,
             'info' => $response,
@@ -833,6 +844,16 @@ class whitebit extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $method = null;
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -896,6 +917,13 @@ class whitebit extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -1228,6 +1256,15 @@ class whitebit extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType');
@@ -1280,6 +1317,15 @@ class whitebit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code); // check if it has canDeposit
         $request = array(

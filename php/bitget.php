@@ -1457,6 +1457,12 @@ class bitget extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1488,6 +1494,11 @@ class bitget extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->publicSpotGetPublicProducts ($params);
         //
@@ -1579,6 +1590,7 @@ class bitget extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @param {dict} $params->till timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1591,27 +1603,37 @@ class bitget extends Exchange {
             'spot' => 'publicSpotGetMarketCandles',
             'swap' => 'publicMixGetMarketCandles',
         ));
+        $till = $this->safe_integer($params, 'till');
+        if ($limit === null) {
+            $limit = 100;
+        }
         if ($market['type'] === 'spot') {
             $request['period'] = $this->timeframes['spot'][$timeframe];
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
+            $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
+                if ($till === null) {
+                    $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
+                    $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+                }
+            }
+            if ($till !== null) {
+                $request['before'] = $till;
             }
         } elseif ($market['type'] === 'swap') {
             $request['granularity'] = $this->timeframes['swap'][$timeframe];
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
-            if ($limit === null) {
-                $limit = 100;
-            }
             if ($since === null) {
                 $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
                 $request['endTime'] = $now;
             } else {
                 $request['startTime'] = $this->sum($since, $duration * 1000);
-                $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                if ($till !== null) {
+                    $request['endTime'] = $till;
+                } else {
+                    $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                }
             }
         }
         $response = $this->$method (array_merge($request, $query));
@@ -1809,6 +1831,16 @@ class bitget extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
@@ -1878,6 +1910,13 @@ class bitget extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for spot orders');
         }
@@ -1975,6 +2014,12 @@ class bitget extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2538,7 +2583,6 @@ class bitget extends Exchange {
             'symbol' => $market['symbol'],
             'notional' => null,
             'marginMode' => $marginMode,
-            'marginType' => null, // deprecated
             'liquidationPrice' => $liquidation,
             'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),
@@ -2618,6 +2662,12 @@ class bitget extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -2716,6 +2766,13 @@ class bitget extends Exchange {
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {
+        /**
+         * remove margin from a position
+         * @param {str} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         */
         if ($amount > 0) {
             throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
         }
@@ -2799,6 +2856,13 @@ class bitget extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -2818,6 +2882,13 @@ class bitget extends Exchange {
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {str} $marginMode 'cross' or 'isolated'
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }

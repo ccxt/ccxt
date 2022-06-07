@@ -395,7 +395,7 @@ class mexc(Exchange):
         status = 'ok' if (code == 200) else 'maintenance'
         return {
             'status': status,
-            'updated': self.milliseconds(),
+            'updated': None,
             'eta': None,
             'url': None,
             'info': response,
@@ -1151,6 +1151,11 @@ class mexc(Exchange):
         }, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.spotPublicGetMarketSymbols(params)
         #
@@ -1722,7 +1727,6 @@ class mexc(Exchange):
             'leverage': self.parse_number(leverage),
             'percentage': None,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'notional': None,
             'markPrice': None,
             'liquidationPrice': liquidationPrice,
@@ -1736,6 +1740,16 @@ class mexc(Exchange):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
@@ -1868,6 +1882,13 @@ class mexc(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -2085,7 +2106,7 @@ class mexc(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'vol')
         remaining = self.safe_string(order, 'remain_quantity')
         filled = self.safe_string_2(order, 'deal_quantity', 'dealVol')
-        cost = self.safe_string_2(order, 'deal_amount', 'dealAvgPrice')
+        cost = self.safe_string(order, 'deal_amount')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         sideCheck = self.safe_integer(order, 'side')
@@ -2153,7 +2174,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
-            'average': None,
+            'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,
@@ -2274,6 +2295,12 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2562,12 +2589,26 @@ class mexc(Exchange):
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         request = {
             'leverage': leverage,
@@ -2646,6 +2687,15 @@ class mexc(Exchange):
         return self.parse_transfers(resultList, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2708,6 +2758,15 @@ class mexc(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
@@ -2894,6 +2953,12 @@ class mexc(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {

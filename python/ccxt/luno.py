@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -145,6 +146,7 @@ class luno(Exchange):
                     'maker': self.parse_number('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def fetch_markets(self, params={}):
@@ -208,8 +210,8 @@ class luno(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'volume_scale'),
-                    'price': self.safe_integer(market, 'price_scale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -395,6 +397,12 @@ class luno(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by luno fetchOrder
+        :param dict params: extra parameters specific to the luno api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -660,6 +668,11 @@ class luno(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the luno api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetFeeInfo(params)
         return {
@@ -669,6 +682,16 @@ class luno(Exchange):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the luno api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         method = 'privatePost'
         request = {
@@ -694,6 +717,13 @@ class luno(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the luno api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': id,

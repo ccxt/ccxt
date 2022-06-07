@@ -365,6 +365,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes list of unified currency codes
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
@@ -642,6 +650,14 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by buda fetchOrder
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),
@@ -681,6 +697,18 @@ module.exports = class buda extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         side = (side === 'buy') ? 'Bid' : 'Ask';
         const request = {
@@ -698,6 +726,15 @@ module.exports = class buda extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by buda cancelOrder ()
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),
@@ -941,6 +978,17 @@ module.exports = class buda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

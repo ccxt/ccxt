@@ -1230,6 +1230,11 @@ class ascendex(Exchange):
         }, market)
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         await self.load_accounts()
         account = self.safe_value(self.accounts, 0, {})
@@ -1271,6 +1276,16 @@ class ascendex(Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
@@ -1401,6 +1416,12 @@ class ascendex(Exchange):
         return self.parse_order(order, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.load_accounts()
         market = None
@@ -1755,6 +1776,13 @@ class ascendex(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -2249,7 +2277,6 @@ class ascendex(Exchange):
             'symbol': market['symbol'],
             'notional': notional,
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'liquidationPrice': None,
             'entryPrice': self.safe_number(position, 'avgOpenPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
@@ -2377,12 +2404,26 @@ class ascendex(Exchange):
         }
 
     async def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     async def add_margin(self, symbol, amount, params={}):
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < 1) or (leverage > 100):
@@ -2402,6 +2443,13 @@ class ascendex(Exchange):
         return await self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
     async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: response from the exchange
+        """
         marginMode = marginMode.lower()
         if marginMode == 'cross':
             marginMode = 'crossed'
@@ -2502,6 +2550,15 @@ class ascendex(Exchange):
         return tiers
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         await self.load_accounts()
         account = self.safe_value(self.accounts, 0, {})

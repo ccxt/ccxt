@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -274,6 +275,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'timeframes': {
                 '1m': '1m', // spot, swap
                 '3m': '3m', // spot
@@ -424,6 +426,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         let status = undefined;
+        let updated = undefined;
         if (marketType === 'spot') {
             response = await this.spotPublicGetPing (query);
             //
@@ -436,10 +439,12 @@ module.exports = class mexc3 extends Exchange {
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
             status = this.safeValue (response, 'success') ? 'ok' : this.json (response);
+            updated = this.safeInteger (response, 'data');
         }
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': updated,
+            'url': undefined,
             'eta': undefined,
             'info': response,
         };
@@ -526,8 +531,8 @@ module.exports = class mexc3 extends Exchange {
                 const isWithdrawEnabled = this.safeValue (chain, 'is_withdraw_enabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
                 currencyActive = active || currencyActive;
-                const precisionDigits = this.safeInteger (chain, 'precision');
-                const precision = 1 / Math.pow (10, precisionDigits);
+                const precisionDigits = this.safeString (chain, 'precision');
+                const precision = this.parseNumber (this.parsePrecision (precisionDigits));
                 const withdrawMin = this.safeString (chain, 'withdraw_limit_min');
                 const withdrawMax = this.safeString (chain, 'withdraw_limit_max');
                 currencyWithdrawMin = (currencyWithdrawMin === undefined) ? withdrawMin : currencyWithdrawMin;
@@ -635,32 +640,41 @@ module.exports = class mexc3 extends Exchange {
         //         "exchangeFilters": [],
         //         "symbols": [
         //           {
-        //             "symbol": "BTCUSDT",
-        //             "status": "ENABLED",
-        //             "baseAsset": "BTC",
-        //             "baseAssetPrecision": 6,
-        //             "quoteAsset": "USDT",
-        //             "quotePrecision": 2,
-        //             "quoteAssetPrecision": 2,
-        //             "baseCommissionPrecision": 6,
-        //             "quoteCommissionPrecision": 2,
-        //             "orderTypes": [
-        //               "LIMIT",
-        //               "LIMIT_MAKER"
-        //             ],
-        //             "icebergAllowed": false,
-        //             "ocoAllowed": false,
-        //             "quoteOrderQtyMarketAllowed": false,
-        //             "isSpotTradingAllowed": true,
-        //             "isMarginTradingAllowed": false,
-        //             "permissions": [
-        //               "SPOT"
-        //             ],
-        //             "filters": []
-        //           },
+        //                "symbol": "OGNUSDT",
+        //                "status": "ENABLED",
+        //                "baseAsset": "OGN",
+        //                "baseAssetPrecision": "2",
+        //                "quoteAsset": "USDT",
+        //                "quotePrecision": "4",
+        //                "quoteAssetPrecision": "4",
+        //                "baseCommissionPrecision": "2",
+        //                "quoteCommissionPrecision": "4",
+        //                "orderTypes": [
+        //                    "LIMIT",
+        //                    "LIMIT_MAKER"
+        //                ],
+        //                "quoteOrderQtyMarketAllowed": false,
+        //                "isSpotTradingAllowed": true,
+        //                "isMarginTradingAllowed": true,
+        //                "permissions": [
+        //                    "SPOT",
+        //                    "MARGIN"
+        //                ],
+        //                "filters": [],
+        //                "quoteAmountPrecision": "5",
+        //                "baseSizePrecision": "0.01",
+        //                "maxQuoteAmount": "5000000",
+        //                "makerCommission": "0.002",
+        //                "takerCommission": "0.002"
+        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+        //            },
         //         ]
         //     }
         //
+        // Notes:
+        // - 'quotePrecision' seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
+        // - 'baseSizePrecision' seems useless at this moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
+        // - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
         const data = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -671,6 +685,15 @@ module.exports = class mexc3 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
+            const makerCommission = this.safeNumber (market, 'makerCommission');
+            const takerCommission = this.safeNumber (market, 'takerCommission');
+            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
+            const baseAssetPrecision = this.safeString (market, 'baseAssetPrecision');
+            const quoteAssetPrecision = this.safeString (market, 'quoteAssetPrecision');
+            const precisionBase = this.parseNumber (this.parsePrecision (baseAssetPrecision));
+            const precisionQuote = this.parseNumber (this.parsePrecision (quoteAssetPrecision));
+            const precisionPrice = precisionQuote;
+            const precisionCost = precisionQuote;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -690,18 +713,20 @@ module.exports = class mexc3 extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': takerCommission,
+                'maker': makerCommission,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'baseAssetPrecision'),
-                    'price': this.safeInteger (market, 'quotePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quoteAssetPrecision'),
+                    'amount': precisionBase,
+                    'price': precisionPrice,
+                    'cost': precisionCost,
+                    // note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
+                    // 'base': precisionBase,
+                    // 'quote': precisionQuote,
                 },
                 'limits': {
                     'leverage': {
@@ -718,7 +743,7 @@ module.exports = class mexc3 extends Exchange {
                     },
                     'cost': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': maxQuoteAmount,
                     },
                 },
                 'info': market,
@@ -1563,6 +1588,18 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -1721,6 +1758,14 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2060,6 +2105,15 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2451,6 +2505,13 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper ('spot', params);
         let makerFee = this.safeString (response, 'makerCommission');
@@ -2693,14 +2754,41 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name mexc3#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name mexc3#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         const request = {
             'leverage': leverage,
@@ -2831,6 +2919,14 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3555,6 +3651,17 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name mexc3#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accounts = {
@@ -3666,6 +3773,17 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH

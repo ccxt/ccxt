@@ -1154,6 +1154,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1174,6 +1182,13 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchTradingFees (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -1329,6 +1344,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1499,6 +1522,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -1544,6 +1576,18 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1731,6 +1775,17 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         // account can be "spot", "wallet", or "derivatives"
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1815,6 +1870,17 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -2096,6 +2162,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -2230,6 +2304,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         if (amount !== 0) {
             throw new BadRequest (this.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount');
         }
@@ -2237,6 +2320,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -2286,6 +2378,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');

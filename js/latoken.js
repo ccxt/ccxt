@@ -421,8 +421,7 @@ module.exports = class latoken extends Exchange {
             const id = this.safeString (currency, 'id');
             const tag = this.safeString (currency, 'tag');
             const code = this.safeCurrencyCode (tag);
-            const decimals = this.safeString (currency, 'decimals');
-            const precision = this.parseNumber ('1e-' + decimals);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
             const parts = currencyType.split ('_');
@@ -784,6 +783,14 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name latoken#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the latoken api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
@@ -1095,6 +1102,14 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name latoken#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by latoken fetchOrder
+         * @param {dict} params extra parameters specific to the latoken api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -1124,6 +1139,18 @@ module.exports = class latoken extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name latoken#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the latoken api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
@@ -1159,6 +1186,15 @@ module.exports = class latoken extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name latoken#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by latoken cancelOrder ()
+         * @param {dict} params extra parameters specific to the latoken api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -1357,6 +1393,17 @@ module.exports = class latoken extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name latoken#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the latoken api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let method = undefined;

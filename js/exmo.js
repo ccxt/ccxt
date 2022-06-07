@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -191,6 +192,7 @@ module.exports = class exmo extends Exchange {
             'commonCurrencies': {
                 'GMT': 'GMT Token',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '40005': AuthenticationError, // Authorization error, incorrect signature
@@ -262,14 +264,39 @@ module.exports = class exmo extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name exmo#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name exmo#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
@@ -390,6 +417,14 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes list of unified currency codes
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
+         */
         await this.loadMarkets ();
         const currencyList = await this.publicGetCurrencyListExtended (params);
         //
@@ -494,17 +529,7 @@ module.exports = class exmo extends Exchange {
         //             { "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 },
         //             { "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 },
         //             { "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 },
-        //             {
-        //                 "type":"withdraw",
-        //                 "name":"USDT (ERC20)",
-        //                 "currency_name":"USDT",
-        //                 "min":"55",
-        //                 "max":"200000",
-        //                 "enabled":true,
-        //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
-        //                 "commission_desc":"10 USDT",
-        //                 "currency_confirmations":6
-        //             },
+        //             { "type":"withdraw", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"55", "max":"200000", "enabled":true, "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",  "commission_desc":"10 USDT", "currency_confirmations":6 },
         //             { "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 },
         //             { "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 }
         //         ],
@@ -584,7 +609,7 @@ module.exports = class exmo extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': 8,
+                'precision': this.parseNumber (this.parsePrecision ('8')),
                 'limits': limits,
                 'info': providers,
             };
@@ -654,8 +679,8 @@ module.exports = class exmo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'),
-                    'price': this.safeInteger (market, 'price_precision'),
+                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1136,6 +1161,18 @@ module.exports = class exmo extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const prefix = (type === 'market') ? (type + '_') : '';
@@ -1206,12 +1243,29 @@ module.exports = class exmo extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by exmo cancelOrder ()
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = { 'order_id': id };
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by exmo fetchOrder
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id.toString (),
@@ -1515,6 +1569,17 @@ module.exports = class exmo extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);

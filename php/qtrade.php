@@ -149,6 +149,7 @@ class qtrade extends Exchange {
             'commonCurrencies' => array(
                 'BTM' => 'Bitmark',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'invalid_auth' => '\\ccxt\\AuthenticationError',
@@ -193,8 +194,8 @@ class qtrade extends Exchange {
         //                     "market_string":"BAC_BTC",
         //                     "minimum_sell_amount":"0.0001",
         //                     "minimum_buy_value":"0.0001",
-        //                     "market_precision":8,
-        //                     "base_precision":8
+        //                     "market_precision":8, // note, they have reversed understanding of 'quote' vs 'base' concepts
+        //                     "base_precision":8 // as noted in above comment
         //                 ),
         //             ),
         //         }
@@ -242,8 +243,8 @@ class qtrade extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'market_precision'),
-                    'price' => $this->safe_integer($market, 'base_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -341,7 +342,7 @@ class qtrade extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'fee' => $this->safe_number($config, 'withdraw_fee'),
-                'precision' => $this->safe_integer($currency, 'precision'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'active' => $active,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
@@ -766,6 +767,12 @@ class qtrade extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -863,6 +870,16 @@ class qtrade extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' createOrder() allows limit orders only');
         }
@@ -1032,6 +1049,13 @@ class qtrade extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by qtrade cancelOrder ()
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $request = array(
             'id' => intval($id),
         );
@@ -1040,6 +1064,12 @@ class qtrade extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol not used by qtrade fetchOrder
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $request = array( 'order_id' => $id );
         $response = $this->privateGetOrderOrderId (array_merge($request, $params));
@@ -1604,6 +1634,15 @@ class qtrade extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
         $currency = $this->currency($code);

@@ -409,7 +409,6 @@ module.exports = class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             const platform = this.safeValue (platformsByPriority, 0, {});
-            const precision = this.safeInteger (platform, 'precision');
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
             const deposit = !depositSuspended;
@@ -439,7 +438,7 @@ module.exports = class probit extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (platform, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -995,6 +994,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1095,6 +1102,18 @@ module.exports = class probit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeInForce');
@@ -1172,6 +1191,15 @@ module.exports = class probit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1244,6 +1272,17 @@ module.exports = class probit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and

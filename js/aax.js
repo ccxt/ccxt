@@ -1232,6 +1232,18 @@ module.exports = class aax extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         await this.loadMarkets ();
@@ -1476,6 +1488,15 @@ module.exports = class aax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderID': id,
@@ -1605,6 +1626,14 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         params['type'] = this.safeString (params, 'type', defaultType);
@@ -2347,6 +2376,14 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -2557,6 +2594,15 @@ module.exports = class aax extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -2615,6 +2661,17 @@ module.exports = class aax extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name aax#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
@@ -2706,33 +2763,58 @@ module.exports = class aax extends Exchange {
         const contractSize = this.safeString (market, 'contractSize');
         const initialQuote = Precise.stringMul (currentQty, contractSize);
         const marketPrice = this.safeString (position, 'marketPrice');
-        const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         const liquidationPrice = this.safeString (position, 'liquidationPrice');
-        const marginMode = this.safeString (position, 'settleType');
+        const marketInfo = this.safeValue (market, 'info');
+        const multiplier = this.safeString (marketInfo, 'multiplier');
+        const settleType = this.safeString (position, 'settleType');
+        const avgEntryPrice = this.safeString (position, 'avgEntryPrice');
+        const commission = this.safeString (position, 'commission');
+        let initialMargin = undefined;
+        let maintenanceMargin = undefined;
+        let notional = undefined;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
+        if (settleType === 'VANILLA') {
+            notional = Precise.stringMul (initialQuote, marketPrice);
+            // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.stringDiv (Precise.stringMul (Precise.stringMul (currentQty, avgEntryPrice), multiplier), leverage);
+            // Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            const tmp = Precise.stringDiv (Precise.stringMul (currentQty, multiplier), Precise.stringMul (avgEntryPrice, leverage));
+            maintenanceMargin = Precise.stringAdd (tmp, commission);
+        } else {
+            // inverse contracts
+            notional = Precise.stringDiv (initialQuote, marketPrice);
+            // Initial Margin (Limit Order) = Number of contracts / Entry Price / Leverage
+            // ^ no brackets /<::>\
+            initialMargin = Precise.stringDiv (currentQty, Precise.stringMul (leverage, avgEntryPrice));
+            // Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin;
+        }
+        const collateral = this.safeString (position, 'posMargin');
+        const percentage = Precise.stringDiv (unrealisedPnl, initialMargin);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMargin, notional)),
+            'entryPrice': this.parseNumber (avgEntryPrice),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
-            'marginRatio': undefined,
+            'marginRatio': this.parseNumber (marginRatio),
             'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
-            'collateral': this.safeNumber (position, 'posMargin'),
-            'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
+            'collateral': this.parseNumber (collateral),
+            'marginMode': 'isolated',
             'side': side,
-            'percentage': undefined,
+            'percentage': this.parseNumber (percentage),
         };
     }
 

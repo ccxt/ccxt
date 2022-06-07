@@ -18,7 +18,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class novadax(Exchange):
@@ -160,6 +160,7 @@ class novadax(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'A99999': ExchangeError,  # 500 Failed Internal error
@@ -278,9 +279,9 @@ class novadax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
-                    'cost': self.safe_integer(market, 'valuePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -686,6 +687,16 @@ class novadax(Exchange):
         return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
@@ -729,8 +740,7 @@ class novadax(Exchange):
                         raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'value' extra parameter(the exchange-specific behaviour)")
                 else:
                     value = amount if (value is None) else value
-                precision = market['precision']['price']
-                request['value'] = self.decimal_to_precision(value, TRUNCATE, precision, self.precisionMode)
+                request['value'] = self.cost_to_precision(symbol, value)
         request['type'] = uppercaseType
         response = await self.privatePostOrdersCreate(self.extend(request, params))
         #
@@ -760,6 +770,13 @@ class novadax(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by novadax cancelOrder()
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -778,6 +795,12 @@ class novadax(Exchange):
         return self.parse_order(data)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by novadax fetchOrder
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -983,6 +1006,15 @@ class novadax(Exchange):
         }, market)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         if fromAccount != 'main' and toAccount != 'main':
@@ -1042,6 +1074,15 @@ class novadax(Exchange):
         return self.safe_string(statuses, status, 'failed')
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the novadax api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         currency = self.currency(code)

@@ -30,6 +30,7 @@ module.exports = class bitmart extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -428,7 +429,7 @@ module.exports = class bitmart extends Exchange {
         }
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': eta,
             'url': undefined,
             'info': response,
@@ -1595,7 +1596,7 @@ module.exports = class bitmart extends Exchange {
         //         "symbol":"BTC_USDT",
         //         "create_time":1591096004000,
         //         "side":"sell",
-        //         "type":"market",
+        //         "type":"market", // limit, market, limit_maker, ioc
         //         "price":"0.00",
         //         "price_avg":"0.00",
         //         "size":"0.02000",
@@ -1658,6 +1659,17 @@ module.exports = class bitmart extends Exchange {
         } else if (category === 2) {
             type = 'market';
         }
+        let timeInForce = undefined;
+        let postOnly = undefined;
+        if (type === 'limit_maker') {
+            type = 'limit';
+            postOnly = true;
+            timeInForce = 'PO';
+        }
+        if (type === 'ioc') {
+            type = 'limit';
+            timeInForce = 'IOC';
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1667,8 +1679,8 @@ module.exports = class bitmart extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1706,19 +1718,40 @@ module.exports = class bitmart extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
+        }
+        const isMarketOrder = type === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, type === 'limit_maker', params);
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
         let method = undefined;
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['side'] = side;
             request['type'] = type;
             method = 'privateSpotPostSubmitOrder';
-            if (type === 'limit') {
+            if (isLimitOrder) {
                 request['size'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
-            } else if (type === 'market') {
+            } else if (isMarketOrder) {
                 // for market buy it requires the amount of quote currency to spend
                 if (side === 'buy') {
                     let notional = this.safeNumber (params, 'notional');
@@ -1743,26 +1776,11 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' createOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if ((timeInForce !== undefined) || postOnly || (type === 'limit_maker') || (type === 'ioc')) {
-            if (timeInForce === 'FOK') {
-                throw new InvalidOrder (this.id + ' createOrder () only accepts timeInForce parameter values of IOC or PO');
-            }
-            const maker = ((timeInForce === 'PO') || postOnly || (type === 'limit_maker'));
-            const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
-            if (maker && ioc) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept IOC postOnly orders, the order cannot be both postOnly and IOC');
-            }
-            if (type === 'market') {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept market postOnly orders or market IOC orders, only limit postOnly order or limit IOC orders are allowed');
-            }
-            if (maker) {
-                request['type'] = 'limit_maker';
-            } else if (ioc) {
-                request['type'] = 'ioc';
-            }
-            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        if (postOnly) {
+            request['type'] = 'limit_maker';
+        }
+        if (ioc) {
+            request['type'] = 'ioc';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1782,6 +1800,15 @@ module.exports = class bitmart extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder () requires a symbol argument');
         }
@@ -1993,6 +2020,14 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2137,6 +2172,17 @@ module.exports = class bitmart extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

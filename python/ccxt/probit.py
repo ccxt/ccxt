@@ -416,7 +416,6 @@ class probit(Exchange):
             platforms = self.safe_value(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
             platform = self.safe_value(platformsByPriority, 0, {})
-            precision = self.safe_integer(platform, 'precision')
             depositSuspended = self.safe_value(platform, 'deposit_suspended')
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
             deposit = not depositSuspended
@@ -444,7 +443,7 @@ class probit(Exchange):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -947,6 +946,12 @@ class probit(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -1039,6 +1044,16 @@ class probit(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeInForce')
@@ -1108,6 +1123,13 @@ class probit(Exchange):
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -1172,6 +1194,15 @@ class probit(Exchange):
         return self.parse_deposit_addresses(data)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and

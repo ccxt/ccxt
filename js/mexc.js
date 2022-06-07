@@ -386,7 +386,7 @@ module.exports = class mexc extends Exchange {
         const status = (code === 200) ? 'ok' : 'maintenance';
         return {
             'status': status,
-            'updated': this.milliseconds (),
+            'updated': undefined,
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1191,6 +1191,13 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.spotPublicGetMarketSymbols (params);
         //
@@ -1807,7 +1814,6 @@ module.exports = class mexc extends Exchange {
             'leverage': this.parseNumber (leverage),
             'percentage': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode, // deprecated
             'notional': undefined,
             'markPrice': undefined,
             'liquidationPrice': liquidationPrice,
@@ -1822,6 +1828,18 @@ module.exports = class mexc extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
@@ -1975,6 +1993,15 @@ module.exports = class mexc extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2203,7 +2230,7 @@ module.exports = class mexc extends Exchange {
         const amount = this.safeString2 (order, 'quantity', 'vol');
         const remaining = this.safeString (order, 'remain_quantity');
         const filled = this.safeString2 (order, 'deal_quantity', 'dealVol');
-        const cost = this.safeString2 (order, 'deal_amount', 'dealAvgPrice');
+        const cost = this.safeString (order, 'deal_amount');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const sideCheck = this.safeInteger (order, 'side');
@@ -2275,7 +2302,7 @@ module.exports = class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
-            'average': undefined,
+            'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,
             'filled': filled,
@@ -2400,6 +2427,14 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2713,14 +2748,41 @@ module.exports = class mexc extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name mexc#reduceMargin
+         * @description remove margin from a position
+         * @param {str} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
     async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name mexc#addMargin
+         * @description add margin
+         * @param {str} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} response from the exchange
+         */
         await this.loadMarkets ();
         const request = {
             'leverage': leverage,
@@ -2808,6 +2870,17 @@ module.exports = class mexc extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name mexc#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
@@ -2872,6 +2945,17 @@ module.exports = class mexc extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
@@ -3075,6 +3159,14 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

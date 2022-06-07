@@ -10,6 +10,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -153,6 +154,7 @@ class qtrade(Exchange):
             'commonCurrencies': {
                 'BTM': 'Bitmark',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'invalid_auth': AuthenticationError,
@@ -196,8 +198,8 @@ class qtrade(Exchange):
         #                     "market_string":"BAC_BTC",
         #                     "minimum_sell_amount":"0.0001",
         #                     "minimum_buy_value":"0.0001",
-        #                     "market_precision":8,
-        #                     "base_precision":8
+        #                     "market_precision":8,  # note, they have reversed understanding of 'quote' vs 'base' concepts
+        #                     "base_precision":8  # as noted in above comment
         #                 },
         #             ],
         #         }
@@ -245,8 +247,8 @@ class qtrade(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'market_precision'),
-                    'price': self.safe_integer(market, 'base_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'base_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -342,7 +344,7 @@ class qtrade(Exchange):
                 'type': type,
                 'name': name,
                 'fee': self.safe_number(config, 'withdraw_fee'),
-                'precision': self.safe_integer(currency, 'precision'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdraw,
@@ -750,6 +752,12 @@ class qtrade(Exchange):
         }, market)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -842,6 +850,16 @@ class qtrade(Exchange):
         return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if type != 'limit':
             raise InvalidOrder(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
@@ -1006,6 +1024,13 @@ class qtrade(Exchange):
         }, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by qtrade cancelOrder()
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'id': int(id),
         }
@@ -1013,6 +1038,12 @@ class qtrade(Exchange):
         return self.privatePostCancelOrder(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by qtrade fetchOrder
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {'order_id': id}
         response = self.privateGetOrderOrderId(self.extend(request, params))
@@ -1555,6 +1586,15 @@ class qtrade(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the qtrade api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         currency = self.currency(code)

@@ -822,6 +822,16 @@ class bigone extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $side = ($side === 'buy') ? 'BID' : 'ASK';
@@ -873,6 +883,13 @@ class bigone extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol Not used by bigone cancelOrder ()
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array( 'id' => $id );
         $response = yield $this->privatePostOrdersIdCancel (array_merge($request, $params));
@@ -915,6 +932,12 @@ class bigone extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol not used by bigone fetchOrder
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array( 'id' => $id );
         $response = yield $this->privateGetOrdersId (array_merge($request, $params));
@@ -1299,6 +1322,15 @@ class bigone extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
@@ -1362,6 +1394,15 @@ class bigone extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bigone api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $currency = $this->currency($code);

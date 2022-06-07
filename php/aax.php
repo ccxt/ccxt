@@ -1217,6 +1217,16 @@ class aax extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $orderType = strtoupper($type);
         $orderSide = strtoupper($side);
         $this->load_markets();
@@ -1461,6 +1471,13 @@ class aax extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'orderID' => $id,
@@ -1590,6 +1607,12 @@ class aax extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol unified $symbol of the market the $order was made in
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
         $params['type'] = $this->safe_string($params, 'type', $defaultType);
@@ -2332,6 +2355,12 @@ class aax extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -2540,6 +2569,13 @@ class aax extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} response from the exchange
+         */
         $this->load_markets();
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
@@ -2598,6 +2634,15 @@ class aax extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
@@ -2689,33 +2734,58 @@ class aax extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $initialQuote = Precise::string_mul($currentQty, $contractSize);
         $marketPrice = $this->safe_string($position, 'marketPrice');
-        $notional = Precise::string_mul($initialQuote, $marketPrice);
         $timestamp = $this->safe_integer($position, 'ts');
         $liquidationPrice = $this->safe_string($position, 'liquidationPrice');
-        $marginMode = $this->safe_string($position, 'settleType');
+        $marketInfo = $this->safe_value($market, 'info');
+        $multiplier = $this->safe_string($marketInfo, 'multiplier');
+        $settleType = $this->safe_string($position, 'settleType');
+        $avgEntryPrice = $this->safe_string($position, 'avgEntryPrice');
+        $commission = $this->safe_string($position, 'commission');
+        $initialMargin = null;
+        $maintenanceMargin = null;
+        $notional = null;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
+        if ($settleType === 'VANILLA') {
+            $notional = Precise::string_mul($initialQuote, $marketPrice);
+            // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
+            $initialMargin = Precise::string_div(Precise::string_mul(Precise::string_mul($currentQty, $avgEntryPrice), $multiplier), $leverage);
+            // Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) . Commission fees
+            $tmp = Precise::string_div(Precise::string_mul($currentQty, $multiplier), Precise::string_mul($avgEntryPrice, $leverage));
+            $maintenanceMargin = Precise::string_add($tmp, $commission);
+        } else {
+            // inverse contracts
+            $notional = Precise::string_div($initialQuote, $marketPrice);
+            // Initial Margin (Limit Order) = Number of contracts / Entry Price / Leverage
+            // ^ no brackets /<::>\
+            $initialMargin = Precise::string_div($currentQty, Precise::string_mul($leverage, $avgEntryPrice));
+            // Maintenance Margin = Number of contracts / Entry price / Leverage
+            $maintenanceMargin = $initialMargin;
+        }
+        $collateral = $this->safe_string($position, 'posMargin');
+        $percentage = Precise::string_div($unrealisedPnl, $initialMargin);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'initialMargin' => null,
-            'initialMarginPercentage' => null,
-            'maintenanceMargin' => null,
-            'maintenanceMarginPercentage' => null,
-            'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMargin, $notional)),
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMargin, $notional)),
+            'entryPrice' => $this->parse_number($avgEntryPrice),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number($size),
             'contractSize' => $this->parse_number($contractSize),
-            'marginRatio' => null,
+            'marginRatio' => $this->parse_number($marginRatio),
             'liquidationPrice' => $liquidationPrice,
             'markPrice' => $this->safe_number($position, 'marketPrice'),
-            'collateral' => $this->safe_number($position, 'posMargin'),
-            'marginMode' => $marginMode,
-            'marginType' => $marginMode, // deprecated
+            'collateral' => $this->parse_number($collateral),
+            'marginMode' => 'isolated',
             'side' => $side,
-            'percentage' => null,
+            'percentage' => $this->parse_number($percentage),
         );
     }
 

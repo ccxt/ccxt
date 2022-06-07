@@ -24,7 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1133,7 +1132,6 @@ class okcoin(Exchange):
                 currency = response[i]
                 id = self.safe_string(currency, 'currency')
                 code = self.safe_currency_code(id)
-                precision = 0.00000001  # default precision, todo: fix "magic constants"
                 name = self.safe_string(currency, 'name')
                 canDeposit = self.safe_integer(currency, 'can_deposit')
                 canWithdraw = self.safe_integer(currency, 'can_withdraw')
@@ -1150,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': precision,
+                    'precision': self.parse_number('0.00000001'),
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {
@@ -2023,6 +2021,16 @@ class okcoin(Exchange):
         raise NotSupported(self.id + " fetchBalance does not support the '" + type + "' type(the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')")
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2075,8 +2083,7 @@ class okcoin(Exchange):
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
-                    precision = market['precision']['price']
-                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
+                    request['notional'] = self.cost_to_precision(symbol, notional)
                 else:
                     request['size'] = self.amount_to_precision(symbol, amount)
             method = 'marginPostOrders' if (marginTrading == '2') else 'spotPostOrders'
@@ -2097,6 +2104,13 @@ class okcoin(Exchange):
         })
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -2304,6 +2318,12 @@ class okcoin(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
@@ -2553,6 +2573,15 @@ class okcoin(Exchange):
         return address
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2632,6 +2661,15 @@ class okcoin(Exchange):
         return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()

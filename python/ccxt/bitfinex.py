@@ -251,6 +251,8 @@ class bitfinex(Exchange):
                 'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
                 'MNA': 'MANA',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
                 'PAS': 'PASS',
@@ -259,7 +261,7 @@ class bitfinex(Exchange):
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
-                'TERRAUST': 'UST',
+                'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
                 'YGG': 'YEED',  # conflict with Yield Guild Games
                 'YYW': 'YOYOW',
@@ -401,6 +403,12 @@ class bitfinex(Exchange):
         })
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         response = self.privatePostAccountFees(params)
         fees = response['withdraw']
@@ -417,6 +425,11 @@ class bitfinex(Exchange):
         }
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privatePostSummary(params)
         #
@@ -649,6 +662,15 @@ class bitfinex(Exchange):
         return self.safe_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
         self.load_markets()
@@ -923,6 +945,16 @@ class bitfinex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['postOnly'])
@@ -963,6 +995,13 @@ class bitfinex(Exchange):
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bitfinex cancelOrder()
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': int(id),
@@ -1064,6 +1103,12 @@ class bitfinex(Exchange):
         return orders
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by bitfinex fetchOrder
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': int(id),
@@ -1286,6 +1331,15 @@ class bitfinex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
