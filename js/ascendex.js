@@ -2434,7 +2434,7 @@ module.exports = class ascendex extends Exchange {
         };
     }
 
-    async fetchFundingRates (symbols, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
         /**
          * @method
          * @name ascendex#fetchFundingRates
