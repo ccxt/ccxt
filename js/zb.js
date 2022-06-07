@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -309,6 +310,7 @@ module.exports = class zb extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'ws': {
                     // '1000': ExchangeError, // The call is successful.
@@ -670,8 +672,8 @@ module.exports = class zb extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (amountPrecisionString),
-                    'price': parseInt (pricePrecisionString),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -744,7 +746,6 @@ module.exports = class zb extends Exchange {
             const id = ids[i];
             const currency = currencies[id];
             const code = this.safeCurrencyCode (id);
-            const precision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
             const fees = {};
@@ -764,7 +765,7 @@ module.exports = class zb extends Exchange {
                 'id': id,
                 'name': undefined,
                 'code': code,
-                'precision': precision,
+                'precision': undefined,
                 'info': currency,
                 'active': active,
                 'deposit': isDepositEnabled,
