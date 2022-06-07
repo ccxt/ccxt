@@ -332,7 +332,7 @@ module.exports = class xena extends Exchange {
             }
             const inverse = this.safeValue (market, 'inverse', false);
             const contract = swap || future;
-            const pricePrec = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
+            const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -360,7 +360,7 @@ module.exports = class xena extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision ('0')),
-                    'price': this.parseNumber (this.parsePrecision (pricePrec)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
