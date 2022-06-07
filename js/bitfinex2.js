@@ -398,14 +398,6 @@ module.exports = class bitfinex2 extends Exchange {
         return 'f' + code;
     }
 
-    getCurrencyName (code) {
-        // temporary fix for transpiler recognition, even though this is in parent class
-        if (code in this.options['currencyNames']) {
-            return this.options['currencyNames'][code];
-        }
-        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
-    }
-
     async fetchStatus (params = {}) {
         /**
          * @method
@@ -672,7 +664,7 @@ module.exports = class bitfinex2 extends Exchange {
             const id = ids[i];
             if (id.indexOf ('F0') >= 0) {
                 // we get a lot of F0 currencies, skip those
-                // continue;
+                continue;
             }
             const code = this.safeCurrencyCode (id);
             const label = this.safeValue (indexed['label'], id, []);
@@ -1848,10 +1840,17 @@ module.exports = class bitfinex2 extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        const name = this.getCurrencyName (code);
+        const currency = this.currency (code);
+        // if not provided explicitly we will try to match using the currency name
+        const network = this.safeString (params, 'network', code);
+        params = this.omit (params, 'network');
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const networkId = this.safeString (currencyNetworks, network);
+        if (networkId === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network '" + code + "'. You can specify it by providing the 'network' value inside params");
+        }
         const request = {
-            'method': name,
+            'method': networkId,
             'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             'op_renew': 0, // a value of 1 will generate a new address
         };
