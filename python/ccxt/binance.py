@@ -5403,6 +5403,13 @@ class binance(Exchange):
         }
 
     def create_gift_code(self, code, amount, params={}):
+        """
+        create gift code
+        :param str code: gift code
+        :param float amount: amount of currency for the gift
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: The gift code id, code, currency and amount
+        """
         self.load_markets()
         currency = self.currency(code)
         # ensure you have enough token in your funding account before calling self code
@@ -5431,6 +5438,12 @@ class binance(Exchange):
         }
 
     def redeem_gift_code(self, giftcardCode, params={}):
+        """
+        redeem gift code
+        :param str giftcardCode:
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+        """
         request = {
             'code': giftcardCode,
         }
@@ -5449,6 +5462,12 @@ class binance(Exchange):
         return response
 
     def verify_gift_code(self, id, params={}):
+        """
+        verify gift code
+        :param str id: reference number id
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+        """
         request = {
             'referenceNo': id,
         }

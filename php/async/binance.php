@@ -5732,6 +5732,13 @@ class binance extends Exchange {
     }
 
     public function create_gift_code($code, $amount, $params = array ()) {
+        /**
+         * create gift $code
+         * @param {str} $code gift $code
+         * @param {float} $amount amount of $currency for the gift
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} The gift $code $id, $code, $currency and $amount
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         // ensure you have enough token in your funding account before calling this $code
@@ -5761,6 +5768,12 @@ class binance extends Exchange {
     }
 
     public function redeem_gift_code($giftcardCode, $params = array ()) {
+        /**
+         * redeem gift code
+         * @param {str} $giftcardCode
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} $response from the exchange
+         */
         $request = array(
             'code' => $giftcardCode,
         );
@@ -5780,6 +5793,12 @@ class binance extends Exchange {
     }
 
     public function verify_gift_code($id, $params = array ()) {
+        /**
+         * verify gift code
+         * @param {str} $id reference number $id
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} $response from the exchange
+         */
         $request = array(
             'referenceNo' => $id,
         );
