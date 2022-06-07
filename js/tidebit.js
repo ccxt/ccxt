@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -149,6 +150,7 @@ module.exports = class tidebit extends Exchange {
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -186,6 +188,24 @@ module.exports = class tidebit extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
+        //
+        //    [
+        //        {
+        //            "id": "btchkd",
+        //            "name": "BTC/HKD",
+        //            "bid_fixed": "2",
+        //            "ask_fixed": "4",
+        //            "price_group_fixed": null
+        //        },
+        //        {
+        //            "id": "btcusdt",
+        //            "name": "BTC/USDT",
+        //            "bid_fixed": "2",
+        //            "ask_fixed": "3",
+        //            "price_group_fixed": null
+        //        },
+        // }
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -216,7 +236,10 @@ module.exports = class tidebit extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': this.precision,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'ask_fixed'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'bid_fixed'))),
+                },
                 'limits': this.extend ({
                     'leverage': {
                         'min': undefined,
