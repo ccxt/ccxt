@@ -1732,8 +1732,8 @@ module.exports = class okx extends Exchange {
             'info': fee,
             'symbol': this.safeSymbol (undefined, market),
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
-            'maker': this.safeNumber (fee, 'maker') * -1,
-            'taker': this.safeNumber (fee, 'taker') * -1,
+            'maker': this.parseNumber (Precise.stringNeg (this.safeString (fee, 'maker'))),
+            'taker': this.parseNumber (Precise.stringNeg (this.safeString (fee, 'taker'))),
         };
     }
 
