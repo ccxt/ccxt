@@ -4869,14 +4869,14 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchBorrowInterest
-         * @description Obtain the amount of interest that has accrued for margin trading
-         * @param {str} code The unified currency code for the currency of the interest
-         * @param {str} symbol The market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
-         * @param {int} since Timestamp in ms of the earliest time to receive interest records for
-         * @param {int} limit The number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
-         * @param {dict} params Exchange specific parameters
-         * @param {int} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
-         * @returns An array of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @param {str|undefined} code the unified currency code for the currency of the interest
+         * @param {str|undefined} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
+         * @param {int|undefined} since timestamp in ms of the earliest time to receive interest records for
+         * @param {int|undefined} limit the number of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure} to retrieve
+         * @param {dict} params exchange specific parameters
+         * @param {int|undefined} params.type Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
+         * @returns {[dict]} An list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
         const request = {
