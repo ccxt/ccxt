@@ -148,6 +148,7 @@ class upbit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'This key has expired.' => '\\ccxt\\AuthenticationError',
@@ -260,7 +261,6 @@ class upbit extends Exchange {
         } else {
             $maxWithdrawLimit = $maxDailyWithdrawal;
         }
-        $precision = null;
         $currencyId = $this->safe_string($currencyInfo, 'code');
         $code = $this->safe_currency_code($currencyId);
         return array(
@@ -270,7 +270,7 @@ class upbit extends Exchange {
             'name' => $code,
             'active' => $active,
             'fee' => $this->safe_number($currencyInfo, 'withdraw_fee'),
-            'precision' => $precision,
+            'precision' => null,
             'limits' => array(
                 'withdraw' => array(
                     'min' => $this->safe_number($withdrawLimits, 'minimum'),
@@ -366,8 +366,8 @@ class upbit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => intval('8'),
-                'price' => intval('8'),
+                'amount' => $this->parse_number($this->parse_precision('8')),
+                'price' => $this->parse_number($this->parse_precision('8')),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -442,8 +442,8 @@ class upbit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => 8,
-                    'amount' => 8,
+                    'price' => $this->parse_number($this->parse_precision('8')),
+                    'amount' => $this->parse_number($this->parse_precision('8')),
                 ),
                 'limits' => array(
                     'leverage' => array(

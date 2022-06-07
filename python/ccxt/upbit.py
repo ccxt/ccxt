@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -153,6 +154,7 @@ class upbit(Exchange):
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'This key has expired.': AuthenticationError,
@@ -261,7 +263,6 @@ class upbit(Exchange):
             maxWithdrawLimit = remainingDailyWithdrawal
         else:
             maxWithdrawLimit = maxDailyWithdrawal
-        precision = None
         currencyId = self.safe_string(currencyInfo, 'code')
         code = self.safe_currency_code(currencyId)
         return {
@@ -271,7 +272,7 @@ class upbit(Exchange):
             'name': code,
             'active': active,
             'fee': self.safe_number(currencyInfo, 'withdraw_fee'),
-            'precision': precision,
+            'precision': None,
             'limits': {
                 'withdraw': {
                     'min': self.safe_number(withdrawLimits, 'minimum'),
@@ -365,8 +366,8 @@ class upbit(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': int('8'),
-                'price': int('8'),
+                'amount': self.parse_number(self.parse_precision('8')),
+                'price': self.parse_number(self.parse_precision('8')),
             },
             'limits': {
                 'leverage': {
@@ -440,8 +441,8 @@ class upbit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': 8,
-                    'amount': 8,
+                    'price': self.parse_number(self.parse_precision('8')),
+                    'amount': self.parse_number(self.parse_precision('8')),
                 },
                 'limits': {
                     'leverage': {
