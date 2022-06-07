@@ -4510,6 +4510,12 @@ class okx extends Exchange {
     }
 
     public function fetch_borrow_rate($code, $params = array ()) {
+        /**
+         * fetch the $rate of interest to borrow a $currency for margin trading
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

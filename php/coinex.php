@@ -3879,6 +3879,12 @@ class coinex extends Exchange {
     }
 
     public function fetch_borrow_rate($code, $params = array ()) {
+        /**
+         * fetch the rate of interest to borrow a currency for margin trading
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structure}
+         */
         $this->load_markets();
         $market = null;
         if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
