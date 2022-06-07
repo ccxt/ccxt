@@ -1712,6 +1712,15 @@ class ndax(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()
         await self.load_accounts()

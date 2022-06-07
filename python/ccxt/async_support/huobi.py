@@ -2135,6 +2135,15 @@ class huobi(Exchange):
         }, market)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrderTrades', None, params)
         method = self.get_supported_mapping(marketType, {

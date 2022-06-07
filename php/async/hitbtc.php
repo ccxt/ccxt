@@ -1268,6 +1268,15 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         // The $id needed here is the exchange's $id, and not the clientOrderID,
         // which is the $id that is stored in the unified order $id
         // To get the exchange's $id you need to grab it from order['info']['id']

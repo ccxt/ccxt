@@ -1209,6 +1209,15 @@ class hitbtc(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # The id needed here is the exchange's id, and not the clientOrderID,
         # which is the id that is stored in the unified order id
         # To get the exchange's id you need to grab it from order['info']['id']

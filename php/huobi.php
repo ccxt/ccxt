@@ -2191,6 +2191,15 @@ class huobi extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderTrades', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
