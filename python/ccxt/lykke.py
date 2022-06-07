@@ -10,6 +10,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -138,6 +139,7 @@ class lykke(Exchange):
                     'taker': 0,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1001': ExchangeError,
@@ -233,7 +235,7 @@ class lykke(Exchange):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': None,
-                'precision': self.safe_integer(currency, 'accuracy'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'accuracy'))),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_value(currency, 'cashoutMinimalAmount'),
@@ -284,10 +286,6 @@ class lykke(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'priceAccuracy'),
-                'amount': self.safe_integer(market, 'baseAssetAccuracy'),
-            }
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -313,7 +311,10 @@ class lykke(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'precision': precision,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
+                },
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'minVolume'),

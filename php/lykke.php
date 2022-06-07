@@ -133,6 +133,7 @@ class lykke extends Exchange {
                     'taker' => 0,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '1001' => '\\ccxt\\ExchangeError',
@@ -229,7 +230,7 @@ class lykke extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'fee' => null,
-                'precision' => $this->safe_integer($currency, 'accuracy'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'accuracy'))),
                 'limits' => array(
                     'withdraw' => array(
                         'min' => $this->safe_value($currency, 'cashoutMinimalAmount'),
@@ -282,10 +283,6 @@ class lykke extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'priceAccuracy'),
-                'amount' => $this->safe_integer($market, 'baseAssetAccuracy'),
-            );
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -311,7 +308,10 @@ class lykke extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'precision' => $precision,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetAccuracy'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
+                ),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minVolume'),
