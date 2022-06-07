@@ -224,6 +224,7 @@ class zonda extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
                 '401' => '\\ccxt\\InvalidOrder', // Invalid order type
@@ -331,8 +332,8 @@ class zonda extends Exchange {
                 'optionType' => null,
                 'strike' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($first, 'scale'),
-                    'price' => $this->safe_integer($second, 'scale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

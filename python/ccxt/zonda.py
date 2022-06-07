@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class zonda(Exchange):
@@ -235,6 +236,7 @@ class zonda(Exchange):
                     'fillResponseFromRequest': True,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '400': ExchangeError,  # At least one parameter wasn't set
                 '401': InvalidOrder,  # Invalid order type
@@ -340,8 +342,8 @@ class zonda(Exchange):
                 'optionType': None,
                 'strike': None,
                 'precision': {
-                    'amount': self.safe_integer(first, 'scale'),
-                    'price': self.safe_integer(second, 'scale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
                 },
                 'limits': {
                     'leverage': {
