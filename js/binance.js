@@ -5787,6 +5787,15 @@ module.exports = class binance extends Exchange {
     }
 
     async createGiftCode (code, amount, params = {}) {
+        /**
+         * @method
+         * @name binance#createGiftCode
+         * @description create gift code
+         * @param {str} code gift code
+         * @param {float} amount amount of currency for the gift
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} The gift code id, code, currency and amount
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         // ensure you have enough token in your funding account before calling this code
@@ -5816,6 +5825,14 @@ module.exports = class binance extends Exchange {
     }
 
     async redeemGiftCode (giftcardCode, params = {}) {
+        /**
+         * @method
+         * @name binance#redeemGiftCode
+         * @description redeem gift code
+         * @param {str} giftcardCode
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} response from the exchange
+         */
         const request = {
             'code': giftcardCode,
         };
@@ -5835,6 +5852,14 @@ module.exports = class binance extends Exchange {
     }
 
     async verifyGiftCode (id, params = {}) {
+        /**
+         * @method
+         * @name binance#verifyGiftCode
+         * @description verify gift code
+         * @param {str} id reference number id
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} response from the exchange
+         */
         const request = {
             'referenceNo': id,
         };
