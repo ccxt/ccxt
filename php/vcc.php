@@ -150,6 +150,7 @@ class vcc extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(),
                 'broad' => array(
@@ -251,9 +252,9 @@ class vcc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($precision, 'amount'),
-                    'price' => $this->safe_integer($precision, 'price'),
-                    'cost' => $this->safe_integer($precision, 'cost'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'amount'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'price'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'cost'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -327,7 +328,7 @@ class vcc extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => $this->safe_integer($currency, 'decimal'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimal'))),
                 'limits' => array(
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'min_withdraw'),

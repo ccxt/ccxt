@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -159,6 +160,7 @@ class vcc(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -259,9 +261,9 @@ class vcc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(precision, 'amount'),
-                    'price': self.safe_integer(precision, 'price'),
-                    'cost': self.safe_integer(precision, 'cost'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(precision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(precision, 'price'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(precision, 'cost'))),
                 },
                 'limits': {
                     'leverage': {
@@ -333,7 +335,7 @@ class vcc(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': self.safe_integer(currency, 'decimal'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal'))),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdraw'),
