@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const bitfinex = require ('./bitfinex.js');
+const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class bitfinex2 extends bitfinex {
+module.exports = class bitfinex2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
@@ -354,7 +354,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 },
             },
             'commonCurrencies': {
-                'EUTFO': 'EURT',
+                'EUTF0': 'EURT',
                 'USTF0': 'USDT',
             },
         });
@@ -407,18 +407,13 @@ module.exports = class bitfinex2 extends bitfinex {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        // todo drop v1 in favor of v2 configs  ( temp-reference for v2update: https://pastebin.com/raw/S8CmqSHQ )
-        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         let spotMarketsInfo = await this.publicGetConfPubInfoPair (params);
         let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures (params);
         spotMarketsInfo = this.safeValue (spotMarketsInfo, 0, []);
         futuresMarketsInfo = this.safeValue (futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        const marginIds = await this.publicGetConfPubListPairMargin (params);
-        // const currencyUnits = await this.publicGetConfPubMapCurrencyUnit (params);
-        // const symbolsNew = await this.publicGetConfPubMapCurrencySym (params);
-        // const labelNew = await this.publicGetConfPubMapCurrencyLabel (params);
-        // console.log (newInfo, newFutures, marginNew, currencyUnits);
+        let marginIds = await this.publicGetConfPubListPairMargin (params);
+        marginIds = this.safeValue (marginIds, 0, []);
         //
         //    [
         //        "1INCH:USD",
@@ -438,9 +433,6 @@ module.exports = class bitfinex2 extends bitfinex {
         //        ]
         //    ]
         //
-        // const v2response = await this.publicGetConfPubListPairFutures (params);
-        // const v1response = await this.v1GetSymbolsDetails (params);
-        // const swapMarketIds = this.safeValue (v2response, 0, []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const pair = markets[i];
@@ -470,16 +462,14 @@ module.exports = class bitfinex2 extends bitfinex {
             let symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
-            let settleId = undefined;
             let settle = undefined;
             if (swap) {
-                settleId = quoteId;
-                settle = this.safeCurrencyCode (settleId);
+                settle = quote;
                 symbol = symbol + ':' + settle;
             }
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
-            const margin = (id in marginIds) ? true : false;
+            const margin = (marginIds.indexOf (id) >= 0) ? true : false;
             result.push ({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -488,7 +478,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': settleId,
+                'settleId': quoteId,
                 'type': spot ? 'spot' : 'swap',
                 'spot': spot,
                 'margin': margin,
@@ -2011,7 +2001,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //              vol_BFX: '0',
         //              vol_BFX_safe: '0',
         //              vol_BFX_maker: '0'
-        //              }
+        //              } g
         //          ],
         //          {},
         //          0
