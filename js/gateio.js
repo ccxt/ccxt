@@ -297,7 +297,7 @@ module.exports = class gateio extends ccxt.gateio {
         const nonce = orderbook['nonce'];
         // we have to add +1 because if the current seqNumber on iteration X is 5
         // on the iteration X+1, prevSeqNum will be (5+1)
-        // sometimes we will get u == U so we need to take that into consideration
+        // sometimes randomly we will get u == U so we need to take that into consideration
         const nextNonce = this.sum (nonce, 1);
         if ((prevSeqNum <= nextNonce) && (seqNum >= nextNonce) || (seqNum === prevSeqNum && seqNum > nonce)) {
             const asks = this.safeValue (result, 'a', []);
