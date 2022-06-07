@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OrderNotFound, PermissionDenied, BadRequest, BadSymbol, DDoSProtection, InvalidOrder, AccountSuspended } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -272,6 +273,7 @@ module.exports = class stex extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // {"success":false,"message":"Wrong parameters","errors":{"candleType":["Invalid Candle Type!"]}}
@@ -340,8 +342,7 @@ module.exports = class stex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'code'));
-            const precision = this.safeString (currency, 'precision');
-            const amountLimit = this.parsePrecision (precision);
+            const tickSize = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
             const fee = this.safeNumber (currency, 'withdrawal_fee_const'); // todo: redesign
             const active = this.safeValue (currency, 'active', true);
             result[code] = {
@@ -355,10 +356,10 @@ module.exports = class stex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': parseInt (precision),
+                'precision': tickSize,
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': tickSize,
                         'max': undefined,
                     },
                     'deposit': {
@@ -464,8 +465,8 @@ module.exports = class stex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'currency_precision'),
-                    'price': this.safeInteger (market, 'market_precision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'currency_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'market_precision'))),
                 },
                 'limits': {
                     'leverage': {
