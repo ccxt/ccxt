@@ -3101,6 +3101,12 @@ class phemex extends Exchange {
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the phemex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetCfgV2Products ($params);
         //

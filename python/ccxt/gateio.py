@@ -3780,6 +3780,12 @@ class gateio(Exchange):
         return self.parse_positions(response, symbols)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
         self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         request, requestParams = self.prepare_request(None, type, query)

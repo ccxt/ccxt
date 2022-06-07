@@ -5739,6 +5739,12 @@ class huobi(Exchange):
         return self.parse_ledger(data, currency, since, limit)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
         self.load_markets()
         response = self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(params)
         #
