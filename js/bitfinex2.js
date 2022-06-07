@@ -90,12 +90,6 @@ module.exports = class bitfinex2 extends Exchange {
                 'fees': 'https://www.bitfinex.com/fees',
             },
             'api': {
-                'v1': {
-                    'get': [
-                        'symbols',
-                        'symbols_details',
-                    ],
-                },
                 'public': {
                     'get': {
                         'conf/{config}': 2.66, // 90 requests a minute
