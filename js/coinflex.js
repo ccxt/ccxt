@@ -20,6 +20,7 @@ module.exports = class coinflex extends Exchange {
             'certified': false,
             'pro': true,
             'userAgent': this.userAgents['chrome100'],
+            'hostname': 'coinflex.com',
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -122,8 +123,7 @@ module.exports = class coinflex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api': {
-                    'public': 'https://v2api.coinflex.com',
-                    'private': 'https://v2api.coinflex.com',
+                    'rest': 'https://v2api.{hostname}',
                 },
                 'www': 'https://coinflex.com/',
                 'doc': [
@@ -133,8 +133,7 @@ module.exports = class coinflex extends Exchange {
                     'https://coinflex.com/fees/',
                 ],
                 'test': {
-                    'public': 'https://v2stgapi.coinflex.com',
-                    'private': 'https://v2stgapi.coinflex.com',
+                    'rest': 'https://v2stgapi.{hostname}',
                 },
                 'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             },
@@ -241,7 +240,6 @@ module.exports = class coinflex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot', // spot, swap
                 'networks': {
                     // 'SOLANA': 'SPL',
@@ -2409,7 +2407,8 @@ module.exports = class coinflex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ finalPath, query ] = this.resolvePath (path, params);
-        let url = this.urls['api'][api] + '/' + finalPath;
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        let url = baseUrl + '/' + finalPath;
         let encodedParams = '';
         const isGetRequest = (method === 'GET');
         if (Object.keys (query).length) {
@@ -2422,7 +2421,8 @@ module.exports = class coinflex extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const datetime = this.ymdhms (this.milliseconds (), 'T');
-            let auth = datetime + "\n" + nonce + "\n" + method + "\n" + this.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
+            const baseUrlTrimmed = baseUrl.replace ('https://', '');
+            let auth = datetime + "\n" + nonce + "\n" + method + "\n" + baseUrlTrimmed + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
             if (isGetRequest) {
                 auth += encodedParams;
             } else {
