@@ -206,6 +206,7 @@ class whitebit extends Exchange {
                     'fillTransferResponseFromRequest' => true,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Unauthorized request.' => '\\ccxt\\AuthenticationError', // array("code":10,"message":"Unauthorized request.")
@@ -299,8 +300,8 @@ class whitebit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'stockPrec'),
-                    'price' => $this->safe_integer($market, 'moneyPrec'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
