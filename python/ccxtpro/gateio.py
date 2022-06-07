@@ -282,13 +282,12 @@ class gateio(Exchange, ccxt.gateio):
         #     }
         #
         result = self.safe_value(message, 'result')
-        prevSeqNum = self.safe_integer(result, 'U')
         seqNum = self.safe_integer(result, 'u')
         nonce = orderbook['nonce']
-        # we have to add +1 because if the current seqNumber on iteration X is 5
-        # on the iteration X+1, prevSeqNum will be(5+1)
-        nextNonce = self.sum(nonce, 1)
-        if (prevSeqNum <= nextNonce) and (seqNum >= nextNonce):
+        # we can't use the prevSeqNum(U) here because it is not consistent
+        # with the previous message sometimes so if the current seqNum
+        # is 2 in the next message might be 3 or 4... so it is not safe to use
+        if seqNum >= nonce:
             asks = self.safe_value(result, 'a', [])
             bids = self.safe_value(result, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
