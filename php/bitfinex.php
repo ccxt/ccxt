@@ -1053,6 +1053,12 @@ class bitfinex extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the bitfinex api endpoint
+         * @return {dict} response from exchange
+         */
         return $this->privatePostOrderCancelAll ($params);
     }
 

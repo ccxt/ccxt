@@ -1106,9 +1106,9 @@ class kucoinfutures extends kucoin {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
-         * Cancels all orders in one api call
-         * @param {str} $symbol Assign to cancel only the orders in the market matching the unified $symbol
-         * @param {dict} $params Exchange specific parameters
+         * cancel all open orders
+         * @param {str|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
          * @param {dict} $params->stop When true, all the trigger orders will be cancelled
          * @return Response from the exchange
          */

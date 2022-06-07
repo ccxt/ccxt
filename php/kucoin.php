@@ -1298,9 +1298,9 @@ class kucoin extends Exchange {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
-         * Cancels all open orders, or cancels all orders in a $market for one $symbol, $stop orders must be cancelled separately
-         * @param {str} $symbol Unified $symbol indicating the $market to cancel orders in
-         * @param {dict} $params Exchange specific parameters
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
          * @param {bool} $params->stop true if cancelling all $stop orders
          * @param {str} $params->tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
          * @param {str} $params->orderIds *$stop orders only* Comma seperated order IDs

@@ -1077,9 +1077,9 @@ class kucoinfutures(kucoin):
 
     def cancel_all_orders(self, symbol=None, params={}):
         """
-        Cancels all orders in one api call
-        :param str symbol: Assign to cancel only the orders in the market matching the unified symbol
-        :param dict params: Exchange specific parameters
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :param dict params['stop']: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """

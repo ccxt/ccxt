@@ -1270,9 +1270,9 @@ class kucoin(Exchange):
 
     def cancel_all_orders(self, symbol=None, params={}):
         """
-        Cancels all open orders, or cancels all orders in a market for one symbol, stop orders must be cancelled separately
-        :param str symbol: Unified symbol indicating the market to cancel orders in
-        :param dict params: Exchange specific parameters
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the kucoin api endpoint
         :param bool params['stop']: True if cancelling all stop orders
         :param str params['tradeType']: The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
         :param str params['orderIds']: *stop orders only* Comma seperated order IDs
