@@ -545,6 +545,13 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the oceanex api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
         const result = {};

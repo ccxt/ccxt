@@ -272,6 +272,13 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
