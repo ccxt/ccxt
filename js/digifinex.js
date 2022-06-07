@@ -28,6 +28,8 @@ module.exports = class digifinex extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
+                'fetchBorrowRate': true,
+                'fetchBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -1750,6 +1752,104 @@ module.exports = class digifinex extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetMarginAssets (this.extend (request, params));
+        //
+        //     {
+        //         "list": [
+        //             {
+        //                 "valuation_rate": 1,
+        //                 "total": 1.92012186174,
+        //                 "free": 1.92012186174,
+        //                 "currency": "USDT"
+        //             },
+        //         ],
+        //         "total": 45.133305540922,
+        //         "code": 0,
+        //         "unrealized_pnl": 0,
+        //         "free": 45.133305540922,
+        //         "equity": 45.133305540922
+        //     }
+        //
+        const data = this.safeValue (response, 'list', []);
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            if (this.safeString (entry, 'currency') === code) {
+                result = entry;
+            }
+        }
+        const currency = this.safeString (result, 'currency');
+        return this.parseBorrowRate (result, currency);
+    }
+
+    async fetchBorrowRates (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMarginAssets (params);
+        //
+        //     {
+        //         "list": [
+        //             {
+        //                 "valuation_rate": 1,
+        //                 "total": 1.92012186174,
+        //                 "free": 1.92012186174,
+        //                 "currency": "USDT"
+        //             },
+        //         ],
+        //         "total": 45.133305540922,
+        //         "code": 0,
+        //         "unrealized_pnl": 0,
+        //         "free": 45.133305540922,
+        //         "equity": 45.133305540922
+        //     }
+        //
+        const result = this.safeValue (response, 'list');
+        return this.parseBorrowRates (result, 'currency');
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "valuation_rate": 1,
+        //         "total": 1.92012186174,
+        //         "free": 1.92012186174,
+        //         "currency": "USDT"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyId = this.safeString (info, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'rate': 0.001, // all interest rates on digifinex are 0.1%
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    parseBorrowRates (info, codeKey) {
+        //
+        //     {
+        //         "valuation_rate": 1,
+        //         "total": 1.92012186174,
+        //         "free": 1.92012186174,
+        //         "currency": "USDT"
+        //     },
+        //
+        const result = {};
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const currency = this.safeString (item, codeKey);
+            const code = this.safeCurrencyCode (currency);
+            const borrowRate = this.parseBorrowRate (item, currency);
+            result[code] = borrowRate;
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
