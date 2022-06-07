@@ -5117,6 +5117,12 @@ class binance extends Exchange {
     }
 
     public function fetch_positions_risk($symbols = null, $params = array ()) {
+        /**
+         * fetch positions risk
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} data on the positions risk
+         */
         if ($symbols !== null) {
             if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
                 throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
