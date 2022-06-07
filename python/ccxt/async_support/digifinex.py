@@ -19,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class digifinex(Exchange):
@@ -41,6 +42,7 @@ class digifinex(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -1593,6 +1595,70 @@ class digifinex(Exchange):
         #     }
         #
         return self.parse_transaction(response, currency)
+
+    async def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = await self.privateGetMarginPositions(self.extend(request, params))
+        #
+        #     {
+        #         "margin": "45.71246418952618",
+        #         "code": 0,
+        #         "margin_rate": "7.141978570340037",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0006103,
+        #                 "side": "go_long",
+        #                 "entry_price": 31428.72,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": 10225.335481159,
+        #                 "unrealized_roe": -0.0076885829266987,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.049158102631999,
+        #                 "leverage_ratio": 3
+        #             }
+        #         ],
+        #         "unrealized_pnl": "-0.049158102631998504"
+        #     }
+        #
+        rows = self.safe_value(response, 'positions')
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market):
+        #
+        #     {
+        #         "amount": 0.0006103,
+        #         "side": "go_long",
+        #         "entry_price": 31428.72,
+        #         "liquidation_rate": 0.3,
+        #         "liquidation_price": 10225.335481159,
+        #         "unrealized_roe": -0.0076885829266987,
+        #         "symbol": "BTC_USDT",
+        #         "unrealized_pnl": -0.049158102631999,
+        #         "leverage_ratio": 3
+        #     }
+        #
+        symbol = self.safe_string(info, 'symbol')
+        amountString = self.safe_string(info, 'amount')
+        leverageString = self.safe_string(info, 'leverage_ratio')
+        amountInvested = Precise.string_div(amountString, leverageString)
+        amountBorrowed = Precise.string_sub(amountString, amountInvested)
+        currency = None if (market is None) else market['base']
+        return {
+            'account': self.safe_symbol(symbol, market),
+            'currency': currency,
+            'interest': None,
+            'interestRate': 0.001,  # all interest rates on digifinex are 0.1%
+            'amountBorrowed': self.parse_number(amountBorrowed),
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version
