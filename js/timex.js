@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class timex extends Exchange {
@@ -175,6 +176,7 @@ module.exports = class timex extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -1039,8 +1041,8 @@ module.exports = class timex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+                'amount': this.safeNumber (market, 'quantityIncrement'),
+                'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1105,7 +1107,6 @@ module.exports = class timex extends Exchange {
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (currency, 'name');
-        const precision = this.safeInteger (currency, 'decimals');
         const depositEnabled = this.safeValue (currency, 'depositEnabled');
         const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
         const isActive = this.safeValue (currency, 'active');
@@ -1139,7 +1140,7 @@ module.exports = class timex extends Exchange {
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
