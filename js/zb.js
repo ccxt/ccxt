@@ -2007,6 +2007,14 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str} symbol unified market symbol of the market to cancel orders in
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }

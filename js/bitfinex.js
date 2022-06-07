@@ -1065,6 +1065,14 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the bitfinex api endpoint
+         * @returns {dict} response from exchange
+         */
         return await this.privatePostOrderCancelAll (params);
     }
 
