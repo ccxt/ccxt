@@ -228,6 +228,7 @@ class yobit extends Exchange {
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
@@ -389,8 +390,8 @@ class yobit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'decimal_places'),
-                    'price' => $this->safe_integer($market, 'decimal_places'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

@@ -15,6 +15,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -237,6 +238,7 @@ class yobit(Exchange):
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -394,8 +396,8 @@ class yobit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'decimal_places'),
-                    'price': self.safe_integer(market, 'decimal_places'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
