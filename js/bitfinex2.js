@@ -711,8 +711,8 @@ module.exports = class bitfinex2 extends Exchange {
                     const network = this.safeNetwork (networkId);
                     networks[network] = {
                         'info': networkId,
-                        'id': networkId,
-                        'network': undefined,
+                        'id': networkId.toLowerCase (),
+                        'network': networkId,
                         'active': undefined,
                         'deposit': undefined,
                         'withdraw': undefined,
@@ -1484,12 +1484,12 @@ module.exports = class bitfinex2 extends Exchange {
         // note: same order types exist for margin orders without the EXCHANGE prefix
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
         const orderType = this.safeStringUpper (orderTypes, type, type);
-        const stopPrice = this.safeString (params, 'stopPrice');
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeValue (params, 'postOnly', false);
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
-        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
         amount = (side === 'buy') ? amount : -amount;
         const request = {
             // 'gid': 0123456789, // int32,  optional group id for the order
@@ -1845,9 +1845,10 @@ module.exports = class bitfinex2 extends Exchange {
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
         const currencyNetworks = this.safeValue (currency, 'networks', {});
-        const networkId = this.safeString (currencyNetworks, network);
+        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network '" + code + "'. You can specify it by providing the 'network' value inside params");
+            throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
         const request = {
             'method': networkId,
@@ -2187,10 +2188,17 @@ module.exports = class bitfinex2 extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        // todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
-        const name = this.getCurrencyName (code);
+        // if not provided explicitly we will try to match using the currency name
+        const network = this.safeString (params, 'network', code);
+        params = this.omit (params, 'network');
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetwork = this.safeValue (currencyNetworks, network);
+        const networkId = this.safeString (currencyNetwork, 'id');
+        if (networkId === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
+        }
         const request = {
-            'method': name,
+            'method': networkId,
             'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             'amount': this.numberToString (amount),
             'address': address,
