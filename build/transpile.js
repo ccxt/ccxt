@@ -1348,7 +1348,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileMethodsToAllLanguages(className, methods, pyFirstLevel = false, phpIdentBody = false) {
+    transpileMethodsToAllLanguages(className, methods, pyFirstLevel = false, phpIndentBody = false) {
         let python2 = []
         let python3 = []
         let php = []
@@ -1412,27 +1412,27 @@ class Transpiler {
             // compile signature + body for Python sync
             python2.push ('');
 
-            const identation = pyFirstLevel ? '' : '    '
-            python2.push (identation + pythonString);
+            const indentation = pyFirstLevel ? '' : '    '
+            python2.push (indentation + pythonString);
             python2.push (python2Body);
 
             // compile signature + body for Python async
             python3.push ('');
-            python3.push (identation + keyword + pythonString);
+            python3.push (indentation + keyword + pythonString);
             python3.push (python3Body);
 
             // compile signature + body for PHP
-            if (phpIdentBody) {
+            if (phpIndentBody) {
                 // while transpiling exchange common methos
-                // we need to add identation because they were
+                // we need to add indentation because they were
                 // not inside a class
-                const bodyIdent = '    '
+                const bodyIndent = '    '
                 const phpParts = phpBody.split ('\n')
-                const phpIdented = phpParts.map(line => bodyIdent + line)
-                phpBody = phpIdented.join ('\n')
+                const phpIndented = phpParts.map(line => bodyIndent + line)
+                phpBody = phpIndented.join ('\n')
                 const phpAsyncParts = phpAsyncBody.split ('\n')
-                const phpAyncIdented = phpAsyncParts.map(line => bodyIdent + line)
-                phpAsyncBody = phpAyncIdented.join ('\n')
+                const phpAyncIndented = phpAsyncParts.map(line => bodyIndent + line)
+                phpAsyncBody = phpAyncIndented.join ('\n')
             }
             php.push ('');
             php.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
