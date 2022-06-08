@@ -485,8 +485,11 @@ module.exports = class bitfinex2 extends Exchange {
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
             let margin = false;
-            if (marginIds.indexOf (id) >= 0) {
-                margin = true;
+            for (let i = 0; i < marginIds.length; i++) {
+                if (marginIds[i] === id) {
+                    margin = true;
+                    break;
+                }
             }
             result.push ({
                 'id': 't' + id,
@@ -720,7 +723,9 @@ module.exports = class bitfinex2 extends Exchange {
                     };
                 }
             }
-            if (Object.keys (networks).length > 0) {
+            const keysNetworks = Object.keys (networks);
+            const networksLength = keysNetworks.length;
+            if (networksLength > 0) {
                 result[code]['networks'] = networks;
             }
         }
