@@ -663,6 +663,42 @@ class Transpiler {
 
     createPythonClass (className, baseClass, body, methods, async = false) {
 
+        let bodyAsString = body.join ("\n")
+
+        const {
+            imports,
+            asyncioImports,
+            libraries,
+            errorImports,
+            precisionImports
+        } = this.createPythonImports(baseClass, bodyAsString, async)
+
+        let header = this.createPythonClassHeader (imports, bodyAsString)
+
+        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
+
+        methods = methods.concat (this.getPythonBaseMethods ())
+
+        for (let method of methods) {
+            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
+            bodyAsString = bodyAsString.replace (regex,
+                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+        }
+
+        header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
+
+        const footer = [
+            '', // footer (last empty line)
+        ]
+
+        const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
+        return result
+    }
+
+    createPythonImports (baseClass, bodyAsString, async = false) {
+
+        async = (async ? '.async_support' : '')
+
         const pythonStandardLibraries = {
             'hashlib': 'hashlib',
             'math': 'math',
@@ -670,13 +706,7 @@ class Transpiler {
             'sys': 'sys',
         }
 
-        async = (async ? '.async_support' : '')
-
         const imports = this.createPythonClassImports (baseClass, async)
-
-        let bodyAsString = body.join ("\n")
-
-        let header = this.createPythonClassHeader (imports, bodyAsString)
 
         const libraries = []
 
@@ -686,7 +716,7 @@ class Transpiler {
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
 
-        if (body.indexOf ('numbers') >= 0) {
+        if (bodyAsString.indexOf ('numbers.') >= 0) {
             libraries.push ('import numbers')
         }
 
@@ -714,24 +744,13 @@ class Transpiler {
             asyncioImports.push ('import asyncio')
         }
 
-        header = header.concat (asyncioImports, libraries, errorImports, precisionImports)
-
-        methods = methods.concat (this.getPythonBaseMethods ())
-
-        for (let method of methods) {
-            const regex = new RegExp ('self\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match, p1, p2) => ('self.' + unCamelCase (p1) + p2))
+        return {
+            imports,
+            asyncioImports,
+            libraries,
+            errorImports,
+            precisionImports
         }
-
-        header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
-
-        const footer = [
-            '', // footer (last empty line)
-        ]
-
-        const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
-        return result
     }
 
     // ========================================================================
