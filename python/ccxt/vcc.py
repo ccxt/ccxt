@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -159,6 +160,7 @@ class vcc(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -259,9 +261,9 @@ class vcc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(precision, 'amount'),
-                    'price': self.safe_integer(precision, 'price'),
-                    'cost': self.safe_integer(precision, 'cost'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(precision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(precision, 'price'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(precision, 'cost'))),
                 },
                 'limits': {
                     'leverage': {
@@ -333,7 +335,7 @@ class vcc(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': self.safe_integer(currency, 'decimal'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal'))),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdraw'),
@@ -344,6 +346,12 @@ class vcc(Exchange):
         return result
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -691,6 +699,14 @@ class vcc(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'type': type,  # 'deposit', 'withdraw'
@@ -763,10 +779,26 @@ class vcc(Exchange):
         return self.parse_transactions(data, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {'type': 'deposit'}
         return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {'type': 'withdraw'}
         return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
@@ -868,6 +900,16 @@ class vcc(Exchange):
         return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['cost'], self.precisionMode, self.paddingMode)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -949,6 +991,13 @@ class vcc(Exchange):
         return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by vcc cancelOrder()
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': id,
@@ -957,6 +1006,12 @@ class vcc(Exchange):
         return self.parse_order(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         type = self.safe_string(params, 'type')
         method = 'privatePutOrdersCancelAll' if (type is None) else 'privatePutOrdersCancelByType'
         request = {}
@@ -1096,6 +1151,12 @@ class vcc(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by vcc fetchOrder
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'order_id': id,
@@ -1205,6 +1266,14 @@ class vcc(Exchange):
         return self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {
             # 'page': 1,
@@ -1262,6 +1331,12 @@ class vcc(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {

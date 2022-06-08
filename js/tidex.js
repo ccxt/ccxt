@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class tidex extends Exchange {
@@ -124,6 +125,7 @@ module.exports = class tidex extends Exchange {
                 'EMGO': 'MGO',
                 'MGO': 'WMGO',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
@@ -194,7 +196,6 @@ module.exports = class tidex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const precision = this.safeInteger (currency, 'amountPoint');
             const code = this.safeCurrencyCode (id);
             const visible = this.safeValue (currency, 'visible');
             let active = visible === true;
@@ -212,7 +213,7 @@ module.exports = class tidex extends Exchange {
                 'active': active,
                 'deposit': depositEnable,
                 'withdraw': withdrawEnable,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'amountPoint'))),
                 'funding': {
                     'withdraw': {
                         'active': withdrawEnable,
@@ -307,8 +308,8 @@ module.exports = class tidex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'decimal_places'),
-                    'price': this.safeInteger (market, 'decimal_places'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
@@ -631,6 +632,18 @@ module.exports = class tidex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -684,6 +697,15 @@ module.exports = class tidex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by tidex cancelOrder ()
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': parseInt (id),
@@ -743,6 +765,14 @@ module.exports = class tidex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by tidex fetchOrder
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': parseInt (id),
@@ -790,6 +820,16 @@ module.exports = class tidex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         // some derived classes use camelcase notation for request fields
@@ -819,6 +859,17 @@ module.exports = class tidex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the tidex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

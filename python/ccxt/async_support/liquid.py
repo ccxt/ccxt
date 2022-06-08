@@ -289,7 +289,8 @@ class liquid(Exchange):
             depositable = self.safe_value(currency, 'depositable')
             withdrawable = self.safe_value(currency, 'withdrawable')
             active = depositable and withdrawable
-            amountPrecision = self.safe_integer(currency, 'assets_precision')
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'assets_precision')))
+            assetPrecisionInteger = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -302,8 +303,8 @@ class liquid(Exchange):
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -amountPrecision),
-                        'max': math.pow(10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': math.pow(10, assetPrecisionInteger),
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
@@ -721,6 +722,12 @@ class liquid(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -780,6 +787,11 @@ class liquid(Exchange):
         }
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         spot = await self.publicGetProducts(params)
         #
@@ -877,6 +889,14 @@ class liquid(Exchange):
         return result
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         # the `with_details` param is undocumented - it adds the order_id to the results
@@ -890,6 +910,16 @@ class liquid(Exchange):
         return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
@@ -930,6 +960,13 @@ class liquid(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1063,6 +1100,12 @@ class liquid(Exchange):
         })
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by liquid fetchOrder
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1200,6 +1243,15 @@ class liquid(Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -1250,6 +1302,14 @@ class liquid(Exchange):
         return self.parse_transaction(response, currency)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # state: 'processed',  # optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted

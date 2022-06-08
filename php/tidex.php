@@ -130,6 +130,7 @@ class tidex extends Exchange {
                 'EMGO' => 'MGO',
                 'MGO' => 'WMGO',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
@@ -198,7 +199,6 @@ class tidex extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $precision = $this->safe_integer($currency, 'amountPoint');
             $code = $this->safe_currency_code($id);
             $visible = $this->safe_value($currency, 'visible');
             $active = $visible === true;
@@ -216,7 +216,7 @@ class tidex extends Exchange {
                 'active' => $active,
                 'deposit' => $depositEnable,
                 'withdraw' => $withdrawEnable,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'amountPoint'))),
                 'funding' => array(
                     'withdraw' => array(
                         'active' => $withdrawEnable,
@@ -309,8 +309,8 @@ class tidex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'decimal_places'),
-                    'price' => $this->safe_integer($market, 'decimal_places'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -623,6 +623,16 @@ class tidex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the tidex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
@@ -676,6 +686,13 @@ class tidex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by tidex cancelOrder ()
+         * @param {dict} $params extra parameters specific to the tidex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => intval($id),
@@ -735,6 +752,12 @@ class tidex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol not used by tidex fetchOrder
+         * @param {dict} $params extra parameters specific to the tidex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => intval($id),
@@ -782,6 +805,14 @@ class tidex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the tidex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $market = null;
         // some derived classes use camelcase notation for $request fields
@@ -811,6 +842,15 @@ class tidex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the tidex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();

@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
@@ -105,6 +106,7 @@ module.exports = class wazirx extends Exchange {
             'fees': {
                 'WRX': { 'maker': this.parseNumber ('0.0'), 'taker': this.parseNumber ('0.0') },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
@@ -214,8 +216,8 @@ module.exports = class wazirx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'baseAssetPrecision'),
-                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -637,6 +639,14 @@ module.exports = class wazirx extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str} symbol unified market symbol of the market to cancel orders in
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbol` argument');
         }
@@ -649,6 +659,15 @@ module.exports = class wazirx extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
         }
@@ -663,6 +682,18 @@ module.exports = class wazirx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         type = type.toLowerCase ();
         if ((type !== 'limit') && (type !== 'stop_limit')) {
             throw new ExchangeError (this.id + ' createOrder() supports limit and stop_limit orders only');

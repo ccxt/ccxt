@@ -419,8 +419,7 @@ class latoken(Exchange):
             id = self.safe_string(currency, 'id')
             tag = self.safe_string(currency, 'tag')
             code = self.safe_currency_code(tag)
-            decimals = self.safe_string(currency, 'decimals')
-            precision = self.parse_number('1e-' + decimals)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
             parts = currencyType.split('_')
@@ -754,6 +753,12 @@ class latoken(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
         if method is None:
@@ -808,6 +813,14 @@ class latoken(Exchange):
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': market['baseId'],
@@ -1044,6 +1057,12 @@ class latoken(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by latoken fetchOrder
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -1072,6 +1091,16 @@ class latoken(Exchange):
         return self.parse_order(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
@@ -1105,6 +1134,13 @@ class latoken(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by latoken cancelOrder()
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -1122,6 +1158,12 @@ class latoken(Exchange):
         return self.parse_order(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': market['baseId'],
@@ -1144,6 +1186,14 @@ class latoken(Exchange):
         return response
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'page': '1',
@@ -1293,6 +1343,15 @@ class latoken(Exchange):
         return self.parse_transfers(transfers, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the latoken api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         method = None

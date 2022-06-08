@@ -133,6 +133,7 @@ class zaif extends Exchange {
                     'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
@@ -181,7 +182,6 @@ class zaif extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
-            $itemUnitStep = $this->safe_string($market, 'item_unit_step');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -209,8 +209,8 @@ class zaif extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => Precise::string_mul($itemUnitStep, '-1e10'),
-                    'price' => $this->safe_integer($market, 'aux_unit_point'),
+                    'amount' => $this->safe_number($market, 'item_unit_step'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'aux_unit_point'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -435,6 +435,16 @@ class zaif extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} $params extra parameters specific to the zaif api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -453,6 +463,13 @@ class zaif extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by zaif cancelOrder ()
+         * @param {dict} $params extra parameters specific to the zaif api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $request = array(
             'order_id' => $id,
         );
@@ -540,6 +557,15 @@ class zaif extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the zaif api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();

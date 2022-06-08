@@ -25,6 +25,7 @@ class coinflex extends Exchange {
             'certified' => false,
             'pro' => true,
             'userAgent' => $this->userAgents['chrome100'],
+            'hostname' => 'coinflex.com',
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -127,8 +128,7 @@ class coinflex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api' => array(
-                    'public' => 'https://v2api.coinflex.com',
-                    'private' => 'https://v2api.coinflex.com',
+                    'rest' => 'https://v2api.{hostname}',
                 ),
                 'www' => 'https://coinflex.com/',
                 'doc' => array(
@@ -138,8 +138,7 @@ class coinflex extends Exchange {
                     'https://coinflex.com/fees/',
                 ),
                 'test' => array(
-                    'public' => 'https://v2stgapi.coinflex.com',
-                    'private' => 'https://v2stgapi.coinflex.com',
+                    'rest' => 'https://v2stgapi.{hostname}',
                 ),
                 'referral' => 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             ),
@@ -246,7 +245,6 @@ class coinflex extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'baseApiDomain' => 'v2api.coinflex.com',
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
                     // 'SOLANA' => 'SPL',
@@ -621,6 +619,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -928,6 +934,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         */
         yield $this->load_markets();
         $request = array();
         $market = null;
@@ -981,6 +995,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         // TODO => this can be moved as emulated into base
         if ($this->has['fetchFundingRates']) {
             $response = yield $this->fetch_funding_rates(array( $symbol ), $params);
@@ -991,6 +1011,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @param {[str]|null} $symbols list of unified $market $symbols
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by $market $symbols
+         */
         yield $this->load_markets();
         $request = array();
         $market = null;
@@ -1315,6 +1341,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str} $symbol unified $symbol of the market the $order was made in
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -1581,6 +1613,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
+        /**
+         * fetch data on a single open contract trade position
+         * @param {str} $symbol unified market $symbol of the market the position is held in, default is null
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         yield $this->load_markets();
         $positions = yield $this->fetch_positions(null, $params);
         $array = $this->filter_by_symbol($positions, $symbol);
@@ -1588,6 +1626,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open $positions
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $data = yield $this->get_account_data($params);
         // response sample inside `getAccountData` method
         $this->targetAccount = $this->safe_value($data, 0);
@@ -1659,6 +1703,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1694,6 +1744,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $currency = null;
         $request = array();
@@ -1756,6 +1814,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $currency = null;
         $request = array();
@@ -1811,6 +1877,13 @@ class coinflex extends Exchange {
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str|null} $code unified currency $code of the currency withdrawn, default is null
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $request = array(
             'id' => $id,
         );
@@ -2049,6 +2122,16 @@ class coinflex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $market = $this->market($symbol);
         $this->check_order_arguments($market, $type, $side, $amount, $price, $params);
         list($request, $query) = yield $this->build_order_request($market, $type, $side, $amount, $price, $params);
@@ -2211,11 +2294,24 @@ class coinflex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $orders = yield $this->cancel_orders(array( $id ), $symbol, $params);
         return $this->safe_value($orders, 0);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $market = null;
         $request = array();
@@ -2244,6 +2340,15 @@ class coinflex extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -2270,6 +2375,15 @@ class coinflex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $twoFaCode = $this->safe_string($params, 'code');
@@ -2313,6 +2427,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for a transaction
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @param {str} $params->networkName the protocol for a transaction
+         * @param {str} $params->address withdrawal $address
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $networkName = $this->safe_string_upper($params, 'network');
         if ($networkName === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransactionFee() requires "network"  parameter');
@@ -2365,7 +2487,8 @@ class coinflex extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         list($finalPath, $query) = $this->resolve_path($path, $params);
-        $url = $this->urls['api'][$api] . '/' . $finalPath;
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
+        $url = $baseUrl . '/' . $finalPath;
         $encodedParams = '';
         $isGetRequest = ($method === 'GET');
         if ($query) {
@@ -2378,7 +2501,8 @@ class coinflex extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $datetime = $this->ymdhms($this->milliseconds(), 'T');
-            $auth = $datetime . "\n" . $nonce . "\n" . $method . "\n" . $this->options['baseApiDomain'] . "\n" . '/' . $finalPath . "\n"; // eslint-disable-line quotes
+            $baseUrlTrimmed = str_replace('https://', '', $baseUrl);
+            $auth = $datetime . "\n" . $nonce . "\n" . $method . "\n" . $baseUrlTrimmed . "\n" . '/' . $finalPath . "\n"; // eslint-disable-line quotes
             if ($isGetRequest) {
                 $auth .= $encodedParams;
             } else {

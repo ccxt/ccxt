@@ -153,6 +153,7 @@ class indodax extends Exchange {
                 'DRK' => 'DASH',
                 'NEM' => 'XEM',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -246,7 +247,8 @@ class indodax extends Exchange {
                 'percentage' => true,
                 'precision' => array(
                     'amount' => intval('8'),
-                    'price' => $this->safe_integer($market, 'price_round'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -549,6 +551,12 @@ class indodax extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol');
         }
@@ -614,6 +622,16 @@ class indodax extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of $currency you want to trade in units of base $currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote $currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
@@ -641,6 +659,13 @@ class indodax extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -659,6 +684,14 @@ class indodax extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch history of $deposits and withdrawals
+         * @param {str|null} $code unified $currency $code for the $currency of the $transactions, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of $transactions to return, default is null
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -750,6 +783,15 @@ class indodax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();

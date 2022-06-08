@@ -703,11 +703,10 @@ class gateio extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $amountPrecisionString = $this->safe_string($market, 'amount_precision');
-            $pricePrecisionString = $this->safe_string($market, 'precision');
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
-            $defaultMinAmountLimit = $this->parse_number($this->parse_precision($amountPrecisionString));
             $margin = $leverage !== null;
             $result[] = array(
                 'id' => $id,
@@ -737,8 +736,8 @@ class gateio extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -746,7 +745,7 @@ class gateio extends Exchange {
                         'max' => $this->safe_number($market, 'leverage', 1),
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $defaultMinAmountLimit),
+                        'min' => $this->safe_number($spotMarket, 'min_base_amount', $amountPrecision),
                         'max' => null,
                     ),
                     'price' => array(
@@ -1275,6 +1274,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
@@ -1330,6 +1335,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         * fetch the funding rate for multiple markets
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
+         */
         $this->load_markets();
         list($request, $query) = $this->prepare_request(null, 'swap', $params);
         $response = $this->publicFuturesGetSettleContracts (array_merge($request, $query));
@@ -1495,6 +1506,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1541,6 +1558,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1565,6 +1588,11 @@ class gateio extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->privateWalletGetFee ($params);
         //
@@ -1621,6 +1649,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by gateio fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         $this->load_markets();
         $response = $this->privateWalletGetWithdrawStatus ($params);
         //
@@ -1665,6 +1699,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         */
         $this->load_markets();
         // $defaultType = 'future';
         $market = null;
@@ -2361,20 +2403,20 @@ class gateio extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * Fetch personal trading history
-         * @param {str} $symbol The $symbol for the $market to fetch trades for
-         * @param {int} $since The earliest timestamp, in ms, that fetched trades were made
-         * @param {int} $limit The max number of trades to fetch
-         * @param {dict} $params Exchange specific parameters
-         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @param {str} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
-         * @param {int} $params->till The latest timestamp, in ms, that fetched trades were made
-         * @param {int} $params->page *spot only* Page number
-         * @param {str} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
-         * @param {str} $params->order *$contract only* Futures order ID, return related data only if specified
-         * @param {int} $params->offset *$contract only* list offset, starting from 0
-         * @param {str} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
-         * @param {int} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
-         * @return a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {str|null} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
+         * @param {int|null} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|null} $params->page *spot only* Page number
+         * @param {str|null} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
+         * @param {str|null} $params->order *$contract only* Futures order ID, return related data only if specified
+         * @param {int|null} $params->offset *$contract only* list offset, starting from 0
+         * @param {str|null} $params->last_id *$contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int|null} $params->count_total *$contract only* whether to return total number matched, default to 0(no return)
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $this->load_markets();
         $type = null;
@@ -2571,6 +2613,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $currency = null;
@@ -2591,6 +2641,14 @@ class gateio extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $currency = null;
@@ -2611,6 +2669,15 @@ class gateio extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -2733,8 +2800,8 @@ class gateio extends Exchange {
         /**
          * Create an order on the exchange
          * @param {str} $symbol Unified CCXT $market $symbol
-         * @param {str} $type "limit" or "market" *"market" is $contract only*
-         * @param {str} $side "buy" or "sell"
+         * @param {str} $type 'limit' or 'market' *"market" is $contract only*
+         * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
@@ -2749,7 +2816,7 @@ class gateio extends Exchange {
          * @param {bool} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
          * @param {bool} $params->close *$contract only* Set as true to close the position, with size set to 0
          * @param {bool} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-         * @return {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
+         * @return {dict} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3581,6 +3648,12 @@ class gateio extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = ($symbol === null) ? null : $this->market($symbol);
         $stop = $this->safe_value($params, 'stop');
@@ -3628,13 +3701,13 @@ class gateio extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * makes internal transfers of funds between accounts on the same exchange
+         * $transfer $currency internally between wallets on the same account
          * @param {str} $code unified $currency $code for $currency being transferred
          * @param {float} $amount the $amount of $currency to $transfer
          * @param {str} $fromAccount the account to $transfer $currency from
          * @param {str} $toAccount the account to $transfer $currency to
-         * @param {dict} $params Exchange specific parameters
-         * @param {dict} $params->symbol Unified $market $symbol *required for type == margin*
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @param {str|null} $params->symbol Unified $market $symbol *required for type == margin*
          * @return A {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         $this->load_markets();
@@ -3719,6 +3792,13 @@ class gateio extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} $response from the exchange
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
@@ -3864,12 +3944,12 @@ class gateio extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
-         * Fetch trades positions
-         * @param {[str]} $symbols Not used by Gateio, but parsed internally by CCXT
-         * @param {dict} $params exchange specific parameters
+         * fetch all open positions
+         * @param {[str]|null} $symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
          * @param {str} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} $params->type swap or future, if not provided $this->options['defaultType'] is used
-         * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structures}
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
@@ -3912,6 +3992,12 @@ class gateio extends Exchange {
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         */
         $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
