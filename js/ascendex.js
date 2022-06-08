@@ -59,6 +59,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPermissions': true,
                 'fetchPosition': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
@@ -2814,6 +2815,93 @@ module.exports = class ascendex extends Exchange {
             return 'ok';
         }
         return 'failed';
+    }
+
+    async fetchPermissions (params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPermissions', undefined, params);
+        const [ apikeysSet, initialPermissions, privateTree ] = this.getInitialPermissions ();
+        if (!apikeysSet) {
+            return initialPermissions;
+        }
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'v1PrivateGetInfo',
+            'margin': 'v1PrivateGetInfo',
+            'swap': 'v2PrivateGetAccountInfo',
+        });
+        //
+        // v1PrivateGetInfo
+        //
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "email": "example@gmail.com",
+        //            "accountGroup": "4",
+        //            "viewPermission": true,
+        //            "tradePermission": true,
+        //            "transferPermission": false,
+        //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+        //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+        //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+        //            "userUID": "U7257879201",
+        //            "expireTime": "1666355898714",
+        //            "allowedIps": [],
+        //            "limitQuota": "1000"
+        //        }
+        //    }
+        //
+        // v2PrivateGetAccountInfo
+        //
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "email": "example@gmail.com",
+        //            "accountGroup": "4",
+        //            "viewPermission": true,
+        //            "tradePermission": true,
+        //            "transferPermission": false,
+        //            "cashAccount": [ "cshICjfhO38493rKOUSFj3fFerkf3fsd" ],
+        //            "marginAccount": [ "marktgj9038ISDFFjkf03erdkflw0f3r" ],
+        //            "futuresAccount": [ "futFGef3908USFOjkfpefIOjfefeewer" ],
+        //            "userUID": "U7257879201",
+        //            "expireTime": "1666355898317",
+        //            "allowedIps": [],
+        //            "limitQuota": "1000"
+        //        }
+        //    }
+        //
+        const response = await this[method] (query);
+        const data = this.safeValue (response, 'data');
+        return this.safePermissions ([
+            {
+                'value': this.safeValue (data, 'viewPermission'),
+                'affectedGroups': [
+                    privateTree['account']['read'],
+                    privateTree['order']['read'],
+                    privateTree['position']['read'],
+                    privateTree['margin']['read'],
+                    privateTree['withdraw']['read'],
+                    privateTree['deposit']['read'],
+                    privateTree['transfer']['read'],
+                ],
+            },
+            {
+                'value': this.safeValue (data, 'tradePermission'),
+                'affectedGroups': [
+                    privateTree['order']['write'],
+                    privateTree['order']['cancel'],
+                    privateTree['position']['write'],
+                    privateTree['margin']['write'],
+                ],
+            },
+            {
+                'value': this.safeValue (data, 'transferPermission'),
+                'affectedGroups': [
+                    privateTree['withdraw']['write'],
+                    privateTree['deposit']['write'],
+                    privateTree['transfer']['write'],
+                ],
+            },
+        ]);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
