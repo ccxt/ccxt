@@ -2458,6 +2458,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchTransactionFee
+         * @description fetch the fee for a transaction
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @param {str} params.networkName the protocol for a transaction
+         * @param {str} params.address withdrawal address
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         const networkName = this.safeStringUpper (params, 'network');
         if (networkName === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransactionFee() requires "network"  parameter');
