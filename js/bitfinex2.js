@@ -1330,6 +1330,27 @@ module.exports = class bitfinex2 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         1457539800000,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.02594,
+        //         0.1
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
     parseOrderStatus (status) {
         if (status === undefined) {
             return status;
