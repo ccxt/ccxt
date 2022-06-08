@@ -32,6 +32,7 @@ module.exports = class ascendex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1186,7 +1187,7 @@ module.exports = class ascendex extends Exchange {
         //         "side":         "Buy",
         //         "status":       "Filled",
         //         "stopPrice":    "",
-        //         "execInst":     "NULL_VAL"
+        //         "execInst":     "NULL_VAL" // "Post" (for postOnly orders), "reduceOnly" (for reduceOnly orders)
         //     }
         //
         //     {
@@ -1214,8 +1215,11 @@ module.exports = class ascendex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
-        const timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
+        let timestamp = this.safeInteger2 (order, 'timestamp', 'sendingTime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastExecTime');
+        if (timestamp === undefined) {
+            timestamp = lastTradeTimestamp;
+        }
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'orderQty');
         const average = this.safeString (order, 'avgPx');
@@ -1227,7 +1231,16 @@ module.exports = class ascendex extends Exchange {
                 clientOrderId = undefined;
             }
         }
-        const type = this.safeStringLower (order, 'orderType');
+        const rawTypeLower = this.safeStringLower (order, 'orderType');
+        let type = rawTypeLower;
+        if (rawTypeLower !== undefined) {
+            if (rawTypeLower === 'stoplimit') {
+                type = 'limit';
+            }
+            if (rawTypeLower === 'stopmarket') {
+                type = 'market';
+            }
+        }
         const side = this.safeStringLower (order, 'side');
         const feeCost = this.safeNumber (order, 'cumFee');
         let fee = undefined;
@@ -1245,6 +1258,10 @@ module.exports = class ascendex extends Exchange {
         if (execInst === 'reduceOnly') {
             reduceOnly = true;
         }
+        let postOnly = undefined;
+        if (execInst === 'Post') {
+            postOnly = true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1255,7 +1272,7 @@ module.exports = class ascendex extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
@@ -1325,14 +1342,17 @@ module.exports = class ascendex extends Exchange {
         /**
          * @method
          * @name ascendex#createOrder
-         * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the ascendex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @description Create an order on the exchange
+         * @param {str} symbol Unified CCXT market symbol
+         * @param {str} type "limit" or "market"
+         * @param {str} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {dict} params Extra parameters specific to the exchange API endpoint
+         * @param {str} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} params.postOnly true or false
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1351,46 +1371,46 @@ module.exports = class ascendex extends Exchange {
             'symbol': market['id'],
             'time': this.milliseconds (),
             'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type, // "limit", "market", "stop_market", "stop_limit"
-            'side': side, // "buy" or "sell"
-            // 'orderPrice': this.priceToPrecision (symbol, price),
-            // 'stopPrice': this.priceToPrecision (symbol, stopPrice), // required for stop orders
-            // 'postOnly': 'false', // 'false', 'true'
-            // 'timeInForce': 'GTC', // GTC, IOC, FOK
+            'orderType': type, // limit, market, stop_market, stop_limit
+            'side': side, // buy or sell,
+            // 'execInst': // Post for postOnly, ReduceOnly for reduceOnly
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
-            // 'posStopLossPrice': position stop loss price ( v2 swap orders only)
-            // 'posTakeProfitPrice': position take profit price (v2 swap orders only)
         };
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'swap')) {
+        const isMarketOrder = ((type === 'market') || (type === 'stop_market'));
+        const isLimitOrder = ((type === 'limit') || (type === 'stop_limit'));
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ]);
+        if (reduceOnly) {
+            if (marketType !== 'swap') {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
             }
+            request['execInst'] = 'ReduceOnly';
         }
-        if (reduceOnly === true) {
-            request['execInst'] = 'reduceOnly';
+        if (isLimitOrder) {
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForce === 'IOC') {
+            request['timeInForce'] = 'IOC';
+        }
+        if (timeInForce === 'FOK') {
+            request['timeInForce'] = 'FOK';
+        }
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (stopPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            if (isLimitOrder) {
+                request['orderType'] = 'stop_limit';
+            } else if (isMarketOrder) {
+                request['orderType'] = 'stop_market';
+            }
         }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId', 'id' ]);
-        }
-        if ((type === 'limit') || (type === 'stop_limit')) {
-            request['orderPrice'] = this.priceToPrecision (symbol, price);
-        }
-        if ((type === 'stop_limit') || (type === 'stop_market')) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders');
-            } else {
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-                params = this.omit (params, 'stopPrice');
-            }
-        }
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if ((timeInForce === 'PO') || (postOnly)) {
-            request['postOnly'] = true;
-            params = this.omit (params, [ 'postOnly', 'timeInForce' ]);
         }
         const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryPostOrder');
         const method = this.getSupportedMapping (marketType, {
@@ -1407,67 +1427,68 @@ module.exports = class ascendex extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // AccountCategoryPostOrder
+        // spot
         //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "ac": "MARGIN",
-        //             "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        //             "action": "place-order",
-        //             "info": {
-        //                 "id": "16e607e2b83a8bXHbAwwoqDo55c166fa",
-        //                 "orderId": "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
-        //                 "orderType": "Market",
-        //                 "symbol": "BTC/USDT",
-        //                 "timestamp": 1573576916201
-        //             },
-        //             "status": "Ack"
-        //         }
-        //     }
+        //      {
+        //          "code":0,
+        //          "data": {
+        //              "accountId":"cshwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        //              "ac":"CASH",
+        //              "action":"place-order",
+        //              "status":"Ack",
+        //              "info": {
+        //                  "symbol":"TRX/USDT",
+        //                  "orderType":"StopLimit",
+        //                  "timestamp":1654290662172,
+        //                  "id":"",
+        //                  "orderId":"a1812b6840ddU8191168955av0k6Eyhj"
+        //              }
+        //          }
+        //      }
         //
-        // AccountGroupPostFuturesOrder
         //
-        //     {
-        //         "code": 0,
-        //         "data": {
-        //             "meta": {
-        //                 "id": "",
-        //                 "action": "place-order",
-        //                 "respInst": "ACK"
-        //             },
-        //             "order": {
-        //                 "ac": "FUTURES",
-        //                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
-        //                 "time": 1640819389454,
-        //                 "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
-        //                 "seqNum": -1,
-        //                 "orderType": "Limit",
-        //                 "execInst": "NULL_VAL",
-        //                 "side": "Buy",
-        //                 "symbol": "BTC-PERP",
-        //                 "price": "30000",
-        //                 "orderQty": "0.002",
-        //                 "stopPrice": "0",
-        //                 "stopBy": "ref-px",
-        //                 "status": "Ack",
-        //                 "lastExecTime": 1640819389454,
-        //                 "lastQty": "0",
-        //                 "lastPx": "0",
-        //                 "avgFilledPx": "0",
-        //                 "cumFilledQty": "0",
-        //                 "fee": "0",
-        //                 "cumFee": "0",
-        //                 "feeAsset": "",
-        //                 "errorCode": "",
-        //                 "posStopLossPrice": "0",
-        //                 "posStopLossTrigger": "market",
-        //                 "posTakeProfitPrice": "0",
-        //                 "posTakeProfitTrigger": "market",
-        //                 "liquidityInd": "n"
-        //             }
-        //         }
-        //     }
+        // swap
+        //
+        //      {
+        //          "code":0,
+        //          "data": {
+        //              "meta": {
+        //                  "id":"",
+        //                  "action":"place-order",
+        //                  "respInst":"ACK"
+        //              },
+        //              "order": {
+        //                  "ac":"FUTURES",
+        //                  "accountId":"futwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        //                  "time":1654290969965,
+        //                  "orderId":"a1812b6cf322U8191168955oJamfTh7b",
+        //                  "seqNum":-1,
+        //                  "orderType":"StopLimit",
+        //                  "execInst":"NULL_VAL",
+        //                  "side":"Buy",
+        //                  "symbol":"TRX-PERP",
+        //                  "price":"0.083",
+        //                  "orderQty":"1",
+        //                  "stopPrice":"0.082",
+        //                  "stopBy":"ref-px",
+        //                  "status":"Ack",
+        //                  "lastExecTime":1654290969965,
+        //                  "lastQty":"0",
+        //                  "lastPx":"0",
+        //                  "avgFilledPx":"0",
+        //                  "cumFilledQty":"0",
+        //                  "fee":"0",
+        //                  "cumFee":"0",
+        //                  "feeAsset":"",
+        //                  "errorCode":"",
+        //                  "posStopLossPrice":"0",
+        //                  "posStopLossTrigger":"market",
+        //                  "posTakeProfitPrice":"0",
+        //                  "posTakeProfitTrigger":"market",
+        //                  "liquidityInd":"n"
+        //              }
+        //          }
+        //      }
         //
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue2 (data, 'order', 'info', {});
