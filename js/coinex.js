@@ -30,6 +30,7 @@ module.exports = class coinex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -4075,6 +4076,95 @@ module.exports = class coinex extends Exchange {
             });
         }
         return rates;
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetMarginLoanHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "page": 1,
+        //             "limit": 10,
+        //             "total": 1,
+        //             "has_next": false,
+        //             "curr_page": 1,
+        //             "count": 1,
+        //             "data": [
+        //                 {
+        //                     "loan_id": 2616357,
+        //                     "create_time": 1654214027,
+        //                     "market_type": "BTCUSDT",
+        //                     "coin_type": "BTC",
+        //                     "day_rate": "0.001",
+        //                     "loan_amount": "0.0144",
+        //                     "interest_amount": "0",
+        //                     "unflat_amount": "0",
+        //                     "expire_time": 1655078027,
+        //                     "is_renew": true,
+        //                     "status": "finish"
+        //                 }
+        //             ],
+        //             "total_page": 1
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rows = this.safeValue (data, 'data', []);
+        const interest = this.parseBorrowInterests (rows, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "loan_id": 2616357,
+        //         "create_time": 1654214027,
+        //         "market_type": "BTCUSDT",
+        //         "coin_type": "BTC",
+        //         "day_rate": "0.001",
+        //         "loan_amount": "0.0144",
+        //         "interest_amount": "0",
+        //         "unflat_amount": "0",
+        //         "expire_time": 1655078027,
+        //         "is_renew": true,
+        //         "status": "finish"
+        //     }
+        //
+        const marketId = this.safeString (info, 'market_type');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeTimestamp (info, 'expire_time');
+        const unflatAmount = this.safeString (info, 'unflat_amount');
+        const loanAmount = this.safeString (info, 'loan_amount');
+        let interest = Precise.stringSub (unflatAmount, loanAmount);
+        if (unflatAmount === '0') {
+            interest = undefined;
+        }
+        return {
+            'account': undefined, // deprecated
+            'symbol': symbol,
+            'marginMode': 'isolated',
+            'marginType': undefined, // deprecated
+            'currency': this.safeCurrencyCode (this.safeString (info, 'coin_type')),
+            'interest': this.parseNumber (interest),
+            'interestRate': this.safeNumber (info, 'day_rate'),
+            'amountBorrowed': this.parseNumber (loanAmount),
+            'timestamp': timestamp,  // expiry time
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     nonce () {
