@@ -3723,6 +3723,14 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
         await this.loadMarkets ();
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
