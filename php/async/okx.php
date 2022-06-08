@@ -3691,6 +3691,12 @@ class okx extends Exchange {
     }
 
     public function fetch_leverage($symbol, $params = array ()) {
+        /**
+         * fetch the set leverage for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         */
         yield $this->load_markets();
         $marginMode = $this->safe_string_lower($params, 'mgnMode');
         $params = $this->omit($params, array( 'mgnMode' ));

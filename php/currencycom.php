@@ -1670,6 +1670,12 @@ class currencycom extends Exchange {
     }
 
     public function fetch_leverage($symbol, $params = array ()) {
+        /**
+         * fetch the set leverage for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the currencycom api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

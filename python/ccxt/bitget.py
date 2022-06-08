@@ -2772,6 +2772,12 @@ class bitget(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def fetch_leverage(self, symbol, params={}):
+        """
+        fetch the set leverage for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {

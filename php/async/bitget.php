@@ -2871,6 +2871,12 @@ class bitget extends Exchange {
     }
 
     public function fetch_leverage($symbol, $params = array ()) {
+        /**
+         * fetch the set leverage for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
