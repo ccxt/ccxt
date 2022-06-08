@@ -35,6 +35,7 @@ class coinex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -4020,6 +4021,95 @@ class coinex extends Exchange {
             );
         }
         return $rates;
+    }
+
+    public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privateGetMarginLoanHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "page" => 1,
+        //             "limit" => 10,
+        //             "total" => 1,
+        //             "has_next" => false,
+        //             "curr_page" => 1,
+        //             "count" => 1,
+        //             "data" => array(
+        //                 array(
+        //                     "loan_id" => 2616357,
+        //                     "create_time" => 1654214027,
+        //                     "market_type" => "BTCUSDT",
+        //                     "coin_type" => "BTC",
+        //                     "day_rate" => "0.001",
+        //                     "loan_amount" => "0.0144",
+        //                     "interest_amount" => "0",
+        //                     "unflat_amount" => "0",
+        //                     "expire_time" => 1655078027,
+        //                     "is_renew" => true,
+        //                     "status" => "finish"
+        //                 }
+        //             ),
+        //             "total_page" => 1
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'data', array());
+        $interest = $this->parse_borrow_interests($rows, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest($info, $market = null) {
+        //
+        //     {
+        //         "loan_id" => 2616357,
+        //         "create_time" => 1654214027,
+        //         "market_type" => "BTCUSDT",
+        //         "coin_type" => "BTC",
+        //         "day_rate" => "0.001",
+        //         "loan_amount" => "0.0144",
+        //         "interest_amount" => "0",
+        //         "unflat_amount" => "0",
+        //         "expire_time" => 1655078027,
+        //         "is_renew" => true,
+        //         "status" => "finish"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'market_type');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_timestamp($info, 'expire_time');
+        $unflatAmount = $this->safe_string($info, 'unflat_amount');
+        $loanAmount = $this->safe_string($info, 'loan_amount');
+        $interest = Precise::string_sub($unflatAmount, $loanAmount);
+        if ($unflatAmount === '0') {
+            $interest = null;
+        }
+        return array(
+            'account' => null, // deprecated
+            'symbol' => $symbol,
+            'marginMode' => 'isolated',
+            'marginType' => null, // deprecated
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'coin_type')),
+            'interest' => $this->parse_number($interest),
+            'interestRate' => $this->safe_number($info, 'day_rate'),
+            'amountBorrowed' => $this->parse_number($loanAmount),
+            'timestamp' => $timestamp,  // expiry time
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function nonce() {

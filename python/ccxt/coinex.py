@@ -41,6 +41,7 @@ class coinex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -3829,6 +3830,90 @@ class coinex(Exchange):
                 'info': entry,
             })
         return rates
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetMarginLoanHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "page": 1,
+        #             "limit": 10,
+        #             "total": 1,
+        #             "has_next": False,
+        #             "curr_page": 1,
+        #             "count": 1,
+        #             "data": [
+        #                 {
+        #                     "loan_id": 2616357,
+        #                     "create_time": 1654214027,
+        #                     "market_type": "BTCUSDT",
+        #                     "coin_type": "BTC",
+        #                     "day_rate": "0.001",
+        #                     "loan_amount": "0.0144",
+        #                     "interest_amount": "0",
+        #                     "unflat_amount": "0",
+        #                     "expire_time": 1655078027,
+        #                     "is_renew": True,
+        #                     "status": "finish"
+        #                 }
+        #             ],
+        #             "total_page": 1
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'data', [])
+        interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "loan_id": 2616357,
+        #         "create_time": 1654214027,
+        #         "market_type": "BTCUSDT",
+        #         "coin_type": "BTC",
+        #         "day_rate": "0.001",
+        #         "loan_amount": "0.0144",
+        #         "interest_amount": "0",
+        #         "unflat_amount": "0",
+        #         "expire_time": 1655078027,
+        #         "is_renew": True,
+        #         "status": "finish"
+        #     }
+        #
+        marketId = self.safe_string(info, 'market_type')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_timestamp(info, 'expire_time')
+        unflatAmount = self.safe_string(info, 'unflat_amount')
+        loanAmount = self.safe_string(info, 'loan_amount')
+        interest = Precise.string_sub(unflatAmount, loanAmount)
+        if unflatAmount == '0':
+            interest = None
+        return {
+            'account': None,  # deprecated
+            'symbol': symbol,
+            'marginMode': 'isolated',
+            'marginType': None,  # deprecated
+            'currency': self.safe_currency_code(self.safe_string(info, 'coin_type')),
+            'interest': self.parse_number(interest),
+            'interestRate': self.safe_number(info, 'day_rate'),
+            'amountBorrowed': self.parse_number(loanAmount),
+            'timestamp': timestamp,  # expiry time
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def nonce(self):
         return self.milliseconds()
