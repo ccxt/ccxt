@@ -3856,6 +3856,14 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchDepositAddress
+         * @description fetch the deposit address associated to this account for a currency
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);

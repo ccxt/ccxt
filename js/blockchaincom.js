@@ -716,6 +716,14 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchDepositAddress
+         * @description fetch the deposit address associated to this account for a currency
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

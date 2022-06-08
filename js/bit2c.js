@@ -637,6 +637,14 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchDepositAddress
+         * @description fetch the deposit address associated to this account for a currency
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {

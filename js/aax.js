@@ -2180,6 +2180,14 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchDepositAddress
+         * @description fetch the deposit address associated to this account for a currency
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
