@@ -809,6 +809,11 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_withdrawal_whitelist($params = array ()) {
+        /**
+         * fetch the list of withdrawal addresses on the whitelist
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} dictionary with keys beneficiaryId, name, currency
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetWhitelist ();
         $result = array();

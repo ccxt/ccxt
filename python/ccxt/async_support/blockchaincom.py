@@ -765,6 +765,11 @@ class blockchaincom(Exchange):
         return result
 
     async def fetch_withdrawal_whitelist(self, params={}):
+        """
+        fetch the list of withdrawal addresses on the whitelist
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: dictionary with keys beneficiaryId, name, currency
+        """
         await self.load_markets()
         response = await self.privateGetWhitelist()
         result = []
