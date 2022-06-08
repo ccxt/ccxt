@@ -1267,7 +1267,7 @@ class Transpiler {
 
             // compile signature + body for Python async
             python3.push ('');
-            python3.push (indentation + keyword + pythonString);
+            python3.push ('    ' + keyword + pythonString);
             python3.push (python3Body);
 
             // compile signature + body for PHP
