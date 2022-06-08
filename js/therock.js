@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidAddress } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -127,6 +128,7 @@ module.exports = class therock extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Request already running': BadRequest,
@@ -226,8 +228,8 @@ module.exports = class therock extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'amount': this.safeInteger (market, 'trade_currency_decimals'),
-                        'price': this.safeInteger (market, 'base_currency_decimals'),
+                        'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'trade_currency_decimals'))),
+                        'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_currency_decimals'))),
                     },
                     'limits': {
                         'leverage': {
