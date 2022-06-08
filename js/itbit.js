@@ -358,6 +358,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code not used by itbit fetchTransactions ()
+         * @param {int|undefined} since not used by itbit fetchTransactions ()
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
