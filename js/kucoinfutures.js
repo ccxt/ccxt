@@ -1971,6 +1971,14 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTransactionFee
+         * @description fetch the fee for a transaction
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
     }
 
