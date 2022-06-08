@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -133,6 +134,7 @@ class therock(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Request already running': BadRequest,
@@ -229,8 +231,8 @@ class therock(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'amount': self.safe_integer(market, 'trade_currency_decimals'),
-                        'price': self.safe_integer(market, 'base_currency_decimals'),
+                        'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trade_currency_decimals'))),
+                        'price': self.parse_number(self.parse_precision(self.safe_string(market, 'base_currency_decimals'))),
                     },
                     'limits': {
                         'leverage': {

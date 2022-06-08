@@ -129,6 +129,7 @@ class therock extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Request already running' => '\\ccxt\\BadRequest',
@@ -226,8 +227,8 @@ class therock extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($market, 'trade_currency_decimals'),
-                        'price' => $this->safe_integer($market, 'base_currency_decimals'),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'trade_currency_decimals'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_currency_decimals'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
