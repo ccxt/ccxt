@@ -1295,7 +1295,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileExchangeCommonFiles(jsFolder, filename, className, options ) {
+    transpileExchangeCommonFiles ({ jsFolder, filename, className, options }) {
         const jsPath = jsFolder + '/' + filename
         const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
 
@@ -1585,7 +1585,7 @@ class Transpiler {
 
         // TypeScript ---------------------------------------------------------
 
-        function tsDeclareErrorClass (name, parent) {
+        function declareTsErrorClass (name, parent) {
             return 'export class ' + name + ' extends ' + parent + ' {}'
         }
 
@@ -1595,7 +1595,7 @@ class Transpiler {
             '}',
         ].join ('\n    ')
 
-        const tsErrors = intellisense (root, 'BaseError', tsDeclareErrorClass)
+        const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass)
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
@@ -1935,7 +1935,12 @@ class Transpiler {
 
         //*
 
-        this.transpileExchangeCommonFiles('./js/base/common', 'ExchangeCommon.js', 'Exchange', options)
+        this.transpileExchangeCommonFiles ({
+            jsFolder: './js/base/common',
+            filename: 'ExchangeCommon.js',
+            className: 'Exchange',
+            options
+        })
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
