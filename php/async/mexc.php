@@ -1475,6 +1475,12 @@ class mexc extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a currency associated with this account
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the mexc api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         $rawNetwork = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, 'network');
         $response = yield $this->fetch_deposit_addresses_by_network($code, $params);

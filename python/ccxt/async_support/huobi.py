@@ -4209,6 +4209,12 @@ class huobi(Exchange):
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_upper(networks, rawNetwork, rawNetwork)

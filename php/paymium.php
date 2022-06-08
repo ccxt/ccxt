@@ -294,6 +294,12 @@ class paymium extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a currency associated with this account
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the paymium api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         $this->load_markets();
         $request = array(
             'address' => $code,

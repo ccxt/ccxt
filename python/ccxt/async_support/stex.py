@@ -1522,6 +1522,12 @@ class stex(Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         balance = await self.fetch_balance()
         wallets = self.safe_value(balance['info'], 'data', [])

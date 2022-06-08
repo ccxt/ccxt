@@ -1375,6 +1375,12 @@ class cex(Exchange):
         return self.parse_order(response, market)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         if code == 'XRP' or code == 'XLM':
             # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
             raise NotSupported(self.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')

@@ -1360,6 +1360,12 @@ class lbank2(Exchange):
         return result
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')

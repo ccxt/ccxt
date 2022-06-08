@@ -1433,6 +1433,12 @@ class cex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the cex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         if ($code === 'XRP' || $code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
             throw new NotSupported($this->id . ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
