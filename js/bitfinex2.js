@@ -2084,7 +2084,7 @@ module.exports = class bitfinex2 extends Exchange {
         //              vol_BFX: '0',
         //              vol_BFX_safe: '0',
         //              vol_BFX_maker: '0'
-        //              } g
+        //              }
         //          ],
         //          {},
         //          0
