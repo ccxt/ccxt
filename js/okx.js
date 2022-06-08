@@ -4860,6 +4860,14 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
