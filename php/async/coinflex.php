@@ -2421,6 +2421,14 @@ class coinflex extends Exchange {
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for a transaction
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @param {str} $params->networkName the protocol for a transaction
+         * @param {str} $params->address withdrawal $address
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $networkName = $this->safe_string_upper($params, 'network');
         if ($networkName === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransactionFee() requires "network"  parameter');

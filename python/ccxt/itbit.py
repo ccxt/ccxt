@@ -342,6 +342,14 @@ class itbit(Exchange):
         return result
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: not used by itbit fetchTransactions()
+        :param int|None since: not used by itbit fetchTransactions()
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:

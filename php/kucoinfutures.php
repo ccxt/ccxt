@@ -1927,6 +1927,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for a transaction
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
