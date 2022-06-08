@@ -262,6 +262,11 @@ class ndax(Exchange):
         })
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the ndax api endpoint
+        :returns: response from exchange
+        """
         self.check_required_credentials()
         if self.login is None or self.password is None:
             raise AuthenticationError(self.id + ' signIn() requires exchange.login, exchange.password')

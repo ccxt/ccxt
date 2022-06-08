@@ -1834,6 +1834,13 @@ class stex(Exchange):
         return self.parse_transactions(deposits, code, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: not used by stex.fetchWithdrawal
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,

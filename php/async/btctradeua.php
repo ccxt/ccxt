@@ -127,6 +127,11 @@ class btctradeua extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the btctradeua api endpoint
+         * @return response from exchange
+         */
         return yield $this->privatePostAuth ($params);
     }
 

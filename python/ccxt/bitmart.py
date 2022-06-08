@@ -2216,6 +2216,13 @@ class bitmart(Exchange):
         return self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: not used by bitmart.fetchWithdrawal
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,

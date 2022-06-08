@@ -2318,6 +2318,13 @@ class bitmart extends Exchange {
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str|null} $code not used by bitmart.fetchWithdrawal
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,

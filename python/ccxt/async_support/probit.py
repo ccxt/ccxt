@@ -1338,6 +1338,11 @@ class probit(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns: response from exchange
+        """
         self.check_required_credentials()
         request = {
             'grant_type': 'client_credentials',  # the only supported value

@@ -1412,6 +1412,11 @@ class probit extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return $response from exchange
+         */
         $this->check_required_credentials();
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value

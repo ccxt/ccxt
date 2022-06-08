@@ -1367,6 +1367,13 @@ class bitopro(Exchange):
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
     def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str code: unified currency code of the currency withdrawn, default is None
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawal() requires the code argument')
         self.load_markets()

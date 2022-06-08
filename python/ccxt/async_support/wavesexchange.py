@@ -680,6 +680,11 @@ class wavesexchange(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns: response from exchange
+        """
         if not self.safe_string(self.options, 'accessToken'):
             prefix = 'ffffff01'
             expiresDelta = 60 * 60 * 24 * 7

@@ -259,6 +259,11 @@ class ndax extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the ndax api endpoint
+         * @return $response from exchange
+         */
         $this->check_required_credentials();
         if ($this->login === null || $this->password === null) {
             throw new AuthenticationError($this->id . ' signIn() requires exchange.login, exchange.password');

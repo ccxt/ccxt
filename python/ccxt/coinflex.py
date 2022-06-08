@@ -1780,6 +1780,13 @@ class coinflex(Exchange):
         return self.parse_transactions(data, currency, since, limit, params)
 
     def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: unified currency code of the currency withdrawn, default is None
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'id': id,
         }

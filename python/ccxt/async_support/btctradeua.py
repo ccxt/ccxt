@@ -125,6 +125,11 @@ class btctradeua(Exchange):
         })
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns: response from exchange
+        """
         return await self.privatePostAuth(params)
 
     def parse_balance(self, response):

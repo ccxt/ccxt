@@ -1430,6 +1430,13 @@ class bitopro extends Exchange {
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a $currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str} $code unified $currency $code of the $currency withdrawn, default is null
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }

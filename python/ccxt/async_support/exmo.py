@@ -1700,6 +1700,13 @@ class exmo(Exchange):
         return self.parse_transactions(items, currency, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: unified currency code of the currency withdrawn, default is None
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {

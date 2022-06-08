@@ -847,6 +847,13 @@ class blockchaincom(Exchange):
         return self.parse_transactions(response, code, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: not used by blockchaincom.fetchWithdrawal
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             'withdrawalId': id,

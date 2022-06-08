@@ -705,6 +705,11 @@ class wavesexchange extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the wavesexchange api endpoint
+         * @return $response from exchange
+         */
         if (!$this->safe_string($this->options, 'accessToken')) {
             $prefix = 'ffffff01';
             $expiresDelta = 60 * 60 * 24 * 7;
