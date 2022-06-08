@@ -1402,7 +1402,7 @@ class Transpiler {
 
         // TypeScript ---------------------------------------------------------
 
-        function tsDeclareErrorClass (name, parent) {
+        function declareTsErrorClass (name, parent) {
             return 'export class ' + name + ' extends ' + parent + ' {}'
         }
 
@@ -1412,7 +1412,7 @@ class Transpiler {
             '}',
         ].join ('\n    ')
 
-        const tsErrors = intellisense (root, 'BaseError', tsDeclareErrorClass)
+        const tsErrors = intellisense (root, 'BaseError', declareTsErrorClass)
 
         const tsBodyIntellisense = tsBaseError + '\n\n    ' + tsErrors.join ('\n    ') + '\n\n'
 
