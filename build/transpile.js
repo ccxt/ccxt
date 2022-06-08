@@ -836,7 +836,7 @@ class Transpiler {
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
 
-        const footer =[
+        const footer = [
             "}\n",
         ]
 
