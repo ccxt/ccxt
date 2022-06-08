@@ -124,6 +124,13 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name btctradeua#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns response from exchange
+         */
         return await this.privatePostAuth (params);
     }
 

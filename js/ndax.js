@@ -257,6 +257,13 @@ module.exports = class ndax extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name ndax#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns response from exchange
+         */
         this.checkRequiredCredentials ();
         if (this.login === undefined || this.password === undefined) {
             throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
