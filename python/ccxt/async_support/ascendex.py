@@ -41,6 +41,7 @@ class ascendex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -1149,7 +1150,7 @@ class ascendex(Exchange):
         #         "side":         "Buy",
         #         "status":       "Filled",
         #         "stopPrice":    "",
-        #         "execInst":     "NULL_VAL"
+        #         "execInst":     "NULL_VAL"  # "Post"(for postOnly orders), "reduceOnly"(for reduceOnly orders)
         #     }
         #
         #     {
@@ -1179,6 +1180,8 @@ class ascendex(Exchange):
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.safe_integer_2(order, 'timestamp', 'sendingTime')
         lastTradeTimestamp = self.safe_integer(order, 'lastExecTime')
+        if timestamp is None:
+            timestamp = lastTradeTimestamp
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
         average = self.safe_string(order, 'avgPx')
@@ -1188,7 +1191,13 @@ class ascendex(Exchange):
         if clientOrderId is not None:
             if len(clientOrderId) < 1:
                 clientOrderId = None
-        type = self.safe_string_lower(order, 'orderType')
+        rawTypeLower = self.safe_string_lower(order, 'orderType')
+        type = rawTypeLower
+        if rawTypeLower is not None:
+            if rawTypeLower == 'stoplimit':
+                type = 'limit'
+            if rawTypeLower == 'stopmarket':
+                type = 'market'
         side = self.safe_string_lower(order, 'side')
         feeCost = self.safe_number(order, 'cumFee')
         fee = None
@@ -1204,6 +1213,9 @@ class ascendex(Exchange):
         execInst = self.safe_string(order, 'execInst')
         if execInst == 'reduceOnly':
             reduceOnly = True
+        postOnly = None
+        if execInst == 'Post':
+            postOnly = True
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1214,7 +1226,7 @@ class ascendex(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
-            'postOnly': None,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
@@ -1277,14 +1289,17 @@ class ascendex(Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the ascendex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        Create an order on the exchange
+        :param str symbol: Unified CCXT market symbol
+        :param str type: "limit" or "market"
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict params: Extra parameters specific to the exchange API endpoint
+        :param str params['timeInForce']: "GTC", "IOC", "FOK", or "PO"
+        :param bool params['postOnly']: True or False
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
@@ -1303,39 +1318,38 @@ class ascendex(Exchange):
             'symbol': market['id'],
             'time': self.milliseconds(),
             'orderQty': self.amount_to_precision(symbol, amount),
-            'orderType': type,  # "limit", "market", "stop_market", "stop_limit"
-            'side': side,  # "buy" or "sell"
-            # 'orderPrice': self.price_to_precision(symbol, price),
-            # 'stopPrice': self.price_to_precision(symbol, stopPrice),  # required for stop orders
-            # 'postOnly': 'false',  # 'false', 'true'
-            # 'timeInForce': 'GTC',  # GTC, IOC, FOK
+            'orderType': type,  # limit, market, stop_market, stop_limit
+            'side': side,  # buy or sell,
+            # 'execInst':  # Post for postOnly, ReduceOnly for reduceOnly
             # 'respInst': 'ACK',  # ACK, 'ACCEPT, DONE
-            # 'posStopLossPrice': position stop loss price( v2 swap orders only)
-            # 'posTakeProfitPrice': position take profit price(v2 swap orders only)
         }
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        if reduceOnly is not None:
-            if (marketType != 'swap'):
+        isMarketOrder = ((type == 'market') or (type == 'stop_market'))
+        isLimitOrder = ((type == 'limit') or (type == 'stop_limit'))
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarketOrder, False, params)
+        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        stopPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice'])
+        if reduceOnly:
+            if marketType != 'swap':
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
-        if reduceOnly is True:
-            request['execInst'] = 'reduceOnly'
+            request['execInst'] = 'ReduceOnly'
+        if isLimitOrder:
+            request['orderPrice'] = self.price_to_precision(symbol, price)
+        if timeInForce == 'IOC':
+            request['timeInForce'] = 'IOC'
+        if timeInForce == 'FOK':
+            request['timeInForce'] = 'FOK'
+        if postOnly:
+            request['postOnly'] = True
+        if stopPrice is not None:
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            if isLimitOrder:
+                request['orderType'] = 'stop_limit'
+            elif isMarketOrder:
+                request['orderType'] = 'stop_market'
         if clientOrderId is not None:
             request['id'] = clientOrderId
-            params = self.omit(params, ['clientOrderId', 'id'])
-        if (type == 'limit') or (type == 'stop_limit'):
-            request['orderPrice'] = self.price_to_precision(symbol, price)
-        if (type == 'stop_limit') or (type == 'stop_market'):
-            stopPrice = self.safe_number(params, 'stopPrice')
-            if stopPrice is None:
-                raise InvalidOrder(self.id + ' createOrder() requires a stopPrice parameter for ' + type + ' orders')
-            else:
-                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-                params = self.omit(params, 'stopPrice')
-        timeInForce = self.safe_string(params, 'timeInForce')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if (timeInForce == 'PO') or (postOnly):
-            request['postOnly'] = True
-            params = self.omit(params, ['postOnly', 'timeInForce'])
         defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
         method = self.get_supported_mapping(marketType, {
             'spot': defaultMethod,
@@ -1349,67 +1363,68 @@ class ascendex(Exchange):
             request['account-category'] = accountCategory
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # AccountCategoryPostOrder
+        # spot
         #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "ac": "MARGIN",
-        #             "accountId": "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        #             "action": "place-order",
-        #             "info": {
-        #                 "id": "16e607e2b83a8bXHbAwwoqDo55c166fa",
-        #                 "orderId": "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
-        #                 "orderType": "Market",
-        #                 "symbol": "BTC/USDT",
-        #                 "timestamp": 1573576916201
-        #             },
-        #             "status": "Ack"
-        #         }
-        #     }
+        #      {
+        #          "code":0,
+        #          "data": {
+        #              "accountId":"cshwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        #              "ac":"CASH",
+        #              "action":"place-order",
+        #              "status":"Ack",
+        #              "info": {
+        #                  "symbol":"TRX/USDT",
+        #                  "orderType":"StopLimit",
+        #                  "timestamp":1654290662172,
+        #                  "id":"",
+        #                  "orderId":"a1812b6840ddU8191168955av0k6Eyhj"
+        #              }
+        #          }
+        #      }
         #
-        # AccountGroupPostFuturesOrder
         #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "meta": {
-        #                 "id": "",
-        #                 "action": "place-order",
-        #                 "respInst": "ACK"
-        #             },
-        #             "order": {
-        #                 "ac": "FUTURES",
-        #                 "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
-        #                 "time": 1640819389454,
-        #                 "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
-        #                 "seqNum": -1,
-        #                 "orderType": "Limit",
-        #                 "execInst": "NULL_VAL",
-        #                 "side": "Buy",
-        #                 "symbol": "BTC-PERP",
-        #                 "price": "30000",
-        #                 "orderQty": "0.002",
-        #                 "stopPrice": "0",
-        #                 "stopBy": "ref-px",
-        #                 "status": "Ack",
-        #                 "lastExecTime": 1640819389454,
-        #                 "lastQty": "0",
-        #                 "lastPx": "0",
-        #                 "avgFilledPx": "0",
-        #                 "cumFilledQty": "0",
-        #                 "fee": "0",
-        #                 "cumFee": "0",
-        #                 "feeAsset": "",
-        #                 "errorCode": "",
-        #                 "posStopLossPrice": "0",
-        #                 "posStopLossTrigger": "market",
-        #                 "posTakeProfitPrice": "0",
-        #                 "posTakeProfitTrigger": "market",
-        #                 "liquidityInd": "n"
-        #             }
-        #         }
-        #     }
+        # swap
+        #
+        #      {
+        #          "code":0,
+        #          "data": {
+        #              "meta": {
+        #                  "id":"",
+        #                  "action":"place-order",
+        #                  "respInst":"ACK"
+        #              },
+        #              "order": {
+        #                  "ac":"FUTURES",
+        #                  "accountId":"futwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        #                  "time":1654290969965,
+        #                  "orderId":"a1812b6cf322U8191168955oJamfTh7b",
+        #                  "seqNum":-1,
+        #                  "orderType":"StopLimit",
+        #                  "execInst":"NULL_VAL",
+        #                  "side":"Buy",
+        #                  "symbol":"TRX-PERP",
+        #                  "price":"0.083",
+        #                  "orderQty":"1",
+        #                  "stopPrice":"0.082",
+        #                  "stopBy":"ref-px",
+        #                  "status":"Ack",
+        #                  "lastExecTime":1654290969965,
+        #                  "lastQty":"0",
+        #                  "lastPx":"0",
+        #                  "avgFilledPx":"0",
+        #                  "cumFilledQty":"0",
+        #                  "fee":"0",
+        #                  "cumFee":"0",
+        #                  "feeAsset":"",
+        #                  "errorCode":"",
+        #                  "posStopLossPrice":"0",
+        #                  "posStopLossTrigger":"market",
+        #                  "posTakeProfitPrice":"0",
+        #                  "posTakeProfitTrigger":"market",
+        #                  "liquidityInd":"n"
+        #              }
+        #          }
+        #      }
         #
         data = self.safe_value(response, 'data', {})
         order = self.safe_value_2(data, 'order', 'info', {})

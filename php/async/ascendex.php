@@ -37,6 +37,7 @@ class ascendex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -1175,7 +1176,7 @@ class ascendex extends Exchange {
         //         "side" =>         "Buy",
         //         "status" =>       "Filled",
         //         "stopPrice" =>    "",
-        //         "execInst" =>     "NULL_VAL"
+        //         "execInst" =>     "NULL_VAL" // "Post" (for $postOnly orders), "reduceOnly" (for $reduceOnly orders)
         //     }
         //
         //     array(
@@ -1205,6 +1206,9 @@ class ascendex extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '/');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'sendingTime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastExecTime');
+        if ($timestamp === null) {
+            $timestamp = $lastTradeTimestamp;
+        }
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
         $average = $this->safe_string($order, 'avgPx');
@@ -1216,7 +1220,16 @@ class ascendex extends Exchange {
                 $clientOrderId = null;
             }
         }
-        $type = $this->safe_string_lower($order, 'orderType');
+        $rawTypeLower = $this->safe_string_lower($order, 'orderType');
+        $type = $rawTypeLower;
+        if ($rawTypeLower !== null) {
+            if ($rawTypeLower === 'stoplimit') {
+                $type = 'limit';
+            }
+            if ($rawTypeLower === 'stopmarket') {
+                $type = 'market';
+            }
+        }
         $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->safe_number($order, 'cumFee');
         $fee = null;
@@ -1234,6 +1247,10 @@ class ascendex extends Exchange {
         if ($execInst === 'reduceOnly') {
             $reduceOnly = true;
         }
+        $postOnly = null;
+        if ($execInst === 'Post') {
+            $postOnly = true;
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1244,7 +1261,7 @@ class ascendex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => null,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
@@ -1310,14 +1327,17 @@ class ascendex extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
-         * create a trade $order
-         * @param {str} $symbol unified $symbol of the $market to create an $order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the ascendex api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * Create an $order on the exchange
+         * @param {str} $symbol Unified CCXT $market $symbol
+         * @param {str} $type "limit" or "market"
+         * @param {str} $side "buy" or "sell"
+         * @param {float} $amount the $amount of currency to trade
+         * @param {float} $price *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+         * @param {dict} $params Extra parameters specific to the exchange API endpoint
+         * @param {str} $params->timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} $params->postOnly true or false
+         * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
+         * @return {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure An $order structure}
          */
         yield $this->load_markets();
         yield $this->load_accounts();
@@ -1336,46 +1356,46 @@ class ascendex extends Exchange {
             'symbol' => $market['id'],
             'time' => $this->milliseconds(),
             'orderQty' => $this->amount_to_precision($symbol, $amount),
-            'orderType' => $type, // "limit", "market", "stop_market", "stop_limit"
-            'side' => $side, // "buy" or "sell"
-            // 'orderPrice' => $this->price_to_precision($symbol, $price),
-            // 'stopPrice' => $this->price_to_precision($symbol, $stopPrice), // required for stop orders
-            // 'postOnly' => 'false', // 'false', 'true'
-            // 'timeInForce' => 'GTC', // GTC, IOC, FOK
+            'orderType' => $type, // limit, $market, stop_market, stop_limit
+            'side' => $side, // buy or sell,
+            // 'execInst' => // Post for $postOnly, ReduceOnly for $reduceOnly
             // 'respInst' => 'ACK', // ACK, 'ACCEPT, DONE
-            // 'posStopLossPrice' => position stop loss $price ( v2 swap orders only)
-            // 'posTakeProfitPrice' => position take profit $price (v2 swap orders only)
         );
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        if ($reduceOnly !== null) {
-            if (($marketType !== 'swap')) {
+        $isMarketOrder = (($type === 'market') || ($type === 'stop_market'));
+        $isLimitOrder = (($type === 'limit') || ($type === 'stop_limit'));
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice' ));
+        if ($reduceOnly) {
+            if ($marketType !== 'swap') {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for perpetuals only');
             }
+            $request['execInst'] = 'ReduceOnly';
         }
-        if ($reduceOnly === true) {
-            $request['execInst'] = 'reduceOnly';
+        if ($isLimitOrder) {
+            $request['orderPrice'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($timeInForce === 'IOC') {
+            $request['timeInForce'] = 'IOC';
+        }
+        if ($timeInForce === 'FOK') {
+            $request['timeInForce'] = 'FOK';
+        }
+        if ($postOnly) {
+            $request['postOnly'] = true;
+        }
+        if ($stopPrice !== null) {
+            $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            if ($isLimitOrder) {
+                $request['orderType'] = 'stop_limit';
+            } elseif ($isMarketOrder) {
+                $request['orderType'] = 'stop_market';
+            }
         }
         if ($clientOrderId !== null) {
             $request['id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'id' ));
-        }
-        if (($type === 'limit') || ($type === 'stop_limit')) {
-            $request['orderPrice'] = $this->price_to_precision($symbol, $price);
-        }
-        if (($type === 'stop_limit') || ($type === 'stop_market')) {
-            $stopPrice = $this->safe_number($params, 'stopPrice');
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $type . ' orders');
-            } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-                $params = $this->omit($params, 'stopPrice');
-            }
-        }
-        $timeInForce = $this->safe_string($params, 'timeInForce');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if (($timeInForce === 'PO') || ($postOnly)) {
-            $request['postOnly'] = true;
-            $params = $this->omit($params, array( 'postOnly', 'timeInForce' ));
         }
         $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryPostOrder');
         $method = $this->get_supported_mapping($marketType, array(
@@ -1392,67 +1412,68 @@ class ascendex extends Exchange {
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // AccountCategoryPostOrder
+        // spot
         //
-        //     {
-        //         "code" => 0,
-        //         "data" => {
-        //             "ac" => "MARGIN",
-        //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        //             "action" => "place-$order",
-        //             "info" => array(
-        //                 "id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
-        //                 "orderId" => "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
-        //                 "orderType" => "Market",
-        //                 "symbol" => "BTC/USDT",
-        //                 "timestamp" => 1573576916201
-        //             ),
-        //             "status" => "Ack"
-        //         }
-        //     }
+        //      {
+        //          "code":0,
+        //          "data" => {
+        //              "accountId":"cshwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        //              "ac":"CASH",
+        //              "action":"place-$order",
+        //              "status":"Ack",
+        //              "info" => {
+        //                  "symbol":"TRX/USDT",
+        //                  "orderType":"StopLimit",
+        //                  "timestamp":1654290662172,
+        //                  "id":"",
+        //                  "orderId":"a1812b6840ddU8191168955av0k6Eyhj"
+        //              }
+        //          }
+        //      }
         //
-        // AccountGroupPostFuturesOrder
         //
-        //     {
-        //         "code" => 0,
-        //         "data" => {
-        //             "meta" => array(
-        //                 "id" => "",
-        //                 "action" => "place-$order",
-        //                 "respInst" => "ACK"
-        //             ),
-        //             "order" => {
-        //                 "ac" => "FUTURES",
-        //                 "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
-        //                 "time" => 1640819389454,
-        //                 "orderId" => "a17e0874ecbdU0711043490bbtcpDU5X",
-        //                 "seqNum" => -1,
-        //                 "orderType" => "Limit",
-        //                 "execInst" => "NULL_VAL",
-        //                 "side" => "Buy",
-        //                 "symbol" => "BTC-PERP",
-        //                 "price" => "30000",
-        //                 "orderQty" => "0.002",
-        //                 "stopPrice" => "0",
-        //                 "stopBy" => "ref-px",
-        //                 "status" => "Ack",
-        //                 "lastExecTime" => 1640819389454,
-        //                 "lastQty" => "0",
-        //                 "lastPx" => "0",
-        //                 "avgFilledPx" => "0",
-        //                 "cumFilledQty" => "0",
-        //                 "fee" => "0",
-        //                 "cumFee" => "0",
-        //                 "feeAsset" => "",
-        //                 "errorCode" => "",
-        //                 "posStopLossPrice" => "0",
-        //                 "posStopLossTrigger" => "market",
-        //                 "posTakeProfitPrice" => "0",
-        //                 "posTakeProfitTrigger" => "market",
-        //                 "liquidityInd" => "n"
-        //             }
-        //         }
-        //     }
+        // swap
+        //
+        //      {
+        //          "code":0,
+        //          "data" => {
+        //              "meta" => array(
+        //                  "id":"",
+        //                  "action":"place-$order",
+        //                  "respInst":"ACK"
+        //              ),
+        //              "order" => {
+        //                  "ac":"FUTURES",
+        //                  "accountId":"futwT8RKojkT1HoaA5UdeimR2SrmHG2I",
+        //                  "time":1654290969965,
+        //                  "orderId":"a1812b6cf322U8191168955oJamfTh7b",
+        //                  "seqNum":-1,
+        //                  "orderType":"StopLimit",
+        //                  "execInst":"NULL_VAL",
+        //                  "side":"Buy",
+        //                  "symbol":"TRX-PERP",
+        //                  "price":"0.083",
+        //                  "orderQty":"1",
+        //                  "stopPrice":"0.082",
+        //                  "stopBy":"ref-px",
+        //                  "status":"Ack",
+        //                  "lastExecTime":1654290969965,
+        //                  "lastQty":"0",
+        //                  "lastPx":"0",
+        //                  "avgFilledPx":"0",
+        //                  "cumFilledQty":"0",
+        //                  "fee":"0",
+        //                  "cumFee":"0",
+        //                  "feeAsset":"",
+        //                  "errorCode":"",
+        //                  "posStopLossPrice":"0",
+        //                  "posStopLossTrigger":"market",
+        //                  "posTakeProfitPrice":"0",
+        //                  "posTakeProfitTrigger":"market",
+        //                  "liquidityInd":"n"
+        //              }
+        //          }
+        //      }
         //
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value_2($data, 'order', 'info', array());
