@@ -28,7 +28,7 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.85.79';
+$version = '1.85.82';
 
 require_once "ExchangeCommon.php";
 
@@ -36,7 +36,7 @@ class Exchange extends \ccxt\Exchange {
 
     use ExchangeCommon;
 
-    const VERSION = '1.85.79';
+    const VERSION = '1.85.82';
 
     public static $loop;
     public static $kernel;

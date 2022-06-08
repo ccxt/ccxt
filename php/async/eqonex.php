@@ -124,6 +124,7 @@ class eqonex extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
                     'symbol not found' => '\\ccxt\\BadSymbol',
@@ -305,8 +306,8 @@ class eqonex extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->safe_integer($market, 'quantity_scale'),
-                'price' => $this->safe_integer($market, 'price_scale'),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_scale'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -379,9 +380,6 @@ class eqonex extends Exchange {
         $id = $this->safe_string($currency, 0);
         $uppercaseId = $this->safe_string($currency, 1);
         $code = $this->safe_currency_code($uppercaseId);
-        $priceScale = $this->safe_integer($currency, 2);
-        $amountScale = $this->safe_integer($currency, 3);
-        $precision = max ($priceScale, $amountScale);
         $name = $this->safe_string($currency, 6);
         $status = $this->safe_integer($currency, 4);
         $active = ($status === 1);
@@ -392,7 +390,7 @@ class eqonex extends Exchange {
             'uppercaseId' => $uppercaseId,
             'code' => $code,
             'name' => $name,
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 3))),
             'fee' => $fee,
             'active' => $active,
             'deposit' => null,
@@ -1683,7 +1681,8 @@ class eqonex extends Exchange {
         return $this->parse8601($date . ' ' . $partTwo);
     }
 
-    public function convert_from_scale($number, $scale) {
+    public function convert_from_scale($number, $scaleInTicksize) {
+        $scale = $this->get_scale($scaleInTicksize);
         if (($number === null) || ($scale === null)) {
             return null;
         }

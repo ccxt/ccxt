@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -121,6 +122,7 @@ module.exports = class eqonex extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'symbol not found': BadSymbol,
@@ -304,8 +306,8 @@ module.exports = class eqonex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeInteger (market, 'quantity_scale'),
-                'price': this.safeInteger (market, 'price_scale'),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
             },
             'limits': {
                 'leverage': {
@@ -380,9 +382,6 @@ module.exports = class eqonex extends Exchange {
         const id = this.safeString (currency, 0);
         const uppercaseId = this.safeString (currency, 1);
         const code = this.safeCurrencyCode (uppercaseId);
-        const priceScale = this.safeInteger (currency, 2);
-        const amountScale = this.safeInteger (currency, 3);
-        const precision = Math.max (priceScale, amountScale);
         const name = this.safeString (currency, 6);
         const status = this.safeInteger (currency, 4);
         const active = (status === 1);
@@ -393,7 +392,7 @@ module.exports = class eqonex extends Exchange {
             'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 3))),
             'fee': fee,
             'active': active,
             'deposit': undefined,
@@ -1710,7 +1709,8 @@ module.exports = class eqonex extends Exchange {
         return this.parse8601 (date + ' ' + partTwo);
     }
 
-    convertFromScale (number, scale) {
+    convertFromScale (number, scaleInTicksize) {
+        const scale = this.getScale (scaleInTicksize);
         if ((number === undefined) || (scale === undefined)) {
             return undefined;
         }
