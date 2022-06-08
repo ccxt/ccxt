@@ -322,13 +322,6 @@ module.exports = class bitfinex2 extends Exchange {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
-                'swap': {
-                    'fetchMarkets': {
-                        'settlementCurrencies': [ 'BTC', 'USDT', 'EURT' ],
-                    },
-                },
-                'currencyNames': {
-                },
             },
             'exceptions': {
                 'exact': {
