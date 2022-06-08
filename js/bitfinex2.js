@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchBalance': false, // for now
-                'watchOHLCV': false, // missing on the exchange side in v1
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -44,13 +44,116 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = channel + ':' + marketId;
-        const request = {
+        let request = undefined;
+        request = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
-            'messageHash': messageHash,
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.timeframes[timeframe];
+        const channel = 'candles';
+        const key = 'trade:' + interval + ':' + market['id'];
+        const messageHash = channel + ':' + interval + ':' + market['id'];
+        const request = {
+            'event': 'subscribe',
+            'channel': channel,
+            'key': key,
+        };
+        const url = this.urls['api']['ws']['public'];
+        // not using subscribe here because this message has a different format
+        const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message, subscription) {
+        //
+        // initial snapshot
+        //   [
+        //       341527, // channel id
+        //       [
+        //          [
+        //             1654705860000, // timestamp
+        //             1802.6, // open
+        //             1800.3, // close
+        //             1802.8, // high
+        //             1800.3, // low
+        //             86.49588236 // volume
+        //          ],
+        //          [
+        //             1654705800000,
+        //             1803.6,
+        //             1802.6,
+        //             1804.9,
+        //             1802.3,
+        //             74.6348086
+        //          ],
+        //          [
+        //             1654705740000,
+        //             1802.5,
+        //             1803.2,
+        //             1804.4,
+        //             1802.4,
+        //             23.61801085
+        //          ]
+        //       ]
+        //   ]
+        //
+        // update
+        //   [
+        //       211171,
+        //       [
+        //          1654705680000,
+        //          1801,
+        //          1802.4,
+        //          1802.9,
+        //          1800.4,
+        //          23.91911091
+        //       ]
+        //   ]
+        //
+        const data = this.safeValue (message, 1, []);
+        let ohlcvs = undefined;
+        if (Array.isArray (data)) {
+            // snapshot
+            ohlcvs = data;
+        } else {
+            // update
+            ohlcvs = [ data ];
+        }
+        const channel = this.safeValue (subscription, 'channel');
+        const key = this.safeString (subscription, 'key');
+        const keyParts = key.split (':');
+        const interval = this.safeString (keyParts, 1);
+        let marketId = key;
+        marketId = marketId.replace ('trade:', '');
+        marketId = marketId.replace (interval + ':', '');
+        const market = this.safeMarket (marketId);
+        const timeframe = this.findTimeframe (interval);
+        const symbol = market['symbol'];
+        const messageHash = channel + ':' + interval + ':' + marketId;
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        for (let i = 0; i < ohlcvs.length; i++) {
+            const ohlcv = ohlcvs[i];
+            const parsed = this.parseOHLCV (ohlcv, market);
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -611,7 +714,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             const name = this.safeString (message, 1);
             const methods = {
                 'book': this.handleOrderBook,
-                // 'ohlc': this.handleOHLCV,
+                'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
                 'os': this.handleOrders,
