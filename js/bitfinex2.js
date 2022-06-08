@@ -485,11 +485,8 @@ module.exports = class bitfinex2 extends Exchange {
             const minOrderSizeString = this.safeString (market, 3);
             const maxOrderSizeString = this.safeString (market, 4);
             let margin = false;
-            for (let i = 0; i < marginIds.length; i++) {
-                if (marginIds[i] === id) {
-                    margin = true;
-                    break;
-                }
+            if (this.inArray (id, marginIds)) {
+                margin = true;
             }
             result.push ({
                 'id': 't' + id,
