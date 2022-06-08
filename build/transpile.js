@@ -1149,7 +1149,7 @@ class Transpiler {
             php,
             phpAsync,
             methodNames
-        } = this.transpileMethodsToAllLanguages(className, methods)
+        } = this.transpileMethodsToAllLanguages (className, methods)
 
         return {
 
@@ -1158,7 +1158,6 @@ class Transpiler {
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames),
             phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
-
             className,
             baseClass,
         }
@@ -1348,7 +1347,8 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileMethodsToAllLanguages(className, methods, pyFirstLevel = false, phpIndentBody = false) {
+    transpileMethodsToAllLanguages (className, methods, pyFirstLevel = false, phpIndentBody = false) {
+
         let python2 = []
         let python3 = []
         let php = []
@@ -1411,7 +1411,6 @@ class Transpiler {
 
             // compile signature + body for Python sync
             python2.push ('');
-
             const indentation = pyFirstLevel ? '' : '    '
             python2.push (indentation + pythonString);
             python2.push (python2Body);
