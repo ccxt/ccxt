@@ -518,6 +518,7 @@ module.exports = class hitbtc3 extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const entry = response[currencyId];
             const name = this.safeString (entry, 'full_name');
+            const precision = this.safeNumber (entry, 'precision_transfer');
             const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
             const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
             const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
@@ -569,7 +570,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'info': entry,
                 'code': code,
                 'id': currencyId,
-                'precision': undefined,
+                'precision': precision,
                 'name': name,
                 'active': active,
                 'deposit': depositEnabled,
