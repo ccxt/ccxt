@@ -2416,6 +2416,14 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
