@@ -1836,16 +1836,17 @@ module.exports = class bitfinex2 extends Exchange {
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        params = this.omit (params, 'network');
         const currencyNetworks = this.safeValue (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new ArgumentsRequired (this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
         }
+        const wallet = this.safeString (params, 'wallet', 'exchange');  // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+        params = this.omit (params, 'network', 'wallet');
         const request = {
             'method': networkId,
-            'wallet': 'exchange', // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
+            'wallet': wallet,
             'op_renew': 0, // a value of 1 will generate a new address
         };
         const response = await this.privatePostAuthWDepositAddress (this.extend (request, params));
