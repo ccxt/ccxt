@@ -1613,6 +1613,12 @@ class coinflex extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
+        /**
+         * fetch data on a single open contract trade position
+         * @param {str} $symbol unified market $symbol of the market the position is held in, default is null
+         * @param {dict} $params extra parameters specific to the coinflex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         yield $this->load_markets();
         $positions = yield $this->fetch_positions(null, $params);
         $array = $this->filter_by_symbol($positions, $symbol);
