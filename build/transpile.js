@@ -1041,94 +1041,19 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileDerivedExchangeClass (contents, methodNames = undefined) {
+    transpileDerivedExchangeClass (contents) {
 
         const [ _, className, baseClass, methodMatches ] = this.getExchangeClassDeclarationMatches (contents)
 
         const methods = methodMatches.trim ().split (/\n\s*\n/)
 
-        let python2 = []
-        let python3 = []
-        let php = []
-        let phpAsync = []
-
-        methodNames = [] // methodNames || []
-
-        // run through all methods
-        for (let i = 0; i < methods.length; i++) {
-            // parse the method signature
-            let part = methods[i].trim ()
-            let lines = part.split ("\n")
-            let signature = lines[0].trim ()
-            let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
-            let matches = methodSignatureRegex.exec (signature)
-
-            if (!matches) {
-                log.red (methods[i])
-                log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
-            }
-
-            // async or not
-            let keyword = matches[1]
-
-            // method name
-            let method = matches[2]
-
-            methodNames.push (method)
-
-            method = unCamelCase (method)
-
-            // method arguments
-            let args = matches[3].trim ()
-
-            // extract argument names and local variables
-            args = args.length ? args.split (',').map (x => x.trim ()) : []
-
-            // get names of all method arguments for later substitutions
-            let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
-
-            // add $ to each argument name in PHP method signature
-            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
-            phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
-
-            // remove excessive spacing from argument defaults in Python method signature
-            let pythonArgs = args.map (x => x.replace (' = ', '='))
-                .join (', ')
-                .replace (/undefined/g, 'None')
-                .replace (/false/g, 'False')
-                .replace (/true/g, 'True')
-
-            // method body without the signature (first line)
-            // and without the closing bracket (last line)
-            let js = lines.slice (1, -1).join ("\n")
-
-            // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
-
-            // compile the final Python code for the method signature
-            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
-
-            // compile signature + body for Python sync
-            python2.push ('');
-            python2.push ('    ' + pythonString);
-            python2.push (python2Body);
-
-            // compile signature + body for Python async
-            python3.push ('');
-            python3.push ('    ' + keyword + pythonString);
-            python3.push (python3Body);
-
-            // compile signature + body for PHP
-            php.push ('');
-            php.push ('    public function ' + method + '(' + phpArgs + ') {');
-            php.push (phpBody);
-            php.push ('    }')
-
-            phpAsync.push ('');
-            phpAsync.push ('    public function ' + method + '(' + phpArgs + ') {');
-            phpAsync.push (phpAsyncBody);
-            phpAsync.push ('    }')
-        }
+        const {
+            python2,
+            python3,
+            php,
+            phpAsync,
+            methodNames
+        } = this.transpileMethodsToAllLanguages (className, methods)
 
         return {
 
@@ -1137,7 +1062,6 @@ class Transpiler {
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames),
             phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
-
             className,
             baseClass,
         }
@@ -1270,6 +1194,102 @@ class Transpiler {
         }
 
         return classes
+    }
+
+    // ========================================================================
+
+    transpileMethodsToAllLanguages (className, methods) {
+
+        let python2 = []
+        let python3 = []
+        let php = []
+        let phpAsync = []
+        let methodNames = []
+
+        for (let i = 0; i < methods.length; i++) {
+            // parse the method signature
+            let part = methods[i].trim ()
+            let lines = part.split ("\n")
+            let signature = lines[0].trim ()
+            signature = signature.replace('function ', '')
+            let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
+            let matches = methodSignatureRegex.exec (signature)
+
+            if (!matches) {
+                log.red (methods[i])
+                log.yellow.bright ("\nMake sure your methods don't have empty lines!\n")
+            }
+
+            // async or not
+            let keyword = matches[1]
+
+            // method name
+            let method = matches[2]
+
+            methodNames.push (method)
+
+            method = unCamelCase (method)
+
+            // method arguments
+            let args = matches[3].trim ()
+
+            // extract argument names and local variables
+            args = args.length ? args.split (',').map (x => x.trim ()) : []
+
+            // get names of all method arguments for later substitutions
+            let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
+
+            // add $ to each argument name in PHP method signature
+            let phpArgs = args.join (', $').trim ().replace (/undefined/g, 'null').replace (/\{\}/g, 'array ()')
+            phpArgs = phpArgs.length ? ('$' + phpArgs) : ''
+
+            // remove excessive spacing from argument defaults in Python method signature
+            let pythonArgs = args.map (x => x.replace (' = ', '='))
+                .join (', ')
+                .replace (/undefined/g, 'None')
+                .replace (/false/g, 'False')
+                .replace (/true/g, 'True')
+
+            // method body without the signature (first line)
+            // and without the closing bracket (last line)
+            let js = lines.slice (1, -1).join ("\n")
+
+            // transpile everything
+            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+
+            // compile the final Python code for the method signature
+            let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
+
+            // compile signature + body for Python sync
+            python2.push ('');
+            python2.push ('    ' + pythonString);
+            python2.push (python2Body);
+
+            // compile signature + body for Python async
+            python3.push ('');
+            python3.push (indentation + keyword + pythonString);
+            python3.push (python3Body);
+
+            // compile signature + body for PHP
+            php.push ('');
+            php.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
+            php.push (phpBody);
+            php.push ('    ' + '}')
+
+            phpAsync.push ('');
+            phpAsync.push ('    ' + 'public function ' + method + '(' + phpArgs + ') {');
+            phpAsync.push (phpAsyncBody);
+            phpAsync.push ('    ' + '}')
+        }
+
+        return {
+            // altogether in PHP, async PHP, Python sync and async
+            python2,
+            python3,
+            php,
+            phpAsync,
+            methodNames
+        }
     }
 
     // ========================================================================
