@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -170,6 +171,7 @@ class xena(Exchange):
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Validation failed': BadRequest,
@@ -333,6 +335,7 @@ class xena(Exchange):
                     swap = True
             inverse = self.safe_value(market, 'inverse', False)
             contract = swap or future
+            pricePrecision = self.safe_integer_2(market, 'tickSize', 'pricePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -359,8 +362,8 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('0'),
-                    'price': self.safe_integer_2(market, 'tickSize', 'pricePrecision'),
+                    'amount': self.parse_number(self.parse_precision('0')),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -425,7 +428,6 @@ class xena(Exchange):
             currency = response[id]
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'title')
-            precision = self.safe_integer(currency, 'precision')
             enabled = self.safe_value(currency, 'enabled')
             active = (enabled is True)
             withdraw = self.safe_value(currency, 'withdraw', {})
@@ -438,7 +440,7 @@ class xena(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': self.safe_number(withdraw, 'commission'),
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': None,

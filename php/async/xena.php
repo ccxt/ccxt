@@ -168,6 +168,7 @@ class xena extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Validation failed' => '\\ccxt\\BadRequest',
@@ -335,6 +336,7 @@ class xena extends Exchange {
             }
             $inverse = $this->safe_value($market, 'inverse', false);
             $contract = $swap || $future;
+            $pricePrecision = $this->safe_integer_2($market, 'tickSize', 'pricePrecision');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -361,8 +363,8 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('0'),
-                    'price' => $this->safe_integer_2($market, 'tickSize', 'pricePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision('0')),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecision)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -429,7 +431,6 @@ class xena extends Exchange {
             $currency = $response[$id];
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'title');
-            $precision = $this->safe_integer($currency, 'precision');
             $enabled = $this->safe_value($currency, 'enabled');
             $active = ($enabled === true);
             $withdraw = $this->safe_value($currency, 'withdraw', array());
@@ -442,7 +443,7 @@ class xena extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $this->safe_number($withdraw, 'commission'),
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
