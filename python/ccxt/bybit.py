@@ -4460,6 +4460,12 @@ class bybit(Exchange):
             raise ExchangeError(feedback)  # unknown message
 
     def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
         self.load_markets()
         request = {}
         market = None

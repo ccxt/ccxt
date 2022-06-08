@@ -1867,6 +1867,12 @@ class kucoinfutures(kucoin):
         raise BadRequest(self.id + ' fetchLedger() is not supported yet')
 
     async def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
