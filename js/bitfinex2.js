@@ -941,7 +941,7 @@ module.exports = class bitfinex2 extends Exchange {
          * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
+        throw new NotSupported (this.id + ' fetchOrder() is not supported yet. Consider using fetchOpenOrder() or fetchClosedOrder() instead.');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
