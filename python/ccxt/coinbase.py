@@ -390,6 +390,14 @@ class coinbase(Exchange):
         return self.fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', code, since, limit, params)
 

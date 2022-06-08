@@ -1023,6 +1023,14 @@ class bitpanda(Exchange):
         return self.parse_deposit_address(response, currency)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bitpanda api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'cursor': 'string',  # pointer specifying the position from which the next pages should be returned
