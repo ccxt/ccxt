@@ -2183,7 +2183,7 @@ module.exports = class aax extends Exchange {
         /**
          * @method
          * @name aax#fetchDepositAddress
-         * @description fetch the deposit address associated to this account for a currency
+         * @description fetch the deposit address for a currency associated with this account
          * @param {str} code unified currency code
          * @param {dict} params extra parameters specific to the aax api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
