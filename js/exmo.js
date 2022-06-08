@@ -1862,6 +1862,15 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code unified currency code of the currency withdrawn, default is undefined
+         * @param {dict} params extra parameters specific to the exmo api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         const request = {

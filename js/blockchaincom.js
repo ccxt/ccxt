@@ -914,6 +914,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code not used by blockchaincom.fetchWithdrawal
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'withdrawalId': id,
