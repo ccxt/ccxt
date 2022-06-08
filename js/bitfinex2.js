@@ -69,124 +69,140 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         // initial snapshot
         //
-        //     [
-        //         2,
-        //         [
-        //             [ null, 1580565020, 9374.9, 0.005 ],
-        //             [ null, 1580565004, 9374.9, 0.005 ],
-        //             [ null, 1580565003, 9374.9, 0.005 ],
-        //         ]
-        //     ]
+        //    [
+        //        188687, // channel id
+        //        [
+        //          [ 1128060675, 1654701572690, 0.00217533, 1815.3 ], // id, mts, amount, price
+        //          [ 1128060665, 1654701551231, -0.00280472, 1814.1 ],
+        //          [ 1128060664, 1654701550996, -0.00364444, 1814.1 ],
+        //          [ 1128060656, 1654701527730, -0.00265203, 1814.2 ],
+        //          [ 1128060647, 1654701505193, 0.00262395, 1815.2 ],
+        //          [ 1128060642, 1654701484656, -0.13411443, 1816 ],
+        //          [ 1128060641, 1654701484656, -0.00088557, 1816 ],
+        //          [ 1128060639, 1654701478326, -0.002, 1816 ],
+        //        ]
+        //    ]
+        // update
         //
-        // when a trade does not have an id yet
+        //    [
+        //        360141,
+        //        'te',
+        //        [
+        //            1128060969, // id
+        //            1654702500098, // mts
+        //            0.00325131, // amount positive buy, negative sell
+        //            1818.5, // price
+        //        ],
+        //    ]
         //
-        //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
-        //
-        // when a trade already has an id
-        //
-        //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
         //
         const channel = this.safeValue (subscription, 'channel');
-        const marketId = this.safeString (subscription, 'pair');
+        const marketId = this.safeString (subscription, 'symbol');
+        const market = this.safeMarket (marketId);
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const data = this.safeValue (message, 1);
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.append (trades[i]);
-                }
-            } else {
-                const second = this.safeString (message, 1);
-                if (second !== 'tu') {
-                    return;
-                }
-                const trade = this.parseTrade (message, market);
-                stored.append (trade);
-            }
-            client.resolve (stored, messageHash);
+        const symbol = market['symbol'];
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        if (Array.isArray (message)) {
+            const messageLength = message.length;
+            let trades = undefined;
+            if (messageLength === 2) {
+                // initial snapshot
+                trades = this.safeValue (message, 1, []);
+            } else {
+                // update
+                trades = [ this.safeValue (message, 2, []) ];
+            }
+            for (let i = 0; i < trades.length; i++) {
+                const parsed = this.parseWsTrade (trades[i], market);
+                stored.append (parsed);
+            }
+        } else {
+            const second = this.safeString (message, 1);
+            if (second !== 'tu') {
+                return;
+            }
+            const trade = this.parseWsTrade (message, market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
         return message;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
-        // snapshot trade
+        //    [
+        //        1128060969, // id
+        //        1654702500098, // mts
+        //        0.00325131, // amount positive buy, negative sell
+        //        1818.5, // price
+        //    ]
         //
-        //     // null, time, price, amount
-        //     [ null, 1580565020, 9374.9, 0.005 ],
-        //
-        // when a trade does not have an id yet
-        //
-        //     // channel id, update type, seq, time, price, amount
-        //     [ 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ],
-        //
-        // when a trade already has an id
-        //
-        //     // channel id, update type, seq, trade id, time, price, amount
-        //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
-        //
-        if (!Array.isArray (trade)) {
-            return super.parseTrade (trade, market);
-        }
-        const tradeLength = trade.length;
-        const event = this.safeString (trade, 1);
-        let id = undefined;
-        if (event === 'tu') {
-            id = this.safeString (trade, tradeLength - 4);
-        }
-        const timestamp = this.safeTimestamp (trade, tradeLength - 3);
-        const price = this.safeFloat (trade, tradeLength - 2);
-        let amount = this.safeFloat (trade, tradeLength - 1);
+        market = this.safeMarket (undefined, market);
+        const marketId = market['id'];
+        const id = this.safeString (trade, 0);
+        const timestamp = this.safeInteger (trade, 1);
+        const price = this.safeString (trade, 3);
+        let amount = this.safeFloat (trade, 2);
         let side = undefined;
         if (amount !== undefined) {
             side = (amount > 0) ? 'buy' : 'sell';
             amount = Math.abs (amount);
         }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const seq = this.safeString (trade, 2);
-        const parts = seq.split ('-');
-        let marketId = this.safeString (parts, 1);
-        if (marketId !== undefined) {
-            marketId = marketId.replace ('t', '');
-        }
         const symbol = this.safeSymbol (marketId, market);
-        const takerOrMaker = undefined;
-        const orderId = undefined;
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderId,
+            'order': undefined,
             'type': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     handleTicker (client, message, subscription) {
         //
+        // [
+        //    340432, // channel ID
         //     [
-        //         2,             // 0 CHANNEL_ID integer Channel ID
+        //         236.62,        // 1 BID float Price of last highest bid
+        //         9.0029,        // 2 BID_SIZE float Size of the last highest bid
+        //         236.88,        // 3 ASK float Price of last lowest ask
+        //         7.1138,        // 4 ASK_SIZE float Size of the last lowest ask
+        //         -1.02,         // 5 DAILY_CHANGE float Amount that the last price has changed since yesterday
+        //         0,             // 6 DAILY_CHANGE_PERC float Amount that the price has changed expressed in percentage terms
+        //         236.52,        // 7 LAST_PRICE float Price of the last trade.
+        //         5191.36754297, // 8 VOLUME float Daily volume
+        //         250.01,        // 9 HIGH float Daily high
+        //         220.05,        // 10 LOW float Daily low
+        //     ]
+        //  ]
+        //
+        const ticker = this.safeValue (message, 1);
+        const marketId = this.safeString (subscription, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId);
+        const parsed = this.parseWsTicker (ticker, market);
+        const channel = 'ticker';
+        const messageHash = channel + ':' + marketId;
+        this.tickers[symbol] = parsed;
+        client.resolve (parsed, messageHash);
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        //
+        //     [
         //         236.62,        // 1 BID float Price of last highest bid
         //         9.0029,        // 2 BID_SIZE float Size of the last highest bid
         //         236.88,        // 3 ASK float Price of last lowest ask
@@ -200,40 +216,32 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //     ]
         //
         const timestamp = this.milliseconds ();
-        const marketId = this.safeString (subscription, 'pair');
-        const symbol = this.safeSymbol (marketId);
-        const channel = 'ticker';
-        const messageHash = channel + ':' + marketId;
-        const last = this.safeFloat (message, 7);
-        const change = this.safeFloat (message, 5);
-        let open = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
-        const result = {
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 7);
+        const change = this.safeString (ticker, 5);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (message, 9),
-            'low': this.safeFloat (message, 10),
-            'bid': this.safeFloat (message, 1),
+            'high': this.safeString (ticker, 9),
+            'low': this.safeString (ticker, 10),
+            'bid': this.safeString (ticker, 1),
             'bidVolume': undefined,
-            'ask': this.safeFloat (message, 3),
+            'ask': this.safeString (ticker, 3),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeFloat (message, 6),
+            'percentage': this.safeString (ticker, 6),
             'average': undefined,
-            'baseVolume': this.safeFloat (message, 8),
+            'baseVolume': this.safeString (ticker, 8),
             'quoteVolume': undefined,
-            'info': message,
-        };
-        this.tickers[symbol] = result;
-        client.resolve (result, messageHash);
+            'info': ticker,
+        }, market);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -520,6 +528,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
     }
 
     handleOrder (client, order) {
+        //
         // [ 45287766631,
         //     'ETHUST',
         //     -0.07,
@@ -532,6 +541,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //     0,
         //     0,
         //     0 ]
+        //
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 1);
         const symbol = this.safeSymbol (marketId);
