@@ -3551,6 +3551,14 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name zb#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

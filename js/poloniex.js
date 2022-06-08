@@ -1797,6 +1797,14 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the poloniex api endpoint
+         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
