@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -125,6 +126,7 @@ class eqonex(Exchange):
                 'secret': True,
                 'uid': True,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'symbol not found': BadSymbol,
@@ -301,8 +303,8 @@ class eqonex(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.safe_integer(market, 'quantity_scale'),
-                'price': self.safe_integer(market, 'price_scale'),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_scale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
             },
             'limits': {
                 'leverage': {
@@ -372,9 +374,6 @@ class eqonex(Exchange):
         id = self.safe_string(currency, 0)
         uppercaseId = self.safe_string(currency, 1)
         code = self.safe_currency_code(uppercaseId)
-        priceScale = self.safe_integer(currency, 2)
-        amountScale = self.safe_integer(currency, 3)
-        precision = max(priceScale, amountScale)
         name = self.safe_string(currency, 6)
         status = self.safe_integer(currency, 4)
         active = (status == 1)
@@ -385,7 +384,7 @@ class eqonex(Exchange):
             'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
-            'precision': precision,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 3))),
             'fee': fee,
             'active': active,
             'deposit': None,
@@ -1604,7 +1603,8 @@ class eqonex(Exchange):
         date = partOne[0:4] + '-' + partOne[4:6] + '-' + partOne[6:8]
         return self.parse8601(date + ' ' + partTwo)
 
-    def convert_from_scale(self, number, scale):
+    def convert_from_scale(self, number, scaleInTicksize):
+        scale = self.get_scale(scaleInTicksize)
         if (number is None) or (scale is None):
             return None
         precise = Precise(number)
