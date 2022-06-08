@@ -34,15 +34,19 @@ class digifinex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
+                'future': False,
                 'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
+                'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -62,6 +66,7 @@ class digifinex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1683,6 +1688,97 @@ class digifinex(Exchange):
             'datetime': None,
             'info': info,
         }
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        request = {}
+        response = await self.privateGetMarginAssets(self.extend(request, params))
+        #
+        #     {
+        #         "list": [
+        #             {
+        #                 "valuation_rate": 1,
+        #                 "total": 1.92012186174,
+        #                 "free": 1.92012186174,
+        #                 "currency": "USDT"
+        #             },
+        #         ],
+        #         "total": 45.133305540922,
+        #         "code": 0,
+        #         "unrealized_pnl": 0,
+        #         "free": 45.133305540922,
+        #         "equity": 45.133305540922
+        #     }
+        #
+        data = self.safe_value(response, 'list', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            if self.safe_string(entry, 'currency') == code:
+                result = entry
+        currency = self.safe_string(result, 'currency')
+        return self.parse_borrow_rate(result, currency)
+
+    async def fetch_borrow_rates(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetMarginAssets(params)
+        #
+        #     {
+        #         "list": [
+        #             {
+        #                 "valuation_rate": 1,
+        #                 "total": 1.92012186174,
+        #                 "free": 1.92012186174,
+        #                 "currency": "USDT"
+        #             },
+        #         ],
+        #         "total": 45.133305540922,
+        #         "code": 0,
+        #         "unrealized_pnl": 0,
+        #         "free": 45.133305540922,
+        #         "equity": 45.133305540922
+        #     }
+        #
+        result = self.safe_value(response, 'list')
+        return self.parse_borrow_rates(result, 'currency')
+
+    def parse_borrow_rate(self, info, currency=None):
+        #
+        #     {
+        #         "valuation_rate": 1,
+        #         "total": 1.92012186174,
+        #         "free": 1.92012186174,
+        #         "currency": "USDT"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        currencyId = self.safe_string(info, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': 0.001,  # all interest rates on digifinex are 0.1%
+            'period': 86400000,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "valuation_rate": 1,
+        #         "total": 1.92012186174,
+        #         "free": 1.92012186174,
+        #         "currency": "USDT"
+        #     },
+        #
+        result = {}
+        for i in range(0, len(info)):
+            item = info[i]
+            currency = self.safe_string(item, codeKey)
+            code = self.safe_currency_code(currency)
+            borrowRate = self.parse_borrow_rate(item, currency)
+            result[code] = borrowRate
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version

@@ -23,15 +23,19 @@ class digifinex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => null, // has but unimplemented
-                'future' => null, // has but unimplemented
+                'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
+                'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -51,6 +55,7 @@ class digifinex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -1748,6 +1753,104 @@ class digifinex extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $response = yield $this->privateGetMarginAssets (array_merge($request, $params));
+        //
+        //     {
+        //         "list" => array(
+        //             array(
+        //                 "valuation_rate" => 1,
+        //                 "total" => 1.92012186174,
+        //                 "free" => 1.92012186174,
+        //                 "currency" => "USDT"
+        //             ),
+        //         ),
+        //         "total" => 45.133305540922,
+        //         "code" => 0,
+        //         "unrealized_pnl" => 0,
+        //         "free" => 45.133305540922,
+        //         "equity" => 45.133305540922
+        //     }
+        //
+        $data = $this->safe_value($response, 'list', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            if ($this->safe_string($entry, 'currency') === $code) {
+                $result = $entry;
+            }
+        }
+        $currency = $this->safe_string($result, 'currency');
+        return $this->parse_borrow_rate($result, $currency);
+    }
+
+    public function fetch_borrow_rates($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetMarginAssets ($params);
+        //
+        //     {
+        //         "list" => array(
+        //             array(
+        //                 "valuation_rate" => 1,
+        //                 "total" => 1.92012186174,
+        //                 "free" => 1.92012186174,
+        //                 "currency" => "USDT"
+        //             ),
+        //         ),
+        //         "total" => 45.133305540922,
+        //         "code" => 0,
+        //         "unrealized_pnl" => 0,
+        //         "free" => 45.133305540922,
+        //         "equity" => 45.133305540922
+        //     }
+        //
+        $result = $this->safe_value($response, 'list');
+        return $this->parse_borrow_rates($result, 'currency');
+    }
+
+    public function parse_borrow_rate($info, $currency = null) {
+        //
+        //     {
+        //         "valuation_rate" => 1,
+        //         "total" => 1.92012186174,
+        //         "free" => 1.92012186174,
+        //         "currency" => "USDT"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $currencyId = $this->safe_string($info, 'currency');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'rate' => 0.001, // all interest rates on digifinex are 0.1%
+            'period' => 86400000,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function parse_borrow_rates($info, $codeKey) {
+        //
+        //     array(
+        //         "valuation_rate" => 1,
+        //         "total" => 1.92012186174,
+        //         "free" => 1.92012186174,
+        //         "currency" => "USDT"
+        //     ),
+        //
+        $result = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $currency = $this->safe_string($item, $codeKey);
+            $code = $this->safe_currency_code($currency);
+            $borrowRate = $this->parse_borrow_rate($item, $currency);
+            $result[$code] = $borrowRate;
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
