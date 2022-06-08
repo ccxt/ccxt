@@ -702,6 +702,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns response from exchange
+         */
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
             const expiresDelta = 60 * 60 * 24 * 7;

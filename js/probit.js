@@ -1435,6 +1435,13 @@ module.exports = class probit extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name probit#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns response from exchange
+         */
         this.checkRequiredCredentials ();
         const request = {
             'grant_type': 'client_credentials', // the only supported value
