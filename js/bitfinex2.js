@@ -699,8 +699,8 @@ module.exports = class bitfinex2 extends Exchange {
             const networks = {};
             const currencyNetworks = this.safeValue (response, 8, []);
             const cleanId = id.replace ('F0', '');
-            for (let i = 0; i < currencyNetworks.length; i++) {
-                const pair = currencyNetworks[i];
+            for (let j = 0; j < currencyNetworks.length; j++) {
+                const pair = currencyNetworks[j];
                 const networkId = this.safeString (pair, 0);
                 const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
                 if (currencyId === cleanId) {
