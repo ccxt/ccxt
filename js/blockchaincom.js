@@ -821,6 +821,13 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchWithdrawalWhitelist (params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchWithdrawalWhitelist
+         * @description fetch the list of withdrawal addresses on the whitelist
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} dictionary with keys beneficiaryId, name, currency
+         */
         await this.loadMarkets ();
         const response = await this.privateGetWhitelist ();
         const result = [];
