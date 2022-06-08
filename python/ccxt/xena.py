@@ -1475,6 +1475,14 @@ class xena(Exchange):
         return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_by_type('withdrawals', code, since, limit, params)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

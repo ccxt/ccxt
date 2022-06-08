@@ -2231,6 +2231,14 @@ class aax extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array(
             // status Not required : "0 => Under Review, 1 => Manual Review, 2 => On Chain, 3 => Review Failed, 4 => On Chain, 5 => Completed, 6 => Failed"
