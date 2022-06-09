@@ -425,15 +425,43 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
+         * @param {dict} $params exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public function fetch_trading_fees($params = array ()) {
-        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet')
+        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet');
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
         if (!$this->has['fetchTradingFees']) {
-            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet')
+            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
         }
-        return yield $this->fetch_trading_fees($params)
+        return yield $this->fetch_trading_fees($params);
     }
 
     public function parse_open_interest($interest, $market = null) {

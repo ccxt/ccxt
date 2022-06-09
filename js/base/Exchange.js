@@ -2238,35 +2238,6 @@ module.exports = class Exchange {
         }
     }
 
-    isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} type Order type
-         * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {dict} params exchange specific params
-         * @returns {boolean} true if a post only order, false otherwise
-         */
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
-        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-        const ioc = timeInForce === 'IOC';
-        const fok = timeInForce === 'FOK';
-        const timeInForcePostOnly = timeInForce === 'PO';
-        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
-        if (postOnly) {
-            if (ioc || fok) {
-                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
-            } else if (isMarketOrder) {
-                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
-            } else {
-                return true;
-            }
-        } else {
-            return false;
-        }
-    }
-
     async createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
         if (!this.has['createPostOnlyOrder']) {
             throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
@@ -2349,15 +2320,44 @@ module.exports = class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
+         * @returns {boolean} true if a post only order, false otherwise
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const timeInForcePostOnly = timeInForce === 'PO';
+        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
     }
 
     async fetchTradingFee (symbol, params = {}) {
         if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet');
         }
-        return await this.fetchTradingFees (params)
+        return await this.fetchTradingFees (params);
     }
 
     parseOpenInterest (interest, market = undefined) {

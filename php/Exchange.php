@@ -397,7 +397,6 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
-        'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
@@ -407,6 +406,7 @@ class Exchange {
         'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'isPostOnly' => 'is_post_only',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
         'parseOpenInterest' => 'parse_open_interest',
@@ -2156,17 +2156,6 @@ class Exchange {
         return $this->fetch_partial_balance('total', $params);
     }
 
-    public function fetch_trading_fees($params = array()) {
-        throw new NotSupported($this->id . ' fetch_trading_fees() is not supported yet');
-    }
-
-    public function fetch_trading_fee($symbol, $params = array()) {
-        if (!$this->has['fetchTradingFees']) {
-            throw new NotSupported($this->id . ' fetch_trading_fee() is not supported yet');
-        }
-        return $this->fetch_trading_fees($params);
-    }
-
     public function fetch_funding_fee($code, $params = array()) {
         $warnOnFetchFundingFee = $this->safeValue($this->options, 'warnOnFetchFundingFee', true);
         if ($warnOnFetchFundingFee) {
@@ -3908,34 +3897,6 @@ class Exchange {
         sleep($milliseconds / 1000);
     }
 
-    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
-        /**
-         * @ignore
-         * @param {string} $type Order type
-         * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {dict} $params exchange specific $params
-         * @return {boolean} true if a post only order, false otherwise
-         */
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
-        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
-        $ioc = $timeInForce === 'IOC';
-        $fok = $timeInForce === 'FOK';
-        $timeInForcePostOnly = $timeInForce === 'PO';
-        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
-        if ($postOnly) {
-            if ($ioc || $fok) {
-                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
-            } elseif ($isMarketOrder) {
-                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
-            } else {
-                return true;
-            }
-        } else {
-            return false;
-        }
-    }
-
     public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
         if (!$this->has['createPostOnlyOrder']) {
             throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
@@ -4027,15 +3988,43 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} type Order type
+         * @param {boolean} $exchangeSpecificParam exchange specific $postOnly
+         * @param {dict} $params exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' $postOnly orders cannot have $timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public function fetch_trading_fees($params = array ()) {
-        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet')
+        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet');
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
         if (!$this->has['fetchTradingFees']) {
-            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet')
+            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet');
         }
-        return $this->fetch_trading_fees($params)
+        return $this->fetch_trading_fees($params);
     }
 
     public function parse_open_interest($interest, $market = null) {

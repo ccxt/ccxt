@@ -1850,14 +1850,6 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
-    def fetch_trading_fees(self, symbol, params={}):
-        raise NotSupported(self.id + ' fetch_trading_fees() is not supported yet')
-
-    def fetch_trading_fee(self, symbol, params={}):
-        if not self.has['fetchTradingFees']:
-            raise NotSupported(self.id + ' fetch_trading_fee() is not supported yet')
-        return self.fetch_trading_fees(params)
-
     def fetch_funding_fee(self, code, params={}):
         warnOnFetchFundingFee = self.safeValue(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
@@ -2952,31 +2944,6 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
-        """
-         * @ignore
-        :param string type: Order type
-        :param boolean exchangeSpecificParam: Exchange specific postOnly
-        :param dict params: Exchange specific params
-        :returns boolean: True if a post only order, False otherwise
-        """
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
-        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
-        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
-        ioc = timeInForce == 'IOC'
-        fok = timeInForce == 'FOK'
-        timeInForcePostOnly = timeInForce == 'PO'
-        postOnly = postOnly or timeInForcePostOnly or exchangeSpecificParam
-        if postOnly:
-            if ioc or fok:
-                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
-            elif isMarketOrder:
-                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
-            else:
-                return True
-        else:
-            return False
-
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
             raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
@@ -3039,6 +3006,31 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
+        """
+         * @ignore
+        :param string type: Order type
+        :param boolean exchangeSpecificParam: exchange specific postOnly
+        :param dict params: exchange specific params
+        :returns boolean: True if a post only order, False otherwise
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        timeInForcePostOnly = timeInForce == 'PO'
+        postOnly = postOnly or timeInForcePostOnly or exchangeSpecificParam
+        if postOnly:
+            if ioc or fok:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarketOrder:
+                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
+            else:
+                return True
+        else:
+            return False
 
     def fetch_trading_fees(self, params={}):
         raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
