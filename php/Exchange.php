@@ -1966,20 +1966,6 @@ class Exchange {
         return $this->set_markets($markets, $currencies);
     }
 
-    public function load_accounts($reload = false, $params = array()) {
-        if ($reload) {
-            $this->accounts = $this->fetch_accounts($params);
-        } else {
-            if ($this->accounts) {
-                return $this->accounts;
-            } else {
-                $this->accounts = $this->fetch_accounts($params);
-            }
-        }
-        $this->accountsById = static::index_by($this->accounts, 'id');
-        return $this->accounts;
-    }
-
     public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
@@ -2400,11 +2386,6 @@ class Exchange {
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
-    }
-
-    public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {

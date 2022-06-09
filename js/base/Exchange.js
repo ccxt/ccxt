@@ -749,30 +749,6 @@ module.exports = class Exchange {
         return this.marketsLoading
     }
 
-    async loadAccounts (reload = false, params = {}) {
-        if (reload) {
-            this.accounts = await this.fetchAccounts (params)
-        } else {
-            if (this.accounts) {
-                return this.accounts
-            } else {
-                this.accounts = await this.fetchAccounts (params)
-            }
-        }
-        this.accountsById = this.indexBy (this.accounts, 'id')
-        return this.accounts
-    }
-
-    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
-        }
-        await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limit, params)
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit)
-        return ohlcvc
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
@@ -781,11 +757,6 @@ module.exports = class Exchange {
         const trades = await this.fetchTrades (symbol, since, limit, params)
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc.map ((c) => c.slice (0, -1))
-    }
-
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        const result = this.convertTradingViewToOHLCV (ohlcvs)
-        return this.parseOHLCVs (result, market, timeframe, since, limit)
     }
 
     convertTradingViewToOHLCV (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
@@ -1728,6 +1699,34 @@ module.exports = class Exchange {
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async loadAccounts (reload = false, params = {}) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts (params);
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts (params);
+            }
+        }
+        this.accountsById = this.indexBy (this.accounts, 'id');
+        return this.accounts;
+    }
+
+    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!this.has['fetchTrades']) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+        }
+        await this.loadMarkets ();
+        const trades = await this.fetchTrades (symbol, since, limit, params);
+        return this.buildOHLCVC (trades, timeframe, since, limit);
+    }
+
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const result = this.convertTradingViewToOHLCV (ohlcvs);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
 
     async editLimitBuyOrder (id, symbol, amount, price = undefined, params = {}) {
         return await this.editLimitOrder (id, symbol, 'buy', amount, price, params);

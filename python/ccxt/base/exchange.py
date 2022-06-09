@@ -1548,17 +1548,6 @@ class Exchange(object):
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
 
-    def load_accounts(self, reload=False, params={}):
-        if reload:
-            self.accounts = self.fetch_accounts(params)
-        else:
-            if self.accounts:
-                return self.accounts
-            else:
-                self.accounts = self.fetch_accounts(params)
-        self.accountsById = self.index_by(self.accounts, 'id')
-        return self.accounts
-
     def load_fees(self, reload=False):
         if not reload:
             if self.loaded_fees != Exchange.loaded_fees:
@@ -1692,10 +1681,6 @@ class Exchange(object):
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
-
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def convert_trading_view_to_ohlcv(self, ohlcvs, t='t', o='o', h='h', l='l', c='c', v='v', ms=False):  # noqa E741
         result = []

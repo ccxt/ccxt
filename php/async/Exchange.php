@@ -22,7 +22,7 @@ const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 
 use \ccxt\Precise;
 use \ccxt\AuthenticationError;
-use \ccxt\ExchangeErrpr;
+use \ccxt\ExchangeError;
 
 use React;
 use Recoil;
@@ -229,21 +229,6 @@ class Exchange extends \ccxt\Exchange {
 
     public function loadAccounts($reload = false, $params = array()) {
         return yield $this->load_accounts($reload, $params);
-    }
-
-    public function load_accounts($reload = false, $params = array()) {
-        if ($reload) {
-            $this->accounts = yield $this->fetch_accounts($params);
-        } else {
-            if ($this->accounts) {
-                yield;
-                return $this->accounts;
-            } else {
-                $this->accounts = yield $this->fetch_accounts($params);
-            }
-        }
-        $this->accountsById = static::index_by($this->accounts, 'id');
-        return $this->accounts;
     }
 
     public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {

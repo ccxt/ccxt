@@ -164,6 +164,7 @@ class Transpiler {
             [ /\.costToPrecision\s/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
             [ /\.loadAccounts\s/g, '.load_accounts'],
+            [ /\.fetchAccounts\s/g, '.fetch_accounts'],
             [ /\.loadFees\s/g, '.load_fees'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.loadTimeDifference\s/g, '.load_time_difference'],
