@@ -2329,7 +2329,7 @@ module.exports = class Exchange {
         if (!this.has['createStopMarketOrder']) {
             throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, { 'stopPrice': stopPrice });
+        const query = this.extend (params, { 'stopPrice': stopPrice });
         return this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
