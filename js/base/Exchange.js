@@ -441,8 +441,8 @@ module.exports = class Exchange {
             throw new Error (this.id + '.rateLimit property is not configured')
         }
         this.tokenBucket = this.extend ({
-            delay:       0.001,
-            capacity:    1,
+            delay: 0.001,
+            capacity: 1,
             cost: 1,
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
@@ -469,7 +469,6 @@ module.exports = class Exchange {
                         throw e // rethrow all unknown errors
                     })
                     .then ((response) => this.handleRestResponse (response, url, method, headers, body))
-
             return timeout (this.timeout, promise).catch ((e) => {
                 if (e instanceof TimedOut) {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
@@ -587,7 +586,6 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    // eslint-disable-next-line no-unused-vars
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         return this.safeValue (config, 'cost', 1);
     }
@@ -629,8 +627,8 @@ module.exports = class Exchange {
         }
     }
 
-    // a helper for matching error strings exactly vs broadly
     findBroadlyMatchedKey (broad, string) {
+        // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
@@ -798,8 +796,8 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
     }
 
-    // is async (returns a promise)
     loadMarkets (reload = false, params = {}) {
+        // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
@@ -1095,13 +1093,10 @@ module.exports = class Exchange {
     }
 
     safeBalance (balance) {
-
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
-
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
-
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i]
             if (balance[code].total === undefined) {
@@ -2316,26 +2311,26 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
         }
         if (stopPrice === undefined) {
-            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+            throw new ArgumentsRequired (this.id + ' create_stop_order() requires a stopPrice argument');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrder (symbol, side, amount, price, stopPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
-        const query = this.extend(params, {'stopPrice': stopPrice});
-        return this.createOrder(symbol, 'limit', side, amount, price, query);
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return this.createOrder (symbol, 'limit', side, amount, price, query);
     }
 
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrder (symbol, side, amount, stopPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
-            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, {'stopPrice': stopPrice});
-        return this.createOrder(symbol, 'market', side, amount, undefined, query);
+        const query = this.extend(params, { 'stopPrice': stopPrice });
+        return this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
     checkOrderArguments (market, type, side, amount, price, params) {
