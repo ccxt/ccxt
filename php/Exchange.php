@@ -53,12 +53,7 @@ const TICK_SIZE = 2;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
-
-require_once "ExchangeCommon.php";
-
 class Exchange {
-
-    use ExchangeCommon;
 
     const VERSION = '1.85.88';
 
@@ -267,18 +262,6 @@ class Exchange {
         'buildOHLCVC' => 'build_ohlcvc',
         'implodeParams' => 'implode_params',
         'extractParams' => 'extract_params',
-        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
-        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
-        'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
-        'fetchIndexOHLCV' => 'fetch_index_ohlcv',
-        'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
-        'fetchFundingRate' => 'fetch_funding_rate',
-        'isPostOnly' => 'is_post_only',
-        'loadTimeDifference' => 'load_time_difference',
-        'checkOrderArguments' => 'check_order_arguments',
-        'parseBorrowInterests' => 'parse_borrow_interests',
-        'parseFundingRateHistories' => 'parse_funding_rate_histories',
-        'parseOpenInterests' => 'parse_open_interests',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
@@ -378,6 +361,16 @@ class Exchange {
         'parseFundingRates' => 'parse_funding_rates',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
+        'editLimitBuyOrder' => 'edit_limit_buy_order',
+        'editLimitSellOrder' => 'edit_limit_sell_order',
+        'editLimitOrder' => 'edit_limit_order',
+        'editOrder' => 'edit_order',
+        'createLimitOrder' => 'create_limit_order',
+        'createMarketOrder' => 'create_market_order',
+        'createLimitBuyOrder' => 'create_limit_buy_order',
+        'createLimitSellOrder' => 'create_limit_sell_order',
+        'createMarketBuyOrder' => 'create_market_buy_order',
+        'createMarketSellOrder' => 'create_market_sell_order',
         'costToPrecision' => 'cost_to_precision',
         'priceToPrecision' => 'price_to_precision',
         'amountToPrecision' => 'amount_to_precision',
@@ -399,26 +392,28 @@ class Exchange {
         'safeNumber2' => 'safe_number2',
         'safeNumberN' => 'safe_number_n',
         'parsePrecision' => 'parse_precision',
+        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
-        'parsePositions' => 'parse_positions',
-        'editLimitBuyOrder' => 'edit_limit_buy_order',
-        'editLimitSellOrder' => 'edit_limit_sell_order',
-        'editLimitOrder' => 'edit_limit_order',
-        'editOrder' => 'edit_order',
-        'createLimitOrder' => 'create_limit_order',
-        'createMarketOrder' => 'create_market_order',
-        'createLimitBuyOrder' => 'create_limit_buy_order',
-        'createLimitSellOrder' => 'create_limit_sell_order',
-        'createMarketBuyOrder' => 'create_market_buy_order',
-        'createMarketSellOrder' => 'create_market_sell_order',
+        'parseOpenInterests' => 'parse_open_interests',
+        'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
         'createStopOrder' => 'create_stop_order',
         'createStopLimitOrder' => 'create_stop_limit_order',
         'createStopMarketOrder' => 'create_stop_market_order',
+        'checkOrderArguments' => 'check_order_arguments',
+        'parsePositions' => 'parse_positions',
+        'parseBorrowInterests' => 'parse_borrow_interests',
+        'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchFundingRate' => 'fetch_funding_rate',
+        'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
+        'fetchIndexOHLCV' => 'fetch_index_ohlcv',
+        'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2749,8 +2744,25 @@ class Exchange {
         return $result;
     }
 
+    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) {
+        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
+    }
+
+    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) {
+        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
+    }
+
+    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) {
+        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
+    }
+
     public function cancel_order($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancel_order() is not supported yet');
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
+        $this->cancel_order($id, $symbol, $params);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
     }
 
     public function cancel_unified_order($order, $params = array()) {
@@ -2759,6 +2771,30 @@ class Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
         throw new NotSupported($this->id . ' create_order() is not supported yet');
+    }
+
+    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
+        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
+        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
+    }
+
+    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
+        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
+    }
+
+    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
+        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
+    }
+
+    public function create_market_buy_order($symbol, $amount, $params = array()) {
+        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
+    }
+
+    public function create_market_sell_order($symbol, $amount, $params = array()) {
+        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
@@ -3773,6 +3809,20 @@ class Exchange {
         return $string_number;
     }
 
+    public function handle_withdraw_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = array_merge($tag, $params);
+            $tag = null;
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit($params, 'tag');
+            }
+        }
+        return array($tag, $params);
+    }
+
     public function get_supported_mapping($key, $mapping = array()) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -3795,6 +3845,30 @@ class Exchange {
             throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
         }
         return $rate;
+    }
+
+    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
+        $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        $method_options = $this->safe_value($this->options, $method_name);
+        $method_type = $default_type;
+        if (isset($method_options)) {
+            if (is_string($method_options)) {
+                $method_type = $method_options;
+            } else {
+                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
+            }
+        }
+        $market_type = isset($market) ? $market['type'] : $method_type;
+        $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
+        $params = $this->omit($params, [ 'defaultType', 'type' ]);
+        return array($type, $params);
+    }
+
+    public function load_time_difference($params = array()) {
+        $server_time = $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
     }
 
     public function parse_leverage_tiers($response, $symbols, $market_id_key){
@@ -3832,74 +3906,33 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
-  
-    public function parse_positions($positions, $symbols = null, $params = array()) {
-        $symbols = $this->market_symbols($symbols);
-        $array = is_array($positions) ? array_values($positions) : array();
-        $result = array();
-        foreach ($array as $position) {
-            $result[] = $this->merge($this->parse_trade($position), $params);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
-    }
 
-    public function fetch_funding_rate($symbol, $params = array ()) {
-        if ($this->has['fetchFundingRates']) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
-            }
-            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
-            $rate = $this->safe_value($rates, $symbol);
-            if ($rate === null) {
-                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+    public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
+        /**
+         * @ignore
+         * @param {string} $type Order type
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} $params exchange specific $params
+         * @return {boolean} true if a post only order, false otherwise
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $postOnly = $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        // we assume $timeInForce is uppercase from safeStringUpper ($params, 'timeInForce')
+        $ioc = $timeInForce === 'IOC';
+        $fok = $timeInForce === 'FOK';
+        $timeInForcePostOnly = $timeInForce === 'PO';
+        $postOnly = $postOnly || $timeInForcePostOnly || $exchangeSpecificParam;
+        if ($postOnly) {
+            if ($ioc || $fok) {
+                throw new InvalidOrder($this->id . ' postOnly orders cannot have timeInForce equal to ' . $timeInForce);
+            } elseif ($isMarketOrder) {
+                throw new InvalidOrder($this->id . ' market orders cannot be postOnly');
             } else {
-                return $rate;
+                return true;
             }
         } else {
-            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+            return false;
         }
-    }
-
-    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
-    }
-
-    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
-    }
-
-    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) {
-        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        $this->cancel_order($id, $symbol, $params);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
-    }
-
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
-    }
-
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
-    }
-
-    public function create_market_buy_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
-    }
-
-    public function create_market_sell_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
     }
 
     public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
@@ -3948,5 +3981,136 @@ class Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = array_merge($params, $array);
         return $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
+        if ($price === null) {
+            if ($type === 'limit') {
+                  throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
+             }
+        }
+        if ($amount <= 0) {
+            throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
+        }
+    }
+
+    public function parse_positions($positions, $symbols = null, $params = array()) {
+        $symbols = $this->market_symbols($symbols);
+        $array = is_array($positions) ? array_values($positions) : array();
+        $result = array();
+        foreach ($array as $position) {
+            $result[] = $this->merge($this->parse_trade($position), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interest = array();
+        for ($i = 0; $i < count($response); $i++){
+            $row = $response[$i];
+            array_push($interest, $this->parseBorrowInterest($row, $market));
+        }
+        return $interest;
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parse_funding_rate_history($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry, $market);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        $symbol = $this->safeString ($market, 'symbol');
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate () supports contract markets only');
+            }
+            $rates = $this->fetch_funding_rates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchMarkOHLCV']) {
+            $request = array(
+                'price' => 'mark',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchIndexOHLCV']) {
+            $request = array(
+                'price' => 'index',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchPremiumIndexOHLCV']) {
+            $request = array(
+                'price' => 'premiumIndex',
+            );
+            return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
+        }
     }
 }
