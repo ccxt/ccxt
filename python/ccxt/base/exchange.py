@@ -3045,7 +3045,7 @@ class Exchange(object):
             interest = self.parseOpenInterest(entry, market)
             interests.append(interest)
         sorted = self.sortBy(interests, 'timestamp')
-        symbol = this.safeString(market, 'symbol')
+        symbol = self.safeString(market, 'symbol')
         return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
