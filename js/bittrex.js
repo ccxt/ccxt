@@ -140,6 +140,7 @@ module.exports = class bittrex extends Exchange {
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -1744,9 +1745,8 @@ module.exports = class bittrex extends Exchange {
             // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote'];
         }
-        const response = await this.privateGetOrdersClosed (this.extend (request, params));
-        const orders = this.parseOrders (response, market);
-        const trades = this.ordersToTrades (orders);
+        const response = await this.privateGetExecutions (this.extend (request, params));
+        const trades = this.parseTrades (response, market);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
