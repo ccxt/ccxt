@@ -252,13 +252,6 @@ class Exchange(BaseExchange):
         orderbook = await self.perform_order_book_request(market, limit, params)
         return self.parse_order_book(orderbook, market, limit, params)
 
-    async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported('fetch_ohlcv() not implemented yet')
-        await self.load_markets()
-        trades = await self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
-
     async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
 
@@ -286,6 +279,28 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = await self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = await self.fetch_accounts(params)
+        self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts
+
+    async def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if not self.has['fetchTrades']:
+            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
+        await self.load_markets()
+        trades = await self.fetchTrades(symbol, since, limit, params)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
         return await self.edit_limit_order(id, symbol, 'buy', amount, price, params)

@@ -281,10 +281,7 @@ class Exchange {
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',
-        'loadAccounts' => 'load_accounts',
-        'fetchOHLCVC' => 'fetch_ohlcvc',
         'fetchOHLCV' => 'fetch_ohlcv',
-        'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchCurrencies' => 'fetch_currencies',
@@ -330,6 +327,9 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'loadAccounts' => 'load_accounts',
+        'fetchOHLCVC' => 'fetch_ohlcvc',
+        'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
         'editLimitSellOrder' => 'edit_limit_sell_order',
         'editLimitOrder' => 'edit_limit_order',
@@ -3376,6 +3376,34 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function load_accounts($reload = false, $params = array ()) {
+        if ($reload) {
+            $this->accounts = $this->fetch_accounts($params);
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = $this->fetch_accounts($params);
+            }
+        }
+        $this->accountsById = $this->index_by($this->accounts, 'id');
+        return $this->accounts;
+    }
+
+    public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if (!$this->has['fetchTrades']) {
+            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+        }
+        $this->load_markets();
+        $trades = $this->fetchTrades ($symbol, $since, $limit, $params);
+        return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+    }
+
+    public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
 
     public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
         return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);

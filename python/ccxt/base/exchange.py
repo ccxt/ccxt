@@ -1668,13 +1668,6 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if not self.has['fetchTrades']:
-            raise NotSupported(self.id + ' fetch_ohlcv() is not supported yet')
-        self.load_markets()
-        trades = self.fetch_trades(symbol, since, limit, params)
-        return self.build_ohlcvc(trades, timeframe, since, limit)
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         ohlcvs = self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
         return [ohlcv[0:-1] for ohlcv in ohlcvs]
@@ -2539,6 +2532,28 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def load_accounts(self, reload=False, params={}):
+        if reload:
+            self.accounts = self.fetch_accounts(params)
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = self.fetch_accounts(params)
+        self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts
+
+    def fetch_ohlcvc(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if not self.has['fetchTrades']:
+            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
+        self.load_markets()
+        trades = self.fetchTrades(symbol, since, limit, params)
+        return self.build_ohlcvc(trades, timeframe, since, limit)
+
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
         return self.edit_limit_order(id, symbol, 'buy', amount, price, params)

@@ -278,6 +278,34 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function load_accounts($reload = false, $params = array ()) {
+        if ($reload) {
+            $this->accounts = yield $this->fetch_accounts($params);
+        } else {
+            if ($this->accounts) {
+                return $this->accounts;
+            } else {
+                $this->accounts = yield $this->fetch_accounts($params);
+            }
+        }
+        $this->accountsById = $this->index_by($this->accounts, 'id');
+        return $this->accounts;
+    }
+
+    public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if (!$this->has['fetchTrades']) {
+            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+        }
+        yield $this->load_markets();
+        $trades = yield $this->fetchTrades ($symbol, $since, $limit, $params);
+        return $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+    }
+
+    public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
     public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
         return yield $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
     }
