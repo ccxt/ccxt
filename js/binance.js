@@ -6062,6 +6062,7 @@ module.exports = class binance extends Exchange {
             }
             request['symbol'] = market['id'];
         }
+        params = this.omit (params, 'isIsolated');
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
         //
         //     {
