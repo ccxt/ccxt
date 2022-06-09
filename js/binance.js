@@ -98,6 +98,7 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
+                'repayMarginLoan': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -6039,6 +6040,55 @@ module.exports = class binance extends Exchange {
             'amountBorrowed': this.safeNumber (info, 'principal'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async repayMarginLoan (code, symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': amount,
+        };
+        const isIsolated = this.safeValue (params, 'isIsolated');
+        if (isIsolated) {
+            if (market === undefined) {
+                throw new BadRequest (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
+            }
+            request['symbol'] = market['id'];
+        }
+        const response = await this.sapiPostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'currency': currency['id'],
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'tranId'),
+            'currency': undefined,
+            'amount': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
