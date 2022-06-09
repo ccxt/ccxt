@@ -4569,7 +4569,7 @@ class binance extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($premiumIndex, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         //   {
@@ -4583,17 +4583,17 @@ class binance extends Exchange {
         //     "time" => "1621252344001"
         //  }
         //
-        $timestamp = $this->safe_integer($premiumIndex, 'time');
-        $marketId = $this->safe_string($premiumIndex, 'symbol');
+        $timestamp = $this->safe_integer($contract, 'time');
+        $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $markPrice = $this->safe_number($premiumIndex, 'markPrice');
-        $indexPrice = $this->safe_number($premiumIndex, 'indexPrice');
-        $interestRate = $this->safe_number($premiumIndex, 'interestRate');
-        $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
-        $fundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
-        $fundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $indexPrice = $this->safe_number($contract, 'indexPrice');
+        $interestRate = $this->safe_number($contract, 'interestRate');
+        $estimatedSettlePrice = $this->safe_number($contract, 'estimatedSettlePrice');
+        $fundingRate = $this->safe_number($contract, 'lastFundingRate');
+        $fundingTime = $this->safe_integer($contract, 'nextFundingTime');
         return array(
-            'info' => $premiumIndex,
+            'info' => $contract,
             'symbol' => $symbol,
             'markPrice' => $markPrice,
             'indexPrice' => $indexPrice,

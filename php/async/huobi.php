@@ -5003,7 +5003,7 @@ class huobi extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         // {
         //      "status" => "ok",
@@ -5019,13 +5019,13 @@ class huobi extends Exchange {
         //     "ts" => 1639085854775
         // }
         //
-        $nextFundingRate = $this->safe_number($fundingRate, 'estimated_rate');
-        $fundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
-        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
-        $marketId = $this->safe_string($fundingRate, 'contract_code');
+        $nextFundingRate = $this->safe_number($contract, 'estimated_rate');
+        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
+        $nextFundingTimestamp = $this->safe_integer($contract, 'next_funding_time');
+        $marketId = $this->safe_string($contract, 'contract_code');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
             'markPrice' => null,
             'indexPrice' => null,
@@ -5033,7 +5033,7 @@ class huobi extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $nextFundingRate,

@@ -4006,7 +4006,7 @@ class okx(Exchange):
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -4019,15 +4019,15 @@ class okx(Exchange):
         #
         # in the response above nextFundingRate is actually two funding rates from now
         #
-        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
-        marketId = self.safe_string(fundingRate, 'instId')
+        nextFundingRateTimestamp = self.safe_integer(contract, 'nextFundingTime')
+        marketId = self.safe_string(contract, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
-        fundingTime = self.safe_integer(fundingRate, 'fundingTime')
+        nextFundingRate = self.safe_number(contract, 'nextFundingRate')
+        fundingTime = self.safe_integer(contract, 'fundingTime')
         # https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,
@@ -4035,7 +4035,7 @@ class okx(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(fundingRate, 'fundingRate'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': self.iso8601(fundingTime),
             'nextFundingRate': nextFundingRate,

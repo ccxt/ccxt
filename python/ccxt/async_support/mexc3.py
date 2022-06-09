@@ -2718,7 +2718,7 @@ class mexc3(Exchange):
             })
         return result
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -2730,14 +2730,14 @@ class mexc3(Exchange):
         #         "timestamp": 1643240373359
         #     }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextSettleTime')
-        marketId = self.safe_string(fundingRate, 'symbol')
+        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
+        marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(fundingRate, 'timestamp')
+        timestamp = self.safe_integer(contract, 'timestamp')
         datetime = self.iso8601(timestamp)
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,

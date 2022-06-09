@@ -2188,7 +2188,7 @@ class bitmex(Exchange):
                 filteredResponse.append(item)
         return self.parse_funding_rates(filteredResponse, symbols)
 
-    def parse_funding_rate(self, premiumIndex, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #    {
         #        "symbol": "LTCUSDT",
@@ -2298,22 +2298,22 @@ class bitmex(Exchange):
         #        "timestamp": "2022-01-14T17:49:55.000Z"
         #    }
         #
-        datetime = self.safe_string(premiumIndex, 'timestamp')
-        marketId = self.safe_string(premiumIndex, 'symbol')
-        fundingDatetime = self.safe_string(premiumIndex, 'fundingTimestamp')
+        datetime = self.safe_string(contract, 'timestamp')
+        marketId = self.safe_string(contract, 'symbol')
+        fundingDatetime = self.safe_string(contract, 'fundingTimestamp')
         return {
-            'info': premiumIndex,
+            'info': contract,
             'symbol': self.safe_symbol(marketId, market),
-            'markPrice': self.safe_number(premiumIndex, 'markPrice'),
+            'markPrice': self.safe_number(contract, 'markPrice'),
             'indexPrice': None,
             'interestRate': None,
-            'estimatedSettlePrice': self.safe_number(premiumIndex, 'indicativeSettlePrice'),
+            'estimatedSettlePrice': self.safe_number(contract, 'indicativeSettlePrice'),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'fundingRate': self.safe_number(premiumIndex, 'fundingRate'),
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
             'fundingTimestamp': self.iso8601(fundingDatetime),
             'fundingDatetime': fundingDatetime,
-            'nextFundingRate': self.safe_number(premiumIndex, 'indicativeFundingRate'),
+            'nextFundingRate': self.safe_number(contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,

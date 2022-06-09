@@ -2456,7 +2456,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2468,17 +2468,17 @@ class ascendex extends Exchange {
         //          "nextFundingTime" => 1640073600000
         //      }
         //
-        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $currentTime = $this->safe_integer($fundingRate, 'time');
-        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
-        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        $currentTime = $this->safe_integer($contract, 'time');
+        $nextFundingRate = $this->safe_number($contract, 'fundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $previousFundingTimestamp = null;
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->safe_number($fundingRate, 'markPrice'),
-            'indexPrice' => $this->safe_number($fundingRate, 'indexPrice'),
+            'markPrice' => $this->safe_number($contract, 'markPrice'),
+            'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => $this->parse_number('0'),
             'estimatedSettlePrice' => null,
             'timestamp' => $currentTime,

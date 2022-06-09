@@ -4732,7 +4732,7 @@ class huobi(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         # {
         #      "status": "ok",
@@ -4748,13 +4748,13 @@ class huobi(Exchange):
         #     "ts": 1639085854775
         # }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'estimated_rate')
-        fundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
-        marketId = self.safe_string(fundingRate, 'contract_code')
+        nextFundingRate = self.safe_number(contract, 'estimated_rate')
+        fundingTimestamp = self.safe_integer(contract, 'funding_time')
+        nextFundingTimestamp = self.safe_integer(contract, 'next_funding_time')
+        marketId = self.safe_string(contract, 'contract_code')
         symbol = self.safe_symbol(marketId, market)
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,
@@ -4762,7 +4762,7 @@ class huobi(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': nextFundingRate,

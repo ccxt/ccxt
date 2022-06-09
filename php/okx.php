@@ -4182,7 +4182,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -4195,15 +4195,15 @@ class okx extends Exchange {
         //
         // in the response above $nextFundingRate is actually two funding rates from now
         //
-        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
-        $marketId = $this->safe_string($fundingRate, 'instId');
+        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
-        $fundingTime = $this->safe_integer($fundingRate, 'fundingTime');
+        $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
+        $fundingTime = $this->safe_integer($contract, 'fundingTime');
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
             'markPrice' => null,
             'indexPrice' => null,
@@ -4211,7 +4211,7 @@ class okx extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_number($fundingRate, 'fundingRate'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => $nextFundingRate,

@@ -2562,7 +2562,7 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         # perp
         #     {
@@ -2579,11 +2579,11 @@ class ftx(Exchange):
         #       "openInterest": "48307.96"
         #     }
         #
-        fundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
+        fundingRateDatetimeRaw = self.safe_string(contract, 'nextFundingTime')
         fundingRateTimestamp = self.parse8601(fundingRateDatetimeRaw)
-        estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
+        estimatedSettlePrice = self.safe_number(contract, 'predictedExpirationPrice')
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
@@ -2591,7 +2591,7 @@ class ftx(Exchange):
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(fundingRate, 'nextFundingRate'),
+            'fundingRate': self.safe_number(contract, 'nextFundingRate'),
             'fundingTimestamp': fundingRateTimestamp,
             'fundingDatetime': self.iso8601(fundingRateTimestamp),
             'nextFundingRate': None,

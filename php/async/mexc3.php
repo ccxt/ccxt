@@ -2876,7 +2876,7 @@ class mexc3 extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -2888,14 +2888,14 @@ class mexc3 extends Exchange {
         //         "timestamp" => 1643240373359
         //     }
         //
-        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
-        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'nextSettleTime');
-        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $nextFundingRate = $this->safe_number($contract, 'fundingRate');
+        $nextFundingTimestamp = $this->safe_integer($contract, 'nextSettleTime');
+        $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer($fundingRate, 'timestamp');
+        $timestamp = $this->safe_integer($contract, 'timestamp');
         $datetime = $this->iso8601($timestamp);
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
             'markPrice' => null,
             'indexPrice' => null,

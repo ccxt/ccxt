@@ -2362,7 +2362,7 @@ class ascendex(Exchange):
             'marginRatio': None,
         }
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #      {
         #          "time": 1640061364830,
@@ -2374,17 +2374,17 @@ class ascendex(Exchange):
         #          "nextFundingTime": 1640073600000
         #      }
         #
-        marketId = self.safe_string(fundingRate, 'symbol')
+        marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        currentTime = self.safe_integer(fundingRate, 'time')
-        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
-        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
+        currentTime = self.safe_integer(contract, 'time')
+        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingRateTimestamp = self.safe_integer(contract, 'nextFundingTime')
         previousFundingTimestamp = None
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
-            'markPrice': self.safe_number(fundingRate, 'markPrice'),
-            'indexPrice': self.safe_number(fundingRate, 'indexPrice'),
+            'markPrice': self.safe_number(contract, 'markPrice'),
+            'indexPrice': self.safe_number(contract, 'indexPrice'),
             'interestRate': self.parse_number('0'),
             'estimatedSettlePrice': None,
             'timestamp': currentTime,

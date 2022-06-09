@@ -4361,7 +4361,7 @@ class binance(Exchange):
             result.append(parsed)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, premiumIndex, market=None):
+    def parse_funding_rate(self, contract, market=None):
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         #   {
@@ -4375,17 +4375,17 @@ class binance(Exchange):
         #     "time": "1621252344001"
         #  }
         #
-        timestamp = self.safe_integer(premiumIndex, 'time')
-        marketId = self.safe_string(premiumIndex, 'symbol')
+        timestamp = self.safe_integer(contract, 'time')
+        marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        markPrice = self.safe_number(premiumIndex, 'markPrice')
-        indexPrice = self.safe_number(premiumIndex, 'indexPrice')
-        interestRate = self.safe_number(premiumIndex, 'interestRate')
-        estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
-        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
-        fundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        markPrice = self.safe_number(contract, 'markPrice')
+        indexPrice = self.safe_number(contract, 'indexPrice')
+        interestRate = self.safe_number(contract, 'interestRate')
+        estimatedSettlePrice = self.safe_number(contract, 'estimatedSettlePrice')
+        fundingRate = self.safe_number(contract, 'lastFundingRate')
+        fundingTime = self.safe_integer(contract, 'nextFundingTime')
         return {
-            'info': premiumIndex,
+            'info': contract,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,

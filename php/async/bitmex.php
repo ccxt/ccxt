@@ -2286,7 +2286,7 @@ class bitmex extends Exchange {
         return $this->parse_funding_rates($filteredResponse, $symbols);
     }
 
-    public function parse_funding_rate($premiumIndex, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //    {
         //        "symbol" => "LTCUSDT",
@@ -2396,22 +2396,22 @@ class bitmex extends Exchange {
         //        "timestamp" => "2022-01-14T17:49:55.000Z"
         //    }
         //
-        $datetime = $this->safe_string($premiumIndex, 'timestamp');
-        $marketId = $this->safe_string($premiumIndex, 'symbol');
-        $fundingDatetime = $this->safe_string($premiumIndex, 'fundingTimestamp');
+        $datetime = $this->safe_string($contract, 'timestamp');
+        $marketId = $this->safe_string($contract, 'symbol');
+        $fundingDatetime = $this->safe_string($contract, 'fundingTimestamp');
         return array(
-            'info' => $premiumIndex,
+            'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'markPrice' => $this->safe_number($premiumIndex, 'markPrice'),
+            'markPrice' => $this->safe_number($contract, 'markPrice'),
             'indexPrice' => null,
             'interestRate' => null,
-            'estimatedSettlePrice' => $this->safe_number($premiumIndex, 'indicativeSettlePrice'),
+            'estimatedSettlePrice' => $this->safe_number($contract, 'indicativeSettlePrice'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'fundingRate' => $this->safe_number($premiumIndex, 'fundingRate'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $this->iso8601($fundingDatetime),
             'fundingDatetime' => $fundingDatetime,
-            'nextFundingRate' => $this->safe_number($premiumIndex, 'indicativeFundingRate'),
+            'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
