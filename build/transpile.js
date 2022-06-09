@@ -1051,18 +1051,15 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
-    getExchangeClassDeclarationMatches (contents) {
+    getClassDeclarationMatches (contents) {
         return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
-    transpileDerivedExchangeClass (contents) {
-
-        const [ _, className, baseClass, methodMatches ] = this.getExchangeClassDeclarationMatches (contents)
-
+    transpileClass (contents) {
+        const [ _, className, baseClass, methodMatches ] = this.getClassDeclarationMatches (contents)
         const methods = methodMatches.trim ().split (/\n\s*\n/)
-
         const {
             python2,
             python3,
@@ -1070,10 +1067,8 @@ class Transpiler {
             phpAsync,
             methodNames
         } = this.transpileMethodsToAllLanguages (className, methods)
-
+        // altogether in PHP, async PHP, Python sync and async
         return {
-
-            // altogether in PHP, async PHP, Python sync and async
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames),
@@ -1121,7 +1116,7 @@ class Transpiler {
                 (phpFolder      && (jsMtime > phpMtime))      ||
                 (phpAsyncFolder && (jsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (jsMtime > python2Mtime))) {
-                const { python2, python3, php, phpAsync, className, baseClass } = this.transpileDerivedExchangeClass (contents)
+                const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
                 log.cyan ('Transpiling from', filename.yellow)
 
                 ;[
@@ -1140,7 +1135,7 @@ class Transpiler {
 
             } else {
 
-                const [ _, className, baseClass ] = this.getExchangeClassDeclarationMatches (contents)
+                const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents)
                 log.green ('Already transpiled', filename.yellow)
                 return { className, baseClass }
             }
