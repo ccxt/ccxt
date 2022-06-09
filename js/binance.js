@@ -6070,7 +6070,7 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const transaction = this.parseMarginLoan (response, currency['id']);
         return this.extend (transaction, {
             'amount': amount,
             'currency': currency['id'],
