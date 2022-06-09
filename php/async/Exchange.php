@@ -366,6 +366,28 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_number($object, $key, $d = null) {
+        $value = $this->safe_string($object, $key);
+        return $this->parseNumber ($value, $d);
+    }
+
+    public function safe_number2($object, $key1, $key2, $d = null) {
+        $value = $this->safe_string_2($object, $key1, $key2);
+        return $this->parseNumber ($value, $d);
+    }
+
+    public function safe_number_n($object, $arr, $d = null) {
+        $value = $this->safe_string_n($object, $arr);
+        return $this->parseNumber($value, $d);
+    }
+
+    public function parse_precision($precision) {
+        if ($precision === null) {
+            return null;
+        }
+        return '1e' . Precise::string_neg($precision);
+    }
+
     public function load_time_difference($params = array ()) {
         $serverTime = yield $this->fetchTime ($params);
         $after = $this->milliseconds ();

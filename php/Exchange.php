@@ -379,10 +379,6 @@ class Exchange {
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
-        'safeNumber' => 'safe_number',
-        'safeNumber2' => 'safe_number2',
-        'safeNumberN' => 'safe_number_n',
-        'parsePrecision' => 'parse_precision',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
@@ -390,6 +386,10 @@ class Exchange {
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
+        'safeNumber' => 'safe_number',
+        'safeNumber2' => 'safe_number2',
+        'safeNumberN' => 'safe_number_n',
+        'parsePrecision' => 'parse_precision',
         'loadTimeDifference' => 'load_time_difference',
         'implodeHostname' => 'implode_hostname',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
@@ -3731,28 +3731,6 @@ class Exchange {
         }
     }
 
-    public function safe_number($object, $key, $default = null) {
-        $value = $this->safe_string($object, $key);
-        return $this->parse_number($value, $default);
-    }
-
-    public function safe_number_2($object, $key1, $key2, $default = null) {
-        $value = $this->safe_string_2($object, $key1, $key2);
-        return $this->parse_number($value, $default);
-    }
-
-    public function safe_number_n($object, $array, $default = null) {
-        $value = $this->safe_string_n($object, $array);
-        return $this->parse_number($value, $default);
-    }
-
-    public function parse_precision($precision) {
-        if ($precision === null) {
-            return null;
-        }
-        return '1e' . Precise::string_neg($precision);
-    }
-
     public function omit_zero($string_number) {
         if ($string_number === null || $string_number === '') {
             return null;
@@ -3863,6 +3841,28 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_number($object, $key, $d = null) {
+        $value = $this->safe_string($object, $key);
+        return $this->parseNumber ($value, $d);
+    }
+
+    public function safe_number2($object, $key1, $key2, $d = null) {
+        $value = $this->safe_string_2($object, $key1, $key2);
+        return $this->parseNumber ($value, $d);
+    }
+
+    public function safe_number_n($object, $arr, $d = null) {
+        $value = $this->safe_string_n($object, $arr);
+        return $this->parseNumber($value, $d);
+    }
+
+    public function parse_precision($precision) {
+        if ($precision === null) {
+            return null;
+        }
+        return '1e' . Precise::string_neg($precision);
+    }
 
     public function load_time_difference($params = array ()) {
         $serverTime = $this->fetchTime ($params);

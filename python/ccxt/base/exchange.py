@@ -2819,23 +2819,6 @@ class Exchange(object):
             except Exception:
                 return default
 
-    def safe_number(self, dictionary, key, default=None):
-        value = self.safe_string(dictionary, key)
-        return self.parse_number(value, default)
-
-    def safe_number_2(self, dictionary, key1, key2, default=None):
-        value = self.safe_string_2(dictionary, key1, key2)
-        return self.parse_number(value, default)
-
-    def safe_number_n(self, dictionary, key_list, default=None):
-        value = self.safe_string_n(dictionary, key_list)
-        return self.parse_number(value, default)
-
-    def parse_precision(self, precision):
-        if precision is None:
-            return None
-        return '1e' + Precise.string_neg(precision)
-
     def omit_zero(self, string_number):
         if string_number is None or string_number == '':
             return None
@@ -2914,6 +2897,23 @@ class Exchange(object):
         return self.filter_by_array(array, 'symbol', symbols, False)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_number(self, object, key, d=None):
+        value = self.safe_string(object, key)
+        return self.parseNumber(value, d)
+
+    def safe_number2(self, object, key1, key2, d=None):
+        value = self.safe_string_2(object, key1, key2)
+        return self.parseNumber(value, d)
+
+    def safe_number_n(self, object, arr, d=None):
+        value = self.safe_string_n(object, arr)
+        return self.parseNumber(value, d)
+
+    def parse_precision(self, precision):
+        if precision is None:
+            return None
+        return '1e' + Precise.string_neg(precision)
 
     def load_time_difference(self, params={}):
         serverTime = self.fetchTime(params)

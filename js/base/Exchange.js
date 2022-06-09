@@ -2086,28 +2086,6 @@ module.exports = class Exchange {
         }
     }
 
-    safeNumber (object, key, d = undefined) {
-        const value = this.safeString (object, key)
-        return this.parseNumber (value, d)
-    }
-
-    safeNumber2 (object, key1, key2, d = undefined) {
-        const value = this.safeString2 (object, key1, key2)
-        return this.parseNumber (value, d)
-    }
-
-    safeNumberN (object, arr, d = undefined) {
-        const value = this.safeStringN (object, arr)
-        return this.parseNumber(value, d)
-    }
-
-    parsePrecision (precision) {
-        if (precision === undefined) {
-            return undefined
-        }
-        return '1e' + Precise.stringNeg (precision)
-    }
-
     handleWithdrawTagAndParams (tag, params) {
         if (typeof tag === 'object') {
             params = this.extend (tag, params)
@@ -2201,6 +2179,28 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeNumber (object, key, d = undefined) {
+        const value = this.safeString (object, key);
+        return this.parseNumber (value, d);
+    }
+
+    safeNumber2 (object, key1, key2, d = undefined) {
+        const value = this.safeString2 (object, key1, key2);
+        return this.parseNumber (value, d);
+    }
+
+    safeNumberN (object, arr, d = undefined) {
+        const value = this.safeStringN (object, arr);
+        return this.parseNumber(value, d);
+    }
+
+    parsePrecision (precision) {
+        if (precision === undefined) {
+            return undefined;
+        }
+        return '1e' + Precise.stringNeg (precision);
+    }
 
     async loadTimeDifference (params = {}) {
         const serverTime = await this.fetchTime (params);

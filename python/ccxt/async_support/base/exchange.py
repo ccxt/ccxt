@@ -377,6 +377,23 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def safe_number(self, object, key, d=None):
+        value = self.safe_string(object, key)
+        return self.parseNumber(value, d)
+
+    def safe_number2(self, object, key1, key2, d=None):
+        value = self.safe_string_2(object, key1, key2)
+        return self.parseNumber(value, d)
+
+    def safe_number_n(self, object, arr, d=None):
+        value = self.safe_string_n(object, arr)
+        return self.parseNumber(value, d)
+
+    def parse_precision(self, precision):
+        if precision is None:
+            return None
+        return '1e' + Precise.string_neg(precision)
+
     async def load_time_difference(self, params={}):
         serverTime = await self.fetchTime(params)
         after = self.milliseconds()
