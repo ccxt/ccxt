@@ -1006,18 +1006,43 @@ module.exports = class bitvavo extends Exchange {
             request['triggerType'] = 'price';
             request['triggerReference'] = 'lastTrade'; // 'bestBid', 'bestAsk', 'midPrice'
         }
-        if (timeInForce !== undefined) {
+        if ((timeInForce !== undefined) && (timeInForce !== 'PO')) {
             request['timeInForce'] = timeInForce;
         }
         if (postOnly) {
             request['postOnly'] = true;
         }
-        return this.extend (request, params);
-        // const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         //
+        //      {
+        //          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
+        //          "market":"DOGE-EUR",
+        //          "created":1654789135146,
+        //          "updated":1654789135153,
+        //          "status":"new",
+        //          "side":"buy",
+        //          "orderType":"stopLossLimit",
+        //          "amount":"200",
+        //          "amountRemaining":"200",
+        //          "price":"0.07471",
+        //          "triggerPrice":"0.0747",
+        //          "triggerAmount":"0.0747",
+        //          "triggerType":"price",
+        //          "triggerReference":"lastTrade",
+        //          "onHold":"14.98",
+        //          "onHoldCurrency":"EUR",
+        //          "filledAmount":"0",
+        //          "filledAmountQuote":"0",
+        //          "feePaid":"0",
+        //          "feeCurrency":"EUR",
+        //          "fills":[],
+        //          "selfTradePrevention":"decrementAndCancel",
+        //          "visible":true,
+        //          "timeInForce":"GTC",
+        //          "postOnly":false
+        //      }
         //
-        //
-        // return this.parseOrder (response, market);
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
