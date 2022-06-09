@@ -12,7 +12,7 @@ function test_account($exchange, $account, $method) {
     $format = array(
         'info' => array(),
         'code' => 'BTC',
-        'name' => 'account name',
+        // 'name' => 'account name',
         'type' => 'spot', // 'spot', 'margin', 'futures', 'swap'
         'id' => '12345',
     );
@@ -26,7 +26,7 @@ function test_account($exchange, $account, $method) {
     assert (strlen($keys) === strlen($accountKeys), $exchange->id . ' ' . $method . ' respone includes more $keys than expected');
     assert (gettype($account['info']) === 'array');
     assert ($account['id'] === null || gettype($account['id']) === 'string');
-    assert ($account['name'] === null || gettype($account['name']) === 'string');
+    // assert ($account['name'] === null || gettype($account['name']) === 'string');
     assert ($account['type'] === null || gettype($account['type']) === 'string');
     assert ($account['code'] === null || gettype($account['code']) === 'string');
 }
