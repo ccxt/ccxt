@@ -2027,20 +2027,6 @@ module.exports = class Exchange {
         }
     }
 
-    handleWithdrawTagAndParams (tag, params) {
-        if (typeof tag === 'object') {
-            params = this.extend (tag, params)
-            tag = undefined
-        }
-        if (tag === undefined) {
-            tag = this.safeString (params, 'tag')
-            if (tag !== undefined) {
-                params = this.omit (params, 'tag');
-            }
-        }
-        return [ tag, params ]
-    }
-
     getSupportedMapping (key, mapping = {}) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -2120,6 +2106,20 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    handleWithdrawTagAndParams (tag, params) {
+        if (typeof tag === 'object') {
+            params = this.extend (tag, params);
+            tag = undefined;
+        }
+        if (tag === undefined) {
+            tag = this.safeString (params, 'tag');
+            if (tag !== undefined) {
+                params = this.omit (params, 'tag');
+            }
+        }
+        return [ tag, params ];
+    }
 
     async createLimitOrder (symbol, side, amount, price, params = {}) {
         return await this.createOrder (symbol, 'limit', side, amount, price, params);

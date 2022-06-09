@@ -2780,16 +2780,6 @@ class Exchange(object):
             return None
         return string_number
 
-    def handle_withdraw_tag_and_params(self, tag, params):
-        if isinstance(tag, dict):
-            params = self.extend(tag, params)
-            tag = None
-        if tag is None:
-            tag = self.safe_string(params, 'tag')
-            if tag is not None:
-                params = self.omit(params, 'tag')
-        return [tag, params]
-
     def get_supported_mapping(self, key, mapping={}):
         # Takes a key and a dictionary, and returns the dictionary's value for that key
         # :throws:
@@ -2851,6 +2841,16 @@ class Exchange(object):
         return self.filter_by_array(array, 'symbol', symbols, False)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def handle_withdraw_tag_and_params(self, tag, params):
+        if isinstance(tag, dict):
+            params = self.extend(tag, params)
+            tag = None
+        if tag is None:
+            tag = self.safe_string(params, 'tag')
+            if tag is not None:
+                params = self.omit(params, 'tag')
+        return [tag, params]
 
     def create_limit_order(self, symbol, side, amount, price, params={}):
         return self.create_order(symbol, 'limit', side, amount, price, params)

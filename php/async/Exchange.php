@@ -342,6 +342,20 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function handle_withdraw_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = array_merge($tag, $params);
+            $tag = null;
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit ($params, 'tag');
+            }
+        }
+        return array( $tag, $params );
+    }
+
     public function create_limit_order($symbol, $side, $amount, $price, $params = array ()) {
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
     }

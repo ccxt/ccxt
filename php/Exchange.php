@@ -368,13 +368,13 @@ class Exchange {
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
-        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
+        'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'createLimitOrder' => 'create_limit_order',
         'createMarketOrder' => 'create_market_order',
         'createLimitBuyOrder' => 'create_limit_buy_order',
@@ -3678,20 +3678,6 @@ class Exchange {
         return $string_number;
     }
 
-    public function handle_withdraw_tag_and_params($tag, $params) {
-        if (gettype($tag) === 'array') {
-            $params = array_merge($tag, $params);
-            $tag = null;
-        }
-        if ($tag === null) {
-            $tag = $this->safe_string($params, 'tag');
-            if ($tag !== null) {
-                $params = $this->omit($params, 'tag');
-            }
-        }
-        return array($tag, $params);
-    }
-
     public function get_supported_mapping($key, $mapping = array()) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -3778,6 +3764,20 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function handle_withdraw_tag_and_params($tag, $params) {
+        if (gettype($tag) === 'array') {
+            $params = array_merge($tag, $params);
+            $tag = null;
+        }
+        if ($tag === null) {
+            $tag = $this->safe_string($params, 'tag');
+            if ($tag !== null) {
+                $params = $this->omit ($params, 'tag');
+            }
+        }
+        return array( $tag, $params );
+    }
 
     public function create_limit_order($symbol, $side, $amount, $price, $params = array ()) {
         return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
