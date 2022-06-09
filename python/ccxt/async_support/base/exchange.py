@@ -176,9 +176,6 @@ class Exchange(BaseExchange):
             return http_response
         return response.content
 
-    async def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetch_permissions() is not supported yet')
-
     async def load_markets_helper(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -304,6 +301,17 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def fetch_permissions(self, params={}):
+        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
+
+    async def fetch_bids_asks(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
+
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safeNumber(bidask, priceKey)
+        amount = self.safeNumber(bidask, amountKey)
+        return [price, amount]
 
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):

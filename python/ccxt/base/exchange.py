@@ -1536,9 +1536,6 @@ class Exchange(object):
         self.codes = sorted(self.currencies.keys())
         return self.markets
 
-    def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetch_permissions() is not supported yet')
-
     def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -1594,9 +1591,6 @@ class Exchange(object):
             'trading': trading,
             'funding': funding,
         }
-
-    def fetch_bids_asks(self, symbols=None, params={}) -> dict:
-        raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
@@ -2575,6 +2569,12 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def fetch_permissions(self, params={}):
+        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
+
+    def fetch_bids_asks(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.safeNumber(bidask, priceKey)

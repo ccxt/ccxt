@@ -148,6 +148,7 @@ class Transpiler {
             [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
             [ /\.fetchFreeBalance\s/g, '.fetch_free_balance'],
             [ /\.fetchPartialBalance\s/g, '.fetch_partial_balance'],
+            [ /\.fetchPermissions\s/g, '.fetch_permissions'],
             [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
             [ /\.fetchTickers\s/g, '.fetch_tickers'],
             [ /\.fetchTicker\s/g, '.fetch_ticker'],

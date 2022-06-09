@@ -734,10 +734,6 @@ module.exports = class Exchange {
         return this.setMarkets (markets, currencies)
     }
 
-    async fetchPermissions (params = {}) {
-        throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
-    }
-
     loadMarkets (reload = false, params = {}) {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
@@ -765,10 +761,6 @@ module.exports = class Exchange {
         }
         this.accountsById = this.indexBy (this.accounts, 'id')
         return this.accounts
-    }
-
-    fetchBidsAsks (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet')
     }
 
     async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1753,6 +1745,14 @@ module.exports = class Exchange {
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetchPermissions (params = {}) {
+        throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
+    }
+
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
+    }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         const price = this.safeNumber (bidask, priceKey);

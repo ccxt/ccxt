@@ -280,10 +280,8 @@ class Exchange {
         'onJsonResponse' => 'on_json_response',
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
-        'fetchPermissions' => 'fetch_permissions',
         'loadMarkets' => 'load_markets',
         'loadAccounts' => 'load_accounts',
-        'fetchBidsAsks' => 'fetch_bids_asks',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'fetchOHLCV' => 'fetch_ohlcv',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
@@ -336,6 +334,8 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'fetchPermissions' => 'fetch_permissions',
+        'fetchBidsAsks' => 'fetch_bids_asks',
         'parseBidAsk' => 'parse_bid_ask',
         'safeCurrency' => 'safe_currency',
         'safeMarket' => 'safe_market',
@@ -1951,10 +1951,6 @@ class Exchange {
         return $this->markets;
     }
 
-    public function fetch_permissions($params = array()) {
-        throw new NotSupported($this->id . ' fetch_permissions() is not supported yet');
-    }
-
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
@@ -2375,10 +2371,6 @@ class Exchange {
         }
 
         return $indexed ? static::index_by($result, $key) : $result;
-    }
-
-    public function fetch_bids_asks($symbols, $params = array()) { // stub
-        throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now');
     }
 
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
@@ -3420,6 +3412,14 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_permissions($params = array ()) {
+        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
+    }
+
+    public function fetch_bids_asks($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
+    }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
         $price = $this->safeNumber ($bidask, $priceKey);

@@ -191,11 +191,6 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function fetch_permissions($params = array()) {
-        throw new NotSupported($this->id . ' fetch_permissions() is not supported yet');
-    }
-
-
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         if (!$reload && $this->markets) {
@@ -300,6 +295,20 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_permissions($params = array ()) {
+        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
+    }
+
+    public function fetch_bids_asks($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
+    }
+
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+        $price = $this->safeNumber ($bidask, $priceKey);
+        $amount = $this->safeNumber ($bidask, $amountKey);
+        return array( $price, $amount );
+    }
 
     public function safe_currency($currencyId, $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {
