@@ -30,11 +30,7 @@ include 'Throttle.php';
 
 $version = '1.85.88';
 
-require_once "ExchangeCommon.php";
-
 class Exchange extends \ccxt\Exchange {
-
-    use ExchangeCommon;
 
     const VERSION = '1.85.88';
 
@@ -357,6 +353,13 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
+    public function load_time_difference($params = array()) {
+        $server_time = yield $this->fetch_time($params);
+        $after = $this->milliseconds();
+        $this->options['timeDifference'] = $after - $server_time;
+        return $this->options['timeDifference'];
+    }
+
     public function fetch_market_leverage_tiers($symbol, $params = array()) {
         if ($this->has['fetchLeverageTiers']) {
             $market = yield $this->market($symbol);
@@ -418,5 +421,83 @@ class Exchange extends \ccxt\Exchange {
         $array = array('stopPrice' => $stopPrice);
         $query = array_merge($params, $array);
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        if ($this->has['fetchFundingRates']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetch_funding_rate() supports contract markets only');
+            }
+            $rates = yield $this->fetchFundingRates (array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetch_funding_rate () returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetch_funding_rate () is not supported yet');
+        }
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchMarkOHLCV']) {
+            $request = array(
+                'price' => 'mark',
+            );
+            return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchIndexOHLCV']) {
+            $request = array(
+                'price' => 'index',
+            );
+            return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         */
+        if ($this->has['fetchPremiumIndexOHLCV']) {
+            $request = array(
+                'price' => 'premiumIndex',
+            );
+            return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
+        }
     }
 }
