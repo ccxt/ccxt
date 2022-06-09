@@ -36,7 +36,7 @@ class Transpiler {
             [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
             [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
             [ /\.safeString2\s/g, '.safe_string_2'],
-            [ /safeNumber2\s/g, 'safe_number_2'],
+            [ /\.safeNumber2\s/g, '.safe_number_2'],
             [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
             [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
             [ /\.safeValue2\s/g, '.safe_value_2'],
