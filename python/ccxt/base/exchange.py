@@ -2198,10 +2198,6 @@ class Exchange(object):
             'code': self.common_currency_code(currency_id.upper()) if currency_id is not None else currency_id
         }
 
-    def safe_currency_code(self, currency_id, currency=None):
-        currency = self.safe_currency(currency_id, currency)
-        return currency['code']
-
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
         if value is not None:
@@ -2211,12 +2207,6 @@ class Exchange(object):
         if limit is not None:
             array = array[-limit:] if tail else array[:limit]
         return array
-
-    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
-        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
-
-    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
-        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
@@ -2976,6 +2966,16 @@ class Exchange(object):
         return self.filter_by_array(array, 'symbol', symbols, False)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_currency_code(self, currencyId, currency=None):
+        currency = self.safe_currency(currencyId, currency)
+        return currency['code']
+
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
+
+    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_borrow_interests(self, response, market=None):
         interests = []

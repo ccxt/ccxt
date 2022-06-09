@@ -425,6 +425,19 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_currency_code($currencyId, $currency = null) {
+        $currency = $this->safe_currency($currencyId, $currency);
+        return $currency['code'];
+    }
+
+    public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
+    }
+
+    public function filter_by_currency_since_limit($array, $code = null, $since = null, $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    }
+
     public function parse_borrow_interests($response, $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {

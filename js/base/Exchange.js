@@ -1222,14 +1222,6 @@ module.exports = class Exchange {
         return array
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail)
-    }
-
-    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
-        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail)
-    }
-
     filterByArray (objects, key, values = undefined, indexed = true) {
         objects = Object.values (objects)
         // return all of them if no values were passed
@@ -1466,11 +1458,6 @@ module.exports = class Exchange {
             'id': currencyId,
             'code': (currencyId === undefined) ? currencyId : this.commonCurrencyCode (currencyId.toUpperCase ()),
         }
-    }
-
-    safeCurrencyCode (currencyId, currency = undefined) {
-        currency = this.safeCurrency (currencyId, currency)
-        return currency['code']
     }
 
     safeMarket (marketId, market = undefined, delimiter = undefined) {
@@ -2281,6 +2268,19 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeCurrencyCode (currencyId, currency = undefined) {
+        currency = this.safeCurrency (currencyId, currency);
+        return currency['code'];
+    }
+
+    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
+    }
+
+    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
+    }
 
     parseBorrowInterests (response, market = undefined) {
         const interests = [];

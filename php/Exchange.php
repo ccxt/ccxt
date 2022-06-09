@@ -337,8 +337,6 @@ class Exchange {
         'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
-        'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
-        'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
         'parseAccounts' => 'parse_accounts',
@@ -351,7 +349,6 @@ class Exchange {
         'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
         'safeCurrency' => 'safe_currency',
-        'safeCurrencyCode' => 'safe_currency_code',
         'safeMarket' => 'safe_market',
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
@@ -401,6 +398,9 @@ class Exchange {
         'createStopMarketOrder' => 'create_stop_market_order',
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
+        'safeCurrencyCode' => 'safe_currency_code',
+        'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
+        'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
         'safeSymbol' => 'safe_symbol',
@@ -2489,11 +2489,6 @@ class Exchange {
         );
     }
 
-    public function safe_currency_code($currency_id, $currency = null) {
-        $currency = $this->safe_currency($currency_id, $currency);
-        return $currency['code'];
-    }
-
     public function filter_by_symbol($array, $symbol = null) {
         if ($symbol) {
             $grouped = $this->group_by($array, 'symbol');
@@ -2518,14 +2513,6 @@ class Exchange {
             return $tail ? array_slice($result, -$limit) : array_slice($result, 0, $limit);
         }
         return $result;
-    }
-
-    public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
-    }
-
-    public function filter_by_currency_since_limit($array, $code = null, $since = null, $limit = null, $tail = false) {
-        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
     public function filter_by_array($objects, $key, $values = null, $indexed = true) {
@@ -3947,27 +3934,20 @@ class Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }
 
-    public function parse_borrow_interests($response, $market = null) {
-        $interest = array();
-        for ($i = 0; $i < count($response); $i++){
-            $row = $response[$i];
-            array_push($interest, $this->parseBorrowInterest($row, $market));
-        }
-        return $interest;
-    }
-
-    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
-        $rates = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $rates[] = $this->parse_funding_rate_history($entry, $market);
-        }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        $symbol = ($market === null) ? null : $market['symbol'];
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
-    }
-
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_currency_code($currencyId, $currency = null) {
+        $currency = $this->safe_currency($currencyId, $currency);
+        return $currency['code'];
+    }
+
+    public function filter_by_symbol_since_limit($array, $symbol = null, $since = null, $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
+    }
+
+    public function filter_by_currency_since_limit($array, $code = null, $since = null, $limit = null, $tail = false) {
+        return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    }
 
     public function parse_borrow_interests($response, $market = null) {
         $interests = array();
