@@ -356,17 +356,6 @@ class Exchange {
         'editLimitSellOrder' => 'edit_limit_sell_order',
         'editLimitOrder' => 'edit_limit_order',
         'editOrder' => 'edit_order',
-        'createLimitOrder' => 'create_limit_order',
-        'createMarketOrder' => 'create_market_order',
-        'createLimitBuyOrder' => 'create_limit_buy_order',
-        'createLimitSellOrder' => 'create_limit_sell_order',
-        'createMarketBuyOrder' => 'create_market_buy_order',
-        'createMarketSellOrder' => 'create_market_sell_order',
-        'costToPrecision' => 'cost_to_precision',
-        'priceToPrecision' => 'price_to_precision',
-        'amountToPrecision' => 'amount_to_precision',
-        'feeToPrecision' => 'fee_to_precision',
-        'currencyToPrecision' => 'currency_to_precision',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
         'remove0xPrefix' => 'remove0x_prefix',
@@ -386,6 +375,17 @@ class Exchange {
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
+        'createLimitOrder' => 'create_limit_order',
+        'createMarketOrder' => 'create_market_order',
+        'createLimitBuyOrder' => 'create_limit_buy_order',
+        'createLimitSellOrder' => 'create_limit_sell_order',
+        'createMarketBuyOrder' => 'create_market_buy_order',
+        'createMarketSellOrder' => 'create_market_sell_order',
+        'costToPrecision' => 'cost_to_precision',
+        'priceToPrecision' => 'price_to_precision',
+        'amountToPrecision' => 'amount_to_precision',
+        'feeToPrecision' => 'fee_to_precision',
+        'currencyToPrecision' => 'currency_to_precision',
         'safeNumber' => 'safe_number',
         'safeNumber2' => 'safe_number2',
         'safeNumberN' => 'safe_number_n',
@@ -2723,34 +2723,6 @@ class Exchange {
         return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
-    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array()) {
-        throw new NotSupported($this->id . ' create_order() is not supported yet');
-    }
-
-    public function create_limit_order($symbol, $side, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function create_market_order($symbol, $side, $amount, $price = null, $params = array()) {
-        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
-    }
-
-    public function create_limit_buy_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
-    }
-
-    public function create_limit_sell_order($symbol, $amount, $price, $params = array()) {
-        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
-    }
-
-    public function create_market_buy_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
-    }
-
-    public function create_market_sell_order($symbol, $amount, $params = array()) {
-        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
-    }
-
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
@@ -2809,41 +2781,6 @@ class Exchange {
     public function precision_from_string($string) {
         $parts = explode('.', preg_replace('/0+$/', '', $string));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
-    }
-
-    public function cost_to_precision($symbol, $cost) {
-        $market = $this->market($symbol);
-        return self::decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function price_to_precision($symbol, $price) {
-        $market = $this->market($symbol);
-        return self::decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function amount_to_precision($symbol, $amount) {
-        $market = $this->market($symbol);
-        return self::decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function fee_to_precision($symbol, $fee) {
-        $market = $this->market($symbol);
-        return self::decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        $currency = $this->currencies[$code];
-        $precision = $this->safe_value($currency, 'precision');
-        if ($networkCode !== null) {
-            $networks = $this->safe_value($currency, 'networks', []);
-            $networkItem = $this->safe_value($networks, 'networkCode', []);
-            $precision = $this->safe_value($networkItem, 'precision', $precision);
-        }
-        if ($precision === null) {
-            return $fee;
-        } else {
-            return self::decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
-        }
     }
 
     public function currency($code) {
@@ -3841,6 +3778,65 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function create_limit_order($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order($symbol, 'market', $side, $amount, $price, $params);
+    }
+
+    public function create_limit_buy_order($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', 'buy', $amount, $price, $params);
+    }
+
+    public function create_limit_sell_order($symbol, $amount, $price, $params = array ()) {
+        return $this->create_order($symbol, 'limit', 'sell', $amount, $price, $params);
+    }
+
+    public function create_market_buy_order($symbol, $amount, $params = array ()) {
+        return $this->create_order($symbol, 'market', 'buy', $amount, null, $params);
+    }
+
+    public function create_market_sell_order($symbol, $amount, $params = array ()) {
+        return $this->create_order($symbol, 'market', 'sell', $amount, null, $params);
+    }
+
+    public function cost_to_precision($symbol, $cost) {
+        $market = $this->market ($symbol);
+        return decimalToPrecision ($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+    }
+
+    public function price_to_precision($symbol, $price) {
+        $market = $this->market ($symbol);
+        return decimalToPrecision ($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+    }
+
+    public function amount_to_precision($symbol, $amount) {
+        $market = $this->market ($symbol);
+        return decimalToPrecision ($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+    }
+
+    public function fee_to_precision($symbol, $fee) {
+        $market = $this->market ($symbol);
+        return decimalToPrecision ($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+    }
+
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        $currency = $this->currencies[$code];
+        $precision = $this->safe_value($currency, 'precision');
+        if ($networkCode !== null) {
+            $networks = $this->safe_value($currency, 'networks', array());
+            $networkItem = $this->safe_value($networks, $networkCode, array());
+            $precision = $this->safe_value($networkItem, 'precision', $precision);
+        }
+        if ($precision === null) {
+            return $fee;
+        } else {
+            return decimalToPrecision ($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+        }
+    }
 
     public function safe_number($object, $key, $d = null) {
         $value = $this->safe_string($object, $key);

@@ -14,7 +14,6 @@ import aiohttp
 import ssl
 import sys
 import yarl
-from typing import Coroutine
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +32,7 @@ from ccxt.base.errors import InvalidOrder
 # -----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from ccxt.base.precise import Precise
 
 # -----------------------------------------------------------------------------
 
@@ -299,24 +299,6 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported(self.id + ' create_order() is not supported yet')
 
-    def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
-        return self.create_order(symbol, 'limit', side, amount, price, params)
-
-    def create_market_order(self, symbol, side, amount, price=None, params={}) -> Coroutine:
-        return self.create_order(symbol, 'market', side, amount, price, params)
-
-    def create_limit_buy_order(self, symbol, amount, price, params={}) -> Coroutine:
-        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
-
-    def create_limit_sell_order(self, symbol, amount, price, params={}) -> Coroutine:
-        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
-
-    def create_market_buy_order(self, symbol, amount, params={}) -> Coroutine:
-        return self.create_order(symbol, 'market', 'buy', amount, None, params)
-
-    def create_market_sell_order(self, symbol, amount, params={}) -> Coroutine:
-        return self.create_order(symbol, 'market', 'sell', amount, None, params)
-
     async def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancel_order() is not supported yet')
 
@@ -376,6 +358,52 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def create_limit_order(self, symbol, side, amount, price, params={}):
+        return await self.create_order(symbol, 'limit', side, amount, price, params)
+
+    async def create_market_order(self, symbol, side, amount, price, params={}):
+        return await self.create_order(symbol, 'market', side, amount, price, params)
+
+    async def create_limit_buy_order(self, symbol, amount, price, params={}):
+        return await self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    async def create_limit_sell_order(self, symbol, amount, price, params={}):
+        return await self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    async def create_market_buy_order(self, symbol, amount, params={}):
+        return await self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    async def create_market_sell_order(self, symbol, amount, params={}):
+        return await self.create_order(symbol, 'market', 'sell', amount, None, params)
+
+    def cost_to_precision(self, symbol, cost):
+        market = self.market(symbol)
+        return decimalToPrecision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def price_to_precision(self, symbol, price):
+        market = self.market(symbol)
+        return decimalToPrecision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def amount_to_precision(self, symbol, amount):
+        market = self.market(symbol)
+        return decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+
+    def fee_to_precision(self, symbol, fee):
+        market = self.market(symbol)
+        return decimalToPrecision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def currency_to_precision(self, code, fee, networkCode=None):
+        currency = self.currencies[code]
+        precision = self.safe_value(currency, 'precision')
+        if networkCode is not None:
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value(networkItem, 'precision', precision)
+        if precision is None:
+            return fee
+        else:
+            return decimalToPrecision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def safe_number(self, object, key, d=None):
         value = self.safe_string(object, key)

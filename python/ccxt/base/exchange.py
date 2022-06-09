@@ -1510,34 +1510,6 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
-    def cost_to_precision(self, symbol, cost):
-        market = self.market(symbol)
-        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
-
-    def price_to_precision(self, symbol, price):
-        market = self.market(symbol)
-        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
-
-    def amount_to_precision(self, symbol, amount):
-        market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
-
-    def fee_to_precision(self, symbol, fee):
-        market = self.market(symbol)
-        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        currency = self.currencies[code]
-        precision = self.safe_value(currency, 'precision')
-        if networkCode is not None:
-            networks = self.safe_value(currency, 'networks', {})
-            networkItem = self.safe_value(networks, networkCode, {})
-            precision = self.safe_value(networkItem, 'precision', precision)
-        if precision is None:
-            return fee
-        else:
-            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
-
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
@@ -2318,24 +2290,6 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
-    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', side, amount, price, params)
-
-    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
-        return self.create_order(symbol, 'market', side, amount, price, params)
-
-    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
-
-    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
-
-    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
-        return self.create_order(symbol, 'market', 'buy', amount, None, params)
-
-    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
-        return self.create_order(symbol, 'market', 'sell', amount, None, params)
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
@@ -2897,6 +2851,52 @@ class Exchange(object):
         return self.filter_by_array(array, 'symbol', symbols, False)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def create_limit_order(self, symbol, side, amount, price, params={}):
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price, params={}):
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}):
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}):
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}):
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}):
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
+
+    def cost_to_precision(self, symbol, cost):
+        market = self.market(symbol)
+        return decimalToPrecision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def price_to_precision(self, symbol, price):
+        market = self.market(symbol)
+        return decimalToPrecision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def amount_to_precision(self, symbol, amount):
+        market = self.market(symbol)
+        return decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+
+    def fee_to_precision(self, symbol, fee):
+        market = self.market(symbol)
+        return decimalToPrecision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+
+    def currency_to_precision(self, code, fee, networkCode=None):
+        currency = self.currencies[code]
+        precision = self.safe_value(currency, 'precision')
+        if networkCode is not None:
+            networks = self.safe_value(currency, 'networks', {})
+            networkItem = self.safe_value(networks, networkCode, {})
+            precision = self.safe_value(networkItem, 'precision', precision)
+        if precision is None:
+            return fee
+        else:
+            return decimalToPrecision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def safe_number(self, object, key, d=None):
         value = self.safe_string(object, key)

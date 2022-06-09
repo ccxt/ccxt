@@ -1537,65 +1537,6 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
-    createLimitOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', side, amount, price, params)
-    }
-
-    createMarketOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'market', side, amount, price, params)
-    }
-
-    createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
-    }
-
-    createLimitSellOrder (symbol, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
-    }
-
-    createMarketBuyOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
-    }
-
-    createMarketSellOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
-    }
-
-    costToPrecision (symbol, cost) {
-        const market = this.market (symbol)
-        return decimalToPrecision (cost, TRUNCATE, market.precision.price, this.precisionMode, this.paddingMode)
-    }
-
-    priceToPrecision (symbol, price) {
-        const market = this.market (symbol)
-        return decimalToPrecision (price, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
-    }
-
-    amountToPrecision (symbol, amount) {
-        const market = this.market (symbol)
-        return decimalToPrecision (amount, TRUNCATE, market.precision.amount, this.precisionMode, this.paddingMode)
-    }
-
-    feeToPrecision (symbol, fee) {
-        const market = this.market (symbol)
-        return decimalToPrecision (fee, ROUND, market.precision.price, this.precisionMode, this.paddingMode)
-    }
-
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        const currency = this.currencies[code];
-        let precision = this.safeValue (currency, 'precision');
-        if (networkCode !== undefined) {
-            const networks = this.safeValue (currency, 'networks', {});
-            const networkItem = this.safeValue (networks, networkCode, {});
-            precision = this.safeValue (networkItem, 'precision', precision);
-        }
-        if (precision === undefined) {
-            return fee;
-        } else {
-            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
-        }
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
@@ -2179,6 +2120,65 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async createLimitOrder (symbol, side, amount, price, params = {}) {
+        return await this.createOrder (symbol, 'limit', side, amount, price, params);
+    }
+
+    async createMarketOrder (symbol, side, amount, price, params = {}) {
+        return await this.createOrder (symbol, 'market', side, amount, price, params);
+    }
+
+    async createLimitBuyOrder (symbol, amount, price, params = {}) {
+        return await this.createOrder  (symbol, 'limit', 'buy', amount, price, params);
+    }
+
+    async createLimitSellOrder (symbol, amount, price, params = {}) {
+        return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
+    }
+
+    async createMarketBuyOrder (symbol, amount, params = {}) {
+        return await this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
+    }
+
+    async createMarketSellOrder (symbol, amount, params = {}) {
+        return await this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
+    }
+
+    costToPrecision (symbol, cost) {
+        const market = this.market (symbol);
+        return decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+    }
+
+    priceToPrecision (symbol, price) {
+        const market = this.market (symbol);
+        return decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+    }
+
+    amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        return decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+    }
+
+    feeToPrecision (symbol, fee) {
+        const market = this.market (symbol);
+        return decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+    }
+
+    currencyToPrecision (code, fee, networkCode = undefined) {
+        const currency = this.currencies[code];
+        let precision = this.safeValue (currency, 'precision');
+        if (networkCode !== undefined) {
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkItem = this.safeValue (networks, networkCode, {});
+            precision = this.safeValue (networkItem, 'precision', precision);
+        }
+        if (precision === undefined) {
+            return fee;
+        } else {
+            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+        }
+    }
 
     safeNumber (object, key, d = undefined) {
         const value = this.safeString (object, key);
