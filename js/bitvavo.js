@@ -931,36 +931,6 @@ module.exports = class bitvavo extends Exchange {
         };
     }
 
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitvavo#createOrder
-         * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bitvavo api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'side': side,
-            'orderType': type, // 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
-            // 'amount': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
-            // 'amountQuote': this.costToPrecision (symbol, cost),
-            // 'timeInForce': 'GTC', // 'GTC', 'IOC', 'FOK'
-            // 'selfTradePrevention': 'decrementAndCancel', // 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
-            // 'postOnly': false,
-            // 'disableMarketProtection': false, // don't cancel if the next fill price is 10% worse than the best fill price
-            // 'responseRequired': true, // false is faster
-        };
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -972,6 +942,17 @@ module.exports = class bitvavo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bitvavo api endpoint
+         * @param {str} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {float} params.triggerPrice The price at which a trigger order is triggered at
+         * @param {bool} params.postOnly If true, the order will only be posted to the order book and not executed immediately
+         * @param {float} params.stopLossPrice The price at which a stop loss order is triggered at
+         * @param {float} params.takeProfitPrice The price at which a take profit order is triggered at
+         * @param {str} params.triggerType "price"
+         * @param {str} params.triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+         * @param {str} params.selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+         * @param {bool} params.disableMarketProtection don't cancel if the next fill price is 10% worse than the best fill price
+         * @param {bool} params.responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -979,19 +960,17 @@ module.exports = class bitvavo extends Exchange {
         const request = {
             'market': market['id'],
             'side': side,
-            'orderType': type, // 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
-            // 'amount': this.amountToPrecision (symbol, amount),
-            // 'price': this.priceToPrecision (symbol, price),
-            // 'amountQuote': this.costToPrecision (symbol, cost),
-            // 'timeInForce': 'GTC', // 'GTC', 'IOC', 'FOK'
-            // 'selfTradePrevention': 'decrementAndCancel', // 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
-            // 'postOnly': false,
-            // 'disableMarketProtection': false, // don't cancel if the next fill price is 10% worse than the best fill price
-            // 'responseRequired': true, // false is faster
+            'orderType': type,
         };
-        const isStopLimit = (type === 'stopLossLimit') || (type === 'takeProfitLimit');
-        const isStopMarket = (type === 'stopLoss') || (type === 'takeProfit');
-        if (type === 'market') {
+        const isMarketOrder = (type === 'market') || (type === 'stopLoss') || (type === 'takeProfit');
+        const isLimitOrder = (type === 'limit') || (type === 'stopLossLimit') || (type === 'takeProfitLimit');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        let triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerAmount' ]);
+        const postOnly = this.isPostOnly (isMarketOrder, false, params);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice'); // trigger when price crosses from above to below this value
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isMarketOrder) {
             let cost = undefined;
             if (price !== undefined) {
                 cost = amount * price;
@@ -1005,66 +984,40 @@ module.exports = class bitvavo extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
             params = this.omit (params, [ 'cost', 'amountQuote' ]);
-        } else if (type === 'limit') {
+        } else if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
-        } else if (isStopMarket || isStopLimit) {
-            let stopPrice = this.safeNumber2 (params, 'stopPrice', 'triggerAmount');
-            if (stopPrice === undefined) {
-                if (isStopLimit) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for a ' + type + ' order');
-                } else if (isStopMarket) {
-                    if (price === undefined) {
-                        throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument or a stopPrice parameter for a ' + type + ' order');
-                    } else {
-                        stopPrice = price;
-                    }
-                }
-            }
-            if (isStopLimit) {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-            params = this.omit (params, [ 'stopPrice', 'triggerAmount' ]);
-            request['triggerAmount'] = this.priceToPrecision (symbol, stopPrice);
-            request['triggerType'] = 'price';
-            request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const isTakeProfit = (takeProfitPrice !== undefined) || (type === 'takeProfit') || (type === 'takeProfitLimit');
+        const isStopLoss = (stopLossPrice !== undefined) || (triggerPrice !== undefined) && (!isTakeProfit) || (type === 'stopLoss') || (type === 'stopLossLimit');
+        if (isStopLoss) {
+            if (stopLossPrice !== undefined) {
+                triggerPrice = stopLossPrice;
+            }
+            request['orderType'] = isMarketOrder ? 'stopLoss' : 'stopLossLimit';
+        } else if (isTakeProfit) {
+            if (takeProfitPrice !== undefined) {
+                triggerPrice = takeProfitPrice;
+            }
+            request['orderType'] = isMarketOrder ? 'takeProfit' : 'takeProfitLimit';
+        }
+        if (triggerPrice !== undefined) {
+            request['triggerAmount'] = this.priceToPrecision (symbol, triggerPrice);
+            request['triggerType'] = 'price';
+            request['triggerReference'] = 'lastTrade'; // 'bestBid', 'bestAsk', 'midPrice'
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        return this.extend (request, params);
+        // const response = await this.privatePostOrder (this.extend (request, params));
         //
-        //     {
-        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "market":"ETH-EUR",
-        //         "created":1590505649241,
-        //         "updated":1590505649241,
-        //         "status":"filled",
-        //         "side":"sell",
-        //         "orderType":"market",
-        //         "amount":"0.249825",
-        //         "amountRemaining":"0",
-        //         "onHold":"0",
-        //         "onHoldCurrency":"ETH",
-        //         "filledAmount":"0.249825",
-        //         "filledAmountQuote":"45.84038925",
-        //         "feePaid":"0.12038925",
-        //         "feeCurrency":"EUR",
-        //         "fills":[
-        //             {
-        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
-        //                 "timestamp":1590505649245,
-        //                 "amount":"0.249825",
-        //                 "price":"183.49",
-        //                 "taker":true,
-        //                 "fee":"0.12038925",
-        //                 "feeCurrency":"EUR",
-        //                 "settled":true
-        //             }
-        //         ],
-        //         "selfTradePrevention":"decrementAndCancel",
-        //         "visible":false,
-        //         "disableMarketProtection":false
-        //     }
         //
-        return this.parseOrder (response, market);
+        //
+        // return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
