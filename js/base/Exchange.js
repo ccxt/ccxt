@@ -870,12 +870,6 @@ module.exports = class Exchange {
         ];
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeNumber (bidask, priceKey)
-        const amount = this.safeNumber (bidask, amountKey)
-        return [ price, amount ]
-    }
-
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         return Object.values (bidasks || []).map ((bidask) => this.parseBidAsk (bidask, priceKey, amountKey))
     }
@@ -1759,6 +1753,12 @@ module.exports = class Exchange {
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        const price = this.safeNumber (bidask, priceKey);
+        const amount = this.safeNumber (bidask, amountKey);
+        return [ price, amount ];
+    }
 
     safeCurrency (currencyId, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {

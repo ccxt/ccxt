@@ -295,7 +295,6 @@ class Exchange {
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
         'resolvePath' => 'resolve_path',
-        'parseBidAsk' => 'parse_bid_ask',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
@@ -337,6 +336,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'parseBidAsk' => 'parse_bid_ask',
         'safeCurrency' => 'safe_currency',
         'safeMarket' => 'safe_market',
         'checkRequiredCredentials' => 'check_required_credentials',
@@ -2003,12 +2003,6 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
-        $price = $this->safe_number($bidask, $price_key);
-        $amount = $this->safe_number($bidask, $amount_key);
-        return array($price, $amount);
-    }
-
     public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
         $result = array();
         $array = is_array($bidasks) ? array_values($bidasks) : array();
@@ -3426,6 +3420,12 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
+        $price = $this->safeNumber ($bidask, $priceKey);
+        $amount = $this->safeNumber ($bidask, $amountKey);
+        return array( $price, $amount );
+    }
 
     public function safe_currency($currencyId, $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {

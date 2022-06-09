@@ -1620,9 +1620,6 @@ class Exchange(object):
         tail = since is None
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
-    def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [self.safe_number(bidask, price_key), self.safe_number(bidask, amount_key)]
-
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
         if len(bidasks):
@@ -2578,6 +2575,11 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = self.safeNumber(bidask, priceKey)
+        amount = self.safeNumber(bidask, amountKey)
+        return [price, amount]
 
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):
