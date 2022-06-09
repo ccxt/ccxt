@@ -485,7 +485,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
             request = {
