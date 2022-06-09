@@ -475,6 +475,8 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
@@ -483,7 +485,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: a list of candles ordered as timestamp, open, high, low, close, None
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
             request = {

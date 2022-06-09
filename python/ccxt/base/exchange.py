@@ -3098,6 +3098,8 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market

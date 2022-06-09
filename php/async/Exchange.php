@@ -481,15 +481,17 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
-         * @param {str} $symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {str} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} a list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
             $request = array(
