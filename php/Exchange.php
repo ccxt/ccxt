@@ -273,12 +273,7 @@ class Exchange {
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
         'defineRestApi' => 'define_rest_api',
         'setHeaders' => 'set_headers',
-        'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'parseJson' => 'parse_json',
-        'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
-        'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
-        'findBroadlyMatchedKey' => 'find_broadly_matched_key',
-        'handleErrors' => 'handle_errors',
         'handleHttpStatusCode' => 'handle_http_status_code',
         'getResponseHeaders' => 'get_response_headers',
         'handleRestResponse' => 'handle_rest_response',
@@ -352,13 +347,18 @@ class Exchange {
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
-        'getSupportedMapping' => 'get_supported_mapping',
-        'fetchBorrowRate' => 'fetch_borrow_rate',
-        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'getSupportedMapping' => 'get_supported_mapping',
+        'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleMarketTypeAndParams' => 'handle_market_type_and_params',
+        'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
+        'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
+        'findBroadlyMatchedKey' => 'find_broadly_matched_key',
+        'handleErrors' => 'handle_errors',
+        'calculateRateLimiterCost' => 'calculate_rate_limiter_cost',
         'fetchTicker' => 'fetch_ticker',
         'fetchTickers' => 'fetch_tickers',
         'fetchOrder' => 'fetch_order',
@@ -1629,10 +1629,6 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() is not supported yet');
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array(), $context = array()) {
-        return $this->safe_value($config, 'cost', 1);
-    }
-
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
@@ -1644,30 +1640,6 @@ class Exchange {
 
     public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
         return $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
-    }
-
-    public function throw_exactly_matched_exception($exact, $string, $message) {
-        if (isset($exact[$string])) {
-            throw new $exact[$string]($message);
-        }
-    }
-
-    public function throw_broadly_matched_exception($broad, $string, $message) {
-        $broad_key = $this->find_broadly_matched_key($broad, $string);
-        if ($broad_key !== null) {
-            throw new $broad[$broad_key]($message);
-        }
-    }
-
-    public function find_broadly_matched_key($broad, $string) {
-        $keys = is_array($broad) ? array_keys($broad) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if (mb_strpos($string, $key) !== false) {
-                return $key;
-            }
-        }
-        return null;
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
@@ -1687,10 +1659,6 @@ class Exchange {
 
     public function set_headers($headers) {
         return $headers;
-    }
-
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
-        // it's a stub function, does nothing in base code
     }
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
@@ -3555,47 +3523,6 @@ class Exchange {
         return $string_number;
     }
 
-    public function get_supported_mapping($key, $mapping = array()) {
-        // Takes a key and a dictionary, and returns the dictionary's value for that key
-        // :throws:
-        //      NotSupported if the dictionary does not contain the key
-        if (array_key_exists($key, $mapping)) {
-            return $mapping[$key];
-        } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
-        }
-    }
-
-    public function fetch_borrow_rate($code, $params = array()) {
-        $this->load_markets();
-        if (!$this->has['fetchBorrowRates']) {
-            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
-        }
-        $borrow_rates = $this->fetch_borrow_rates($params);
-        $rate = $this->safe_value($borrow_rates, $code);
-        if ($rate == null) {
-            throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow rate for currency code ' . $code);
-        }
-        return $rate;
-    }
-
-    public function handle_market_type_and_params($method_name, $market=null, $params = array()) {
-        $default_type = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
-        $method_options = $this->safe_value($this->options, $method_name);
-        $method_type = $default_type;
-        if (isset($method_options)) {
-            if (is_string($method_options)) {
-                $method_type = $method_options;
-            } else {
-                $method_type = $this->safe_string_2($method_options, 'defaultType', 'type', $method_type);
-            }
-        }
-        $market_type = isset($market) ? $market['type'] : $method_type;
-        $type = $this->safe_string_2($params, 'defaultType', 'type', $market_type);
-        $params = $this->omit($params, [ 'defaultType', 'type' ]);
-        return array($type, $params);
-    }
-
     public function parse_leverage_tiers($response, $symbols, $market_id_key){
         $tiers = array();
         for ($i = 0; $i < count($response); $i++){
@@ -3646,6 +3573,78 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function get_supported_mapping($key, $mapping = array ()) {
+        if (is_array($mapping) && array_key_exists($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+        }
+    }
+
+    public function fetch_borrow_rate($code, $params = array ()) {
+        $this->load_markets();
+        if (!$this->has['fetchBorrowRates']) {
+            throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
+        }
+        $borrowRates = $this->fetch_borrow_rates($params);
+        $rate = $this->safe_value($borrowRates, $code);
+        if ($rate === null) {
+            throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+        }
+        return $rate;
+    }
+
+    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+        $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
+        $methodOptions = $this->safe_value($this->options, $methodName);
+        $methodType = $defaultType;
+        if ($methodOptions !== null) {
+            if (gettype($methodOptions) === 'string') {
+                $methodType = $methodOptions;
+            } else {
+                $methodType = $this->safe_string_2($methodOptions, 'defaultType', 'type', $methodType);
+            }
+        }
+        $marketType = ($market === null) ? $methodType : $market['type'];
+        $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
+        $params = $this->omit ($params, array( 'defaultType', 'type' ));
+        return array( $type, $params );
+    }
+
+    public function throw_exactly_matched_exception($exact, $string, $message) {
+        if (is_array($exact) && array_key_exists($string, $exact)) {
+            throw new $exact[$string]($message);
+        }
+    }
+
+    public function throw_broadly_matched_exception($broad, $string, $message) {
+        $broadKey = $this->find_broadly_matched_key($broad, $string);
+        if ($broadKey !== null) {
+            throw new $broad[$broadKey]($message);
+        }
+    }
+
+    public function find_broadly_matched_key($broad, $string) {
+        // a helper for matching error strings exactly vs broadly
+        $keys = is_array($broad) ? array_keys($broad) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (mb_strpos($string, $key) !== false) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
+    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+        // it is a stub $method that must be overrided in the derived exchange classes
+        // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        return $this->safe_value($config, 'cost', 1);
+    }
 
     public function fetch_ticker($symbol, $params = array ()) {
         if ($this->has['fetchTickers']) {

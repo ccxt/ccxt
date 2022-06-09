@@ -322,6 +322,62 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def get_supported_mapping(self, key, mapping={}):
+        if key in mapping:
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
+        borrowRates = await self.fetch_borrow_rates(params)
+        rate = self.safe_value(borrowRates, code)
+        if rate is None:
+            raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate
+
+    def handle_market_type_and_params(self, methodName, market=None, params={}):
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        methodOptions = self.safe_value(self.options, methodName)
+        methodType = defaultType
+        if methodOptions is not None:
+            if isinstance(methodOptions, str):
+                methodType = methodOptions
+            else:
+                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
+        marketType = methodType if (market is None) else market['type']
+        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
+        params = self.omit(params, ['defaultType', 'type'])
+        return [type, params]
+
+    def throw_exactly_matched_exception(self, exact, string, message):
+        if string in exact:
+            raise exact[string](message)
+
+    def throw_broadly_matched_exception(self, broad, string, message):
+        broadKey = self.find_broadly_matched_key(broad, string)
+        if broadKey is not None:
+            raise broad[broadKey](message)
+
+    def find_broadly_matched_key(self, broad, string):
+        # a helper for matching error strings exactly vs broadly
+        keys = list(broad.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if string.find(key) >= 0:
+                return key
+        return None
+
+    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+        # it is a stub method that must be overrided in the derived exchange classes
+        # raise NotSupported(self.id + ' handleErrors() not implemented yet')
+        pass
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        return self.safe_value(config, 'cost', 1)
+
     async def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
             tickers = await self.fetch_tickers([symbol], params)

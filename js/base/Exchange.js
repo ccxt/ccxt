@@ -586,10 +586,6 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
-        return this.safeValue (config, 'cost', 1);
-    }
-
     async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (type, method, path, params, config, context)
@@ -612,35 +608,6 @@ module.exports = class Exchange {
             // SyntaxError
             return undefined
         }
-    }
-
-    throwExactlyMatchedException (exact, string, message) {
-        if (string in exact) {
-            throw new exact[string] (message)
-        }
-    }
-
-    throwBroadlyMatchedException (broad, string, message) {
-        const broadKey = this.findBroadlyMatchedKey (broad, string)
-        if (broadKey !== undefined) {
-            throw new broad[broadKey] (message)
-        }
-    }
-
-    findBroadlyMatchedKey (broad, string) {
-        // a helper for matching error strings exactly vs broadly
-        const keys = Object.keys (broad)
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i]
-            if (string.indexOf (key) >= 0) {
-                return key
-            }
-        }
-        return undefined
-    }
-
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
-        // override me
     }
 
     handleHttpStatusCode (code, reason, url, method, body) {
@@ -1901,47 +1868,6 @@ module.exports = class Exchange {
         }
     }
 
-    getSupportedMapping (key, mapping = {}) {
-        // Takes a key and a dictionary, and returns the dictionary's value for that key
-        // :throws:
-        //      NotSupported if the dictionary does not contain the key
-        if (key in mapping) {
-            return mapping[key]
-        } else {
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping')
-        }
-    }
-
-    async fetchBorrowRate (code, params = {}) {
-        await this.loadMarkets ();
-        if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet')
-        }
-        const borrowRates = await this.fetchBorrowRates (params);
-        const rate = this.safeValue (borrowRates, code);
-        if (rate === undefined) {
-            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
-        }
-        return rate;
-    }
-
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const methodOptions = this.safeValue (this.options, methodName);
-        let methodType = defaultType;
-        if (methodOptions !== undefined) {
-            if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
-            } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
-            }
-        }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
-        return [ type, params ];
-    }
-
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
@@ -1985,6 +1911,78 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    getSupportedMapping (key, mapping = {}) {
+        if (key in mapping) {
+            return mapping[key];
+        } else {
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+        }
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        await this.loadMarkets ();
+        if (!this.has['fetchBorrowRates']) {
+            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchBorrowRates (params);
+        const rate = this.safeValue (borrowRates, code);
+        if (rate === undefined) {
+            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = defaultType;
+        if (methodOptions !== undefined) {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
+        params = this.omit (params, [ 'defaultType', 'type' ]);
+        return [ type, params ];
+    }
+
+    throwExactlyMatchedException (exact, string, message) {
+        if (string in exact) {
+            throw new exact[string] (message);
+        }
+    }
+
+    throwBroadlyMatchedException (broad, string, message) {
+        const broadKey = this.findBroadlyMatchedKey (broad, string);
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (message);
+        }
+    }
+
+    findBroadlyMatchedKey (broad, string) {
+        // a helper for matching error strings exactly vs broadly
+        const keys = Object.keys (broad);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (string.indexOf (key) >= 0) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+        // it is a stub method that must be overrided in the derived exchange classes
+        // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        return this.safeValue (config, 'cost', 1);
+    }
 
     async fetchTicker (symbol, params = {}) {
         if (this.has['fetchTickers']) {

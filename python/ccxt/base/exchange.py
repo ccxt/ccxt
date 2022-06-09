@@ -531,9 +531,6 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
-        return self.safe_value(config, 'cost', 1)
-
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         """A better wrapper over request for deferred signing"""
         if self.enableRateLimit:
@@ -557,24 +554,6 @@ class Exchange(object):
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
 
-    def throw_exactly_matched_exception(self, exact, string, message):
-        if string in exact:
-            raise exact[string](message)
-
-    def throw_broadly_matched_exception(self, broad, string, message):
-        broad_key = self.find_broadly_matched_key(broad, string)
-        if broad_key is not None:
-            raise broad[broad_key](message)
-
-    def find_broadly_matched_key(self, broad, string):
-        """A helper method for matching error strings exactly vs broadly"""
-        keys = list(broad.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if string.find(key) >= 0:
-                return key
-        return None
-
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
         if self.session:
@@ -595,9 +574,6 @@ class Exchange(object):
 
     def set_headers(self, headers):
         return headers
-
-    def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
-        pass
 
     def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
         return response_body.strip()
@@ -2682,39 +2658,6 @@ class Exchange(object):
             return None
         return string_number
 
-    def get_supported_mapping(self, key, mapping={}):
-        # Takes a key and a dictionary, and returns the dictionary's value for that key
-        # :throws:
-        #      NotSupported if the dictionary does not contain the key
-        if (key in mapping):
-            return mapping[key]
-        else:
-            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
-
-    def fetch_borrow_rate(self, code, params={}):
-        self.load_markets()
-        if not self.has['fetchBorrowRates']:
-            raise NotSupported(self.id + 'fetchBorrowRate() is not supported yet')
-        borrow_rates = self.fetch_borrow_rates(params)
-        rate = self.safe_value(borrow_rates, code)
-        if rate is None:
-            raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
-        return rate
-
-    def handle_market_type_and_params(self, method_name, market=None, params={}):
-        default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
-        method_options = self.safe_value(self.options, method_name)
-        method_type = default_type
-        if method_options is not None:
-            if isinstance(method_options, str):
-                method_type = method_options
-            else:
-                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
-        market_type = method_type if market is None else market['type']
-        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
-        params = self.omit(params, ['defaultType', 'type'])
-        return [type, params]
-
     def parse_leverage_tiers(self, response, symbols, market_id_key):
         tiers = {}
         for item in response:
@@ -2747,6 +2690,62 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def get_supported_mapping(self, key, mapping={}):
+        if key in mapping:
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    def fetch_borrow_rate(self, code, params={}):
+        self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
+        borrowRates = self.fetch_borrow_rates(params)
+        rate = self.safe_value(borrowRates, code)
+        if rate is None:
+            raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate
+
+    def handle_market_type_and_params(self, methodName, market=None, params={}):
+        defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        methodOptions = self.safe_value(self.options, methodName)
+        methodType = defaultType
+        if methodOptions is not None:
+            if isinstance(methodOptions, str):
+                methodType = methodOptions
+            else:
+                methodType = self.safe_string_2(methodOptions, 'defaultType', 'type', methodType)
+        marketType = methodType if (market is None) else market['type']
+        type = self.safe_string_2(params, 'defaultType', 'type', marketType)
+        params = self.omit(params, ['defaultType', 'type'])
+        return [type, params]
+
+    def throw_exactly_matched_exception(self, exact, string, message):
+        if string in exact:
+            raise exact[string](message)
+
+    def throw_broadly_matched_exception(self, broad, string, message):
+        broadKey = self.find_broadly_matched_key(broad, string)
+        if broadKey is not None:
+            raise broad[broadKey](message)
+
+    def find_broadly_matched_key(self, broad, string):
+        # a helper for matching error strings exactly vs broadly
+        keys = list(broad.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if string.find(key) >= 0:
+                return key
+        return None
+
+    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
+        # it is a stub method that must be overrided in the derived exchange classes
+        # raise NotSupported(self.id + ' handleErrors() not implemented yet')
+        pass
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        return self.safe_value(config, 'cost', 1)
 
     def fetch_ticker(self, symbol, params={}):
         if self.has['fetchTickers']:
