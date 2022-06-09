@@ -1544,6 +1544,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOpenOrder
+         * @description fetch an open order by it's id
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
