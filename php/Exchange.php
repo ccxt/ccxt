@@ -3557,7 +3557,7 @@ class Exchange {
         if (!$this->has['fetchTransactionFees']) {
             throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
         }
-        return $this->fetch_transaction_fees([$code], $params);
+        return $this->fetch_transaction_fees(array( $code ), $params);
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
@@ -3790,7 +3790,7 @@ class Exchange {
     }
 
     public function create_limit_buy_order($symbol, $amount, $price, $params = array ()) {
-        return $this->create_order ($symbol, 'limit', 'buy', $amount, $price, $params);
+        return $this->create_order($symbol, 'limit', 'buy', $amount, $price, $params);
     }
 
     public function create_limit_sell_order($symbol, $amount, $price, $params = array ()) {
@@ -3847,7 +3847,7 @@ class Exchange {
 
     public function safe_number_n($object, $arr, $d = null) {
         $value = $this->safe_string_n($object, $arr);
-        return $this->parseNumber($value, $d);
+        return $this->parse_number($value, $d);
     }
 
     public function parse_precision($precision) {

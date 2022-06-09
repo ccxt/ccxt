@@ -1,8 +1,9 @@
-"use strict";
+'use strict';
 
 // ----------------------------------------------------------------------------
+/* eslint-disable */
 
-const functions = require ('./functions')
+const functions = require ('./functions');
 
 const {
     isNode
@@ -42,7 +43,8 @@ const { // eslint-disable-line object-curly-newline
     , DDoSProtection
     , RequestTimeout
     , ExchangeNotAvailable
-    , RateLimitExceeded } = require ('./errors')
+    , RateLimitExceeded
+    , ArgumentsRequired } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
 
@@ -1839,6 +1841,8 @@ module.exports = class Exchange {
         return this.parseNumber (value, d);
     }
 
+    /* eslint-enable */
+    // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     oath () {
@@ -1900,7 +1904,7 @@ module.exports = class Exchange {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
         }
-        return this.fetchTransactionFees ([code], params);
+        return this.fetchTransactionFees ([ code ], params);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -2133,7 +2137,7 @@ module.exports = class Exchange {
     }
 
     async createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return await this.createOrder  (symbol, 'limit', 'buy', amount, price, params);
+        return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
     }
 
     async createLimitSellOrder (symbol, amount, price, params = {}) {
@@ -2190,7 +2194,7 @@ module.exports = class Exchange {
 
     safeNumberN (object, arr, d = undefined) {
         const value = this.safeStringN (object, arr);
-        return this.parseNumber(value, d);
+        return this.parseNumber (value, d);
     }
 
     parsePrecision (precision) {
@@ -2457,4 +2461,4 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
-}
+};

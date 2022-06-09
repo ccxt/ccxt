@@ -572,7 +572,7 @@ class Exchange(BaseExchange):
 
     def safe_number_n(self, object, arr, d=None):
         value = self.safe_string_n(object, arr)
-        return self.parseNumber(value, d)
+        return self.parse_number(value, d)
 
     def parse_precision(self, precision):
         if precision is None:
