@@ -2975,22 +2975,6 @@ class Exchange(object):
         array = [self.merge(self.parse_position(position), params) for position in array]
         return self.filter_by_array(array, 'symbol', symbols, False)
 
-    def parse_borrow_interests(self, response, market=None):
-        interest = []
-        for i in range(len(response)):
-            row = response[i]
-            interest.append(self.parse_borrow_interest(row, market))
-        return interest
-
-    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
-        rates = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            rates.append(self.parse_funding_rate_history(entry, market))
-        sorted = self.sort_by(rates, 'timestamp')
-        symbol = None if (market is None) else market['symbol']
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
-
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     def parse_borrow_interests(self, response, market=None):
