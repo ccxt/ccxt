@@ -400,21 +400,6 @@ module.exports = class Exchange {
         return result
     }
 
-    checkRequiredCredentials (error = true) {
-        const keys = Object.keys (this.requiredCredentials)
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i]
-            if (this.requiredCredentials[key] && !this[key]) {
-                if (error) {
-                    throw new AuthenticationError (this.id + ' requires `' + key + '` credential')
-                } else {
-                    return error
-                }
-            }
-        }
-        return true
-    }
-
     checkAddress (address) {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined')
@@ -1211,64 +1196,6 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
-    safeCurrency (currencyId, currency = undefined) {
-        if ((currencyId === undefined) && (currency !== undefined)) {
-            return currency
-        }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
-            return this.currencies_by_id[currencyId]
-        }
-        return {
-            'id': currencyId,
-            'code': (currencyId === undefined) ? currencyId : this.commonCurrencyCode (currencyId.toUpperCase ()),
-        }
-    }
-
-    safeMarket (marketId, market = undefined, delimiter = undefined) {
-        if (marketId !== undefined) {
-            if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId]
-            } else if (delimiter !== undefined) {
-                const parts = marketId.split (delimiter)
-                if (parts.length === 2) {
-                    const baseId = this.safeString (parts, 0);
-                    const quoteId = this.safeString (parts, 1);
-                    const base = this.safeCurrencyCode (baseId)
-                    const quote = this.safeCurrencyCode (quoteId)
-                    const symbol = base + '/' + quote
-                    return {
-                        'id': marketId,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                    }
-                } else {
-                    return {
-                        'id': marketId,
-                        'symbol': marketId,
-                        'base': undefined,
-                        'quote': undefined,
-                        'baseId': undefined,
-                        'quoteId': undefined,
-                    }
-                }
-            }
-        }
-        if (market !== undefined) {
-            return market
-        }
-        return {
-            'id': marketId,
-            'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-        }
-    }
-
     filterBySymbol (array, symbol = undefined) {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
     }
@@ -1832,6 +1759,84 @@ module.exports = class Exchange {
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeCurrency (currencyId, currency = undefined) {
+        if ((currencyId === undefined) && (currency !== undefined)) {
+            return currency;
+        }
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+            return this.currencies_by_id[currencyId];
+        }
+        let code = currencyId;
+        if (currencyId !== undefined) {
+            code = this.commonCurrencyCode (currencyId.toUpperCase ());
+        }
+        return {
+            'id': currencyId,
+            'code': code,
+        };
+    }
+
+    safeMarket (marketId, market = undefined, delimiter = undefined) {
+        if (marketId !== undefined) {
+            if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
+                market = this.markets_by_id[marketId];
+            } else if (delimiter !== undefined) {
+                const parts = marketId.split (delimiter);
+                const partsLength = parts.length;
+                if (partsLength === 2) {
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
+                    const symbol = base + '/' + quote;
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    };
+                } else {
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': undefined,
+                        'quote': undefined,
+                        'baseId': undefined,
+                        'quoteId': undefined,
+                    };
+                }
+            }
+        }
+        if (market !== undefined) {
+            return market;
+        }
+        return {
+            'id': marketId,
+            'symbol': marketId,
+            'base': undefined,
+            'quote': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+        };
+    }
+
+    checkRequiredCredentials (error = true) {
+        const keys = Object.keys (this.requiredCredentials);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.requiredCredentials[key] && !this[key]) {
+                if (error) {
+                    throw new AuthenticationError (this.id + ' requires "' + key + '" credential');
+                } else {
+                    return error;
+                }
+            }
+        }
+        return true;
+    }
 
     oath () {
         if (this.twofa !== undefined) {

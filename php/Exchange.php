@@ -266,7 +266,6 @@ class Exchange {
         'executeRestRequest' => 'execute_rest_request',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
-        'checkRequiredCredentials' => 'check_required_credentials',
         'checkAddress' => 'check_address',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
@@ -315,8 +314,6 @@ class Exchange {
         'parseLedger' => 'parse_ledger',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
-        'safeCurrency' => 'safe_currency',
-        'safeMarket' => 'safe_market',
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
@@ -340,6 +337,9 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'safeCurrency' => 'safe_currency',
+        'safeMarket' => 'safe_market',
+        'checkRequiredCredentials' => 'check_required_credentials',
         'fetchBalance' => 'fetch_balance',
         'fetchPartialBalance' => 'fetch_partial_balance',
         'fetchFreeBalance' => 'fetch_free_balance',
@@ -1101,19 +1101,6 @@ class Exchange {
 
     public function nonce() {
         return $this->seconds();
-    }
-
-    public function check_required_credentials($error = true) {
-        foreach ($this->requiredCredentials as $key => $value) {
-            if ($value && (!$this->$key)) {
-                if ($error) {
-                    throw new AuthenticationError($this->id . ' requires `' . $key . '`');
-                } else {
-                    return $error;
-                }
-            }
-        }
-        return true;
     }
 
     public function check_address($address) {
@@ -2351,64 +2338,6 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
-    public function safe_market($marketId, $market = null, $delimiter = null) {
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } elseif ($delimiter !== null) {
-                $parts = explode($delimiter, $marketId);
-                if (count($parts) === 2) {
-                    $baseId = $this->safe_string($parts, 0);
-                    $quoteId = $this->safe_string($parts, 1);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $symbol,
-                        'base' => $base,
-                        'quote' => $quote,
-                        'baseId' => $baseId,
-                        'quoteId' => $quoteId,
-                    );
-                } else {
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $marketId,
-                        'base' => null,
-                        'quote' => null,
-                        'baseId' => null,
-                        'quoteId' => null,
-                    );
-                }
-            }
-        }
-        if ($market !== null) {
-            return $market;
-        }
-        return array(
-            'id' => $marketId,
-            'symbol' => $marketId,
-            'base' => null,
-            'quote' => null,
-            'baseId' => null,
-            'quoteId' => null,
-        );
-    }
-
-    public function safe_currency($currency_id, $currency = null) {
-        if (($currency_id === null) && ($currency !== null)) {
-            return $currency;
-        }
-        if (($this->currencies_by_id !== null) && array_key_exists($currency_id, $this->currencies_by_id)) {
-            return $this->currencies_by_id[$currency_id];
-        }
-        return array(
-            'id' => $currency_id,
-            'code' => ($currency_id === null) ? $currency_id : $this->common_currency_code(mb_strtoupper($currency_id)),
-        );
-    }
-
     public function filter_by_symbol($array, $symbol = null) {
         if ($symbol) {
             $grouped = $this->group_by($array, 'symbol');
@@ -3497,6 +3426,84 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_currency($currencyId, $currency = null) {
+        if (($currencyId === null) && ($currency !== null)) {
+            return $currency;
+        }
+        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            return $this->currencies_by_id[$currencyId];
+        }
+        $code = $currencyId;
+        if ($currencyId !== null) {
+            $code = $this->common_currency_code(strtoupper($currencyId));
+        }
+        return array(
+            'id' => $currencyId,
+            'code' => $code,
+        );
+    }
+
+    public function safe_market($marketId, $market = null, $delimiter = null) {
+        if ($marketId !== null) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+                $market = $this->markets_by_id[$marketId];
+            } elseif ($delimiter !== null) {
+                $parts = explode($delimiter, $marketId);
+                $partsLength = is_array($parts) ? count($parts) : 0;
+                if ($partsLength === 2) {
+                    $baseId = $this->safe_string($parts, 0);
+                    $quoteId = $this->safe_string($parts, 1);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                    );
+                } else {
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $marketId,
+                        'base' => null,
+                        'quote' => null,
+                        'baseId' => null,
+                        'quoteId' => null,
+                    );
+                }
+            }
+        }
+        if ($market !== null) {
+            return $market;
+        }
+        return array(
+            'id' => $marketId,
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+            'baseId' => null,
+            'quoteId' => null,
+        );
+    }
+
+    public function check_required_credentials($error = true) {
+        $keys = is_array($this->requiredCredentials) ? array_keys($this->requiredCredentials) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->requiredCredentials[$key] && !$this->$key) {
+                if ($error) {
+                    throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
+                } else {
+                    return $error;
+                }
+            }
+        }
+        return true;
+    }
 
     public function oath() {
         if ($this->twofa !== null) {

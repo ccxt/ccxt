@@ -301,6 +301,84 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_currency($currencyId, $currency = null) {
+        if (($currencyId === null) && ($currency !== null)) {
+            return $currency;
+        }
+        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+            return $this->currencies_by_id[$currencyId];
+        }
+        $code = $currencyId;
+        if ($currencyId !== null) {
+            $code = $this->common_currency_code(strtoupper($currencyId));
+        }
+        return array(
+            'id' => $currencyId,
+            'code' => $code,
+        );
+    }
+
+    public function safe_market($marketId, $market = null, $delimiter = null) {
+        if ($marketId !== null) {
+            if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+                $market = $this->markets_by_id[$marketId];
+            } elseif ($delimiter !== null) {
+                $parts = explode($delimiter, $marketId);
+                $partsLength = is_array($parts) ? count($parts) : 0;
+                if ($partsLength === 2) {
+                    $baseId = $this->safe_string($parts, 0);
+                    $quoteId = $this->safe_string($parts, 1);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                    );
+                } else {
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $marketId,
+                        'base' => null,
+                        'quote' => null,
+                        'baseId' => null,
+                        'quoteId' => null,
+                    );
+                }
+            }
+        }
+        if ($market !== null) {
+            return $market;
+        }
+        return array(
+            'id' => $marketId,
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+            'baseId' => null,
+            'quoteId' => null,
+        );
+    }
+
+    public function check_required_credentials($error = true) {
+        $keys = is_array($this->requiredCredentials) ? array_keys($this->requiredCredentials) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->requiredCredentials[$key] && !$this->$key) {
+                if ($error) {
+                    throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
+                } else {
+                    return $error;
+                }
+            }
+        }
+        return true;
+    }
+
     public function oath() {
         if ($this->twofa !== null) {
             return $this->totp ($this->twofa);

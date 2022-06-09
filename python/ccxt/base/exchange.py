@@ -1452,16 +1452,6 @@ class Exchange(object):
                 return error
         return result
 
-    def check_required_credentials(self, error=True):
-        keys = list(self.requiredCredentials.keys())
-        for key in keys:
-            if self.requiredCredentials[key] and not getattr(self, key):
-                if error:
-                    raise AuthenticationError(self.id + ' requires `' + key + '`')
-                else:
-                    return error
-        return True
-
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:
@@ -1969,56 +1959,6 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         tail = since is None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
-
-    def safe_market(self, marketId, market=None, delimiter=None):
-        if marketId is not None:
-            if self.markets_by_id is not None and marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            elif delimiter is not None:
-                parts = marketId.split(delimiter)
-                if len(parts) == 2:
-                    baseId = self.safe_string(parts, 0)
-                    quoteId = self.safe_string(parts, 1)
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    return {
-                        'id': marketId,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                    }
-                else:
-                    return {
-                        'id': marketId,
-                        'symbol': marketId,
-                        'base': None,
-                        'quote': None,
-                        'baseId': None,
-                        'quoteId': None,
-                    }
-        if market is not None:
-            return market
-        return {
-            'id': marketId,
-            'symbol': marketId,
-            'base': None,
-            'quote': None,
-            'baseId': None,
-            'quoteId': None,
-        }
-
-    def safe_currency(self, currency_id, currency=None):
-        if currency_id is None and currency is not None:
-            return currency
-        if (self.currencies_by_id is not None) and (currency_id in self.currencies_by_id):
-            return self.currencies_by_id[currency_id]
-        return {
-            'id': currency_id,
-            'code': self.common_currency_code(currency_id.upper()) if currency_id is not None else currency_id
-        }
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
@@ -2638,6 +2578,71 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_currency(self, currencyId, currency=None):
+        if (currencyId is None) and (currency is not None):
+            return currency
+        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+            return self.currencies_by_id[currencyId]
+        code = currencyId
+        if currencyId is not None:
+            code = self.common_currency_code(currencyId.upper())
+        return {
+            'id': currencyId,
+            'code': code,
+        }
+
+    def safe_market(self, marketId, market=None, delimiter=None):
+        if marketId is not None:
+            if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
+                market = self.markets_by_id[marketId]
+            elif delimiter is not None:
+                parts = marketId.split(delimiter)
+                partsLength = len(parts)
+                if partsLength == 2:
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                else:
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': None,
+                        'quote': None,
+                        'baseId': None,
+                        'quoteId': None,
+                    }
+        if market is not None:
+            return market
+        return {
+            'id': marketId,
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+            'baseId': None,
+            'quoteId': None,
+        }
+
+    def check_required_credentials(self, error=True):
+        keys = list(self.requiredCredentials.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.requiredCredentials[key] and not getattr(self, key):
+                if error:
+                    raise AuthenticationError(self.id + ' requires "' + key + '" credential')
+                else:
+                    return error
+        return True
 
     def oath(self):
         if self.twofa is not None:
