@@ -389,19 +389,19 @@ class Exchange(BaseExchange):
 
     def cost_to_precision(self, symbol, cost):
         market = self.market(symbol)
-        return decimalToPrecision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def price_to_precision(self, symbol, price):
         market = self.market(symbol)
-        return decimalToPrecision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def amount_to_precision(self, symbol, amount):
         market = self.market(symbol)
-        return decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def fee_to_precision(self, symbol, fee):
         market = self.market(symbol)
-        return decimalToPrecision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        return self.decimal_to_precision(fee, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
 
     def currency_to_precision(self, code, fee, networkCode=None):
         currency = self.currencies[code]
@@ -413,15 +413,11 @@ class Exchange(BaseExchange):
         if precision is None:
             return fee
         else:
-            return decimalToPrecision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
+            return self.decimal_to_precision(fee, ROUND, precision, self.precisionMode, self.paddingMode)
 
     def safe_number(self, object, key, d=None):
         value = self.safe_string(object, key)
-        return self.parseNumber(value, d)
-
-    def safe_number2(self, object, key1, key2, d=None):
-        value = self.safe_string_2(object, key1, key2)
-        return self.parseNumber(value, d)
+        return self.parse_number(value, d)
 
     def safe_number_n(self, object, arr, d=None):
         value = self.safe_string_n(object, arr)

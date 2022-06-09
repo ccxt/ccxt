@@ -384,22 +384,22 @@ class Exchange extends \ccxt\Exchange {
 
     public function cost_to_precision($symbol, $cost) {
         $market = $this->market ($symbol);
-        return decimalToPrecision ($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return $this->decimal_to_precision($cost, TRUNCATE, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function price_to_precision($symbol, $price) {
         $market = $this->market ($symbol);
-        return decimalToPrecision ($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function amount_to_precision($symbol, $amount) {
         $market = $this->market ($symbol);
-        return decimalToPrecision ($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function fee_to_precision($symbol, $fee) {
         $market = $this->market ($symbol);
-        return decimalToPrecision ($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        return $this->decimal_to_precision($fee, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
     }
 
     public function currency_to_precision($code, $fee, $networkCode = null) {
@@ -413,18 +413,13 @@ class Exchange extends \ccxt\Exchange {
         if ($precision === null) {
             return $fee;
         } else {
-            return decimalToPrecision ($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+            return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
         }
     }
 
     public function safe_number($object, $key, $d = null) {
         $value = $this->safe_string($object, $key);
-        return $this->parseNumber ($value, $d);
-    }
-
-    public function safe_number2($object, $key1, $key2, $d = null) {
-        $value = $this->safe_string_2($object, $key1, $key2);
-        return $this->parseNumber ($value, $d);
+        return $this->parse_number($value, $d);
     }
 
     public function safe_number_n($object, $arr, $d = null) {

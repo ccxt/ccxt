@@ -13,7 +13,8 @@ function testAccount (exchange, account, method) {
     const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in account, exchange.id + ' ' + method + ' ' + key + ' missing from response');
+        const keyInAccount = (key in account);
+        assert (keyInAccount, exchange.id + ' ' + method + ' ' + key + ' missing from response');
     }
     const accountKeys = Object.keys (account);
     assert (keys.length === accountKeys.length, exchange.id + ' ' + method + ' respone includes more keys than expected');

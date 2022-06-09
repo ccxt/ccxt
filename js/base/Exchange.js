@@ -2105,6 +2105,11 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
+    safeNumber2 (object, key1, key2, d = undefined) {
+        const value = this.safeString2 (object, key1, key2);
+        return this.parseNumber (value, d);
+    }
+
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     handleWithdrawTagAndParams (tag, params) {
@@ -2147,22 +2152,22 @@ module.exports = class Exchange {
 
     costToPrecision (symbol, cost) {
         const market = this.market (symbol);
-        return decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        return decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        return decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
     feeToPrecision (symbol, fee) {
         const market = this.market (symbol);
-        return decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
@@ -2176,17 +2181,12 @@ module.exports = class Exchange {
         if (precision === undefined) {
             return fee;
         } else {
-            return decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            return this.decimalToPrecision (fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
     }
 
     safeNumber (object, key, d = undefined) {
         const value = this.safeString (object, key);
-        return this.parseNumber (value, d);
-    }
-
-    safeNumber2 (object, key1, key2, d = undefined) {
-        const value = this.safeString2 (object, key1, key2);
         return this.parseNumber (value, d);
     }
 
