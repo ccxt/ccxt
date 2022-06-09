@@ -55,7 +55,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': 'emulated',
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -1702,15 +1702,6 @@ module.exports = class bittrex extends Exchange {
             'info': order,
             'takerOrMaker': undefined,
         };
-    }
-
-    ordersToTrades (orders) {
-        // this entire method should be moved to the base class
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.orderToTrade (orders[i]));
-        }
-        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
