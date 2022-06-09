@@ -1684,26 +1684,6 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    orderToTrade (order) {
-        // this entire method should be moved to the base class
-        const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
-        return {
-            'id': this.safeString (order, 'id'),
-            'side': this.safeString (order, 'side'),
-            'order': this.safeString (order, 'id'),
-            'type': this.safeString (order, 'type'),
-            'price': this.safeNumber (order, 'average'),
-            'amount': this.safeNumber (order, 'filled'),
-            'cost': this.safeNumber (order, 'cost'),
-            'symbol': this.safeString (order, 'symbol'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': this.safeValue (order, 'fee'),
-            'info': order,
-            'takerOrMaker': undefined,
-        };
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
