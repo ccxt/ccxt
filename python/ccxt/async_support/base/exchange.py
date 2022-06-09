@@ -427,6 +427,19 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def parse_open_interest(self, interest, market=None):
+        raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
+
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sort_by(interests, 'timestamp')
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
     async def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
             market = await self.market(symbol)

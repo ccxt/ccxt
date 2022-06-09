@@ -399,7 +399,6 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
-        'parseOpenInterests' => 'parse_open_interests',
         'isPostOnly' => 'is_post_only',
         'createPostOnlyOrder' => 'create_post_only_order',
         'createReduceOnlyOrder' => 'create_reduce_only_order',
@@ -410,6 +409,8 @@ class Exchange {
         'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'parseOpenInterest' => 'parse_open_interest',
+        'parseOpenInterests' => 'parse_open_interests',
         'fetchFundingRate' => 'fetch_funding_rate',
         'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
@@ -4024,19 +4025,23 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_open_interest($interest, $market = null) {
+        throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
+    }
+
     public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
-            $entry = &$response[$i];
-            $interest = $this->parseOpenInterest($entry, $market);
-            array_push($interests, $interest);
+            $entry = $response[$i];
+            $interest = $this->parseOpenInterest ($entry, $market);
+            $interests[] = $interest;
         }
-        $sorted = $this->sortBy ($interests, 'timestamp');
-        $symbol = $this->safeString ($market, 'symbol');
-        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
+        $sorted = $this->sort_by($interests, 'timestamp');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {

@@ -2249,18 +2249,6 @@ module.exports = class Exchange {
         }
     }
 
-    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
-        const interests = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const interest = this.parseOpenInterest (entry, market);
-            interests.push (interest);
-        }
-        const sorted = this.sortBy (interests, 'timestamp');
-        const symbol = this.safeString (market, 'symbol');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
-
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
@@ -2337,7 +2325,7 @@ module.exports = class Exchange {
         if (price === undefined) {
             if (type === 'limit') {
                   throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
-             }
+            }
         }
         if (amount <= 0) {
             throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
@@ -2351,12 +2339,12 @@ module.exports = class Exchange {
     }
 
     parseBorrowInterests (response, market = undefined) {
-        const interest = [];
+        const interests = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
-            interest.push (this.parseBorrowInterest (row, market));
+            interests.push (this.parseBorrowInterest (row, market));
         }
-        return interest;
+        return interests;
     }
 
     parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
@@ -2371,6 +2359,22 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseOpenInterest (interest, market = undefined) {
+        throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
+    }
+
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
 
     async fetchFundingRate (symbol, params = {}) {
         if (this.has['fetchFundingRates']) {

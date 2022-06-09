@@ -425,6 +425,22 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_open_interest($interest, $market = null) {
+        throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
+    }
+
+    public function parse_open_interests($response, $market = null, $since = null, $limit = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $interest = $this->parseOpenInterest ($entry, $market);
+            $interests[] = $interest;
+        }
+        $sorted = $this->sort_by($interests, 'timestamp');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
     public function fetch_funding_rate($symbol, $params = array ()) {
         if ($this->has['fetchFundingRates']) {
             $market = yield $this->market ($symbol);
