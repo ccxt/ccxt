@@ -1950,7 +1950,8 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $sign = $this->binary_to_base64($this->rsa($this->encode($uppercaseHash), $this->encode($pem), 'RS256'));
+                $encodedPem = $this->encode($pem);
+                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }
