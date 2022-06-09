@@ -64,7 +64,7 @@ class bittrex extends Exchange {
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => 'emulated',
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -149,6 +149,7 @@ class bittrex extends Exchange {
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -1654,35 +1655,6 @@ class bittrex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function order_to_trade($order) {
-        // this entire method should be moved to the base class
-        $timestamp = $this->safe_integer_2($order, 'lastTradeTimestamp', 'timestamp');
-        return array(
-            'id' => $this->safe_string($order, 'id'),
-            'side' => $this->safe_string($order, 'side'),
-            'order' => $this->safe_string($order, 'id'),
-            'type' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_number($order, 'average'),
-            'amount' => $this->safe_number($order, 'filled'),
-            'cost' => $this->safe_number($order, 'cost'),
-            'symbol' => $this->safe_string($order, 'symbol'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'fee' => $this->safe_value($order, 'fee'),
-            'info' => $order,
-            'takerOrMaker' => null,
-        );
-    }
-
-    public function orders_to_trades($orders) {
-        // this entire method should be moved to the base class
-        $result = array();
-        for ($i = 0; $i < count($orders); $i++) {
-            $result[] = $this->order_to_trade($orders[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
@@ -1704,18 +1676,10 @@ class bittrex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            // because of this line we will have to rethink the entire v3
-            // in other words, markets define all the rest of the API
-            // and v3 $market ids are reversed in comparison to v1
-            // v3 has to be a completely separate implementation
-            // otherwise we will have to shuffle symbols and currencies everywhere
-            // which is prone to errors, as was shown here
-            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
-            $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
+            $request['marketSymbol'] = $market['id'];
         }
-        $response = yield $this->privateGetOrdersClosed (array_merge($request, $params));
-        $orders = $this->parse_orders($response, $market);
-        $trades = $this->orders_to_trades($orders);
+        $response = yield $this->privateGetExecutions (array_merge($request, $params));
+        $trades = $this->parse_trades($response, $market);
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
