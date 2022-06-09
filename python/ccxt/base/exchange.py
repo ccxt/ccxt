@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.85.88'
+__version__ = '1.85.91'
 
 # -----------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -48,10 +49,6 @@ try:
     import axolotl_curve25519 as eddsa
 except ImportError:
     eddsa = None
-
-# -----------------------------------------------------------------------------
-
-import ccxt.base.exchange_common as exchange_common
 
 # -----------------------------------------------------------------------------
 
@@ -2344,6 +2341,37 @@ class Exchange(object):
             'cost': cost,
         }
 
+    def edit_limit_buy_order(self, id, symbol, *args):
+        return self.edit_limit_order(id, symbol, 'buy', *args)
+
+    def edit_limit_sell_order(self, id, symbol, *args):
+        return self.edit_limit_order(id, symbol, 'sell', *args)
+
+    def edit_limit_order(self, id, symbol, *args):
+        return self.edit_order(id, symbol, 'limit', *args)
+
+    def edit_order(self, id, symbol, *args):
+        self.cancel_order(id, symbol)
+        return self.create_order(symbol, *args)
+
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
@@ -2851,6 +2879,16 @@ class Exchange(object):
             return None
         return string_number
 
+    def handle_withdraw_tag_and_params(self, tag, params):
+        if isinstance(tag, dict):
+            params = self.extend(tag, params)
+            tag = None
+        if tag is None:
+            tag = self.safe_string(params, 'tag')
+            if tag is not None:
+                params = self.omit(params, 'tag')
+        return [tag, params]
+
     def get_supported_mapping(self, key, mapping={}):
         # Takes a key and a dictionary, and returns the dictionary's value for that key
         # :throws:
@@ -2869,6 +2907,26 @@ class Exchange(object):
         if rate is None:
             raise ExchangeError(self.id + 'fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def handle_market_type_and_params(self, method_name, market=None, params={}):
+        default_type = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
+        method_options = self.safe_value(self.options, method_name)
+        method_type = default_type
+        if method_options is not None:
+            if isinstance(method_options, str):
+                method_type = method_options
+            else:
+                method_type = self.safe_string_2(method_options, 'defaultType', 'type', method_type)
+        market_type = method_type if market is None else market['type']
+        type = self.safe_string_2(params, 'defaultType', 'type', market_type)
+        params = self.omit(params, ['defaultType', 'type'])
+        return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']
 
     def parse_leverage_tiers(self, response, symbols, market_id_key):
         tiers = {}
@@ -2894,36 +2952,30 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
 
-    def edit_limit_buy_order(self, id, symbol, *args):
-        return self.edit_limit_order(id, symbol, 'buy', *args)
-
-    def edit_limit_sell_order(self, id, symbol, *args):
-        return self.edit_limit_order(id, symbol, 'sell', *args)
-
-    def edit_limit_order(self, id, symbol, *args):
-        return self.edit_order(id, symbol, 'limit', *args)
-
-    def edit_order(self, id, symbol, *args):
-        self.cancel_order(id, symbol)
-        return self.create_order(symbol, *args)
-
-    def create_limit_order(self, symbol, side, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', side, amount, price, params)
-
-    def create_market_order(self, symbol, side, amount, price=None, params={}) -> dict:
-        return self.create_order(symbol, 'market', side, amount, price, params)
-
-    def create_limit_buy_order(self, symbol, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
-
-    def create_limit_sell_order(self, symbol, amount, price, params={}) -> dict:
-        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
-
-    def create_market_buy_order(self, symbol, amount, params={}) -> dict:
-        return self.create_order(symbol, 'market', 'buy', amount, None, params)
-
-    def create_market_sell_order(self, symbol, amount, params={}) -> dict:
-        return self.create_order(symbol, 'market', 'sell', amount, None, params)
+    def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
+        """
+         * @ignore
+        :param string type: Order type
+        :param boolean exchangeSpecificParam: Exchange specific postOnly
+        :param dict params: Exchange specific params
+        :returns boolean: True if a post only order, False otherwise
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
+        # we assume timeInForce is uppercase from safeStringUpper(params, 'timeInForce')
+        ioc = timeInForce == 'IOC'
+        fok = timeInForce == 'FOK'
+        timeInForcePostOnly = timeInForce == 'PO'
+        postOnly = postOnly or timeInForcePostOnly or exchangeSpecificParam
+        if postOnly:
+            if ioc or fok:
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce)
+            elif isMarketOrder:
+                raise InvalidOrder(self.id + ' market orders cannot be postOnly')
+            else:
+                return True
+        else:
+            return False
 
     def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
@@ -2957,10 +3009,109 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
+    def check_order_arguments(self, market, type, side, amount, price, params):
+        if price is None:
+            if type == 'limit':
+                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
+        if amount <= 0:
+            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
-# -----------------------------------------------------------------------------
-# exchange_common : set imported common methods as part of the class
-# -----------------------------------------------------------------------------
-common_methods = list((n for n in dir(exchange_common) if n[:1] != "_"))
-for method in common_methods:
-    setattr(Exchange, method, getattr(exchange_common, method))
+    def parse_positions(self, positions, symbols=None, params={}):
+        symbols = self.market_symbols(symbols)
+        array = self.to_array(positions)
+        array = [self.merge(self.parse_position(position), params) for position in array]
+        return self.filter_by_array(array, 'symbol', symbols, False)
+
+    def parse_borrow_interests(self, response, market=None):
+        interest = []
+        for i in range(len(response)):
+            row = response[i]
+            interest.append(self.parse_borrow_interest(row, market))
+        return interest
+
+    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_funding_rate_history(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_open_interests(self, response, market=None, since=None, limit=None):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry, market)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        symbol = this.safeString(market, 'symbol')
+        return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        if self.has['fetchFundingRates']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+            rates = self.fetchFundingRates([symbol], params)
+            rate = self.safe_value(rates, symbol)
+            if rate is None:
+                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+            else:
+                return rate
+        else:
+            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchMarkOHLCV']:
+            request = {
+                'price': 'mark',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchIndexOHLCV']:
+            request = {
+                'price': 'index',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
+
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [[int|float]] A: list of candles ordered as timestamp, open, high, low, close, None
+        """
+        if self.has['fetchPremiumIndexOHLCV']:
+            request = {
+                'price': 'premiumIndex',
+            }
+            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
