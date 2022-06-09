@@ -1841,7 +1841,8 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                sign = self.binary_to_base64(self.rsa(self.encode(uppercaseHash), self.encode(pem), 'RS256'))
+                encodedPem = self.encode(pem)
+                sign = self.binary_to_base64(self.rsa(uppercaseHash, encodedPem, 'RS256'))
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
             query['sign'] = sign
