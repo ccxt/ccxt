@@ -4025,6 +4025,13 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetMarginConfig (params);
         //

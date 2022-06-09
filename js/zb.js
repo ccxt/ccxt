@@ -4169,6 +4169,13 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name zb#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         if (params['coin'] === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBorrowRates() requires a coin argument in the params');
         }
