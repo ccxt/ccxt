@@ -243,54 +243,50 @@ module.exports = class Exchange {
     constructor (userConfig = {}) {
         Object.assign (this, functions)
         Object.assign (this, baseFunctions)
-        // if (isNode) {
-        //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
-        //     this.userAgent = {
-        //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
-        //             ' (+https://github.com/ccxt/ccxt)' +
-        //             ' Node.js/' + this.nodeVersion + ' (JavaScript)'
+        //
+        //     if (isNode) {
+        //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
+        //         this.userAgent = {
+        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
+        //                 ' (+https://github.com/ccxt/ccxt)' +
+        //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
+        //         }
         //     }
-        // }
-
+        //
         this.options = {} // exchange-specific options, if any
-
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
         }
-
+        // http properties
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
             'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
         }
-
         this.headers = {}
-
         // prepended to URL, like https://proxy.com/https://exchange.com/api...
         this.proxy = ''
         this.origin = '*' // CORS origin
-
+        // underlying properties
         this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
         this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
         this.number = Number // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false
-
         // whether fees should be summed by currency code
         this.reduceFees = true
-
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
         this.validateServerSsl = true
         this.validateClientSsl = false
-
+        // default property values
         this.timeout       = 10000 // milliseconds
         this.verbose       = false
         this.debug         = false
         this.userAgent     = undefined
         this.twofa         = undefined // two-factor authentication (2FA)
-
+        // default credentials
         this.apiKey        = undefined
         this.secret        = undefined
         this.uid           = undefined
@@ -299,7 +295,7 @@ module.exports = class Exchange {
         this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
         this.token         = undefined // reserved for HTTP auth in some cases
-
+        // placeholders for cached data
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
@@ -309,18 +305,18 @@ module.exports = class Exchange {
         this.ohlcvs       = {}
         this.myTrades     = undefined
         this.positions    = {}
-
+        // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
         this.precision = {}
-
+        // response handling flags and properties
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
-
+        // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
                 const ownPropertyNames = Object.getOwnPropertyNames (obj)
@@ -332,8 +328,7 @@ module.exports = class Exchange {
             }
         }
         unCamelCaseProperties ()
-
-        // merge to this
+        // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
@@ -343,36 +338,34 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-
+        // http client options
         const agentOptions = {
             'keepAlive': true,
         }
-
+        // ssl options
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
-
+        // js-specific http options
         if (!this.httpAgent && defaultFetch.http && isNode) {
             this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
-
         if (!this.httpsAgent && defaultFetch.https && isNode) {
             this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
-
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
             this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
-
+        // generate implicit api
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-
+        // init the request rate limiter
         this.initRestRateLimiter ()
-
+        // init predefined markets if any
         if (this.markets) {
             this.setMarkets (this.markets)
         }
@@ -436,25 +429,20 @@ module.exports = class Exchange {
     }
 
     checkAddress (address) {
-
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined')
         }
-
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
         }
-
         return address
     }
 
     initRestRateLimiter () {
-
         if (this.rateLimit === undefined) {
             throw new Error (this.id + '.rateLimit property is not configured')
         }
-
         this.tokenBucket = this.extend ({
             delay:       0.001,
             capacity:    1,
@@ -462,17 +450,12 @@ module.exports = class Exchange {
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
         }, this.tokenBucket)
-
         this.throttle = throttle (this.tokenBucket)
-
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
-
             // fetchImplementation cannot be called on this. in browsers:
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
             const fetchImplementation = this.fetchImplementation
-
             const params = { method, headers, body, timeout: this.timeout }
-
             if (this.agent) {
                 params['agent'] = this.agent
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
@@ -480,7 +463,6 @@ module.exports = class Exchange {
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
                 params['agent'] = this.httpsAgent
             }
-
             const promise =
                 fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch ((e) => {
@@ -582,7 +564,6 @@ module.exports = class Exchange {
     }
 
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
-
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
                 headers = extend ({ 'User-Agent': this.userAgent }, headers)
@@ -590,30 +571,22 @@ module.exports = class Exchange {
                 headers = extend (this.userAgent, headers)
             }
         }
-
         if (typeof this.proxy === 'function') {
-
             url = this.proxy (url)
             if (isNode) {
                 headers = extend ({ 'Origin': this.origin }, headers)
             }
-
         } else if (typeof this.proxy === 'string') {
-
             if (this.proxy.length && isNode) {
                 headers = extend ({ 'Origin': this.origin }, headers)
             }
-
             url = this.proxy + url
         }
-
         headers = extend (this.headers, headers)
         headers = this.setHeaders (headers)
-
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-
         return this.executeRestRequest (url, method, headers, body)
     }
 
@@ -694,7 +667,6 @@ module.exports = class Exchange {
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         const responseHeaders = this.getResponseHeaders (response)
-
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
             const responseBuffer = response.buffer ();
             if (this.enableLastResponseHeaders) {
@@ -709,7 +681,6 @@ module.exports = class Exchange {
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
-
         return response.text ().then ((responseBody) => {
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const json = this.parseJson (bodyText)
@@ -1256,21 +1227,17 @@ module.exports = class Exchange {
     }
 
     filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
-
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
-
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
             array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
         }
-
         if (limit !== undefined && limit !== null) {
             array = tail ? array.slice (-limit) : array.slice (0, limit)
         }
-
         return array
     }
 
@@ -1283,21 +1250,17 @@ module.exports = class Exchange {
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
-
         objects = Object.values (objects)
-
         // return all of them if no values were passed
         if (values === undefined || values === null) {
             return indexed ? indexBy (objects, key) : objects
         }
-
         const result = []
         for (let i = 0; i < objects.length; i++) {
             if (values.includes (objects[i][key])) {
                 result.push (objects[i])
             }
         }
-
         return indexed ? indexBy (result, key) : result
     }
 

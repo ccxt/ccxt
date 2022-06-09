@@ -647,13 +647,10 @@ class Transpiler {
     }
 
     createPythonClassImports (baseClass, async = false) {
-
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
-
         async = (async ? '.async_support' : '')
-
         return [
             (baseClass.indexOf ('ccxt.') === 0) ?
                 ('import ccxt' + async + ' as ccxt') :
@@ -716,7 +713,7 @@ class Transpiler {
                 libraries.push ('import ' + pythonStandardLibraries[library])
         }
 
-        if (bodyAsString.indexOf ('numbers.') >= 0) {
+        if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
 

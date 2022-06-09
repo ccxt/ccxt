@@ -399,6 +399,7 @@ class mexc3(Exchange):
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '-1121': BadSymbol,
+                    '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
                     '1002': InvalidOrder,
@@ -529,8 +530,6 @@ class mexc3(Exchange):
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
-                precisionDigits = self.safe_string(chain, 'precision')
-                precision = self.parse_number(self.parse_precision(precisionDigits))
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
                 withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
                 currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
@@ -551,7 +550,7 @@ class mexc3(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -629,14 +628,13 @@ class mexc3(Exchange):
         #                "baseAsset": "OGN",
         #                "baseAssetPrecision": "2",
         #                "quoteAsset": "USDT",
-        #                "quotePrecision": "4",
         #                "quoteAssetPrecision": "4",
-        #                "baseCommissionPrecision": "2",
-        #                "quoteCommissionPrecision": "4",
         #                "orderTypes": [
         #                    "LIMIT",
         #                    "LIMIT_MAKER"
         #                ],
+        #                "baseCommissionPrecision": "2",
+        #                "quoteCommissionPrecision": "4",
         #                "quoteOrderQtyMarketAllowed": False,
         #                "isSpotTradingAllowed": True,
         #                "isMarginTradingAllowed": True,
@@ -645,20 +643,20 @@ class mexc3(Exchange):
         #                    "MARGIN"
         #                ],
         #                "filters": [],
-        #                "quoteAmountPrecision": "5",
-        #                "baseSizePrecision": "0.01",
+        #                "baseSizePrecision": "0.01",  # seems to be derived of 'baseAssetPrecision'
         #                "maxQuoteAmount": "5000000",
         #                "makerCommission": "0.002",
         #                "takerCommission": "0.002"
+        #                "quoteAmountPrecision": "5",  # seem totally unrelated value, as neither quote/base have anything related to self number
+        #                "quotePrecision": "4",  # deprecated in favor of 'quoteAssetPrecision'( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         #                # note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         #            },
         #         ]
         #     }
         #
         # Notes:
-        # - 'quotePrecision' seems deprecated, in favor of quoteAssetPrecision : https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333
-        # - 'baseSizePrecision' seems useless at self moment, because in orderbook, mexc might show base-size in i.e. 123.450, however, the tradable precision might be just 2 decimals after dot. So, we have to use baseAssetPrecision
-        # - 'quoteAmountPrecision' , alike above field, seems useless, because markets which have value i.e. 5, and having 'quoteAssetPrecision':6, then the tradable amount still rounds up to 6 digits after dot.
+        # - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision(to view currency's actual individual precision, refer to fetchCurrencies() method).
+        #
         data = self.safe_value(response, 'symbols', [])
         result = []
         for i in range(0, len(data)):
@@ -672,12 +670,6 @@ class mexc3(Exchange):
             makerCommission = self.safe_number(market, 'makerCommission')
             takerCommission = self.safe_number(market, 'takerCommission')
             maxQuoteAmount = self.safe_number(market, 'maxQuoteAmount')
-            baseAssetPrecision = self.safe_string(market, 'baseAssetPrecision')
-            quoteAssetPrecision = self.safe_string(market, 'quoteAssetPrecision')
-            precisionBase = self.parse_number(self.parse_precision(baseAssetPrecision))
-            precisionQuote = self.parse_number(self.parse_precision(quoteAssetPrecision))
-            precisionPrice = precisionQuote
-            precisionCost = precisionQuote
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -705,12 +697,8 @@ class mexc3(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': precisionBase,
-                    'price': precisionPrice,
-                    'cost': precisionCost,
-                    # note, the below values are just precisions related to trading and is the actual blockchain precision of the individual currency. To view currency's individual precision, refer to fetchCurrencies()
-                    # 'base': precisionBase,
-                    # 'quote': precisionQuote,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteAssetPrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -752,11 +740,11 @@ class mexc3(Exchange):
         #                 "contractSize":0.0001,
         #                 "minLeverage":1,
         #                 "maxLeverage":125,
-        #                 "priceScale":2,
-        #                 "volScale":0,
-        #                 "amountScale":4,
-        #                 "priceUnit":0.5,
-        #                 "volUnit":1,
+        #                 "priceScale":2,  # seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        #                 "volScale":0,  # probably: contract amount precision
+        #                 "amountScale":4,  # probably: quote currency precision
+        #                 "priceUnit":0.5,  # price tick size
+        #                 "volUnit":1,  # probably: contract tick size
         #                 "minVol":1,
         #                 "maxVol":1000000,
         #                 "bidLimitPriceRate":0.1,
