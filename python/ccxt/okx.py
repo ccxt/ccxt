@@ -4346,6 +4346,11 @@ class okx(Exchange):
         return response
 
     def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         self.load_markets()
         response = self.privateGetAccountInterestRate(params)
         #

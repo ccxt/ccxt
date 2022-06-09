@@ -4616,6 +4616,11 @@ class huobi(Exchange):
         return rates
 
     async def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         await self.load_markets()
         response = await self.spotPrivateGetV1MarginLoanInfo(params)
         # {

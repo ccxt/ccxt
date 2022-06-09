@@ -3963,6 +3963,11 @@ class zb(Exchange):
         }
 
     async def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         if params['coin'] is None:
             raise ArgumentsRequired(self.id + ' fetchBorrowRates() requires a coin argument in the params')
         await self.load_markets()

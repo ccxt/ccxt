@@ -4149,6 +4149,11 @@ class zb extends Exchange {
     }
 
     public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest $rates of all currencies
+         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
         if ($params['coin'] === null) {
             throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
         }

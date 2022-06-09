@@ -3994,6 +3994,11 @@ class coinex extends Exchange {
     }
 
     public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest $rates of all currencies
+         * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetMarginConfig ($params);
         //

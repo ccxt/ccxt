@@ -1734,6 +1734,11 @@ class digifinex(Exchange):
         return self.parse_borrow_rate(result, currency)
 
     async def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetMarginAssets(params)
         #
