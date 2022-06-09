@@ -133,6 +133,7 @@ class Transpiler {
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
             [ /\.fetchFees\s/g, '.fetch_fees'],
             [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
+            [ /\.buildOHLCVC\s/g, '.build_ohlcvc'],
             [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
             [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
             [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],

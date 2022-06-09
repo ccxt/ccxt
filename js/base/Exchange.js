@@ -7,28 +7,16 @@ const functions = require ('./functions');
 
 const {
     isNode
-    , keys
-    , values
-    , deepExtend
     , extend
     , clone
     , flatten
     , unique
-    , indexBy
-    , sortBy
-    , sortBy2
-    , groupBy
     , aggregate
-    , uuid
     , unCamelCase
-    , precisionFromString
     , throttle
     , capitalize
-    , now
     , timeout
     , TimedOut
-    , buildOHLCVC
-    , decimalToPrecision
     , defaultFetch
 } = functions
 
@@ -332,7 +320,7 @@ module.exports = class Exchange {
         for (let i = 0; i < configEntries.length; i++) {
             const [property, value] = configEntries[i]
             if (value && Object.getPrototypeOf (value) === Object.prototype) {
-                this[property] = deepExtend (this[property], value)
+                this[property] = this.deepExtend (this[property], value)
             } else {
                 this[property] = value
             }
@@ -677,7 +665,7 @@ module.exports = class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        const values = Object.values (markets).map ((market) => deepExtend ({
+        const values = Object.values (markets).map ((market) => this.deepExtend ({
             'id': undefined,
             'symbol': undefined,
             'base': undefined,
@@ -705,12 +693,12 @@ module.exports = class Exchange {
             'limits': this.limits,
             'info': undefined,
         }, this.fees['trading'], market))
-        this.markets = indexBy (values, 'symbol')
-        this.markets_by_id = indexBy (markets, 'id')
+        this.markets = this.indexBy (values, 'symbol')
+        this.markets_by_id = this.indexBy (markets, 'id')
         this.symbols = Object.keys (this.markets).sort ()
         this.ids = Object.keys (this.markets_by_id).sort ()
         if (currencies) {
-            this.currencies = deepExtend (this.currencies, currencies)
+            this.currencies = this.deepExtend (this.currencies, currencies)
         } else {
             let baseCurrencies =
                 values.filter ((market) => 'base' in market)
@@ -728,19 +716,19 @@ module.exports = class Exchange {
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
-            baseCurrencies = sortBy (baseCurrencies, 'code')
-            quoteCurrencies = sortBy (quoteCurrencies, 'code')
-            this.baseCurrencies = indexBy (baseCurrencies, 'code')
-            this.quoteCurrencies = indexBy (quoteCurrencies, 'code')
+            baseCurrencies = this.sortBy (baseCurrencies, 'code')
+            quoteCurrencies = this.sortBy (quoteCurrencies, 'code')
+            this.baseCurrencies = this.indexBy (baseCurrencies, 'code')
+            this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code')
             const allCurrencies = baseCurrencies.concat (quoteCurrencies)
-            const groupedCurrencies = groupBy (allCurrencies, 'code')
+            const groupedCurrencies = this.groupBy (allCurrencies, 'code')
             const currencies = Object.keys (groupedCurrencies).map ((code) =>
                 groupedCurrencies[code].reduce ((previous, current) => // eslint-disable-line implicit-arrow-linebreak
                     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0])) // eslint-disable-line implicit-arrow-linebreak
-            const sortedCurrencies = sortBy (flatten (currencies), 'code')
-            this.currencies = deepExtend (this.currencies, indexBy (sortedCurrencies, 'code'))
+            const sortedCurrencies = this.sortBy (flatten (currencies), 'code')
+            this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'))
         }
-        this.currencies_by_id = indexBy (this.currencies, 'id')
+        this.currencies_by_id = this.indexBy (this.currencies, 'id')
         this.codes = Object.keys (this.currencies).sort ()
         return this.markets
     }
@@ -804,7 +792,7 @@ module.exports = class Exchange {
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
+        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc
     }
 
@@ -814,7 +802,7 @@ module.exports = class Exchange {
         }
         await this.loadMarkets ()
         const trades = await this.fetchTrades (symbol, since, limit, params)
-        const ohlcvc = buildOHLCVC (trades, timeframe, since, limit)
+        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit)
         return ohlcvc.map ((c) => c.slice (0, -1))
     }
 
@@ -910,16 +898,16 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.fetchOrderBook (symbol, limit, params)
         return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+            'bids': this.sortBy (aggregate (orderbook.bids), 0, true),
+            'asks': this.sortBy (aggregate (orderbook.asks), 0),
         })
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         return {
             'symbol': symbol,
-            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
+            'bids': this.sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': this.sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
@@ -1002,7 +990,7 @@ module.exports = class Exchange {
         objects = Object.values (objects)
         // return all of them if no values were passed
         if (values === undefined || values === null) {
-            return indexed ? indexBy (objects, key) : objects
+            return indexed ? this.indexBy (objects, key) : objects
         }
         const result = []
         for (let i = 0; i < objects.length; i++) {
@@ -1010,7 +998,7 @@ module.exports = class Exchange {
                 result.push (objects[i])
             }
         }
-        return indexed ? indexBy (result, key) : result
+        return indexed ? this.indexBy (result, key) : result
     }
 
     safeTicker (ticker, market = undefined) {
@@ -1098,7 +1086,7 @@ module.exports = class Exchange {
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
-        result = sortBy2 (result, 'timestamp', 'id')
+        result = this.sortBy2 (result, 'timestamp', 'id')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
@@ -1217,7 +1205,7 @@ module.exports = class Exchange {
         let result = Array.isArray (orders) ?
             Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params)) :
             Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
-        result = sortBy (result, 'timestamp')
+        result = this.sortBy (result, 'timestamp')
         const symbol = (market !== undefined) ? market['symbol'] : undefined
         const tail = since === undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
