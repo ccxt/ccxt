@@ -28,6 +28,7 @@ module.exports = class coinex extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createMarginLoan': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -73,6 +74,7 @@ module.exports = class coinex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayMarginLoan': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -4188,6 +4190,87 @@ module.exports = class coinex extends Exchange {
             'amountBorrowed': this.parseNumber (loanAmount),
             'timestamp': timestamp,  // expiry time
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async createMarginLoan (code, symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const response = await this.privatePostMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "loan_id": 1670
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency['id']);
+        return this.extend (transaction, {
+            'amount': amount,
+            'currency': currency['id'],
+        });
+    }
+
+    async repayMarginLoan (code, symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        const loanId = this.safeInteger (params, 'loan_id');
+        if (loanId !== undefined) {
+            request['loan_id'] = loanId;
+        }
+        const response = await this.privatePostMarginFlat (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null,
+        //         "message": "Success"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency['id']);
+        return this.extend (transaction, {
+            'amount': amount,
+            'currency': currency['id'],
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // createMarginLoan
+        //
+        //     {
+        //         "loan_id": 1670
+        //     }
+        //
+        // repayMarginLoan
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null,
+        //         "message": "Success"
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'loan_id'),
+            'currency': undefined,
+            'amount': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
