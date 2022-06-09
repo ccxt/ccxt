@@ -21,6 +21,8 @@ const NO_PADDING = ccxt\NO_PADDING;
 const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 
 use \ccxt\Precise;
+use \ccxt\AuthenticationError;
+use \ccxt\ExchangeErrpr;
 
 use React;
 use Recoil;
