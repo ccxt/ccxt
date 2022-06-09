@@ -2370,6 +2370,8 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     async fetchFundingRate (symbol, params = {}) {
         if (this.has['fetchFundingRates']) {
             const market = await this.market (symbol);
@@ -2431,8 +2433,6 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchIndexOHLCV () is not supported yet');
         }
     }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**

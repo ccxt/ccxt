@@ -425,19 +425,21 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
 
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     async def fetch_funding_rate(self, symbol, params={}):
         if self.has['fetchFundingRates']:
-            market = self.market(symbol)
+            market = await self.market(symbol)
             if not market['contract']:
-                raise BadSymbol(self.id + ' fetch_funding_rate() supports contract markets only')
+                raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetchFundingRates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
-                raise NullResponse(self.id + ' fetch_funding_rate() returned no data for ' + symbol)
+                raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
             else:
                 return rate
         else:
-            raise NotSupported(self.id + ' fetch_funding_rate() is not supported yet')
+            raise NotSupported(self.id + ' fetchFundingRate() is not supported yet')
 
     async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -447,7 +449,7 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: a list of candles ordered as timestamp, open, high, low, close, None
+        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
             request = {
@@ -465,17 +467,15 @@ class Exchange(BaseExchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [[int|float]]: a list of candles ordered as timestamp, open, high, low, close, None
+        :returns [[int|float]]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
             request = {
                 'price': 'index',
             }
-            return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+            return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
-
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
