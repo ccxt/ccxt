@@ -20,7 +20,8 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
-    , Exchange = require ('../js/base/Exchange.js')
+    , baseExchangeJsFile = './js/base/Exchange.js'
+    , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 
@@ -119,6 +120,7 @@ class Transpiler {
             [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
             [ /\.fetchFees\s/g, '.fetch_fees'],
+            [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
             [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
             [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
             [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
@@ -1052,16 +1054,14 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     getClassDeclarationMatches (contents) {
-        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
-        const transpileHint = '// METHODS BELOW THIS LINE ARE TRANSPILED TO PYTHON AND PHP';
-        const splitBody = classBody.trim ().split (transpileHint)
-        const methods = splitBody[splitBody.length - 1].trim ().split (/\n\s*\n/)
+        const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
             python3,
@@ -1302,6 +1302,42 @@ class Transpiler {
             php,
             phpAsync,
             methodNames
+        }
+    }
+
+    // ========================================================================
+
+    transpileBaseMethods () {
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const jsDelimiter = '// ' + delimiter
+        const parts = classBody.split (jsDelimiter)
+        if (parts.length > 1) {
+            log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
+            const secondPart = parts[1]
+            const methods = secondPart.trim ().split (/\n\s*\n/)
+            const {
+                python2,
+                python3,
+                php,
+                phpAsync,
+            } = this.transpileMethodsToAllLanguages (className, methods)
+            const pythonDelimiter = '# ' + delimiter + '\n'
+            const phpDelimiter = '// ' + delimiter + '\n'
+            const restOfFile = '([^\n]*\n)+'
+            const python2File = './python/ccxt/base/exchange.py'
+            const python3File = './python/ccxt/async_support/base/exchange.py'
+            const phpFile = './php/Exchange.php'
+            const phpAsyncFile = './php/async/Exchange.php'
+            log.magenta ('→', python2File.yellow)
+            replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+            log.magenta ('→', python3File.yellow)
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3.join ('\n') + '\n')
+            log.magenta ('→', phpFile.yellow)
+            replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+            log.magenta ('→', phpAsyncFile.yellow)
+            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
         }
     }
 
@@ -1784,6 +1820,8 @@ class Transpiler {
         createFolderRecursively (phpAsyncFolder)
 
         //*
+
+        this.transpileBaseMethods ()
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
