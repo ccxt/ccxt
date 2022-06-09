@@ -2945,14 +2945,6 @@ class Exchange {
         return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
     }
 
-    public function oath() {
-        if ($this->twofa) {
-            return $this->totp($this->twofa);
-        } else {
-            throw new ExchangeError($this->id . ' requires a non-empty value in $this->twofa property');
-        }
-    }
-
     public function get_network($network, $code) {
         $network = strtoupper($network);
         $aliases = array(
@@ -3505,6 +3497,14 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function oath() {
+        if ($this->twofa !== null) {
+            return $this->totp ($this->twofa);
+        } else {
+            throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
+        }
+    }
 
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');

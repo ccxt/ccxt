@@ -1394,14 +1394,6 @@ module.exports = class Exchange {
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
-    oath () {
-        if (typeof this.twofa !== 'undefined') {
-            return this.totp (this.twofa)
-        } else {
-            throw new ExchangeError (this.id + ' this.twofa has not been set')
-        }
-    }
-
     getNetwork (network, code) {
         network = network.toUpperCase ();
         const aliases = {
@@ -1849,6 +1841,14 @@ module.exports = class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    oath () {
+        if (this.twofa !== undefined) {
+            return this.totp (this.twofa);
+        } else {
+            throw new ExchangeError (this.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
+        }
+    }
+
     async fetchBalance (params = {}) {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }
@@ -1858,16 +1858,16 @@ module.exports = class Exchange {
         return balance[part];
     }
 
-    fetchFreeBalance (params = {}) {
-        return this.fetchPartialBalance ('free', params);
+    async fetchFreeBalance (params = {}) {
+        return await this.fetchPartialBalance ('free', params);
     }
 
-    fetchUsedBalance (params = {}) {
-        return this.fetchPartialBalance ('used', params);
+    async fetchUsedBalance (params = {}) {
+        return await this.fetchPartialBalance ('used', params);
     }
 
-    fetchTotalBalance (params = {}) {
-        return this.fetchPartialBalance ('total', params);
+    async fetchTotalBalance (params = {}) {
+        return await this.fetchPartialBalance ('total', params);
     }
 
     async fetchStatus (params = {}) {

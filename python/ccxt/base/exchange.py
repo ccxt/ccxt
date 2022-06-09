@@ -2235,12 +2235,6 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
 
-    def oath(self):
-        if self.twofa is not None:
-            return self.totp(self.twofa)
-        else:
-            raise ExchangeError(self.id + ' set .twofa to use this feature')
-
     @staticmethod
     def totp(key):
         def hex_to_dec(n):
@@ -2644,6 +2638,12 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def oath(self):
+        if self.twofa is not None:
+            return self.totp(self.twofa)
+        else:
+            raise ExchangeError(self.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication')
 
     def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')

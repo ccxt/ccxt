@@ -305,6 +305,12 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def oath(self):
+        if self.twofa is not None:
+            return self.totp(self.twofa)
+        else:
+            raise ExchangeError(self.id + ' exchange.twofa has not been set for 2FA Two-Factor Authentication')
+
     async def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetchBalance() is not supported yet')
 
@@ -312,14 +318,14 @@ class Exchange(BaseExchange):
         balance = await self.fetch_balance(params)
         return balance[part]
 
-    def fetch_free_balance(self, params={}):
-        return self.fetch_partial_balance('free', params)
+    async def fetch_free_balance(self, params={}):
+        return await self.fetch_partial_balance('free', params)
 
-    def fetch_used_balance(self, params={}):
-        return self.fetch_partial_balance('used', params)
+    async def fetch_used_balance(self, params={}):
+        return await self.fetch_partial_balance('used', params)
 
-    def fetch_total_balance(self, params={}):
-        return self.fetch_partial_balance('total', params)
+    async def fetch_total_balance(self, params={}):
+        return await self.fetch_partial_balance('total', params)
 
     async def fetch_status(self, params={}):
         if self.has['fetchTime']:

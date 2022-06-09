@@ -301,6 +301,14 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function oath() {
+        if ($this->twofa !== null) {
+            return $this->totp ($this->twofa);
+        } else {
+            throw new ExchangeError($this->id . ' exchange.twofa has not been set for 2FA Two-Factor Authentication');
+        }
+    }
+
     public function fetch_balance($params = array ()) {
         throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
     }
@@ -311,15 +319,15 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_free_balance($params = array ()) {
-        return $this->fetch_partial_balance('free', $params);
+        return yield $this->fetch_partial_balance('free', $params);
     }
 
     public function fetch_used_balance($params = array ()) {
-        return $this->fetch_partial_balance('used', $params);
+        return yield $this->fetch_partial_balance('used', $params);
     }
 
     public function fetch_total_balance($params = array ()) {
-        return $this->fetch_partial_balance('total', $params);
+        return yield $this->fetch_partial_balance('total', $params);
     }
 
     public function fetch_status($params = array ()) {
