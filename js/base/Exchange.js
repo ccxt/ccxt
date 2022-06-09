@@ -4,8 +4,6 @@
 
 const functions = require ('./functions')
 
-const baseFunctions = require('./common/ExchangeCommon')
-
 const {
     isNode
     , keys
@@ -242,7 +240,6 @@ module.exports = class Exchange {
 
     constructor (userConfig = {}) {
         Object.assign (this, functions)
-        Object.assign (this, baseFunctions)
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
@@ -444,8 +441,8 @@ module.exports = class Exchange {
             throw new Error (this.id + '.rateLimit property is not configured')
         }
         this.tokenBucket = this.extend ({
-            delay:       0.001,
-            capacity:    1,
+            delay: 0.001,
+            capacity: 1,
             cost: 1,
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
@@ -472,7 +469,6 @@ module.exports = class Exchange {
                         throw e // rethrow all unknown errors
                     })
                     .then ((response) => this.handleRestResponse (response, url, method, headers, body))
-
             return timeout (this.timeout, promise).catch ((e) => {
                 if (e instanceof TimedOut) {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
@@ -590,7 +586,6 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    // eslint-disable-next-line no-unused-vars
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         return this.safeValue (config, 'cost', 1);
     }
@@ -632,8 +627,8 @@ module.exports = class Exchange {
         }
     }
 
-    // a helper for matching error strings exactly vs broadly
     findBroadlyMatchedKey (broad, string) {
+        // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
@@ -801,8 +796,8 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet')
     }
 
-    // is async (returns a promise)
     loadMarkets (reload = false, params = {}) {
+        // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
             this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
@@ -1098,13 +1093,10 @@ module.exports = class Exchange {
     }
 
     safeBalance (balance) {
-
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
-
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
-
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i]
             if (balance[code].total === undefined) {
@@ -1572,6 +1564,47 @@ module.exports = class Exchange {
         const sorted = this.sortBy (parsed, 0)
         const tail = since === undefined
         return this.filterBySinceLimit (sorted, since, limit, 0, tail)
+    }
+
+    editLimitBuyOrder (id, symbol, ...args) {
+        return this.editLimitOrder (id, symbol, 'buy', ...args)
+    }
+
+    editLimitSellOrder (id, symbol, ...args) {
+        return this.editLimitOrder (id, symbol, 'sell', ...args)
+    }
+
+    editLimitOrder (id, symbol, ...args) {
+        return this.editOrder (id, symbol, 'limit', ...args)
+    }
+
+    async editOrder (id, symbol, ...args) {
+        await this.cancelOrder (id, symbol);
+        return this.createOrder (symbol, ...args)
+    }
+
+    createLimitOrder (symbol, side, amount, price, params = {}) {
+        return this.createOrder (symbol, 'limit', side, amount, price, params)
+    }
+
+    createMarketOrder (symbol, side, amount, price, params = {}) {
+        return this.createOrder (symbol, 'market', side, amount, price, params)
+    }
+
+    createLimitBuyOrder (symbol, amount, price, params = {}) {
+        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
+    }
+
+    createLimitSellOrder (symbol, amount, price, params = {}) {
+        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
+    }
+
+    createMarketBuyOrder (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
+    }
+
+    createMarketSellOrder (symbol, amount, params = {}) {
+        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
     costToPrecision (symbol, cost) {
@@ -2121,6 +2154,20 @@ module.exports = class Exchange {
         return '1e' + Precise.stringNeg (precision)
     }
 
+    handleWithdrawTagAndParams (tag, params) {
+        if (typeof tag === 'object') {
+            params = this.extend (tag, params)
+            tag = undefined
+        }
+        if (tag === undefined) {
+            tag = this.safeString (params, 'tag')
+            if (tag !== undefined) {
+                params = this.omit (params, 'tag');
+            }
+        }
+        return [ tag, params ]
+    }
+
     getSupportedMapping (key, mapping = {}) {
         // Takes a key and a dictionary, and returns the dictionary's value for that key
         // :throws:
@@ -2143,6 +2190,30 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
+    }
+
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+        const methodOptions = this.safeValue (this.options, methodName);
+        let methodType = defaultType;
+        if (methodOptions !== undefined) {
+            if (typeof methodOptions === 'string') {
+                methodType = methodOptions;
+            } else {
+                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+            }
+        }
+        const marketType = (market === undefined) ? methodType : market['type'];
+        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
+        params = this.omit (params, [ 'defaultType', 'type' ]);
+        return [ type, params ];
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
     }
 
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
@@ -2178,51 +2249,45 @@ module.exports = class Exchange {
         }
     }
 
-    parsePositions (positions, symbols = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols);
-        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
-        return this.filterByArray (result, 'symbol', symbols, false);
+    parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    editLimitBuyOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'buy', ...args)
-    }
-
-    editLimitSellOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'sell', ...args)
-    }
-
-    editLimitOrder (id, symbol, ...args) {
-        return this.editOrder (id, symbol, 'limit', ...args)
-    }
-
-    async editOrder (id, symbol, ...args) {
-        await this.cancelOrder (id, symbol);
-        return this.createOrder (symbol, ...args)
-    }
-
-    createLimitOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', side, amount, price, params)
-    }
-
-    createMarketOrder (symbol, side, amount, price, params = {}) {
-        return this.createOrder (symbol, 'market', side, amount, price, params)
-    }
-
-    createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return this.createOrder  (symbol, 'limit', 'buy', amount, price, params)
-    }
-
-    createLimitSellOrder (symbol, amount, price, params = {}) {
-        return this.createOrder (symbol, 'limit', 'sell', amount, price, params)
-    }
-
-    createMarketBuyOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
-    }
-
-    createMarketSellOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
+    isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} type Order type
+         * @param {boolean} exchangeSpecificParam exchange specific postOnly
+         * @param {dict} params exchange specific params
+         * @returns {boolean} true if a post only order, false otherwise
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
+        const ioc = timeInForce === 'IOC';
+        const fok = timeInForce === 'FOK';
+        const timeInForcePostOnly = timeInForce === 'PO';
+        postOnly = postOnly || timeInForcePostOnly || exchangeSpecificParam;
+        if (postOnly) {
+            if (ioc || fok) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarketOrder) {
+                throw new InvalidOrder (this.id + ' market orders cannot be postOnly');
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 
     async createPostOnlyOrder (symbol, type, side, amount, price, params = {}) {
@@ -2246,25 +2311,148 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' createStopOrder() is not supported yet');
         }
         if (stopPrice === undefined) {
-            throw new ArgumentsRequired(this.id + ' create_stop_order() requires a stopPrice argument');
+            throw new ArgumentsRequired (this.id + ' create_stop_order() requires a stopPrice argument');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
         return await this.createOrder (symbol, type, side, amount, price, query);
     }
 
-    async createStopLimitOrder(symbol, side, amount, price, stopPrice, params = {}) {
+    async createStopLimitOrder (symbol, side, amount, price, stopPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
             throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
         }
-        const query = this.extend(params, {'stopPrice': stopPrice});
-        return this.createOrder(symbol, 'limit', side, amount, price, query);
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return this.createOrder (symbol, 'limit', side, amount, price, query);
     }
 
-    async createStopMarketOrder(symbol, side, amount, stopPrice, params = {}) {
+    async createStopMarketOrder (symbol, side, amount, stopPrice, params = {}) {
         if (!this.has['createStopMarketOrder']) {
-            throw new NotSupported(this.id + ' createStopMarketOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
         }
-        const query = this.extend(params, {'stopPrice': stopPrice});
-        return this.createOrder(symbol, 'market', side, amount, undefined, query);
+        const query = this.extend (params, { 'stopPrice': stopPrice });
+        return this.createOrder (symbol, 'market', side, amount, undefined, query);
+    }
+
+    checkOrderArguments (market, type, side, amount, price, params) {
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+             }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+        }
+    }
+
+    parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parseBorrowInterests (response, market = undefined) {
+        const interest = [];
+        for (let i = 0; i < response.length; i++) {
+            const row = response[i];
+            interest.push (this.parseBorrowInterest (row, market));
+        }
+        return interest;
+    }
+
+    parseFundingRateHistories (response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push (this.parseFundingRateHistory (entry, market));
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        if (this.has['fetchFundingRates']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchFundingRate() supports contract markets only');
+            }
+            const rates = await this.fetchFundingRates ([ symbol ], params);
+            const rate = this.safeValue (rates, symbol);
+            if (rate === undefined) {
+                throw new NullResponse (this.id + ' fetchFundingRate () returned no data for ' + symbol);
+            } else {
+                return rate;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMarkOHLCV
+         * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchMarkOHLCV']) {
+            const request = {
+                'price': 'mark',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV () is not supported yet');
+        }
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchIndexOHLCV
+         * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchIndexOHLCV']) {
+            const request = {
+                'price': 'index',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV () is not supported yet');
+        }
+    }
+
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPremiumIndexOHLCV
+         * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         */
+        if (this.has['fetchPremiumIndexOHLCV']) {
+            const request = {
+                'price': 'premiumIndex',
+            };
+            return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
+        }
     }
 }
