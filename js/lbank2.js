@@ -1986,7 +1986,8 @@ module.exports = class lbank2 extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                sign = this.binaryToBase64 (this.rsa (this.encode (uppercaseHash), this.encode (pem), 'RS256'));
+                const encodedPem = this.encode (pem);
+                sign = this.binaryToBase64 (this.rsa (uppercaseHash, encodedPem, 'RS256'));
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
             }
