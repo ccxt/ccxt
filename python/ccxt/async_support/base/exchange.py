@@ -434,7 +434,7 @@ class Exchange(BaseExchange):
         interests = []
         for i in range(0, len(response)):
             entry = response[i]
-            interest = self.parseOpenInterest(entry, market)
+            interest = self.parse_open_interest(entry, market)
             interests.append(interest)
         sorted = self.sort_by(interests, 'timestamp')
         symbol = self.safe_string(market, 'symbol')

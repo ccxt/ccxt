@@ -433,7 +433,7 @@ class Exchange extends \ccxt\Exchange {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
-            $interest = $this->parseOpenInterest ($entry, $market);
+            $interest = $this->parse_open_interest($entry, $market);
             $interests[] = $interest;
         }
         $sorted = $this->sort_by($interests, 'timestamp');
