@@ -19,7 +19,8 @@ function test_account($exchange, $account, $method) {
     $keys = is_array($format) ? array_keys($format) : array();
     for ($i = 0; $i < count($keys); $i++) {
         $key = $keys[$i];
-        assert (is_array($account, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response') && array_key_exists($key, $account, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response'));
+        $keyInAccount = (is_array($account) && array_key_exists($key, $account));
+        assert ($keyInAccount, $exchange->id . ' ' . $method . ' ' . $key . ' missing from response');
     }
     $accountKeys = is_array($account) ? array_keys($account) : array();
     assert (strlen($keys) === strlen($accountKeys), $exchange->id . ' ' . $method . ' respone includes more $keys than expected');
