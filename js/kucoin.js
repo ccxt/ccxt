@@ -1462,12 +1462,12 @@ module.exports = class kucoin extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name kucoin#fetchOrdersByStatus
-         * @description fetch a list of orders
-         * @param {str} symbol unified market symbol
-         * @param {int} since timestamp in ms of the earliest order
-         * @param {int} limit max number of orders to return
-         * @param {dict} params exchange specific params
+         * @name kucoin#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the kucoin api endpoint
          * @param {int} params.till end time in ms
          * @param {bool} params.stop true if fetching stop orders
          * @param {str} params.side buy or sell
@@ -1475,7 +1475,7 @@ module.exports = class kucoin extends Exchange {
          * @param {str} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
          * @param {int} params.currentPage *stop orders only* current page
          * @param {str} params.orderIds *stop orders only* comma seperated order ID list
-         * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
