@@ -1058,8 +1058,10 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
-        const [ _, className, baseClass, methodMatches ] = this.getClassDeclarationMatches (contents)
-        const methods = methodMatches.trim ().split (/\n\s*\n/)
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const transpileHint = '// METHODS BELOW THIS LINE ARE TRANSPILED TO PYTHON AND PHP';
+        const splitBody = classBody.trim ().split (transpileHint)
+        const methods = splitBody[splitBody.length - 1].trim ().split (/\n\s*\n/)
         const {
             python2,
             python3,
