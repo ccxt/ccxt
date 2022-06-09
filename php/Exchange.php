@@ -330,8 +330,6 @@ class Exchange {
         'fetchUsedBalance' => 'fetch_used_balance',
         'fetchTotalBalance' => 'fetch_total_balance',
         'fetchStatus' => 'fetch_status',
-        'fetchTradingFees' => 'fetch_trading_fees',
-        'fetchTradingFee' => 'fetch_trading_fee',
         'fetchFundingFee' => 'fetch_funding_fee',
         'fetchFundingFees' => 'fetch_funding_fees',
         'fetchTransactionFee' => 'fetch_transaction_fee',
@@ -409,6 +407,8 @@ class Exchange {
         'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'fetchTradingFees' => 'fetch_trading_fees',
+        'fetchTradingFee' => 'fetch_trading_fee',
         'parseOpenInterest' => 'parse_open_interest',
         'parseOpenInterests' => 'parse_open_interests',
         'fetchFundingRate' => 'fetch_funding_rate',
@@ -4026,6 +4026,17 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_trading_fees($params = array ()) {
+        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet')
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        if (!$this->has['fetchTradingFees']) {
+            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet')
+        }
+        return $this->fetch_trading_fees($params)
+    }
 
     public function parse_open_interest($interest, $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');

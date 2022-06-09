@@ -427,6 +427,14 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    async def fetch_trading_fees(self, params={}):
+        raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
+        return await self.fetch_trading_fees(params)
+
     def parse_open_interest(self, interest, market=None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 

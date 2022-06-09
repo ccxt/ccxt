@@ -425,6 +425,17 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function fetch_trading_fees($params = array ()) {
+        throw new NotSupported($this->id . ' fetchTradingFees() is not supported yet')
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        if (!$this->has['fetchTradingFees']) {
+            throw new NotSupported($this->id . ' fetchTradingFee() is not supported yet')
+        }
+        return yield $this->fetch_trading_fees($params)
+    }
+
     public function parse_open_interest($interest, $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }

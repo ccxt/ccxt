@@ -3040,6 +3040,14 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def fetch_trading_fees(self, params={}):
+        raise NotSupported(self.id + ' fetchTradingFees() is not supported yet')
+
+    def fetch_trading_fee(self, symbol, params={}):
+        if not self.has['fetchTradingFees']:
+            raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
+        return self.fetch_trading_fees(params)
+
     def parse_open_interest(self, interest, market=None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 

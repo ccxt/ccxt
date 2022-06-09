@@ -1155,17 +1155,6 @@ module.exports = class Exchange {
         return this.status
     }
 
-    async fetchTradingFees (params = {}) {
-        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
-    }
-
-    async fetchTradingFee (symbol, params = {}) {
-        if (!this.has['fetchTradingFees']) {
-            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
-        }
-        return await this.fetchTradingFees (params)
-    }
-
     async fetchFundingFee (code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
@@ -2217,7 +2206,7 @@ module.exports = class Exchange {
     }
 
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
-        // * marketIdKey should only be undefined when response is a dictionary
+        // marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -2359,6 +2348,17 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetchTradingFees (params = {}) {
+        throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet')
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        if (!this.has['fetchTradingFees']) {
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported yet')
+        }
+        return await this.fetchTradingFees (params)
+    }
 
     parseOpenInterest (interest, market = undefined) {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
