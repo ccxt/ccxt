@@ -2033,7 +2033,7 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function parse_funding_rate($response, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         throw new NotSupported($this->id . ' parse_funding_rate() is not supported yet');
     }
 
