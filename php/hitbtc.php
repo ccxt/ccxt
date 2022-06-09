@@ -1164,6 +1164,13 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetch an open order by it's $id
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by hitbtc fetchOpenOrder ()
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         // we use clientOrderId as the order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
@@ -1176,6 +1183,14 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array();

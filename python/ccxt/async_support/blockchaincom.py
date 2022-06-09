@@ -583,6 +583,14 @@ class blockchaincom(Exchange):
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 

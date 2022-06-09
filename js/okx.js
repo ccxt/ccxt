@@ -2560,15 +2560,16 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchOpenOrders
          * @description Fetch orders that are still open
-         * @param {str} symbol Unified market symbol
-         * @param {int} since Timestamp in ms of the earliest time to retrieve orders for
-         * @param {int} limit Number of results per request. The maximum is 100; The default is 100
-         * @param {dict} params Extra and exchange specific parameters
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the okx api endpoint
          * @param {int} params.till Timestamp in ms of the latest time to retrieve orders for
          * @param {bool} params.stop True if fetching trigger orders
          * @param {str} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {str} params.algoId Algo ID
-         * @returns [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4601,6 +4602,13 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name okx#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccountInterestRate (params);
         //

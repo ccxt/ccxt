@@ -1119,6 +1119,13 @@ class hitbtc(Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_open_order(self, id, symbol=None, params={}):
+        """
+        fetch an open order by it's id
+        :param str id: order id
+        :param str|None symbol: not used by hitbtc fetchOpenOrder()
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -1130,6 +1137,14 @@ class hitbtc(Exchange):
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
