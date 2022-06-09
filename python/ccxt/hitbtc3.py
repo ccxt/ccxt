@@ -543,7 +543,7 @@ class hitbtc3(Exchange):
                 networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
-                precision = self.safe_number(rawNetwork, 'precision_payout')
+                networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
                 payinEnabledNetwork = self.safe_value(entry, 'payin_enabled', False)
                 payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
@@ -563,7 +563,7 @@ class hitbtc3(Exchange):
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
                     'withdraw': payoutEnabledNetwork,
-                    'precision': precision,
+                    'precision': networkPrecision,
                     'limits': {
                         'withdraw': {
                             'min': None,

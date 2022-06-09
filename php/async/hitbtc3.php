@@ -540,7 +540,7 @@ class hitbtc3 extends Exchange {
                 $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
                 $network = $this->safe_network($networkId);
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
-                $precision = $this->safe_number($rawNetwork, 'precision_payout');
+                $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
                 $payinEnabledNetwork = $this->safe_value($entry, 'payin_enabled', false);
                 $payoutEnabledNetwork = $this->safe_value($entry, 'payout_enabled', false);
                 $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
@@ -562,7 +562,7 @@ class hitbtc3 extends Exchange {
                     'active' => $activeNetwork,
                     'deposit' => $payinEnabledNetwork,
                     'withdraw' => $payoutEnabledNetwork,
-                    'precision' => $precision,
+                    'precision' => $networkPrecision,
                     'limits' => array(
                         'withdraw' => array(
                             'min' => null,
