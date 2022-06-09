@@ -28,7 +28,6 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 
 # -----------------------------------------------------------------------------
@@ -376,31 +375,42 @@ class Exchange(BaseExchange):
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     async def load_time_difference(self, params={}):
-        server_time = await self.fetch_time(params)
+        serverTime = await self.fetchTime(params)
         after = self.milliseconds()
-        self.options['timeDifference'] = after - server_time
+        self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
+
+    def implode_hostname(self, url):
+        return self.implode_params(url, {'hostname': self.hostname})
 
     async def fetch_market_leverage_tiers(self, symbol, params={}):
         if self.has['fetchLeverageTiers']:
             market = await self.market(symbol)
-            if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
             return self.safe_value(tiers, symbol)
         else:
-            raise NotSupported(self.id + ' fetch_market_leverage_tiers() is not supported yet')
+            raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
     async def create_post_only_order(self, symbol, type, side, amount, price, params={}):
         if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
+            raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
         query = self.extend(params, {'postOnly': True})
+        return await self.create_order(symbol, type, side, amount, price, query)
+
+    async def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
         return await self.create_order(symbol, type, side, amount, price, query)
 
     async def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
         if not self.has['createStopOrder']:
-            raise NotSupported(self.id + ' create_stop_order() is not supported yet')
+            raise NotSupported(self.id + ' createStopOrder() is not supported yet')
         if stopPrice is None:
             raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
         query = self.extend(params, {'stopPrice': stopPrice})
@@ -408,17 +418,15 @@ class Exchange(BaseExchange):
 
     async def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
         if not self.has['createStopLimitOrder']:
-            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
+            raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'limit', side, amount, price, query)
 
     async def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
         if not self.has['createStopMarketOrder']:
-            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
+            raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
         query = self.extend(params, {'stopPrice': stopPrice})
         return await self.create_order(symbol, 'market', side, amount, None, query)
-
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     def safe_currency_code(self, currencyId, currency=None):
         currency = self.safe_currency(currencyId, currency)

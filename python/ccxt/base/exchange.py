@@ -20,7 +20,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
-from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
@@ -1069,9 +1068,6 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
-
-    def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname': self.hostname})
 
     def resolve_path(self, path, params):
         return [
@@ -2890,12 +2886,6 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def load_time_difference(self, params={}):
-        server_time = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - server_time
-        return self.options['timeDifference']
-
     def parse_leverage_tiers(self, response, symbols, market_id_key):
         tiers = {}
         for item in response:
@@ -2909,48 +2899,6 @@ class Exchange(object):
             if (contract and (symbols_length == 0 or symbol in symbols)):
                 tiers[symbol] = self.parse_market_leverage_tiers(item, market)
         return tiers
-
-    def fetch_market_leverage_tiers(self, symbol, params={}):
-        if self.has['fetchLeverageTiers']:
-            market = self.market(symbol)
-            if (not market['contract']):
-                raise BadRequest(self.id + ' fetch_market_leverage_tiers() supports contract markets only')
-            tiers = self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
-        else:
-            raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
-
-    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createPostOnlyOrder']:
-            raise NotSupported(self.id + ' create_post_only_order() is not supported yet')
-        query = self.extend(params, {'postOnly': True})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
-        if not self.has['createReduceOnlyOrder']:
-            raise NotSupported(self.id + ' create_reduce_only_order() is not supported yet')
-        query = self.extend(params, {'reduceOnly': True})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
-        if not self.has['createStopOrder']:
-            raise NotSupported(self.id + 'create_stop_order() is not supported yet')
-        if stopPrice is None:
-            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, type, side, amount, price, query)
-
-    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
-        if not self.has['createStopLimitOrder']:
-            raise NotSupported(self.id + ' create_stop_limit_order() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, 'limit', side, amount, price, query)
-
-    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
-        if not self.has['createStopMarketOrder']:
-            raise NotSupported(self.id + ' create_stop_market_order() is not supported yet')
-        query = self.extend(params, {'stopPrice': stopPrice})
-        return self.create_order(symbol, 'market', side, amount, None, query)
 
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
@@ -2966,6 +2914,57 @@ class Exchange(object):
         return self.filter_by_array(array, 'symbol', symbols, False)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def load_time_difference(self, params={}):
+        serverTime = self.fetchTime(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - serverTime
+        return self.options['timeDifference']
+
+    def implode_hostname(self, url):
+        return self.implode_params(url, {'hostname': self.hostname})
+
+    def fetch_market_leverage_tiers(self, symbol, params={}):
+        if self.has['fetchLeverageTiers']:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
+            tiers = self.fetch_leverage_tiers([symbol])
+            return self.safe_value(tiers, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
+
+    def create_post_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createPostOnlyOrder']:
+            raise NotSupported(self.id + 'createPostOnlyOrder() is not supported yet')
+        query = self.extend(params, {'postOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price, params={}):
+        if not self.has['createReduceOnlyOrder']:
+            raise NotSupported(self.id + 'createReduceOnlyOrder() is not supported yet')
+        query = self.extend(params, {'reduceOnly': True})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_order(self, symbol, type, side, amount, price=None, stopPrice=None, params={}):
+        if not self.has['createStopOrder']:
+            raise NotSupported(self.id + ' createStopOrder() is not supported yet')
+        if stopPrice is None:
+            raise ArgumentsRequired(self.id + ' create_stop_order() requires a stopPrice argument')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, type, side, amount, price, query)
+
+    def create_stop_limit_order(self, symbol, side, amount, price, stopPrice, params={}):
+        if not self.has['createStopLimitOrder']:
+            raise NotSupported(self.id + ' createStopLimitOrder() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'limit', side, amount, price, query)
+
+    def create_stop_market_order(self, symbol, side, amount, stopPrice, params={}):
+        if not self.has['createStopMarketOrder']:
+            raise NotSupported(self.id + ' createStopMarketOrder() is not supported yet')
+        query = self.extend(params, {'stopPrice': stopPrice})
+        return self.create_order(symbol, 'market', side, amount, None, query)
 
     def safe_currency_code(self, currencyId, currency=None):
         currency = self.safe_currency(currencyId, currency)

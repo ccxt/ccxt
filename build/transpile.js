@@ -157,6 +157,8 @@ class Transpiler {
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.loadTimeDifference\s/g, '.load_time_difference'],
             [ /\.fetchMarkets\s/g, '.fetch_markets'],
+            [ /\.fetchMarketLeverageTiers\s/g, '.fetch_market_leverage_tiers'],
+            [ /\.fetchLeverageTiers\s/g, '.fetch_leverage_tiers'],
             [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
             [ /\.fetchCategories\s/g, '.fetch_categories'],
             [ /\.calculateFee\s/g, '.calculate_fee'],

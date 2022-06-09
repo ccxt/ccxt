@@ -353,26 +353,6 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function load_time_difference($params = array()) {
-        $server_time = yield $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $server_time;
-        return $this->options['timeDifference'];
-    }
-
-    public function fetch_market_leverage_tiers($symbol, $params = array()) {
-        if ($this->has['fetchLeverageTiers']) {
-            $market = yield $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetch_market_leverage_tiers() supports contract markets only');
-            }
-            $tiers = yield $this->fetch_leverage_tiers(array($symbol));
-            return $this->safe_value($tiers, $symbol);
-        } else {
-            throw new NotSupported($this->id . ' fetch_market_leverage_tiers() is not supported yet');
-        }
-    }
-
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         $loop = $this->get_loop();
@@ -384,46 +364,74 @@ class Exchange extends \ccxt\Exchange {
         });
     }
 
-    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array()) {
-        if (!$this->has['createPostOnlyOrder']) {
-            throw new NotSupported($this->id . ' create_post_only_order() is not supported yet');
-        }
-        $array = array('postOnly' => true);
-        $query = array_merge($params, $array);
-        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function load_time_difference($params = array ()) {
+        $serverTime = yield $this->fetchTime ($params);
+        $after = $this->milliseconds ();
+        $this->options['timeDifference'] = $after - $serverTime;
+        return $this->options['timeDifference'];
     }
 
-    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array()) {
-        if (!$this->has['createStopOrder']) {
-            throw new NotSupported($this->id . ' create_stop_order() is not supported yet');
+    public function implode_hostname($url) {
+        return $this->implode_params($url, array( 'hostname' => $this->hostname ));
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        if ($this->has['fetchLeverageTiers']) {
+            $market = yield $this->market ($symbol);
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
+            }
+            $tiers = yield $this->fetch_leverage_tiers(array( $symbol ));
+            return $this->safe_value($tiers, $symbol);
+        } else {
+            throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported yet');
         }
-        if ($stopPrice === null) {
-            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a stopPrice argument');
+    }
+
+    public function create_post_only_order($symbol, $type, $side, $amount, $price, $params = array ()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id . 'createPostOnlyOrder() is not supported yet');
         }
-        $array = array('stopPrice' => $stopPrice);
-        $query = array_merge($params, $array);
+        $query = array_merge($params, array( 'postOnly' => true ));
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
     }
 
-    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array()) {
-        if (!$this->has['createStopLimitOrder']) {
-            throw new NotSupported($this->id . ' create_stop_limit_order() is not supported yet');
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price, $params = array ()) {
+        if (!$this->has['createReduceOnlyOrder']) {
+            throw new NotSupported($this->id . 'createReduceOnlyOrder() is not supported yet');
         }
-        $array = array('stopPrice' => $stopPrice);
-        $query = array_merge($params, $array);
+        $query = array_merge($params, array( 'reduceOnly' => true ));
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_stop_order($symbol, $type, $side, $amount, $price = null, $stopPrice = null, $params = array ()) {
+        if (!$this->has['createStopOrder']) {
+            throw new NotSupported($this->id . ' createStopOrder() is not supported yet');
+        }
+        if ($stopPrice === null) {
+            throw new ArgumentsRequired($this->id . ' create_stop_order() requires a $stopPrice argument');
+        }
+        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $query);
+    }
+
+    public function create_stop_limit_order($symbol, $side, $amount, $price, $stopPrice, $params = array ()) {
+        if (!$this->has['createStopLimitOrder']) {
+            throw new NotSupported($this->id . ' createStopLimitOrder() is not supported yet');
+        }
+        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
         return yield $this->create_order($symbol, 'limit', $side, $amount, $price, $query);
     }
 
-    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array()) {
+    public function create_stop_market_order($symbol, $side, $amount, $stopPrice, $params = array ()) {
         if (!$this->has['createStopMarketOrder']) {
-            throw new NotSupported($this->id . ' create_stop_market_order() is not supported yet');
+            throw new NotSupported($this->id . ' createStopMarketOrder() is not supported yet');
         }
-        $array = array('stopPrice' => $stopPrice);
-        $query = array_merge($params, $array);
+        $query = array_merge($params, array( 'stopPrice' => $stopPrice ));
         return yield $this->create_order($symbol, 'market', $side, $amount, null, $query);
     }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function safe_currency_code($currencyId, $currency = null) {
         $currency = $this->safe_currency($currencyId, $currency);

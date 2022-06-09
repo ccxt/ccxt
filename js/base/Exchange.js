@@ -1052,10 +1052,6 @@ module.exports = class Exchange {
         return this.market (symbol).symbol || symbol
     }
 
-    implodeHostname (url) {
-        return this.implodeParams (url, { 'hostname': this.hostname })
-    }
-
     resolvePath (path, params) {
         return [
             this.implodeParams (path, params),
@@ -2167,13 +2163,6 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    async loadTimeDifference (params = {}) {
-        const serverTime = await this.fetchTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = after - serverTime;
-        return this.options['timeDifference'];
-    }
-
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
         const tiers = {};
@@ -2192,6 +2181,36 @@ module.exports = class Exchange {
             }
         }
         return tiers;
+    }
+
+    checkOrderArguments (market, type, side, amount, price, params) {
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+            }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+        }
+    }
+
+    parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
+        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
+    }
+
+    implodeHostname (url) {
+        return this.implodeParams (url, { 'hostname': this.hostname });
     }
 
     async fetchMarketLeverageTiers (symbol, params = {}) {
@@ -2236,10 +2255,10 @@ module.exports = class Exchange {
 
     async createStopLimitOrder (symbol, side, amount, price, stopPrice, params = {}) {
         if (!this.has['createStopLimitOrder']) {
-            throw new NotSupported(this.id + ' createStopLimitOrder() is not supported yet');
+            throw new NotSupported (this.id + ' createStopLimitOrder() is not supported yet');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
-        return this.createOrder (symbol, 'limit', side, amount, price, query);
+        return await this.createOrder (symbol, 'limit', side, amount, price, query);
     }
 
     async createStopMarketOrder (symbol, side, amount, stopPrice, params = {}) {
@@ -2247,27 +2266,8 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' createStopMarketOrder() is not supported yet');
         }
         const query = this.extend (params, { 'stopPrice': stopPrice });
-        return this.createOrder (symbol, 'market', side, amount, undefined, query);
+        return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
-
-    checkOrderArguments (market, type, side, amount, price, params) {
-        if (price === undefined) {
-            if (type === 'limit') {
-                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
-            }
-        }
-        if (amount <= 0) {
-            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
-        }
-    }
-
-    parsePositions (positions, symbols = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols);
-        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
-        return this.filterByArray (result, 'symbol', symbols, false);
-    }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     safeCurrencyCode (currencyId, currency = undefined) {
         currency = this.safeCurrency (currencyId, currency);
