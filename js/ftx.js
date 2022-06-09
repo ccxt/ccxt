@@ -2804,6 +2804,13 @@ module.exports = class ftx extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetSpotMarginBorrowRates (params);
         //
