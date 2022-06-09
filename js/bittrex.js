@@ -55,7 +55,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': 'emulated',
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -140,6 +140,7 @@ module.exports = class bittrex extends Exchange {
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -1683,35 +1684,6 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    orderToTrade (order) {
-        // this entire method should be moved to the base class
-        const timestamp = this.safeInteger2 (order, 'lastTradeTimestamp', 'timestamp');
-        return {
-            'id': this.safeString (order, 'id'),
-            'side': this.safeString (order, 'side'),
-            'order': this.safeString (order, 'id'),
-            'type': this.safeString (order, 'type'),
-            'price': this.safeNumber (order, 'average'),
-            'amount': this.safeNumber (order, 'filled'),
-            'cost': this.safeNumber (order, 'cost'),
-            'symbol': this.safeString (order, 'symbol'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fee': this.safeValue (order, 'fee'),
-            'info': order,
-            'takerOrMaker': undefined,
-        };
-    }
-
-    ordersToTrades (orders) {
-        // this entire method should be moved to the base class
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            result.push (this.orderToTrade (orders[i]));
-        }
-        return result;
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1735,18 +1707,10 @@ module.exports = class bittrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            // because of this line we will have to rethink the entire v3
-            // in other words, markets define all the rest of the API
-            // and v3 market ids are reversed in comparison to v1
-            // v3 has to be a completely separate implementation
-            // otherwise we will have to shuffle symbols and currencies everywhere
-            // which is prone to errors, as was shown here
-            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
-            request['marketSymbol'] = market['base'] + '-' + market['quote'];
+            request['marketSymbol'] = market['id'];
         }
-        const response = await this.privateGetOrdersClosed (this.extend (request, params));
-        const orders = this.parseOrders (response, market);
-        const trades = this.ordersToTrades (orders);
+        const response = await this.privateGetExecutions (this.extend (request, params));
+        const trades = this.parseTrades (response, market);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 

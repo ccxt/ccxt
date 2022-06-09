@@ -72,7 +72,7 @@ class bittrex(Exchange):
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': 'emulated',
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -157,6 +157,7 @@ class bittrex(Exchange):
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -1568,32 +1569,6 @@ class bittrex(Exchange):
             raise e
         return self.parse_order(response, market)
 
-    def order_to_trade(self, order):
-        # self entire method should be moved to the base class
-        timestamp = self.safe_integer_2(order, 'lastTradeTimestamp', 'timestamp')
-        return {
-            'id': self.safe_string(order, 'id'),
-            'side': self.safe_string(order, 'side'),
-            'order': self.safe_string(order, 'id'),
-            'type': self.safe_string(order, 'type'),
-            'price': self.safe_number(order, 'average'),
-            'amount': self.safe_number(order, 'filled'),
-            'cost': self.safe_number(order, 'cost'),
-            'symbol': self.safe_string(order, 'symbol'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fee': self.safe_value(order, 'fee'),
-            'info': order,
-            'takerOrMaker': None,
-        }
-
-    def orders_to_trades(self, orders):
-        # self entire method should be moved to the base class
-        result = []
-        for i in range(0, len(orders)):
-            result.append(self.order_to_trade(orders[i]))
-        return result
-
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all trades made by the user
@@ -1613,17 +1588,9 @@ class bittrex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            # because of self line we will have to rethink the entire v3
-            # in other words, markets define all the rest of the API
-            # and v3 market ids are reversed in comparison to v1
-            # v3 has to be a completely separate implementation
-            # otherwise we will have to shuffle symbols and currencies everywhere
-            # which is prone to errors, as was shown here
-            # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
-            request['marketSymbol'] = market['base'] + '-' + market['quote']
-        response = await self.privateGetOrdersClosed(self.extend(request, params))
-        orders = self.parse_orders(response, market)
-        trades = self.orders_to_trades(orders)
+            request['marketSymbol'] = market['id']
+        response = await self.privateGetExecutions(self.extend(request, params))
+        trades = self.parse_trades(response, market)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
