@@ -20,6 +20,8 @@ const TICK_SIZE = ccxt\TICK_SIZE;
 const NO_PADDING = ccxt\NO_PADDING;
 const PAD_WITH_ZERO = ccxt\PAD_WITH_ZERO;
 
+use Precise;
+
 use React;
 use Recoil;
 
