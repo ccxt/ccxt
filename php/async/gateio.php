@@ -3350,15 +3350,15 @@ class gateio extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * fetches all open orders
-         * @param {str} $symbol Unified market $symbol
-         * @param {int} $since earliest time in ms for orders in the response
-         * @param {int} $limit max number of order structures to return
-         * @param {dict} $params exchange specific $params
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the gateio api endpoint
          * @param {bool} $params->stop true for fetching stop orders
          * @param {str} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {str} $params->marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
-         * @return An array of order structures
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         return yield $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }

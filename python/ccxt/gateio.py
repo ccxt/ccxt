@@ -3208,15 +3208,15 @@ class gateio(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetches all open orders
-        :param str symbol: Unified market symbol
-        :param int since: earliest time in ms for orders in the response
-        :param int limit: max number of order structures to return
-        :param dict params: exchange specific params
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
-        :returns: An array of order structures
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 

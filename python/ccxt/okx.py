@@ -2433,15 +2433,16 @@ class okx(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetch orders that are still open
-        :param str symbol: Unified market symbol
-        :param int since: Timestamp in ms of the earliest time to retrieve orders for
-        :param int limit: Number of results per request. The maximum is 100; The default is 100
-        :param dict params: Extra and exchange specific parameters
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the okx api endpoint
         :param int params['till']: Timestamp in ms of the latest time to retrieve orders for
         :param bool params['stop']: True if fetching trigger orders
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str params['algoId']: Algo ID
-        :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
