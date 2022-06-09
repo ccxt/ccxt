@@ -204,6 +204,7 @@ class Transpiler {
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
+            [ /\.fetchBorrowRates\s/g, '.fetch_borrow_rates'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
@@ -882,8 +883,15 @@ class Transpiler {
         // transpile JS → Python 3
         let python3Body = this.regexAll (js, this.getPythonRegexes ())
 
-        if (removeEmptyLines)
+        if (removeEmptyLines) {
             python3Body = python3Body.replace (/$\s*$/gm, '')
+        }
+
+        const strippedPython3BodyWithoutComments = python3Body.replace (/^[\s]+#.+$/gm, '')
+
+        if (!strippedPython3BodyWithoutComments.match(/[^\s]/)) {
+            python3Body += '\n        pass'
+        }
 
         python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
 
