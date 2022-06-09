@@ -1605,15 +1605,8 @@ class Exchange(object):
             'funding': funding,
         }
 
-    def fetch_balance(self, params={}):
-        raise NotSupported(self.id + ' fetch_balance() is not supported yet')
-
     def fetch_bids_asks(self, symbols=None, params={}) -> dict:
         raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
-
-    def fetch_order_status(self, id, symbol=None, params={}):
-        order = self.fetch_order(id, symbol, params)
-        return order['status']
 
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
@@ -1695,39 +1688,6 @@ class Exchange(object):
             balance['total'][currency] = balance[currency]['total']
         return balance
 
-    def fetch_partial_balance(self, part, params={}):
-        balance = self.fetch_balance(params)
-        return balance[part]
-
-    def fetch_free_balance(self, params={}):
-        return self.fetch_partial_balance('free', params)
-
-    def fetch_used_balance(self, params={}):
-        return self.fetch_partial_balance('used', params)
-
-    def fetch_total_balance(self, params={}):
-        return self.fetch_partial_balance('total', params)
-
-    def fetch_funding_fee(self, code, params={}):
-        warnOnFetchFundingFee = self.safeValue(self.options, 'warnOnFetchFundingFee', True)
-        if warnOnFetchFundingFee:
-            raise NotSupported(self.id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning')
-        return self.fetch_transaction_fee(code, params)
-
-    def fetchFundingFees(self, codes=None, params={}):
-        warnOnFetchFundingFees = self.safeValue(self.options, 'warnOnFetchFundingFees', True)
-        if warnOnFetchFundingFees:
-            raise NotSupported(self.id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning')
-        return self.fetch_transaction_fees(codes, params)
-
-    def fetch_transaction_fee(self, code, params={}):
-        if not self.has['fetch_transaction_fees']:
-            raise NotSupported(self.id + ' fetch_transaction_fee() is not supported yet')
-        return self.fetch_transaction_fees([code], params)
-
-    def fetch_transaction_fees(self, codes=None, params={}):
-        raise NotSupported(self.id + ' fetch_transaction_fees() is not supported yet')
-
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -1748,12 +1708,6 @@ class Exchange(object):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         ohlcvs = self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
         return [ohlcv[0:-1] for ohlcv in ohlcvs]
-
-    def fetch_status(self, params={}):
-        if self.has['fetchTime']:
-            updated = self.fetch_time(params)
-            self.status['updated'] = updated
-        return self.status
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
@@ -2691,6 +2645,50 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def fetch_balance(self, params={}):
+        raise NotSupported(self.id + ' fetchBalance() is not supported yet')
+
+    def fetch_partial_balance(self, part, params={}):
+        balance = self.fetch_balance(params)
+        return balance[part]
+
+    def fetch_free_balance(self, params={}):
+        return self.fetch_partial_balance('free', params)
+
+    def fetch_used_balance(self, params={}):
+        return self.fetch_partial_balance('used', params)
+
+    def fetch_total_balance(self, params={}):
+        return self.fetch_partial_balance('total', params)
+
+    def fetch_status(self, params={}):
+        if self.has['fetchTime']:
+            time = self.fetchTime(params)
+            self.status = self.extend(self.status, {
+                'updated': time,
+            })
+        return self.status
+
+    def fetch_funding_fee(self, code, params={}):
+        warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
+        if warnOnFetchFundingFee:
+            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
+        return self.fetch_transaction_fee(code, params)
+
+    def fetch_funding_fees(self, codes=None, params={}):
+        warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
+        if warnOnFetchFundingFees:
+            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
+        return self.fetch_transaction_fees(codes, params)
+
+    def fetch_transaction_fee(self, code, params={}):
+        if not self.has['fetchTransactionFees']:
+            raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
+        return self.fetch_transaction_fees([code], params)
+
+    def fetch_transaction_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
+
     def get_supported_mapping(self, key, mapping={}):
         if key in mapping:
             return mapping[key]
@@ -2763,6 +2761,10 @@ class Exchange(object):
 
     def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
+
+    def fetch_order_status(self, id, symbol=None, params={}):
+        order = self.fetch_order(id, symbol, params)
+        return order['status']
 
     def fetch_unified_order(self, order, params={}):
         return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)

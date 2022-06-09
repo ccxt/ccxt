@@ -292,7 +292,6 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
-        'fetchOrderStatus' => 'fetch_order_status',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
@@ -302,16 +301,6 @@ class Exchange {
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
         'safeBalance' => 'safe_balance',
-        'fetchBalance' => 'fetch_balance',
-        'fetchPartialBalance' => 'fetch_partial_balance',
-        'fetchFreeBalance' => 'fetch_free_balance',
-        'fetchUsedBalance' => 'fetch_used_balance',
-        'fetchTotalBalance' => 'fetch_total_balance',
-        'fetchStatus' => 'fetch_status',
-        'fetchFundingFee' => 'fetch_funding_fee',
-        'fetchFundingFees' => 'fetch_funding_fees',
-        'fetchTransactionFee' => 'fetch_transaction_fee',
-        'fetchTransactionFees' => 'fetch_transaction_fees',
         'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
@@ -351,6 +340,16 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'fetchBalance' => 'fetch_balance',
+        'fetchPartialBalance' => 'fetch_partial_balance',
+        'fetchFreeBalance' => 'fetch_free_balance',
+        'fetchUsedBalance' => 'fetch_used_balance',
+        'fetchTotalBalance' => 'fetch_total_balance',
+        'fetchStatus' => 'fetch_status',
+        'fetchFundingFee' => 'fetch_funding_fee',
+        'fetchFundingFees' => 'fetch_funding_fees',
+        'fetchTransactionFee' => 'fetch_transaction_fee',
+        'fetchTransactionFees' => 'fetch_transaction_fees',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
@@ -362,6 +361,7 @@ class Exchange {
         'fetchTicker' => 'fetch_ticker',
         'fetchTickers' => 'fetch_tickers',
         'fetchOrder' => 'fetch_order',
+        'fetchOrderStatus' => 'fetch_order_status',
         'fetchUnifiedOrder' => 'fetch_unified_order',
         'createOrder' => 'create_order',
         'cancelOrder' => 'cancel_order',
@@ -2089,50 +2089,6 @@ class Exchange {
         return $balance;
     }
 
-    public function fetch_partial_balance($part, $params = array()) {
-        $balance = $this->fetch_balance($params);
-        return $balance[$part];
-    }
-
-    public function fetch_free_balance($params = array()) {
-        return $this->fetch_partial_balance('free', $params);
-    }
-
-    public function fetch_used_balance($params = array()) {
-        return $this->fetch_partial_balance('used', $params);
-    }
-
-    public function fetch_total_balance($params = array()) {
-        return $this->fetch_partial_balance('total', $params);
-    }
-
-    public function fetch_funding_fee($code, $params = array()) {
-        $warnOnFetchFundingFee = $this->safeValue($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id + ' fetch_funding_fee() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
-    }
-
-    public function fetchFundingFees ($codes = null, $params = array()) {
-        $warnOnFetchFundingFees = $this->safeValue($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id + ' fetch_funding_fees() method is deprecated, it will be removed in July 2022, please, use fetch_transaction_fees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees ($codes, $params);
-    }
-
-    public function fetch_transaction_fee($code, $params = array()) {
-        if (!$this->has['fetch_transaction_fees']) {
-            throw new NotSupported ($this->id + ' fetch_transaction_fee() is not supported yet');
-        }
-        return $this->fetch_transaction_fees([$code], $params);
-    }
-
-    public function fetch_transaction_fees($codes = null, $params = array()) {
-        throw new NotSupported ($this->id + ' fetchTransactionFees() is not supported yet');
-    }
-
     public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
@@ -2502,11 +2458,6 @@ class Exchange {
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now');
     }
 
-    public function fetch_order_status($id, $symbol = null, $params = array()) {
-        $order = $this->fetch_order($id, $symbol, $params);
-        return $order['status'];
-    }
-
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() is not supported yet');
     }
@@ -2527,11 +2478,6 @@ class Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function fetch_balance($params = array()) {
-        throw new NotSupported($this->id . ' fetch_balance() is not supported yet');
-    }
-
-
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
@@ -2539,20 +2485,6 @@ class Exchange {
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
-    }
-
-    public function fetchStatus($params = array()) {
-        return $this->fetch_status($params);
-    }
-
-    public function fetch_status($params = array()) {
-        if ($this->has['fetchTime']) {
-            $time = $this->fetch_time($params);
-            $this->status = array_merge($this->status, array(
-                'updated' => $time,
-            ));
-        }
-        return $this->status;
     }
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -3574,6 +3506,64 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function fetch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function fetch_partial_balance($part, $params = array ()) {
+        $balance = $this->fetch_balance($params);
+        return $balance[$part];
+    }
+
+    public function fetch_free_balance($params = array ()) {
+        return $this->fetch_partial_balance('free', $params);
+    }
+
+    public function fetch_used_balance($params = array ()) {
+        return $this->fetch_partial_balance('used', $params);
+    }
+
+    public function fetch_total_balance($params = array ()) {
+        return $this->fetch_partial_balance('total', $params);
+    }
+
+    public function fetch_status($params = array ()) {
+        if ($this->has['fetchTime']) {
+            $time = $this->fetchTime ($params);
+            $this->status = array_merge($this->status, array(
+                'updated' => $time,
+            ));
+        }
+        return $this->status;
+    }
+
+    public function fetch_funding_fee($code, $params = array ()) {
+        $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
+        if ($warnOnFetchFundingFee) {
+            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fee($code, $params);
+    }
+
+    public function fetch_funding_fees($codes = null, $params = array ()) {
+        $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
+        if ($warnOnFetchFundingFees) {
+            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fees($codes, $params);
+    }
+
+    public function fetch_transaction_fee($code, $params = array ()) {
+        if (!$this->has['fetchTransactionFees']) {
+            throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
+        }
+        return $this->fetch_transaction_fees([$code], $params);
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
+    }
+
     public function get_supported_mapping($key, $mapping = array ()) {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
             return $mapping[$key];
@@ -3666,6 +3656,11 @@ class Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
+    }
+
+    public function fetch_order_status($id, $symbol = null, $params = array ()) {
+        $order = $this->fetch_order($id, $symbol, $params);
+        return $order['status'];
     }
 
     public function fetch_unified_order($order, $params = array ()) {

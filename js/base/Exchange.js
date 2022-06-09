@@ -871,11 +871,6 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
-        const order = await this.fetchOrder (id, symbol, params);
-        return order['status'];
-    }
-
     marketId (symbol) {
         const market = this.market (symbol)
         return (market !== undefined ? market['id'] : symbol)
@@ -959,64 +954,6 @@ module.exports = class Exchange {
             balance.total[code] = balance[code].total
         }
         return balance
-    }
-
-    async fetchBalance (params = {}) {
-        throw new NotSupported (this.id + ' fetchBalance() is not supported yet')
-    }
-
-    async fetchPartialBalance (part, params = {}) {
-        const balance = await this.fetchBalance (params)
-        return balance[part]
-    }
-
-    fetchFreeBalance (params = {}) {
-        return this.fetchPartialBalance ('free', params)
-    }
-
-    fetchUsedBalance (params = {}) {
-        return this.fetchPartialBalance ('used', params)
-    }
-
-    fetchTotalBalance (params = {}) {
-        return this.fetchPartialBalance ('total', params)
-    }
-
-    async fetchStatus (params = {}) {
-        if (this.has['fetchTime']) {
-            const time = await this.fetchTime (params)
-            this.status = this.extend (this.status, {
-                'updated': time,
-            })
-        }
-        return this.status
-    }
-
-    async fetchFundingFee (code, params = {}) {
-        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
-        if (warnOnFetchFundingFee) {
-            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return this.fetchTransactionFee (code, params);
-    }
-
-    async fetchFundingFees (codes = undefined, params = {}) {
-        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
-        if (warnOnFetchFundingFees) {
-            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return this.fetchTransactionFees (codes, params);
-    }
-
-    async fetchTransactionFee (code, params = {}) {
-        if (!this.has['fetchTransactionFees']) {
-            throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
-        }
-        return this.fetchTransactionFees ([code], params);
-    }
-
-    async fetchTransactionFees (codes = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -1912,6 +1849,64 @@ module.exports = class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    async fetchBalance (params = {}) {
+        throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
+    }
+
+    async fetchPartialBalance (part, params = {}) {
+        const balance = await this.fetchBalance (params);
+        return balance[part];
+    }
+
+    fetchFreeBalance (params = {}) {
+        return this.fetchPartialBalance ('free', params);
+    }
+
+    fetchUsedBalance (params = {}) {
+        return this.fetchPartialBalance ('used', params);
+    }
+
+    fetchTotalBalance (params = {}) {
+        return this.fetchPartialBalance ('total', params);
+    }
+
+    async fetchStatus (params = {}) {
+        if (this.has['fetchTime']) {
+            const time = await this.fetchTime (params);
+            this.status = this.extend (this.status, {
+                'updated': time,
+            });
+        }
+        return this.status;
+    }
+
+    async fetchFundingFee (code, params = {}) {
+        const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
+        if (warnOnFetchFundingFee) {
+            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFee (code, params);
+    }
+
+    async fetchFundingFees (codes = undefined, params = {}) {
+        const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
+        if (warnOnFetchFundingFees) {
+            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return this.fetchTransactionFees (codes, params);
+    }
+
+    async fetchTransactionFee (code, params = {}) {
+        if (!this.has['fetchTransactionFees']) {
+            throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
+        }
+        return this.fetchTransactionFees ([code], params);
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
+    }
+
     getSupportedMapping (key, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
@@ -2004,6 +1999,11 @@ module.exports = class Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
+    }
+
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+        const order = await this.fetchOrder (id, symbol, params);
+        return order['status'];
     }
 
     async fetchUnifiedOrder (order, params = {}) {

@@ -239,20 +239,6 @@ class Exchange(BaseExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def fetch_status(self, params={}):
-        if self.has['fetchTime']:
-            updated = await self.fetch_time(params)
-            self.status['updated'] = updated
-        return self.status
-
-    async def fetch_order_status(self, id, symbol=None, params={}):
-        order = await self.fetch_order(id, symbol, params)
-        return order['status']
-
-    async def fetch_partial_balance(self, part, params={}):
-        balance = await self.fetch_balance(params)
-        return balance[part]
-
     async def fetch_l2_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
@@ -293,9 +279,6 @@ class Exchange(BaseExchange):
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
-    async def fetch_balance(self, params={}):
-        raise NotSupported(self.id + ' fetch_balance() is not supported yet')
-
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -321,6 +304,50 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def fetch_balance(self, params={}):
+        raise NotSupported(self.id + ' fetchBalance() is not supported yet')
+
+    async def fetch_partial_balance(self, part, params={}):
+        balance = await self.fetch_balance(params)
+        return balance[part]
+
+    def fetch_free_balance(self, params={}):
+        return self.fetch_partial_balance('free', params)
+
+    def fetch_used_balance(self, params={}):
+        return self.fetch_partial_balance('used', params)
+
+    def fetch_total_balance(self, params={}):
+        return self.fetch_partial_balance('total', params)
+
+    async def fetch_status(self, params={}):
+        if self.has['fetchTime']:
+            time = await self.fetchTime(params)
+            self.status = self.extend(self.status, {
+                'updated': time,
+            })
+        return self.status
+
+    async def fetch_funding_fee(self, code, params={}):
+        warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
+        if warnOnFetchFundingFee:
+            raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
+        return self.fetch_transaction_fee(code, params)
+
+    async def fetch_funding_fees(self, codes=None, params={}):
+        warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
+        if warnOnFetchFundingFees:
+            raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
+        return self.fetch_transaction_fees(codes, params)
+
+    async def fetch_transaction_fee(self, code, params={}):
+        if not self.has['fetchTransactionFees']:
+            raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
+        return self.fetch_transaction_fees([code], params)
+
+    async def fetch_transaction_fees(self, codes=None, params={}):
+        raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
 
     def get_supported_mapping(self, key, mapping={}):
         if key in mapping:
@@ -394,6 +421,10 @@ class Exchange(BaseExchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
+
+    async def fetch_order_status(self, id, symbol=None, params={}):
+        order = await self.fetch_order(id, symbol, params)
+        return order['status']
 
     async def fetch_unified_order(self, order, params={}):
         return await self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)

@@ -257,11 +257,6 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function fetch_partial_balance($part, $params = array()) {
-        $balance = yield $this->fetch_balance($params);
-        return $balance[$part];
-    }
-
     public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
         yield;
         if ($this->has['fetchTradingLimits']) {
@@ -288,16 +283,6 @@ class Exchange extends \ccxt\Exchange {
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
 
-    public function fetch_status($params = array()) {
-        if ($this->has['fetchTime']) {
-            $time = yield $this->fetch_time($params);
-            $this->status = array_merge($this->status, array(
-                'updated' => $time,
-            ));
-        }
-        return $this->status;
-    }
-
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
         yield $this->cancel_order($id, $symbol, $params);
         return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
@@ -315,6 +300,64 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_balance($params = array ()) {
+        throw new NotSupported($this->id . ' fetchBalance() is not supported yet');
+    }
+
+    public function fetch_partial_balance($part, $params = array ()) {
+        $balance = yield $this->fetch_balance($params);
+        return $balance[$part];
+    }
+
+    public function fetch_free_balance($params = array ()) {
+        return $this->fetch_partial_balance('free', $params);
+    }
+
+    public function fetch_used_balance($params = array ()) {
+        return $this->fetch_partial_balance('used', $params);
+    }
+
+    public function fetch_total_balance($params = array ()) {
+        return $this->fetch_partial_balance('total', $params);
+    }
+
+    public function fetch_status($params = array ()) {
+        if ($this->has['fetchTime']) {
+            $time = yield $this->fetchTime ($params);
+            $this->status = array_merge($this->status, array(
+                'updated' => $time,
+            ));
+        }
+        return $this->status;
+    }
+
+    public function fetch_funding_fee($code, $params = array ()) {
+        $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
+        if ($warnOnFetchFundingFee) {
+            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fee($code, $params);
+    }
+
+    public function fetch_funding_fees($codes = null, $params = array ()) {
+        $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
+        if ($warnOnFetchFundingFees) {
+            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+        }
+        return $this->fetch_transaction_fees($codes, $params);
+    }
+
+    public function fetch_transaction_fee($code, $params = array ()) {
+        if (!$this->has['fetchTransactionFees']) {
+            throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
+        }
+        return $this->fetch_transaction_fees([$code], $params);
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
+    }
 
     public function get_supported_mapping($key, $mapping = array ()) {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
@@ -408,6 +451,11 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
+    }
+
+    public function fetch_order_status($id, $symbol = null, $params = array ()) {
+        $order = yield $this->fetch_order($id, $symbol, $params);
+        return $order['status'];
     }
 
     public function fetch_unified_order($order, $params = array ()) {
