@@ -2490,7 +2490,7 @@ module.exports = class ascendex extends Exchange {
         };
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         //      {
         //          "time": 1640061364830,
@@ -2502,17 +2502,17 @@ module.exports = class ascendex extends Exchange {
         //          "nextFundingTime": 1640073600000
         //      }
         //
-        const marketId = this.safeString (fundingRate, 'symbol');
+        const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const currentTime = this.safeInteger (fundingRate, 'time');
-        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
-        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
+        const currentTime = this.safeInteger (contract, 'time');
+        const nextFundingRate = this.safeNumber (contract, 'fundingRate');
+        const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
         const previousFundingTimestamp = undefined;
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
-            'markPrice': this.safeNumber (fundingRate, 'markPrice'),
-            'indexPrice': this.safeNumber (fundingRate, 'indexPrice'),
+            'markPrice': this.safeNumber (contract, 'markPrice'),
+            'indexPrice': this.safeNumber (contract, 'indexPrice'),
             'interestRate': this.parseNumber ('0'),
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,

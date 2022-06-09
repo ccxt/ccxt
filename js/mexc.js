@@ -3212,7 +3212,7 @@ module.exports = class mexc extends Exchange {
         return result;
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3224,14 +3224,14 @@ module.exports = class mexc extends Exchange {
         //         "timestamp": 1643240373359
         //     }
         //
-        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'nextSettleTime');
-        const marketId = this.safeString (fundingRate, 'symbol');
+        const nextFundingRate = this.safeNumber (contract, 'fundingRate');
+        const nextFundingTimestamp = this.safeInteger (contract, 'nextSettleTime');
+        const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (fundingRate, 'timestamp');
+        const timestamp = this.safeInteger (contract, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,

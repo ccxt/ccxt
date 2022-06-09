@@ -2732,7 +2732,7 @@ module.exports = class ftx extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         // perp
         //     {
@@ -2749,11 +2749,11 @@ module.exports = class ftx extends Exchange {
         //       "openInterest": "48307.96"
         //     }
         //
-        const fundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const fundingRateDatetimeRaw = this.safeString (contract, 'nextFundingTime');
         const fundingRateTimestamp = this.parse8601 (fundingRateDatetimeRaw);
-        const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
+        const estimatedSettlePrice = this.safeNumber (contract, 'predictedExpirationPrice');
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -2761,7 +2761,7 @@ module.exports = class ftx extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (fundingRate, 'nextFundingRate'),
+            'fundingRate': this.safeNumber (contract, 'nextFundingRate'),
             'fundingTimestamp': fundingRateTimestamp,
             'fundingDatetime': this.iso8601 (fundingRateTimestamp),
             'nextFundingRate': undefined,

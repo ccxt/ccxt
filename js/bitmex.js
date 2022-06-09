@@ -2313,7 +2313,7 @@ module.exports = class bitmex extends Exchange {
         return this.parseFundingRates (filteredResponse, symbols);
     }
 
-    parseFundingRate (premiumIndex, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         //    {
         //        "symbol": "LTCUSDT",
@@ -2423,22 +2423,22 @@ module.exports = class bitmex extends Exchange {
         //        "timestamp": "2022-01-14T17:49:55.000Z"
         //    }
         //
-        const datetime = this.safeString (premiumIndex, 'timestamp');
-        const marketId = this.safeString (premiumIndex, 'symbol');
-        const fundingDatetime = this.safeString (premiumIndex, 'fundingTimestamp');
+        const datetime = this.safeString (contract, 'timestamp');
+        const marketId = this.safeString (contract, 'symbol');
+        const fundingDatetime = this.safeString (contract, 'fundingTimestamp');
         return {
-            'info': premiumIndex,
+            'info': contract,
             'symbol': this.safeSymbol (marketId, market),
-            'markPrice': this.safeNumber (premiumIndex, 'markPrice'),
+            'markPrice': this.safeNumber (contract, 'markPrice'),
             'indexPrice': undefined,
             'interestRate': undefined,
-            'estimatedSettlePrice': this.safeNumber (premiumIndex, 'indicativeSettlePrice'),
+            'estimatedSettlePrice': this.safeNumber (contract, 'indicativeSettlePrice'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'fundingRate': this.safeNumber (premiumIndex, 'fundingRate'),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
             'fundingTimestamp': this.iso8601 (fundingDatetime),
             'fundingDatetime': fundingDatetime,
-            'nextFundingRate': this.safeNumber (premiumIndex, 'indicativeFundingRate'),
+            'nextFundingRate': this.safeNumber (contract, 'indicativeFundingRate'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,

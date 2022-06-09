@@ -4232,7 +4232,7 @@ module.exports = class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -4245,15 +4245,15 @@ module.exports = class okx extends Exchange {
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
-        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
-        const marketId = this.safeString (fundingRate, 'instId');
+        const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        const marketId = this.safeString (contract, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const fundingTime = this.safeInteger (fundingRate, 'fundingTime');
+        const nextFundingRate = this.safeNumber (contract, 'nextFundingRate');
+        const fundingTime = this.safeInteger (contract, 'fundingTime');
         // https://www.okx.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -4261,7 +4261,7 @@ module.exports = class okx extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (fundingRate, 'fundingRate'),
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601 (fundingTime),
             'nextFundingRate': nextFundingRate,

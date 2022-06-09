@@ -4623,7 +4623,7 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (premiumIndex, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         //   {
@@ -4637,17 +4637,17 @@ module.exports = class binance extends Exchange {
         //     "time": "1621252344001"
         //  }
         //
-        const timestamp = this.safeInteger (premiumIndex, 'time');
-        const marketId = this.safeString (premiumIndex, 'symbol');
+        const timestamp = this.safeInteger (contract, 'time');
+        const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const markPrice = this.safeNumber (premiumIndex, 'markPrice');
-        const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
-        const interestRate = this.safeNumber (premiumIndex, 'interestRate');
-        const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
-        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
-        const fundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
+        const markPrice = this.safeNumber (contract, 'markPrice');
+        const indexPrice = this.safeNumber (contract, 'indexPrice');
+        const interestRate = this.safeNumber (contract, 'interestRate');
+        const estimatedSettlePrice = this.safeNumber (contract, 'estimatedSettlePrice');
+        const fundingRate = this.safeNumber (contract, 'lastFundingRate');
+        const fundingTime = this.safeInteger (contract, 'nextFundingTime');
         return {
-            'info': premiumIndex,
+            'info': contract,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,

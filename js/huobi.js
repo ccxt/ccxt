@@ -5043,7 +5043,7 @@ module.exports = class huobi extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         // {
         //      "status": "ok",
@@ -5059,13 +5059,13 @@ module.exports = class huobi extends Exchange {
         //     "ts": 1639085854775
         // }
         //
-        const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
-        const fundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
-        const marketId = this.safeString (fundingRate, 'contract_code');
+        const nextFundingRate = this.safeNumber (contract, 'estimated_rate');
+        const fundingTimestamp = this.safeInteger (contract, 'funding_time');
+        const nextFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const marketId = this.safeString (contract, 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -5073,7 +5073,7 @@ module.exports = class huobi extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': nextFundingRate,
