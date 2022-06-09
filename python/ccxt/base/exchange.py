@@ -1494,18 +1494,6 @@ class Exchange(object):
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
-    def account(self):
-        return {
-            'free': None,
-            'used': None,
-            'total': None,
-        }
-
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        return self.safe_string(self.commonCurrencies, currency, currency)
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1644,79 +1632,15 @@ class Exchange(object):
     def fetch_balance(self, params={}):
         raise NotSupported(self.id + ' fetch_balance() is not supported yet')
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported(self.id + ' create_order() is not supported yet')
-
-    def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' cancel_order() is not supported yet')
-
-    def cancel_unified_order(self, order, params={}):
-        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
-
     def fetch_bids_asks(self, symbols=None, params={}) -> dict:
         raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
-
-    def fetch_ticker(self, symbol, params={}):
-        if self.has['fetchTickers']:
-            tickers = self.fetch_tickers([symbol], params)
-            ticker = self.safe_value(tickers, symbol)
-            if ticker is None:
-                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
-            else:
-                return ticker
-        else:
-            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
-
-    def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported(self.id + ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
         return order['status']
 
-    def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetch_order() is not supported yet')
-
-    def fetch_unified_order(self, order, params={}):
-        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
-
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_orders() is not supported yet')
-
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_open_orders() is not supported yet')
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_closed_orders() is not supported yet')
-
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_my_trades() is not supported yet')
-
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
-
-    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_transactions() is not supported yet')
-
-    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_deposits() is not supported yet')
-
-    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_withdrawals() is not supported yet')
-
-    # def fetch_deposit_addresses(self, codes=None, params={}):
-    #     raise NotSupported(self.id + ' fetch_deposit_addresses() is not supported yet')
-
-    def fetch_deposit_address(self, code, params={}):
-        if self.has['fetchDepositAddresses']:
-            deposit_addresses = self.fetch_deposit_addresses([code], params)
-            deposit_address = self.safe_value(deposit_addresses, code)
-            if deposit_address is None:
-                raise NotSupported(self.id + ' fetch_deposit_address could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return deposit_address
-        else:
-            raise NotSupported(self.id + ' fetchDepositAddress() not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
@@ -2205,28 +2129,6 @@ class Exchange(object):
                 result.append(objects[i])
 
         return self.index_by(result, key) if indexed else result
-
-    def currency(self, code):
-        if not self.currencies:
-            raise ExchangeError(self.id + ' currencies not loaded')
-        if isinstance(code, str):
-            if code in self.currencies:
-                return self.currencies[code]
-            elif code in self.currencies_by_id:
-                return self.currencies_by_id[code]
-        raise ExchangeError(self.id + ' does not have currency code ' + str(code))
-
-    def market(self, symbol):
-        if not self.markets:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if not self.markets_by_id:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                return self.markets_by_id[symbol]
-        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -2845,6 +2747,101 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def fetch_ticker(self, symbol, params={}):
+        if self.has['fetchTickers']:
+            tickers = self.fetch_tickers([symbol], params)
+            ticker = self.safe_value(tickers, symbol)
+            if ticker is None:
+                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
+
+    def fetch_tickers(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
+
+    def fetch_order(self, id, symbol=None, params={}):
+        raise NotSupported(self.id + ' fetchOrder() is not supported yet')
+
+    def fetch_unified_order(self, order, params={}):
+        return self.fetch_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def cancel_order(self, id, symbol=None, params={}):
+        raise NotSupported(self.id + ' cancelOrder() is not supported yet')
+
+    def cancel_unified_order(self, order, params={}):
+        return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchOrders() is not supported yet')
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchOpenOrders() is not supported yet')
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchMyTrades() is not supported yet')
+
+    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
+
+    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
+
+    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+        raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
+
+    def fetch_deposit_address(self, code, params={}):
+        if self.has['fetchDepositAddresses']:
+            depositAddresses = self.fetchDepositAddresses([code], params)
+            depositAddress = self.safe_value(depositAddresses, code)
+            if depositAddress is None:
+                raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
+            else:
+                return depositAddress
+        else:
+            raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
+
+    def account(self):
+        return {
+            'free': None,
+            'used': None,
+            'total': None,
+        }
+
+    def common_currency_code(self, currency):
+        if not self.substituteCommonCurrencyCodes:
+            return currency
+        return self.safe_string(self.commonCurrencies, currency, currency)
+
+    def currency(self, code):
+        if self.currencies is None:
+            raise ExchangeError(self.id + ' currencies not loaded')
+        if isinstance(code, str):
+            if code in self.currencies:
+                return self.currencies[code]
+            elif code in self.currencies_by_id:
+                return self.currencies_by_id[code]
+        raise ExchangeError(self.id + ' does not have currency code ' + code)
+
+    def market(self, symbol):
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if self.markets_by_id is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                return self.markets[symbol]
+            elif symbol in self.markets_by_id:
+                return self.markets_by_id[symbol]
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):
         if isinstance(tag, dict):

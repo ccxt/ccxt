@@ -295,25 +295,9 @@ class Exchange {
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
-        'fetchTicker' => 'fetch_ticker',
-        'fetchTickers' => 'fetch_tickers',
-        'fetchOrder' => 'fetch_order',
-        'fetchUnifiedOrder' => 'fetch_unified_order',
-        'createOrder' => 'create_order',
-        'cancelOrder' => 'cancel_order',
-        'cancelUnifiedOrder' => 'cancel_unified_order',
-        'fetchOrders' => 'fetch_orders',
-        'fetchOpenOrders' => 'fetch_open_orders',
-        'fetchClosedOrders' => 'fetch_closed_orders',
-        'fetchMyTrades' => 'fetch_my_trades',
-        'fetchTransactions' => 'fetch_transactions',
-        'fetchDeposits' => 'fetch_deposits',
-        'fetchWithdrawals' => 'fetch_withdrawals',
-        'fetchDepositAddress' => 'fetch_deposit_address',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
         'fetchOrderStatus' => 'fetch_order_status',
-        'commonCurrencyCode' => 'common_currency_code',
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
@@ -375,6 +359,22 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'fetchTicker' => 'fetch_ticker',
+        'fetchTickers' => 'fetch_tickers',
+        'fetchOrder' => 'fetch_order',
+        'fetchUnifiedOrder' => 'fetch_unified_order',
+        'createOrder' => 'create_order',
+        'cancelOrder' => 'cancel_order',
+        'cancelUnifiedOrder' => 'cancel_unified_order',
+        'fetchOrders' => 'fetch_orders',
+        'fetchOpenOrders' => 'fetch_open_orders',
+        'fetchClosedOrders' => 'fetch_closed_orders',
+        'fetchMyTrades' => 'fetch_my_trades',
+        'fetchTransactions' => 'fetch_transactions',
+        'fetchDeposits' => 'fetch_deposits',
+        'fetchWithdrawals' => 'fetch_withdrawals',
+        'fetchDepositAddress' => 'fetch_deposit_address',
+        'commonCurrencyCode' => 'common_currency_code',
         'handleWithdrawTagAndParams' => 'handle_withdraw_tag_and_params',
         'createLimitOrder' => 'create_limit_order',
         'createMarketOrder' => 'create_market_order',
@@ -2534,85 +2534,13 @@ class Exchange {
         throw new NotSupported($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now');
     }
 
-    public function fetch_ticker($symbol, $params = array()) {
-        if ($this->has['fetchTickers']) {
-            $tickers = $this->fetch_tickers(array( $symbol ), $params);
-            $ticker = $this->safe_value($tickers, $symbol);
-            if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
-            } else {
-                return $ticker;
-            }
-        } else {
-            throw new NotSupported($this->id . ' fetchTicker() not supported yet');
-        }
-    }
-
-    public function fetch_tickers($symbols, $params = array()) { // stub
-        throw new NotSupported($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now');
-    }
-
     public function fetch_order_status($id, $symbol = null, $params = array()) {
         $order = $this->fetch_order($id, $symbol, $params);
         return $order['status'];
     }
 
-    public function fetch_order($id, $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_order() is not supported yet');
-    }
-
-    public function fetch_unified_order($order, $params = array()) {
-        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
-    }
-
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() is not supported yet');
-    }
-
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_orders() is not supported yet');
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_open_orders() is not supported yet');
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_closed_orders() is not supported yet');
-    }
-
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_my_trades() is not supported yet');
-    }
-
-    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_transactions() is not supported yet');
-    }
-
-    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_deposits() is not supported yet');
-    }
-
-    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetch_withdrawals() is not supported yet');
-    }
-
-    // public function fetch_deposit_address($code, $params = array()) {
-    //     throw new NotSupported($this->id . ' fetch_deposit_address() is not supported yet');
-    // }
-
-    public function fetch_deposit_address($code, $params = array()) {
-        if ($this->has['fetchDepositAddresses']) {
-            $deposit_addresses = $this->fetch_deposit_addresses(array($code), $params);
-            $deposit_address = $this->safe_value($deposit_addresses, $code);
-            if ($deposit_address === null) {
-                throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return $deposit_address;
-            }
-        } else {
-            throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');
-        }
     }
 
     public function fetch_markets($params = array()) {
@@ -2710,17 +2638,9 @@ class Exchange {
         return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' cancel_order() is not supported yet');
-    }
-
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
         $this->cancel_order($id, $symbol, $params);
         return $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function cancel_unified_order($order, $params = array()) {
-        return $this->cancel_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
@@ -2763,52 +2683,9 @@ class Exchange {
         );
     }
 
-    public static function account() {
-        return array(
-            'free' => null,
-            'used' => null,
-            'total' => null,
-        );
-    }
-
-    public function common_currency_code($currency) {
-        if (!$this->substituteCommonCurrencyCodes) {
-            return $currency;
-        }
-        return $this->safe_string($this->commonCurrencies, $currency, $currency);
-    }
-
     public function precision_from_string($string) {
         $parts = explode('.', preg_replace('/0+$/', '', $string));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
-    }
-
-    public function currency($code) {
-        if ('string' === gettype($code)) {
-            if (isset($this->currencies) && isset($this->currencies[$code])) {
-                return $this->currencies[$code];
-            } else if (isset($this->currencies_by_id) && isset($this->currencies_by_id[$code])) {
-                return $this->currencies_by_id[$code];
-            }
-        }
-        throw new ExchangeError($this->id . ' does not have currency code ' . ((string) $code));
-    }
-
-    public function market($symbol) {
-        if (!isset($this->markets)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (!isset($this->markets_by_id)) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if (gettype($symbol) === 'string') {
-            if (isset($this->markets[$symbol])) {
-                return $this->markets[$symbol];
-            } elseif (isset($this->markets_by_id[$symbol])) {
-                return $this->markets_by_id[$symbol];
-            }
-        }
-        throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids($symbols) {
@@ -3769,6 +3646,132 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($this->has['fetchTickers']) {
+            $tickers = $this->fetch_tickers(array( $symbol ), $params);
+            $ticker = $this->safe_value($tickers, $symbol);
+            if ($ticker === null) {
+                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
+        }
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrder() is not supported yet');
+    }
+
+    public function fetch_unified_order($order, $params = array ()) {
+        return $this->fetch_order($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        throw new NotSupported($this->id . ' createOrder() is not supported yet');
+    }
+
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrder() is not supported yet');
+    }
+
+    public function cancel_unified_order($order, $params = array ()) {
+        return $this->cancelOrder ($this->safe_value($order, 'id'), $this->safe_value($order, 'symbol'), $params);
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrders() is not supported yet');
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOpenOrders() is not supported yet');
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchClosedOrders() is not supported yet');
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMyTrades() is not supported yet');
+    }
+
+    public function fetch_transactions($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchTransactions() is not supported yet');
+    }
+
+    public function fetch_deposits($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
+    }
+
+    public function fetch_withdrawals($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        if ($this->has['fetchDepositAddresses']) {
+            $depositAddresses = $this->fetchDepositAddresses (array( $code ), $params);
+            $depositAddress = $this->safe_value($depositAddresses, $code);
+            if ($depositAddress === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress() could not find a deposit address for ' . $code . ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return $depositAddress;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchDepositAddress() is not supported yet');
+        }
+    }
+
+    public function account() {
+        return array(
+            'free' => null,
+            'used' => null,
+            'total' => null,
+        );
+    }
+
+    public function common_currency_code($currency) {
+        if (!$this->substituteCommonCurrencyCodes) {
+            return $currency;
+        }
+        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+    }
+
+    public function currency($code) {
+        if ($this->currencies === null) {
+            throw new ExchangeError($this->id . ' currencies not loaded');
+        }
+        if (gettype($code) === 'string') {
+            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
+                return $this->currencies[$code];
+            } elseif (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
+                return $this->currencies_by_id[$code];
+            }
+        }
+        throw new ExchangeError($this->id . ' does not have currency $code ' . $code);
+    }
+
+    public function market($symbol) {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        if ($this->markets_by_id === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                return $this->markets[$symbol];
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                return $this->markets_by_id[$symbol];
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+    }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
         if (gettype($tag) === 'array') {

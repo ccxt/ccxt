@@ -888,86 +888,6 @@ module.exports = class Exchange {
         return result
     }
 
-    async fetchTicker (symbol, params = {}) {
-        if (this.has['fetchTickers']) {
-            const tickers = await this.fetchTickers ([ symbol ], params);
-            const ticker = this.safeValue (tickers, symbol);
-            if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
-            } else {
-                return ticker;
-            }
-        } else {
-            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
-        }
-    }
-
-    fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet')
-    }
-
-    fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
-    }
-
-    fetchUnifiedOrder (order, params = {}) {
-        return this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
-    }
-
-    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder() is not supported yet');
-    }
-
-    cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
-    }
-
-    cancelUnifiedOrder (order, params = {}) {
-        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
-    }
-
-    fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
-    }
-
-    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
-    }
-
-    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
-    }
-
-    fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
-    }
-
-    fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
-    }
-
-    fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
-    }
-
-    fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        if (this.has['fetchDepositAddresses']) {
-            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
-            const depositAddress = this.safeValue (depositAddresses, code);
-            if (depositAddress === undefined) {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
-            } else {
-                return depositAddress;
-            }
-        } else {
-            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
-        }
-    }
-
     fetchCurrencies (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -987,52 +907,6 @@ module.exports = class Exchange {
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         const order = await this.fetchOrder (id, symbol, params);
         return order['status'];
-    }
-
-    account () {
-        return {
-            'free': undefined,
-            'used': undefined,
-            'total': undefined,
-        }
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes) {
-            return currency
-        }
-        return this.safeString (this.commonCurrencies, currency, currency)
-    }
-
-    currency (code) {
-        if (this.currencies === undefined) {
-            throw new ExchangeError (this.id + ' currencies not loaded')
-        }
-        if (typeof code === 'string') {
-            if (code in this.currencies) {
-                return this.currencies[code];
-            } else if (code in this.currencies_by_id) {
-                return this.currencies_by_id[code];
-            }
-        }
-        throw new ExchangeError (this.id + ' does not have currency code ' + code)
-    }
-
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded')
-        }
-        if (this.markets_by_id === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded')
-        }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol]
-            } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol]
-            }
-        }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
     marketId (symbol) {
@@ -2111,6 +1985,132 @@ module.exports = class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetchTicker (symbol, params = {}) {
+        if (this.has['fetchTickers']) {
+            const tickers = await this.fetchTickers ([ symbol ], params);
+            const ticker = this.safeValue (tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+            } else {
+                return ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
+        }
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
+    }
+
+    async fetchUnifiedOrder (order, params = {}) {
+        return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        throw new NotSupported (this.id + ' createOrder() is not supported yet');
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    }
+
+    async cancelUnifiedOrder (order, params = {}) {
+        return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+    }
+
+    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
+    }
+
+    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
+    }
+
+    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (this.has['fetchDepositAddresses']) {
+            const depositAddresses = await this.fetchDepositAddresses ([ code ], params);
+            const depositAddress = this.safeValue (depositAddresses, code);
+            if (depositAddress === undefined) {
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website');
+            } else {
+                return depositAddress;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchDepositAddress() is not supported yet');
+        }
+    }
+
+    account () {
+        return {
+            'free': undefined,
+            'used': undefined,
+            'total': undefined,
+        };
+    }
+
+    commonCurrencyCode (currency) {
+        if (!this.substituteCommonCurrencyCodes) {
+            return currency;
+        }
+        return this.safeString (this.commonCurrencies, currency, currency);
+    }
+
+    currency (code) {
+        if (this.currencies === undefined) {
+            throw new ExchangeError (this.id + ' currencies not loaded');
+        }
+        if (typeof code === 'string') {
+            if (code in this.currencies) {
+                return this.currencies[code];
+            } else if (code in this.currencies_by_id) {
+                return this.currencies_by_id[code];
+            }
+        }
+        throw new ExchangeError (this.id + ' does not have currency code ' + code);
+    }
+
+    market (symbol) {
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (this.markets_by_id === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                return this.markets[symbol];
+            } else if (symbol in this.markets_by_id) {
+                return this.markets_by_id[symbol];
+            }
+        }
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    }
 
     handleWithdrawTagAndParams (tag, params) {
         if (typeof tag === 'object') {
