@@ -278,11 +278,6 @@ class Exchange extends \ccxt\Exchange {
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
 
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        yield $this->cancel_order($id, $symbol, $params);
-        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         $loop = $this->get_loop();
@@ -295,6 +290,23 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
+        return yield $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
+    }
+
+    public function edit_limit_sell_order($id, $symbol, $amount, $price = null, $params = array ()) {
+        return yield $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
+    }
+
+    public function edit_limit_order($id, $symbol, $side, $amount, $price = null, $params = array ()) {
+        return yield $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        yield $this->cancelOrder ($id, $symbol);
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
 
     public function fetch_permissions($params = array ()) {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');

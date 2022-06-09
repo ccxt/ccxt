@@ -2040,26 +2040,11 @@ class Exchange(object):
             'cost': cost,
         }
 
-    def edit_limit_buy_order(self, id, symbol, *args):
-        return self.edit_limit_order(id, symbol, 'buy', *args)
-
-    def edit_limit_sell_order(self, id, symbol, *args):
-        return self.edit_limit_order(id, symbol, 'sell', *args)
-
-    def edit_limit_order(self, id, symbol, *args):
-        return self.edit_order(id, symbol, 'limit', *args)
-
-    def edit_order(self, id, symbol, *args):
-        self.cancel_order(id, symbol)
-        return self.create_order(symbol, *args)
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
     def vwap(self, baseVolume, quoteVolume):
         return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
-
-    # -------------------------------------------------------------------------
 
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
@@ -2569,6 +2554,19 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
+        return self.edit_limit_order(id, symbol, 'buy', amount, price, params)
+
+    def edit_limit_sell_order(self, id, symbol, amount, price=None, params={}):
+        return self.edit_limit_order(id, symbol, 'sell', amount, price, params)
+
+    def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
+        return self.edit_order(id, symbol, 'limit', side, amount, price, params)
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        self.cancelOrder(id, symbol)
+        return self.create_order(symbol, type, side, amount, price, params)
 
     def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')

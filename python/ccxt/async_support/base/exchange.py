@@ -272,10 +272,6 @@ class Exchange(BaseExchange):
     async def fetch_full_tickers(self, symbols=None, params={}):
         return await self.fetch_tickers(symbols, params)
 
-    async def edit_order(self, id, symbol, *args):
-        await self.cancel_order(id, symbol)
-        return await self.create_order(symbol, *args)
-
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -301,6 +297,19 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
+        return await self.edit_limit_order(id, symbol, 'buy', amount, price, params)
+
+    async def edit_limit_sell_order(self, id, symbol, amount, price=None, params={}):
+        return await self.edit_limit_order(id, symbol, 'sell', amount, price, params)
+
+    async def edit_limit_order(self, id, symbol, side, amount, price=None, params={}):
+        return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
+
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        await self.cancelOrder(id, symbol)
+        return await self.create_order(symbol, type, side, amount, price, params)
 
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')

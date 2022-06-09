@@ -1201,23 +1201,6 @@ module.exports = class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
-    editLimitBuyOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'buy', ...args)
-    }
-
-    editLimitSellOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'sell', ...args)
-    }
-
-    editLimitOrder (id, symbol, ...args) {
-        return this.editOrder (id, symbol, 'limit', ...args)
-    }
-
-    async editOrder (id, symbol, ...args) {
-        await this.cancelOrder (id, symbol);
-        return this.createOrder (symbol, ...args)
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
@@ -1745,6 +1728,23 @@ module.exports = class Exchange {
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async editLimitBuyOrder (id, symbol, amount, price = undefined, params = {}) {
+        return await this.editLimitOrder (id, symbol, 'buy', amount, price, params);
+    }
+
+    async editLimitSellOrder (id, symbol, amount, price = undefined, params = {}) {
+        return await this.editLimitOrder (id, symbol, 'sell', amount, price, params);
+    }
+
+    async editLimitOrder (id, symbol, side, amount, price = undefined, params = {}) {
+        return await this.editOrder (id, symbol, 'limit', side, amount, price, params);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.cancelOrder (id, symbol);
+        return await this.createOrder (symbol, type, side, amount, price, params);
+    }
 
     async fetchPermissions (params = {}) {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');

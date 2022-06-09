@@ -314,10 +314,6 @@ class Exchange {
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
-        'editLimitBuyOrder' => 'edit_limit_buy_order',
-        'editLimitSellOrder' => 'edit_limit_sell_order',
-        'editLimitOrder' => 'edit_limit_order',
-        'editOrder' => 'edit_order',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
         'remove0xPrefix' => 'remove0x_prefix',
@@ -334,6 +330,10 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'editLimitBuyOrder' => 'edit_limit_buy_order',
+        'editLimitSellOrder' => 'edit_limit_sell_order',
+        'editLimitOrder' => 'edit_limit_order',
+        'editOrder' => 'edit_order',
         'fetchPermissions' => 'fetch_permissions',
         'fetchBidsAsks' => 'fetch_bids_asks',
         'parseBidAsk' => 'parse_bid_ask',
@@ -2441,23 +2441,6 @@ class Exchange {
         return $result;
     }
 
-    public function edit_limit_buy_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
-    }
-
-    public function edit_limit_sell_order($id, $symbol, $amount, $price, $params = array()) {
-        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
-    }
-
-    public function edit_limit_order($id, $symbol, $side, $amount, $price, $params = array()) {
-        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
-    }
-
-    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array()) {
-        $this->cancel_order($id, $symbol, $params);
-        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
-    }
-
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
@@ -3412,6 +3395,23 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
+        return $this->edit_limit_order($id, $symbol, 'buy', $amount, $price, $params);
+    }
+
+    public function edit_limit_sell_order($id, $symbol, $amount, $price = null, $params = array ()) {
+        return $this->edit_limit_order($id, $symbol, 'sell', $amount, $price, $params);
+    }
+
+    public function edit_limit_order($id, $symbol, $side, $amount, $price = null, $params = array ()) {
+        return $this->edit_order($id, $symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->cancelOrder ($id, $symbol);
+        return $this->create_order($symbol, $type, $side, $amount, $price, $params);
+    }
 
     public function fetch_permissions($params = array ()) {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
