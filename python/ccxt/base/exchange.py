@@ -1750,16 +1750,6 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() not supported yet')
 
-    def parse_funding_rate(self, contract, market=None):
-        raise NotSupported(self.id + ' parse_funding_rate() is not supported yet')
-
-    def parse_funding_rates(self, response, market=None):
-        result = {}
-        for entry in response:
-            parsed = self.parse_funding_rate(entry, market)
-            result[parsed['symbol']] = parsed
-        return result
-
     def parse_ohlcv(self, ohlcv, market=None):
         if isinstance(ohlcv, list):
             return [
@@ -2197,10 +2187,6 @@ class Exchange(object):
             'baseId': None,
             'quoteId': None,
         }
-
-    def safe_symbol(self, marketId, market=None, delimiter=None):
-        market = self.safe_market(marketId, market, delimiter)
-        return market['symbol']
 
     def safe_currency(self, currency_id, currency=None):
         if currency_id is None and currency is not None:
@@ -3006,6 +2992,36 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_borrow_interests(self, response, market=None):
+        interests = []
+        for i in range(0, len(response)):
+            row = response[i]
+            interests.append(self.parse_borrow_interest(row, market))
+        return interests
+
+    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_funding_rate_history(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def safe_symbol(self, marketId, market=None, delimiter=None):
+        market = self.safe_market(marketId, market, delimiter)
+        return market['symbol']
+
+    def parse_funding_rate(self, contract, market=None):
+        raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
+
+    def parse_funding_rates(self, response, market=None):
+        result = {}
+        for i in range(0, len(response)):
+            parsed = self.parse_funding_rate(response[i], market)
+            result[parsed['symbol']] = parsed
+        return result
 
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """

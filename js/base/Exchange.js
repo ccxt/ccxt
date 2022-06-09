@@ -1518,26 +1518,8 @@ module.exports = class Exchange {
         }
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter)
-        return market['symbol'];
-    }
-
     filterBySymbol (array, symbol = undefined) {
         return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
-    }
-
-    parseFundingRate (contract, market = undefined) {
-        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet')
-    }
-
-    parseFundingRates (response, market = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate (response[i], market);
-            result[parsed['symbol']] = parsed;
-        }
-        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -2298,6 +2280,8 @@ module.exports = class Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     parseBorrowInterests (response, market = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
@@ -2318,7 +2302,23 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    safeSymbol (marketId, market = undefined, delimiter = undefined) {
+        market = this.safeMarket (marketId, market, delimiter);
+        return market['symbol'];
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
+    }
+
+    parseFundingRates (response, market = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseFundingRate (response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
 
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**

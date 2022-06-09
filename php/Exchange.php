@@ -353,10 +353,7 @@ class Exchange {
         'safeCurrency' => 'safe_currency',
         'safeCurrencyCode' => 'safe_currency_code',
         'safeMarket' => 'safe_market',
-        'safeSymbol' => 'safe_symbol',
         'filterBySymbol' => 'filter_by_symbol',
-        'parseFundingRate' => 'parse_funding_rate',
-        'parseFundingRates' => 'parse_funding_rates',
         'parseOHLCV' => 'parse_ohlcv',
         'parseOHLCVs' => 'parse_ohlc_vs',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -406,6 +403,9 @@ class Exchange {
         'parsePositions' => 'parse_positions',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
+        'safeSymbol' => 'safe_symbol',
+        'parseFundingRate' => 'parse_funding_rate',
+        'parseFundingRates' => 'parse_funding_rates',
         'isPostOnly' => 'is_post_only',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -2033,20 +2033,6 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function parse_funding_rate($contract, $market = null) {
-        throw new NotSupported($this->id . ' parse_funding_rate() is not supported yet');
-    }
-
-    public function parse_funding_rates($response, $market = null) {
-        $response = is_array($response) ? array_values($response) : array();
-        $result = array();
-        foreach ($response as $entry) {
-            $parsed = $this->parse_funding_rate($entry, $market);
-            $result[$parsed['symbol']] = $parsed;
-        }
-        return $result;
-    }
-
     public function parse_ohlcv($ohlcv, $market = null) {
         return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
@@ -2488,11 +2474,6 @@ class Exchange {
             'baseId' => null,
             'quoteId' => null,
         );
-    }
-
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
-        return $market['symbol'];
     }
 
     public function safe_currency($currency_id, $currency = null) {
@@ -3987,6 +3968,44 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_borrow_interests($response, $market = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interests[] = $this->parse_borrow_interest($row, $market);
+        }
+        return $interests;
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parse_funding_rate_history($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter);
+        return $market['symbol'];
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
+    }
+
+    public function parse_funding_rates($response, $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_funding_rate($response[$i], $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
 
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**

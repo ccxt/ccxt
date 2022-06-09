@@ -425,6 +425,44 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_borrow_interests($response, $market = null) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $row = $response[$i];
+            $interests[] = $this->parse_borrow_interest($row, $market);
+        }
+        return $interests;
+    }
+
+    public function parse_funding_rate_histories($response, $market = null, $since = null, $limit = null) {
+        $rates = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $rates[] = $this->parse_funding_rate_history($entry, $market);
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        $symbol = ($market === null) ? null : $market['symbol'];
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function safe_symbol($marketId, $market = null, $delimiter = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter);
+        return $market['symbol'];
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
+    }
+
+    public function parse_funding_rates($response, $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $parsed = $this->parse_funding_rate($response[$i], $market);
+            $result[$parsed['symbol']] = $parsed;
+        }
+        return $result;
+    }
+
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**
          * @ignore
