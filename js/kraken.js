@@ -329,10 +329,6 @@ module.exports = class kraken extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
-    }
-
     feeToPrecision (symbol, fee) {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
@@ -554,7 +550,7 @@ module.exports = class kraken extends Exchange {
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'altname'));
             const decimals = this.safeInteger (currency, 'decimals');
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
+            const precision = this.parseNumber (this.parsePrecision (this.numberToString (decimals)));
             // assumes all currencies are active except those listed above
             const active = !this.inArray (code, this.options['inactiveCurrencies']);
             result[code] = {
