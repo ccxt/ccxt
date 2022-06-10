@@ -1228,9 +1228,9 @@ module.exports = class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchAccounts
-         * @description query to fetchAccounts
+         * @description fetch all the accounts associated with a profile
          * @param {dict} params extra parameters specific to the woo api endpoint
-         * @returns {dict} a [account structure]{@link https://docs.ccxt.com/en/latest/manual.html?#account-structure}
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         const response = await this.v1PrivateGetSubAccountAssets (params);
         //
