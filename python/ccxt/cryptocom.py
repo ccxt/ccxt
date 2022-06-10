@@ -1206,6 +1206,12 @@ class cryptocom(Exchange):
         return self.parse_transaction(result, currency)
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
