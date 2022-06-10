@@ -38,6 +38,7 @@ module.exports = class zb extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createMarginLoan': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -4243,6 +4244,63 @@ module.exports = class zb extends Exchange {
             });
         }
         return rates;
+    }
+
+    async createMarginLoan (code, symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createMarginLoan', market, params);
+        const password = this.safeString (query, 'safePwd', this.password);
+        const margin = (marketType === 'margin');
+        let method = undefined;
+        const defaultMargin = margin ? 'isolated' : 'cross';
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+            'amount': amount,
+        };
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new BadRequest (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
+            }
+            method = 'spotV1PrivateGetBorrow';
+            request['marketName'] = market['id'];
+        } else if (marginMode === 'cross') {
+            method = 'spotV1PrivateGetDoCrossLoan';
+            request['safePwd'] = password; // transaction password
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency['id']);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功"
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'tranId'),
+            'currency': currency,
+            'amount': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     nonce () {
