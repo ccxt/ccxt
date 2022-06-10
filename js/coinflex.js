@@ -20,6 +20,7 @@ module.exports = class coinflex extends Exchange {
             'certified': false,
             'pro': true,
             'userAgent': this.userAgents['chrome100'],
+            'hostname': 'coinflex.com',
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -122,8 +123,7 @@ module.exports = class coinflex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api': {
-                    'public': 'https://v2api.coinflex.com',
-                    'private': 'https://v2api.coinflex.com',
+                    'rest': 'https://v2api.{hostname}',
                 },
                 'www': 'https://coinflex.com/',
                 'doc': [
@@ -133,8 +133,7 @@ module.exports = class coinflex extends Exchange {
                     'https://coinflex.com/fees/',
                 ],
                 'test': {
-                    'public': 'https://v2stgapi.coinflex.com',
-                    'private': 'https://v2stgapi.coinflex.com',
+                    'rest': 'https://v2stgapi.{hostname}',
                 },
                 'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             },
@@ -241,7 +240,6 @@ module.exports = class coinflex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot', // spot, swap
                 'networks': {
                     // 'SOLANA': 'SPL',
@@ -624,6 +622,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -935,6 +943,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -988,6 +1006,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRates']) {
             const response = await this.fetchFundingRates ([ symbol ], params);
@@ -998,6 +1024,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1273,6 +1307,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const data = await this.getAccountData (params);
         const result = [];
@@ -1330,6 +1371,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1345,6 +1394,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -1401,6 +1460,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const response = await this.privateGetV2Orders (params);
@@ -1596,6 +1665,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const positions = await this.fetchPositions (undefined, params);
         const array = this.filterBySymbol (positions, symbol);
@@ -1603,6 +1680,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         const data = await this.getAccountData (params);
         // response sample inside `getAccountData` method
         this.targetAccount = this.safeValue (data, 0);
@@ -1674,6 +1759,14 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1709,6 +1802,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         let request = {};
@@ -1771,6 +1874,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         let request = {};
@@ -1826,6 +1939,15 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code unified currency code of the currency withdrawn, default is undefined
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         const request = {
             'id': id,
         };
@@ -2064,6 +2186,18 @@ module.exports = class coinflex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const market = this.market (symbol);
         this.checkOrderArguments (market, type, side, amount, price, params);
         const [ request, query ] = await this.buildOrderRequest (market, type, side, amount, price, params);
@@ -2226,11 +2360,28 @@ module.exports = class coinflex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const orders = await this.cancelOrders ([ id ], symbol, params);
         return this.safeValue (orders, 0);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -2259,6 +2410,17 @@ module.exports = class coinflex extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name coinflex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2285,6 +2447,17 @@ module.exports = class coinflex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const twoFaCode = this.safeString (params, 'code');
@@ -2328,6 +2501,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchTransactionFee
+         * @description fetch the fee for a transaction
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @param {str} params.networkName the protocol for a transaction
+         * @param {str} params.address withdrawal address
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         const networkName = this.safeStringUpper (params, 'network');
         if (networkName === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransactionFee() requires "network"  parameter');
@@ -2380,7 +2563,8 @@ module.exports = class coinflex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ finalPath, query ] = this.resolvePath (path, params);
-        let url = this.urls['api'][api] + '/' + finalPath;
+        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        let url = baseUrl + '/' + finalPath;
         let encodedParams = '';
         const isGetRequest = (method === 'GET');
         if (Object.keys (query).length) {
@@ -2393,7 +2577,8 @@ module.exports = class coinflex extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const datetime = this.ymdhms (this.milliseconds (), 'T');
-            let auth = datetime + "\n" + nonce + "\n" + method + "\n" + this.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
+            const baseUrlTrimmed = baseUrl.replace ('https://', '');
+            let auth = datetime + "\n" + nonce + "\n" + method + "\n" + baseUrlTrimmed + "\n" + '/' + finalPath + "\n"; // eslint-disable-line quotes
             if (isGetRequest) {
                 auth += encodedParams;
             } else {
