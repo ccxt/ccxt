@@ -295,8 +295,6 @@ class Exchange {
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'safeTicker' => 'safe_ticker',
         'parseAccounts' => 'parse_accounts',
-        'parseTickers' => 'parse_tickers',
-        'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
@@ -401,6 +399,8 @@ class Exchange {
         'safeCurrencyCode' => 'safe_currency_code',
         'filterBySymbolSinceLimit' => 'filter_by_symbol_since_limit',
         'filterByCurrencySinceLimit' => 'filter_by_currency_since_limit',
+        'parseTickers' => 'parse_tickers',
+        'parseDepositAddresses' => 'parse_deposit_addresses',
         'parseBorrowInterests' => 'parse_borrow_interests',
         'parseFundingRateHistories' => 'parse_funding_rate_histories',
         'safeSymbol' => 'safe_symbol',
@@ -2126,27 +2126,6 @@ class Exchange {
             $result[] = array_replace_recursive($this->parse_account($account), $params);
         }
         return $result;
-    }
-
-    public function parse_tickers($tickers, $symbols = null, $params = array()) {
-        $result = array();
-        $values = is_array($tickers) ? array_values($tickers) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $result[] = array_merge($this->parse_ticker($values[$i]), $params);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
-    }
-
-    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array()){
-        $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
-            $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
-            $result[] = $address;
-        }
-        if ($codes) {
-            $result = $this->filter_by_array($result, 'currency', $codes, false);
-        }
-        return $indexed ? $this->index_by($result, 'currency') : $result;
     }
 
     public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
@@ -3954,6 +3933,30 @@ class Exchange {
 
     public function filter_by_currency_since_limit($array, $code = null, $since = null, $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    }
+
+    public function parse_tickers($tickers, $symbols = null, $params = array ()) {
+        $result = array();
+        if (gettype($tickers) === 'array') {
+            $tickers = is_array($tickers) ? array_values($tickers) : array();
+        }
+        for ($i = 0; $i < count($tickers); $i++) {
+            $result[] = array_merge($this->parse_ticker($tickers[$i]), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
+            $result[] = $address;
+        }
+        if ($codes !== null) {
+            $result = $this->filter_by_array($result, 'currency', $codes, false);
+        }
+        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        return $result;
     }
 
     public function parse_borrow_interests($response, $market = null) {

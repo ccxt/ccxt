@@ -80,6 +80,8 @@ class Transpiler {
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
+            [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
+            [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],

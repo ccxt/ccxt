@@ -903,6 +903,30 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
+    public function parse_tickers($tickers, $symbols = null, $params = array ()) {
+        $result = array();
+        if (gettype($tickers) === 'array') {
+            $tickers = is_array($tickers) ? array_values($tickers) : array();
+        }
+        for ($i = 0; $i < count($tickers); $i++) {
+            $result[] = array_merge($this->parse_ticker($tickers[$i]), $params);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
+        $result = array();
+        for ($i = 0; $i < count($addresses); $i++) {
+            $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
+            $result[] = $address;
+        }
+        if ($codes !== null) {
+            $result = $this->filter_by_array($result, 'currency', $codes, false);
+        }
+        $result = $indexed ? $this->index_by($result, 'currency') : $result;
+        return $result;
+    }
+
     public function parse_borrow_interests($response, $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {

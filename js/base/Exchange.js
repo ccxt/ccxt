@@ -941,27 +941,6 @@ module.exports = class Exchange {
         return array.map ((account) => this.extend (this.parseAccount (account, undefined), params))
     }
 
-    parseTickers (tickers, symbols = undefined, params = {}) {
-        const result = [];
-        const values = Object.values (tickers || []);
-        for (let i = 0; i < values.length; i++) {
-            result.push (this.extend (this.parseTicker (values[i]), params));
-        }
-        return this.filterByArray (result, 'symbol', symbols);
-    }
-
-    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result = [];
-        for (let i = 0; i < addresses.length; i++) {
-            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
-            result.push (address);
-        }
-        if (codes) {
-            result = this.filterByArray (result, 'currency', codes, false);
-        }
-        return indexed ? this.indexBy (result, 'currency') : result;
-    }
-
     parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
         result = this.sortBy2 (result, 'timestamp', 'id')
@@ -2315,6 +2294,30 @@ module.exports = class Exchange {
 
     filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
+    }
+
+    parseTickers (tickers, symbols = undefined, params = {}) {
+        const result = [];
+        if (typeof tickers === 'object') {
+            tickers = Object.values (tickers);
+        }
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.extend (this.parseTicker (tickers[i]), params));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
+        let result = [];
+        for (let i = 0; i < addresses.length; i++) {
+            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
+            result.push (address);
+        }
+        if (codes !== undefined) {
+            result = this.filterByArray (result, 'currency', codes, false);
+        }
+        result = indexed ? this.indexBy (result, 'currency') : result;
+        return result;
     }
 
     parseBorrowInterests (response, market = undefined) {

@@ -761,6 +761,24 @@ class Exchange(BaseExchange):
     def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
+    def parse_tickers(self, tickers, symbols=None, params={}):
+        result = []
+        if isinstance(tickers, dict):
+            tickers = list(tickers.values())
+        for i in range(0, len(tickers)):
+            result.append(self.extend(self.parse_ticker(tickers[i]), params))
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params={}):
+        result = []
+        for i in range(0, len(addresses)):
+            address = self.extend(self.parse_deposit_address(addresses[i]), params)
+            result.append(address)
+        if codes is not None:
+            result = self.filter_by_array(result, 'currency', codes, False)
+        result = self.index_by(result, 'currency') if indexed else result
+        return result
+
     def parse_borrow_interests(self, response, market=None):
         interests = []
         for i in range(0, len(response)):
