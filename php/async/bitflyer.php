@@ -107,6 +107,7 @@ class bitflyer extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 

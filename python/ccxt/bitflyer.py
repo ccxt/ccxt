@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitflyer(Exchange):
@@ -106,6 +107,7 @@ class bitflyer(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_expiry_date(self, expiry):
