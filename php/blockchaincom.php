@@ -27,8 +27,8 @@ class blockchaincom extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -552,7 +552,13 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // cancels all open orders if no $symbol specified
         // cancels all open orders of specified $symbol, if $symbol is specified
         $this->load_markets();

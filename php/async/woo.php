@@ -29,9 +29,8 @@ class woo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'cancelAllOrders' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress' => false,
                 'createMarketOrder' => false,
@@ -831,7 +830,13 @@ class woo extends Exchange {
         return array_merge($this->parse_order($response), $extendParams);
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
         }
