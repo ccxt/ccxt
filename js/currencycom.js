@@ -350,7 +350,6 @@ module.exports = class currencycom extends Exchange {
             const id = this.safeString (currency, 'displaySymbol');
             const code = this.safeCurrencyCode (id);
             const fee = this.safeNumber (currency, 'commissionFixed');
-            const precision = this.safeInteger (currency, 'precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -361,7 +360,7 @@ module.exports = class currencycom extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
