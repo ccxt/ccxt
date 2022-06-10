@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -188,6 +188,7 @@ module.exports = class bittrex extends Exchange {
                     'percentage': false,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'BAD_REQUEST': BadRequest, // {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
@@ -268,12 +269,8 @@ module.exports = class bittrex extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async fetchMarkets (params = {}) {
@@ -341,8 +338,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'),
-                    'price': this.safeInteger (market, 'precision', 8),
+                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
                 },
                 'limits': {
                     'leverage': {
@@ -469,7 +466,7 @@ module.exports = class bittrex extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const precision = this.parseNumber (this.parsePrecision ('8')); // default precision, todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
             const isActive = this.safeString (currency, 'status');
             result[code] = {
@@ -486,7 +483,7 @@ module.exports = class bittrex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, precision),
+                        'min': precision,
                         'max': undefined,
                     },
                     'withdraw': {
