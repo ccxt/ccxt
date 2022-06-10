@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -242,7 +242,7 @@ module.exports = class bitrue extends Exchange {
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
