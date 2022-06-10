@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -142,6 +143,7 @@ class bitbns(Exchange):
                     'maker': self.parse_number('0.0025'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '400': BadRequest,  # {"msg":"Invalid Request","status":-1,"code":400}
@@ -253,8 +255,8 @@ class bitbns(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(marketPrecision, 'amount'),
-                    'price': self.safe_integer(marketPrecision, 'price'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(marketPrecision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(marketPrecision, 'price'))),
                 },
                 'limits': {
                     'leverage': {
