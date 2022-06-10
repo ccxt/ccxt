@@ -4739,6 +4739,16 @@ module.exports = class okx extends Exchange {
     }
 
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchBorrowRateHistories
+         * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest borrowRate, default is undefined
+         * @param {int|undefined} limit max number of borrow rate prices to return, default is undefined
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} indexed by the market symbol
+         */
         await this.loadMarkets ();
         const request = {
             // 'ccy': currency['id'],
