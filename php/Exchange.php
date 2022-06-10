@@ -293,7 +293,6 @@ class Exchange {
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'safeTicker' => 'safe_ticker',
-        'parseLedger' => 'parse_ledger',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
         'filterBySymbol' => 'filter_by_symbol',
@@ -321,6 +320,7 @@ class Exchange {
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
         'parseTransfers' => 'parse_transfers',
+        'parseLedger' => 'parse_ledger',
         'setHeaders' => 'set_headers',
         'marketId' => 'market_id',
         'resolvePath' => 'resolve_path',
@@ -2103,25 +2103,6 @@ class Exchange {
         ));
     }
 
-    public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($items) ? array_values($items) : array();
-        $result = array();
-        foreach ($array as $item) {
-            $entry = $this->parse_ledger_entry($item, $currency);
-            if (gettype($entry) === 'array' && count(array_filter(array_keys($entry), 'is_string')) == 0) {
-                foreach ($entry as $i) {
-                    $result[] = array_replace_recursive($i, $params);
-                }
-            } else {
-                $result[] = array_replace_recursive($entry, $params);
-            }
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
@@ -3301,6 +3282,25 @@ class Exchange {
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
         $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $result = $array();
+        $array = $this->to_array($data);
+        for ($i = 0; $i < count($array); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+            if (gettype($itemOrItems) === 'array' && count(array_filter(array_keys($itemOrItems), 'is_string')) == 0) {
+                for ($j = 0; $j < count($itemOrItems); $j++) {
+                    $result[] = array_merge($itemOrItems[$j], $params);
+                }
+            } else {
+                $result[] = array_merge($itemOrItems, $params);
+            }
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
