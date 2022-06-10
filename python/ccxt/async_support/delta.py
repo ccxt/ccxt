@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -332,7 +331,6 @@ class delta(Exchange):
             depositsEnabled = (depositStatus == 'enabled')
             withdrawalsEnabled = (withdrawalStatus == 'enabled')
             active = depositsEnabled and withdrawalsEnabled
-            precision = self.safe_integer(currency, 'precision')
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -343,7 +341,7 @@ class delta(Exchange):
                 'deposit': depositsEnabled,
                 'withdraw': withdrawalsEnabled,
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
-                'precision': 1 / math.pow(10, precision),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {
