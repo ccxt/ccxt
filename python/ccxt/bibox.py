@@ -351,6 +351,7 @@ class bibox(Exchange):
         return self.parse_ticker(response['result'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
