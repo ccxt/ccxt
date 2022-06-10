@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -174,6 +175,7 @@ module.exports = class bitopro extends Exchange {
                     'TRC20': 'TRX',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Unsupported currency.': BadRequest, // {"error":"Unsupported currency."}
@@ -298,10 +300,6 @@ module.exports = class bitopro extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'basePrecision'),
-            };
             const limits = {
                 'amount': {
                     'min': this.safeNumber (market, 'minLimitBaseAmount'),
@@ -346,7 +344,10 @@ module.exports = class bitopro extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'limits': limits,
-                'precision': precision,
+                'precision': {
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                },
                 'active': active,
                 'info': market,
             });
