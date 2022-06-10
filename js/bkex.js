@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -209,6 +210,7 @@ module.exports = class bkex extends Exchange {
             },
             'commonCurrencies': {
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1005': InsufficientFunds,
@@ -281,8 +283,8 @@ module.exports = class bkex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'volumePrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'volumePrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
