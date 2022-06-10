@@ -176,6 +176,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                         // account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
+                        'contract/v3/public/copytrading/symbol/list': 1,
                     },
                 },
                 'private': {
@@ -237,6 +238,9 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'contract/v3/private/copytrading/order/list': 1,
+                        'contract/v3/private/copytrading/position/list': 1,
+                        'contract/v3/private/copytrading/wallet/balance': 1,
                     },
                     'post': {
                         // inverse swap
@@ -328,6 +332,12 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
                         // 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
+                        'contract/v3/private/copytrading/order/create': 2.5,
+                        'contract/v3/private/copytrading/order/cancel': 2.5,
+                        'contract/v3/private/copytrading/order/close': 2.5,
+                        'contract/v3/private/copytrading/position/close': 2.5,
+                        'contract/v3/private/copytrading/position/set-leverage': 2.5,
+                        'contract/v3/private/copytrading/wallet/transfer': 2.5,
                     },
                     'delete': {
                         // spot
