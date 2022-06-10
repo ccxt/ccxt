@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -221,6 +222,7 @@ module.exports = class cryptocom extends Exchange {
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': ExchangeError,
@@ -343,8 +345,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'quantity_decimals'),
-                    'price': parseInt (priceDecimals),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (priceDecimals)),
                 },
                 'limits': {
                     'leverage': {
@@ -445,8 +447,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'quote_decimals'),
-                    'amount': this.safeInteger (market, 'quantity_decimals'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_decimals'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
                 },
                 'limits': {
                     'leverage': {
