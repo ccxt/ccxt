@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -144,6 +145,7 @@ module.exports = class bytetrade extends Exchange {
                 '48': 'Blocktonic',
                 '133': 'TerraCredit',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'vertify error': AuthenticationError, // typo on the exchange side, 'vertify'
                 'verify error': AuthenticationError, // private key signature is incorrect
@@ -229,7 +231,6 @@ module.exports = class bytetrade extends Exchange {
             const active = this.safeValue (currency, 'active');
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
-            const amountPrecision = this.safeInteger (currency, 'basePrecision');
             let maxDeposit = this.safeString (deposit, 'max');
             if (Precise.stringEquals (maxDeposit, '-1')) {
                 maxDeposit = undefined;
@@ -246,7 +247,7 @@ module.exports = class bytetrade extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': amountPrecision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'basePrecision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
@@ -365,8 +366,8 @@ module.exports = class bytetrade extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (precision, 'amount'),
-                    'price': this.safeInteger (precision, 'price'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (precision, 'amount'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (precision, 'price'))),
                 },
                 'limits': {
                     'leverage': {
@@ -874,7 +875,7 @@ module.exports = class bytetrade extends Exchange {
         const amountTruncated = this.amountToPrecision (symbol, amount);
         const amountTruncatedPrecise = new Precise (amountTruncated);
         amountTruncatedPrecise.reduce ();
-        amountTruncatedPrecise.decimals -= baseCurrency['precision'];
+        amountTruncatedPrecise.decimals -= this.precisionFromString (baseCurrency['precision']);
         const amountChain = amountTruncatedPrecise.toString ();
         const amountChainString = this.numberToString (amountChain);
         const quoteId = market['quoteId'];
@@ -882,7 +883,7 @@ module.exports = class bytetrade extends Exchange {
         const priceRounded = this.priceToPrecision (symbol, price);
         const priceRoundedPrecise = new Precise (priceRounded);
         priceRoundedPrecise.reduce ();
-        priceRoundedPrecise.decimals -= quoteCurrency['precision'];
+        priceRoundedPrecise.decimals -= this.precisionFromString (quoteCurrency['precision']);
         const priceChain = priceRoundedPrecise.toString ();
         const priceChainString = this.numberToString (priceChain);
         const now = this.milliseconds ();
