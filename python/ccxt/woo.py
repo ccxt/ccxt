@@ -1164,9 +1164,9 @@ class woo(Exchange):
 
     def fetch_accounts(self, params={}):
         """
-        query to fetchAccounts
+        fetch all the accounts associated with a profile
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns dict: a `account structure <https://docs.ccxt.com/en/latest/manual.html?#account-structure>`
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
         """
         response = self.v1PrivateGetSubAccountAssets(params)
         #

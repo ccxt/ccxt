@@ -1211,9 +1211,9 @@ class woo extends Exchange {
 
     public function fetch_accounts($params = array ()) {
         /**
-         * query to fetchAccounts
+         * fetch all the accounts associated with a profile
          * @param {dict} $params extra parameters specific to the woo api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#account-structure account structure~
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
          */
         $response = yield $this->v1PrivateGetSubAccountAssets ($params);
         //
