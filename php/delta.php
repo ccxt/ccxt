@@ -327,7 +327,6 @@ class delta extends Exchange {
             $depositsEnabled = ($depositStatus === 'enabled');
             $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
             $active = $depositsEnabled && $withdrawalsEnabled;
-            $precision = $this->safe_integer($currency, 'precision');
             $result[$code] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -338,7 +337,7 @@ class delta extends Exchange {
                 'deposit' => $depositsEnabled,
                 'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
-                'precision' => 1 / pow(10, $precision),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(

@@ -444,7 +444,7 @@ class crex24 extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
             $withdrawalPrecision = $this->safe_integer($currency, 'withdrawalPrecision');
-            $precision = pow(10, -$withdrawalPrecision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawalPrecision')));
             $address = $this->safe_value($currency, 'BaseAddress');
             $deposit = $this->safe_value($currency, 'depositsAllowed');
             $withdraw = $this->safe_value($currency, 'withdrawalsAllowed');
@@ -466,8 +466,8 @@ class crex24 extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => pow(10, $withdrawalPrecision),
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minDeposit'),

@@ -3200,6 +3200,12 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        /**
+         * fetch a dictionary of addresses for a $currency, indexed by network
+         * @param {str} $code unified $currency $code of the $currency for the deposit address
+         * @param {dict} $params extra parameters specific to the mexc3 api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

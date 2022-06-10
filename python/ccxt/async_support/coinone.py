@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -120,10 +121,11 @@ class coinone(Exchange):
                 },
             },
             'precision': {
-                'price': 4,
-                'amount': 4,
-                'cost': 8,
+                'price': 0.0001,
+                'amount': 0.0001,
+                'cost': 0.00000001,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound,  # {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
@@ -757,6 +759,12 @@ class coinone(Exchange):
         return response
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param dict params: extra parameters specific to the coinone api endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostAccountDepositAddress(params)
         #

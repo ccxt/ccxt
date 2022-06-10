@@ -115,10 +115,11 @@ class coinone extends Exchange {
                 ),
             ),
             'precision' => array(
-                'price' => 4,
-                'amount' => 4,
-                'cost' => 8,
+                'price' => 0.0001,
+                'amount' => 0.0001,
+                'cost' => 0.00000001,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
                 '104' => '\\ccxt\\OrderNotFound', // array("errorCode":"104","errorMsg":"Order id is not exist","result":"error")
@@ -792,6 +793,12 @@ class coinone extends Exchange {
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {dict} $params extra parameters specific to the coinone api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures}
+         */
         $this->load_markets();
         $response = $this->privatePostAccountDepositAddress ($params);
         //

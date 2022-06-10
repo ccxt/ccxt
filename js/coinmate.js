@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -191,6 +192,7 @@ module.exports = class coinmate extends Exchange {
                     'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -257,8 +259,8 @@ module.exports = class coinmate extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'lotDecimals'),
-                    'price': this.safeInteger (market, 'priceDecimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lotDecimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals'))),
                 },
                 'limits': {
                     'leverage': {
