@@ -243,6 +243,7 @@ class bitso(Exchange):
                 'maker': makerFees,
             }
             fee['tiers'] = tiers
+            # TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies(or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
             defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
             result.append(self.extend({
                 'id': id,
