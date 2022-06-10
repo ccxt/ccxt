@@ -441,6 +441,13 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the deribit api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const response = await this.privateGetGetSubaccounts (params);
         //

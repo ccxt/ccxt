@@ -570,6 +570,13 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name currencycom#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the currencycom api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         const response = await this.privateGetV2Account (params);
         //
         //     {
