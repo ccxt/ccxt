@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bw(Exchange):
@@ -95,6 +96,7 @@ class bw(Exchange):
                 'funding': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
@@ -230,8 +232,8 @@ class bw(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountDecimal'),
-                    'price': self.safe_integer(market, 'priceDecimal'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {

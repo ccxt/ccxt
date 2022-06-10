@@ -91,6 +91,7 @@ class bw extends Exchange {
                 'funding' => array(
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
@@ -227,8 +228,8 @@ class bw extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amountDecimal'),
-                    'price' => $this->safe_integer($market, 'priceDecimal'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
