@@ -508,6 +508,15 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
