@@ -445,20 +445,21 @@ module.exports = class bitmart extends Exchange {
         //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
         //         "data":{
         //             "symbols":[
-        //                 {
-        //                     "symbol":"PRQ_BTC",
-        //                     "symbol_id":1232,
-        //                     "base_currency":"PRQ",
-        //                     "quote_currency":"BTC",
-        //                     "quote_increment":"1.0000000000",
-        //                     "base_min_size":"1.0000000000",
-        //                     "base_max_size":"10000000.0000000000",
-        //                     "price_min_precision":8,
-        //                     "price_max_precision":10,
-        //                     "expiration":"NA",
-        //                     "min_buy_amount":"0.0001000000",
-        //                     "min_sell_amount":"0.0001000000"
-        //                 },
+        //               {
+        //                  "symbol": "BTC_USDT",
+        //                  "symbol_id": 53,
+        //                  "base_currency": "BTC",
+        //                  "quote_currency": "USDT",
+        //                  "base_min_size": "0.000010000000000000000000000000",
+        //                  "base_max_size": "100000000.000000000000000000000000000000",
+        //                  "price_min_precision": -1,
+        //                  "price_max_precision": 2,
+        //                  "quote_increment": "0.00001", // The minimum order quantity is also the minimum order quantity increment [Comment: I think they confuse term 'order quantity' for 'order cost', as price increment is 0.01 for BTC/USDT]
+        //                  "expiration": "NA",
+        //                  "min_buy_amount": "5.000000000000000000000000000000",
+        //                  "min_sell_amount": "5.000000000000000000000000000000",
+        //                  "trade_status": "trading"
+        //               },
         //             ]
         //         }
         //     }
@@ -475,19 +476,10 @@ module.exports = class bitmart extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            // from the above API doc:
-            // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price precision (digit) used to query price and kline
-            // price_max_precision Maximum price precision (digit) used to query price and kline
-            //
-            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            //
             const minBuyCost = this.safeString (market, 'min_buy_amount');
             const minSellCost = this.safeString (market, 'min_sell_amount');
             const minCost = Precise.stringMax (minBuyCost, minSellCost);
-            const pricePrecision = this.parsePrecision (this.safeString (market, 'price_max_precision'));
+            const baseMinSize = this.safeNumber (market, 'base_min_size');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -514,8 +506,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'base_min_size'),
-                    'price': this.parseNumber (pricePrecision),
+                    'amount': baseMinSize,
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_max_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -523,7 +515,7 @@ module.exports = class bitmart extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'base_min_size'),
+                        'min': baseMinSize,
                         'max': this.safeNumber (market, 'base_max_size'),
                     },
                     'price': {
