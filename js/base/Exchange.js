@@ -1691,9 +1691,7 @@ module.exports = class Exchange {
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
-        if (typeof objects === 'object') {
-            objects = Object.values (objects);
-        }
+        objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
             return indexed ? this.indexBy (objects, key) : objects;
@@ -2298,9 +2296,7 @@ module.exports = class Exchange {
 
     parseTickers (tickers, symbols = undefined, params = {}) {
         const result = [];
-        if (typeof tickers === 'object') {
-            tickers = Object.values (tickers);
-        }
+        tickers = this.toArray (tickers);
         for (let i = 0; i < tickers.length; i++) {
             result.push (this.extend (this.parseTicker (tickers[i]), params));
         }
