@@ -1209,6 +1209,13 @@ class stex(Exchange):
         return self.parse_order(data, market)
 
     async def fetch_closed_order(self, id, symbol=None, params={}):
+        """
+        fetch an open order by it's id
+        :param str id: order id
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'orderId': id,

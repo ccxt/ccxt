@@ -1687,6 +1687,13 @@ class bitfinex2 extends Exchange {
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetch an open $order by it's $id
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol unified market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $request = array(
             'id' => array( intval($id) ),
         );
