@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coinspot(Exchange):
@@ -125,6 +126,7 @@ class coinspot(Exchange):
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response):
