@@ -839,20 +839,6 @@ module.exports = class Exchange {
         return balance
     }
 
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
-        if (this.has['fetchTradingLimits']) {
-            if (reload || !('limitsLoaded' in this.options)) {
-                const response = await this.fetchTradingLimits (symbols);
-                for (let i = 0; i < symbols.length; i++) {
-                    const symbol = symbols[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
-                }
-                this.options['limitsLoaded'] = this.milliseconds ();
-            }
-        }
-        return this.markets;
-    }
-
     filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
@@ -1571,12 +1557,6 @@ module.exports = class Exchange {
         }
     }
 
-    parsePositions (positions, symbols = undefined, params = {}) {
-        symbols = this.marketSymbols (symbols);
-        const result = Object.values (positions || []).map ((position) => this.merge (this.parsePosition (position), params));
-        return this.filterByArray (result, 'symbol', symbols, false);
-    }
-
     safeNumber2 (object, key1, key2, d = undefined) {
         const value = this.safeString2 (object, key1, key2);
         return this.parseNumber (value, d);
@@ -1632,6 +1612,31 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        if (this.has['fetchTradingLimits']) {
+            if (reload || !('limitsLoaded' in this.options)) {
+                const response = await this.fetchTradingLimits (symbols);
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
+                }
+                this.options['limitsLoaded'] = this.milliseconds ();
+            }
+        }
+        return this.markets;
+    }
+
+    parsePositions (positions, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols (symbols);
+        positions = this.toArray (positions);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            result.push (position);
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
 
     parseAccounts (accounts, params = {}) {
         accounts = this.toArray (accounts);

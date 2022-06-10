@@ -230,23 +230,6 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
-        yield;
-        if ($this->has['fetchTradingLimits']) {
-            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
-                $response = yield $this->fetch_trading_limits($symbols);
-                // $limits = $response['limits'];
-                // $keys = is_array ($limits) ? array_keys ($limits) : array ();
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $this->markets[$symbol] = array_replace_recursive($this->markets[$symbol], $response[$symbol]);
-                }
-                $this->options['limitsLoaded'] = $this->milliseconds();
-            }
-        }
-        return $this->markets;
-    }
-
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
@@ -268,6 +251,80 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
+                $response = yield $this->fetch_trading_limits($symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $this->markets[$symbol] = $this->deep_extend($this->markets[$symbol], $response[$symbol]);
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
+    }
+
+    public function parse_positions($positions, $symbols = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols);
+        $positions = $this->to_array($positions);
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = array_merge($this->parse_position($positions[$i], null), $params);
+            $result[] = $position;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_accounts($accounts, $params = array ()) {
+        $accounts = $this->to_array($accounts);
+        $result = array();
+        for ($i = 0; $i < count($accounts); $i++) {
+            $account = array_merge($this->parse_account($accounts[$i], null), $params);
+            $result[] = $account;
+        }
+        return $result;
+    }
+
+    public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
+        $trades = $this->to_array($trades);
+        $result = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $trade = array_merge($this->parse_trade($trades[$i], $market), $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+    }
+
+    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $transactions = $this->to_array($transactions);
+        $result = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $transaction = array_merge($this->parse_transaction($transactions[$i], $currency), $params);
+            $result[] = $transaction;
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $transfers = $this->to_array($transfers);
+        $result = array();
+        for ($i = 0; $i < count($transfers); $i++) {
+            $transfer = array_merge($this->parseTransfer ($transfers[$i], $currency), $params);
+            $result[] = $transfer;
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
 
     public function nonce() {
         return $this->seconds ();

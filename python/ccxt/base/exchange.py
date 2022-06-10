@@ -1627,16 +1627,6 @@ class Exchange(object):
             balance['total'][currency] = balance[currency]['total']
         return balance
 
-    def load_trading_limits(self, symbols=None, reload=False, params={}):
-        if self.has['fetchTradingLimits']:
-            if reload or not('limitsLoaded' in list(self.options.keys())):
-                response = self.fetch_trading_limits(symbols)
-                for i in range(0, len(symbols)):
-                    symbol = symbols[i]
-                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
-                self.options['limitsLoaded'] = self.milliseconds()
-        return self.markets
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         ohlcvs = self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
         return [ohlcv[0:-1] for ohlcv in ohlcvs]
@@ -2422,12 +2412,6 @@ class Exchange(object):
         if amount <= 0:
             raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
-    def parse_positions(self, positions, symbols=None, params={}):
-        symbols = self.market_symbols(symbols)
-        array = self.to_array(positions)
-        array = [self.merge(self.parse_position(position), params) for position in array]
-        return self.filter_by_array(array, 'symbol', symbols, False)
-
     def safe_number_2(self, object, key1, key2, d=None):
         value = self.safe_string_2(object, key1, key2)
         return self.parse_number(value, d)
@@ -2439,6 +2423,25 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not ('limitsLoaded' in self.options):
+                response = self.fetch_trading_limits(symbols)
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
+
+    def parse_positions(self, positions, symbols=None, params={}):
+        symbols = self.market_symbols(symbols)
+        positions = self.to_array(positions)
+        result = []
+        for i in range(0, len(positions)):
+            position = self.extend(self.parse_position(positions[i], None), params)
+            result.append(position)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_accounts(self, accounts, params={}):
         accounts = self.to_array(accounts)

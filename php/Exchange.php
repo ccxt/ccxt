@@ -290,7 +290,6 @@ class Exchange {
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
         'safeBalance' => 'safe_balance',
-        'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'safeTicker' => 'safe_ticker',
@@ -314,9 +313,10 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
-        'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'loadTradingLimits' => 'load_trading_limits',
+        'parsePositions' => 'parse_positions',
         'parseAccounts' => 'parse_accounts',
         'parseTrades' => 'parse_trades',
         'parseTransactions' => 'parse_transactions',
@@ -2013,22 +2013,6 @@ class Exchange {
         return $balance;
     }
 
-    public function load_trading_limits($symbols = null, $reload = false, $params = array()) {
-        if ($this->has['fetchTradingLimits']) {
-            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
-                $response = $this->fetch_trading_limits($symbols);
-                // $limits = $response['limits'];
-                // $keys = is_array ($limits) ? array_keys ($limits) : array();
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $this->markets[$symbol] = array_replace_recursive($this->markets[$symbol], $response[$symbol]);
-                }
-                $this->options['limitsLoaded'] = $this->milliseconds();
-            }
-        }
-        return $this->markets;
-    }
-
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $since_is_set = isset($since);
@@ -3228,16 +3212,6 @@ class Exchange {
         }
     }
 
-    public function parse_positions($positions, $symbols = null, $params = array()) {
-        $symbols = $this->market_symbols($symbols);
-        $array = is_array($positions) ? array_values($positions) : array();
-        $result = array();
-        foreach ($array as $position) {
-            $result[] = $this->merge($this->parse_trade($position), $params);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
-    }
-
     public function safe_number_2($object, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($object, $key1, $key2);
         return $this->parse_number($value, $d);
@@ -3255,6 +3229,31 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
+                $response = $this->fetch_trading_limits($symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $this->markets[$symbol] = $this->deep_extend($this->markets[$symbol], $response[$symbol]);
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
+    }
+
+    public function parse_positions($positions, $symbols = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols);
+        $positions = $this->to_array($positions);
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = array_merge($this->parse_position($positions[$i], null), $params);
+            $result[] = $position;
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
 
     public function parse_accounts($accounts, $params = array ()) {
         $accounts = $this->to_array($accounts);

@@ -256,9 +256,14 @@ class Exchange(BaseExchange):
     async def fetch_full_tickers(self, symbols=None, params={}):
         return await self.fetch_tickers(symbols, params)
 
+    async def sleep(self, milliseconds):
+        return await asyncio.sleep(milliseconds / 1000)
+
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
-            if reload or not('limitsLoaded' in list(self.options.keys())):
+            if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
                 for i in range(0, len(symbols)):
                     symbol = symbols[i]
@@ -266,10 +271,55 @@ class Exchange(BaseExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    async def sleep(self, milliseconds):
-        return await asyncio.sleep(milliseconds / 1000)
+    def parse_positions(self, positions, symbols=None, params={}):
+        symbols = self.market_symbols(symbols)
+        positions = self.to_array(positions)
+        result = []
+        for i in range(0, len(positions)):
+            position = self.extend(self.parse_position(positions[i], None), params)
+            result.append(position)
+        return self.filter_by_array(result, 'symbol', symbols, False)
 
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    def parse_accounts(self, accounts, params={}):
+        accounts = self.to_array(accounts)
+        result = []
+        for i in range(0, len(accounts)):
+            account = self.extend(self.parse_account(accounts[i], None), params)
+            result.append(account)
+        return result
+
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
+        trades = self.to_array(trades)
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.extend(self.parse_trade(trades[i], market), params)
+            result.append(trade)
+        result = self.sort_by_2(result, 'timestamp', 'id')
+        symbol = market['symbol'] if (market is not None) else None
+        tail = since is None
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
+
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
+        transactions = self.to_array(transactions)
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.extend(self.parse_transaction(transactions[i], currency), params)
+            result.append(transaction)
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+
+    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
+        transfers = self.to_array(transfers)
+        result = []
+        for i in range(0, len(transfers)):
+            transfer = self.extend(self.parseTransfer(transfers[i], currency), params)
+            result.append(transfer)
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def nonce(self):
         return self.seconds()
