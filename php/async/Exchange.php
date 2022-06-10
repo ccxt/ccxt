@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.15';
+$version = '1.86.35';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.15';
+    const VERSION = '1.86.35';
 
     public static $loop;
     public static $kernel;
@@ -304,7 +304,7 @@ class Exchange extends \ccxt\Exchange {
         $accounts = $this->to_array($accounts);
         $result = array();
         for ($i = 0; $i < count($accounts); $i++) {
-            $account = array_merge($this->parse_account($accounts[$i], null), $params);
+            $account = array_merge($this->parse_account($accounts[$i]), $params);
             $result[] = $account;
         }
         return $result;
@@ -346,6 +346,25 @@ class Exchange extends \ccxt\Exchange {
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
         $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $result = $array();
+        $array = $this->to_array($data);
+        for ($i = 0; $i < count($array); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+            if (gettype($itemOrItems) === 'array' && count(array_filter(array_keys($itemOrItems), 'is_string')) == 0) {
+                for ($j = 0; $j < count($itemOrItems); $j++) {
+                    $result[] = array_merge($itemOrItems[$j], $params);
+                }
+            } else {
+                $result[] = array_merge($itemOrItems, $params);
+            }
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 

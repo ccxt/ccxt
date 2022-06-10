@@ -486,6 +486,13 @@ class poloniex extends Exchange {
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|null} $symbols not used by poloniex fetchOrderBooks ()
+         * @param {int|null} $limit max number of entries per $orderbook to return, default is null
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+         */
         $this->load_markets();
         $request = array(
             'currencyPair' => 'all',
@@ -1266,6 +1273,13 @@ class poloniex extends Exchange {
     }
 
     public function fetch_closed_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetch an open order by it's $id
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by poloniex fetchClosedOrder
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'orderNumber' => $id,
@@ -1342,6 +1356,12 @@ class poloniex extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a $currency deposit $address
+         * @param {str} $code unified $currency $code of the $currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         // USDT, USDTETH, USDTTRON
         $currencyId = null;

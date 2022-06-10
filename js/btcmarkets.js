@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -133,6 +134,7 @@ module.exports = class btcmarkets extends Exchange {
                 '1h': '1h',
                 '1d': '1d',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
@@ -373,13 +375,13 @@ module.exports = class btcmarkets extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.safeInteger (market, 'priceDecimals');
-            const amountPrecision = this.safeInteger (market, 'amountDecimals');
+            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals')));
             const minAmount = this.safeNumber (market, 'minOrderAmount');
             const maxAmount = this.safeNumber (market, 'maxOrderAmount');
             let minPrice = undefined;
             if (quote === 'AUD') {
-                minPrice = Math.pow (10, -pricePrecision);
+                minPrice = pricePrecision;
             }
             result.push ({
                 'id': id,
@@ -1008,6 +1010,16 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcmarkets#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the btcmarkets api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = {
             'status': 'all',

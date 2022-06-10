@@ -1733,6 +1733,14 @@ class mexc3(Exchange):
         return self.parse_order(data, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -2339,6 +2347,11 @@ class mexc3(Exchange):
             return self.safe_value(response, 'data')
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         # TODO: is the below endpoints suitable for fetchAccounts?
         marketType, query = self.handle_market_type_and_params('fetchAccounts', None, params)
         await self.load_markets()

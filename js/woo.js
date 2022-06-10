@@ -27,9 +27,8 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': false,
                 'createMarketOrder': false,
@@ -841,7 +840,15 @@ module.exports = class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
         }
@@ -923,6 +930,16 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1228,9 +1245,9 @@ module.exports = class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchAccounts
-         * @description query to fetchAccounts
+         * @description fetch all the accounts associated with a profile
          * @param {dict} params extra parameters specific to the woo api endpoint
-         * @returns {dict} a [account structure]{@link https://docs.ccxt.com/en/latest/manual.html?#account-structure}
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         const response = await this.v1PrivateGetSubAccountAssets (params);
         //
@@ -1429,6 +1446,16 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }

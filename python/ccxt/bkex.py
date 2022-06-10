@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bkex(Exchange):
@@ -215,6 +216,7 @@ class bkex(Exchange):
             },
             'commonCurrencies': {
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1005': InsufficientFunds,
@@ -284,8 +286,8 @@ class bkex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'volumePrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'volumePrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {

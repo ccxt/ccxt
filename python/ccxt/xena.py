@@ -593,6 +593,11 @@ class xena(Exchange):
         return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         response = self.privateGetTradingAccounts(params)
         #
         #     {
@@ -1374,6 +1379,12 @@ class xena(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1702,6 +1713,14 @@ class xena(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)

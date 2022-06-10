@@ -444,6 +444,13 @@ class yobit(Exchange):
         return self.parse_order_book(orderbook, symbol)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -1035,6 +1042,12 @@ class yobit(Exchange):
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         request = {
             'need_new': 1,
         }

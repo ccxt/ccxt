@@ -416,7 +416,6 @@ class ascendex extends Exchange {
             $code = $this->safe_currency_code($id);
             $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
             $precision = $this->parse_number($this->parse_precision($scale));
-            // why would the exchange API have different names for the same field
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
             $active = ($status === 'Normal');
@@ -636,6 +635,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         $accountGroup = $this->safe_string($this->options, 'account-group');
         $response = null;
         if ($accountGroup === null) {

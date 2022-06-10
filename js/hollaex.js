@@ -399,6 +399,15 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hollaex#fetchOrderBooks
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|undefined} symbols not used by hollaex fetchOrderBooks ()
+         * @param {int|undefined} limit not used by hollaex fetchOrderBooks ()
+         * @param {dict} params extra parameters specific to the hollaex api endpoint
+         * @returns {dict} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         */
         await this.loadMarkets ();
         const response = await this.publicGetOrderbooks (params);
         const result = {};
@@ -962,6 +971,16 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hollaex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the hollaex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {

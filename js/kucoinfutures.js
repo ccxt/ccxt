@@ -304,6 +304,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         throw new BadRequest (this.id + ' fetchAccounts() is not supported yet');
     }
 
@@ -585,6 +592,14 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         throw new BadRequest (this.id + ' createDepositAddress() is not supported yet');
     }
 

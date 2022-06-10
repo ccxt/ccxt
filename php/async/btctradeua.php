@@ -90,9 +90,10 @@ class btctradeua extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'markets' => array(
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 )), 'type' => 'spot', 'spot' => true ),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 0.1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 )), 'type' => 'spot', 'spot' => true ),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
                 'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
                 'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),

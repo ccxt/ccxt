@@ -29,9 +29,8 @@ class woo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'cancelAllOrders' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress' => false,
                 'createMarketOrder' => false,
@@ -831,7 +830,13 @@ class woo extends Exchange {
         return array_merge($this->parse_order($response), $extendParams);
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
         }
@@ -911,6 +916,14 @@ class woo extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $request = array();
         $market = null;
@@ -1206,9 +1219,9 @@ class woo extends Exchange {
 
     public function fetch_accounts($params = array ()) {
         /**
-         * query to fetchAccounts
+         * fetch all the accounts associated with a profile
          * @param {dict} $params extra parameters specific to the woo api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#account-structure account structure~
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
          */
         $response = yield $this->v1PrivateGetSubAccountAssets ($params);
         //
@@ -1403,6 +1416,14 @@ class woo extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         list($currency, $rows) = yield $this->get_asset_history_rows($code, $since, $limit, $params);
         return $this->parse_ledger($rows, $currency, $since, $limit, $params);
     }

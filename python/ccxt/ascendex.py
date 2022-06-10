@@ -419,7 +419,6 @@ class ascendex(Exchange):
             code = self.safe_currency_code(id)
             scale = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
             precision = self.parse_number(self.parse_precision(scale))
-            # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
             active = (status == 'Normal')
@@ -633,6 +632,11 @@ class ascendex(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         accountGroup = self.safe_string(self.options, 'account-group')
         response = None
         if accountGroup is None:

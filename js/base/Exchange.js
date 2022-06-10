@@ -911,25 +911,6 @@ module.exports = class Exchange {
         });
     }
 
-    parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = [];
-        const array = Object.values (data || []);
-        for (let i = 0; i < array.length; i++) {
-            const itemOrItems = this.parseLedgerEntry (array[i], currency);
-            if (Array.isArray (itemOrItems)) {
-                for (let j = 0; j < itemOrItems.length; j++) {
-                    result.push (this.extend (itemOrItems[j], params));
-                }
-            } else {
-                result.push (this.extend (itemOrItems, params));
-            }
-        }
-        result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = since === undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
-    }
-
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -1643,7 +1624,7 @@ module.exports = class Exchange {
         accounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend (this.parseAccount (accounts[i], undefined), params);
+            const account = this.extend (this.parseAccount (accounts[i]), params);
             result.push (account);
         }
         return result;
@@ -1685,6 +1666,25 @@ module.exports = class Exchange {
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
         const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
+        let result = [];
+        const array = this.toArray (data);
+        for (let i = 0; i < array.length; i++) {
+            const itemOrItems = this.parseLedgerEntry (array[i], currency);
+            if (Array.isArray (itemOrItems)) {
+                for (let j = 0; j < itemOrItems.length; j++) {
+                    result.push (this.extend (itemOrItems[j], params));
+                }
+            } else {
+                result.push (this.extend (itemOrItems, params));
+            }
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const tail = (since === undefined);
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 

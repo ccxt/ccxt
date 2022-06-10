@@ -138,6 +138,7 @@ class bitbns extends Exchange {
                     'maker' => $this->parse_number('0.0025'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // array("msg":"Invalid Request","status":-1,"code":400)
@@ -251,8 +252,8 @@ class bitbns extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($marketPrecision, 'amount'),
-                    'price' => $this->safe_integer($marketPrecision, 'price'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($marketPrecision, 'amount'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($marketPrecision, 'price'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

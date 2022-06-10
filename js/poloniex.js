@@ -495,6 +495,15 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchOrderBooks
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|undefined} symbols not used by poloniex fetchOrderBooks ()
+         * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
+         * @param {dict} params extra parameters specific to the poloniex api endpoint
+         * @returns {dict} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         */
         await this.loadMarkets ();
         const request = {
             'currencyPair': 'all',
@@ -1295,6 +1304,15 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchClosedOrder
+         * @description fetch an open order by it's id
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by poloniex fetchClosedOrder
+         * @param {dict} params extra parameters specific to the poloniex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderNumber': id,
@@ -1373,6 +1391,14 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name poloniex#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the poloniex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         // USDT, USDTETH, USDTTRON
         let currencyId = undefined;

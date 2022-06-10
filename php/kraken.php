@@ -944,6 +944,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest $ledger entry, default is null
+         * @param {int|null} $limit max number of $ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
+         */
         // https://www.kraken.com/features/api#get-ledgers-info
         $this->load_markets();
         $request = array();
@@ -2047,6 +2055,12 @@ class kraken extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @param {str} $code unified currency $code of the currency for the deposit address
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         $request = array(
             'new' => 'true',
         );

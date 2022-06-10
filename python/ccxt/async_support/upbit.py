@@ -505,6 +505,13 @@ class upbit(Exchange):
         return self.parse_balance(response)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: not used by upbit fetchOrderBooks()
+        :param dict params: extra parameters specific to the upbit api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -1527,6 +1534,12 @@ class upbit(Exchange):
         return self.parse_deposit_address(response)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the upbit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {

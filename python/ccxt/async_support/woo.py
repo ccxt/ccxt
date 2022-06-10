@@ -34,9 +34,8 @@ class woo(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'cancelAllOrders': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': False,
                 'createMarketOrder': False,
@@ -804,7 +803,13 @@ class woo(Exchange):
             extendParams['id'] = id
         return self.extend(self.parse_order(response), extendParams)
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         await self.load_markets()
@@ -880,6 +885,14 @@ class woo(Exchange):
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -1159,9 +1172,9 @@ class woo(Exchange):
 
     async def fetch_accounts(self, params={}):
         """
-        query to fetchAccounts
+        fetch all the accounts associated with a profile
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns dict: a `account structure <https://docs.ccxt.com/en/latest/manual.html?#account-structure>`
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
         """
         response = await self.v1PrivateGetSubAccountAssets(params)
         #
@@ -1345,6 +1358,14 @@ class woo(Exchange):
         return [currency, self.safe_value(response, 'rows', {})]
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         currency, rows = await self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
 

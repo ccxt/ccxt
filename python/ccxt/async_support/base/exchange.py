@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.15'
+__version__ = '1.86.35'
 
 # -----------------------------------------------------------------------------
 
@@ -29,6 +29,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TRUNCATE, ROUND
 
 # -----------------------------------------------------------------------------
 
@@ -304,7 +305,7 @@ class Exchange(BaseExchange):
         accounts = self.to_array(accounts)
         result = []
         for i in range(0, len(accounts)):
-            account = self.extend(self.parse_account(accounts[i], None), params)
+            account = self.extend(self.parse_account(accounts[i]), params)
             result.append(account)
         return result
 
@@ -339,6 +340,21 @@ class Exchange(BaseExchange):
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
         tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+
+    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
+        result = []
+        array = self.to_array(data)
+        for i in range(0, len(array)):
+            itemOrItems = self.parse_ledger_entry(array[i], currency)
+            if isinstance(itemOrItems, list):
+                for j in range(0, len(itemOrItems)):
+                    result.append(self.extend(itemOrItems[j], params))
+            else:
+                result.append(self.extend(itemOrItems, params))
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def nonce(self):

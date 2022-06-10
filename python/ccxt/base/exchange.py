@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.15'
+__version__ = '1.86.35'
 
 # -----------------------------------------------------------------------------
 
@@ -1766,20 +1766,6 @@ class Exchange(object):
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
-    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
-        array = self.to_array(data)
-        result = []
-        for item in array:
-            entry = self.parse_ledger_entry(item, currency)
-            if isinstance(entry, list):
-                result += [self.extend(i, params) for i in entry]
-            else:
-                result.append(self.extend(entry, params))
-        result = self.sort_by(result, 'timestamp')
-        code = currency['code'] if currency else None
-        tail = since is None
-        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
-
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
@@ -2457,7 +2443,7 @@ class Exchange(object):
         accounts = self.to_array(accounts)
         result = []
         for i in range(0, len(accounts)):
-            account = self.extend(self.parse_account(accounts[i], None), params)
+            account = self.extend(self.parse_account(accounts[i]), params)
             result.append(account)
         return result
 
@@ -2492,6 +2478,21 @@ class Exchange(object):
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
         tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+
+    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
+        result = []
+        array = self.to_array(data)
+        for i in range(0, len(array)):
+            itemOrItems = self.parse_ledger_entry(array[i], currency)
+            if isinstance(itemOrItems, list):
+                for j in range(0, len(itemOrItems)):
+                    result.append(self.extend(itemOrItems[j], params))
+            else:
+                result.append(self.extend(itemOrItems, params))
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def nonce(self):

@@ -30,8 +30,8 @@ class blockchaincom(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -530,7 +530,13 @@ class blockchaincom(Exchange):
             'info': response,
         }
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # cancels all open orders if no symbol specified
         # cancels all open orders of specified symbol, if symbol is specified
         self.load_markets()
