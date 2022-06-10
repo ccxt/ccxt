@@ -116,10 +116,11 @@ class coinone extends Exchange {
                 ),
             ),
             'precision' => array(
-                'price' => 4,
-                'amount' => 4,
-                'cost' => 8,
+                'price' => 0.0001,
+                'amount' => 0.0001,
+                'cost' => 0.00000001,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
                 '104' => '\\ccxt\\OrderNotFound', // array("errorCode":"104","errorMsg":"Order id is not exist","result":"error")

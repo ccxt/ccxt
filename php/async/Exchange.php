@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.51';
+$version = '1.86.52';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.51';
+    const VERSION = '1.86.52';
 
     public static $loop;
     public static $kernel;
@@ -334,7 +334,7 @@ class Exchange extends \ccxt\Exchange {
         $transfers = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfers); $i++) {
-            $transfer = array_merge($this->parseTransfer ($transfers[$i], $currency), $params);
+            $transfer = array_merge($this->parse_transfer($transfers[$i], $currency), $params);
             $result[] = $transfer;
         }
         $result = $this->sort_by($result, 'timestamp');

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.51'
+__version__ = '1.86.52'
 
 # -----------------------------------------------------------------------------
 
@@ -2463,7 +2463,7 @@ class Exchange(object):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
-            transfer = self.extend(self.parseTransfer(transfers[i], currency), params)
+            transfer = self.extend(self.parse_transfer(transfers[i], currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
