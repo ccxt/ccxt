@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, DDoSProtection, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -133,6 +134,7 @@ module.exports = class btcmarkets extends Exchange {
                 '1h': '1h',
                 '1d': '1d',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
@@ -343,13 +345,13 @@ module.exports = class btcmarkets extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.safeInteger (market, 'priceDecimals');
-            const amountPrecision = this.safeInteger (market, 'amountDecimals');
+            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals')));
             const minAmount = this.safeNumber (market, 'minOrderAmount');
             const maxAmount = this.safeNumber (market, 'maxOrderAmount');
             let minPrice = undefined;
             if (quote === 'AUD') {
-                minPrice = Math.pow (10, -pricePrecision);
+                minPrice = pricePrecision;
             }
             result.push ({
                 'id': id,
