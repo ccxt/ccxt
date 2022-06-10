@@ -1067,6 +1067,15 @@ module.exports = class bkex extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the bkex api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (!Array.isArray (ids)) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }

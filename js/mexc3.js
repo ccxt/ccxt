@@ -2175,6 +2175,15 @@ module.exports = class mexc3 extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the mexc3 api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = symbol !== undefined ? this.market (symbol) : undefined;
         const [ marketType ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
