@@ -193,6 +193,7 @@ class coinmate extends Exchange {
                     'Access denied.' => '\\ccxt\\AuthenticationError', // array("error":true,"errorMessage":"Access denied.","data":null)
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -257,8 +258,8 @@ class coinmate extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'lotDecimals'),
-                    'price' => $this->safe_integer($market, 'priceDecimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'lotDecimals'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
