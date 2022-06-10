@@ -1197,6 +1197,14 @@ class lbank2(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         # default query is for cancelled and completely filled orders
         # does not return open orders unless specified explicitly
         if symbol is None:
@@ -1573,7 +1581,7 @@ class lbank2(Exchange):
         else:
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'txId')
-        timestamp = self.safe_string_2(transaction, 'insertTime', 'applyTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         networks = self.safe_value(self.options, 'inverse-networks', {})
         networkId = self.safe_string(transaction, 'networkName')
         network = self.safe_string(networks, networkId, networkId)

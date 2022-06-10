@@ -1929,6 +1929,12 @@ class kraken(Exchange):
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         request = {
             'new': 'true',
         }

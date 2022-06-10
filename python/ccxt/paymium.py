@@ -271,6 +271,12 @@ class paymium(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the paymium api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         response = self.privatePostUserAddresses(params)
         #

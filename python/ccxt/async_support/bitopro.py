@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -182,6 +183,7 @@ class bitopro(Exchange):
                     'TRC20': 'TRX',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Unsupported currency.': BadRequest,  # {"error":"Unsupported currency."}
@@ -299,10 +301,6 @@ class bitopro(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'basePrecision'),
-            }
             limits = {
                 'amount': {
                     'min': self.safe_number(market, 'minLimitBaseAmount'),
@@ -347,7 +345,10 @@ class bitopro(Exchange):
                 'strike': None,
                 'optionType': None,
                 'limits': limits,
-                'precision': precision,
+                'precision': {
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+                },
                 'active': active,
                 'info': market,
             })
@@ -1086,6 +1087,14 @@ class bitopro(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitopro api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires the symbol argument')
         await self.load_markets()

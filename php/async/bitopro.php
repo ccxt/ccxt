@@ -178,6 +178,7 @@ class bitopro extends Exchange {
                     'TRC20' => 'TRX',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Unsupported currency.' => '\\ccxt\\BadRequest', // array("error":"Unsupported currency.")
@@ -298,10 +299,6 @@ class bitopro extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'basePrecision'),
-            );
             $limits = array(
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minLimitBaseAmount'),
@@ -346,7 +343,10 @@ class bitopro extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'limits' => $limits,
-                'precision' => $precision,
+                'precision' => array(
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+                ),
                 'active' => $active,
                 'info' => $market,
             );
@@ -1131,6 +1131,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires the $symbol argument');
         }

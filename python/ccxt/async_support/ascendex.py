@@ -632,6 +632,11 @@ class ascendex(Exchange):
         return result
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         accountGroup = self.safe_string(self.options, 'account-group')
         response = None
         if accountGroup is None:

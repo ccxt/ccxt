@@ -123,6 +123,7 @@ class bitforex extends Exchange {
                 'NOIA' => 'METANOIA',
                 'TON' => 'To The Moon',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '1000' => '\\ccxt\\OrderNotFound', // array("code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong")
                 '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")
@@ -194,8 +195,8 @@ class bitforex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amountPrecision'),
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

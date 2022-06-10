@@ -483,6 +483,13 @@ class poloniex(Exchange):
         return orderbook
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: not used by poloniex fetchOrderBooks()
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         request = {
             'currencyPair': 'all',
@@ -1211,6 +1218,13 @@ class poloniex(Exchange):
         })
 
     async def fetch_closed_order(self, id, symbol=None, params={}):
+        """
+        fetch an open order by it's id
+        :param str id: order id
+        :param str|None symbol: not used by poloniex fetchClosedOrder
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'orderNumber': id,
@@ -1283,6 +1297,12 @@ class poloniex(Exchange):
         return self.parse_trades(trades)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         # USDT, USDTETH, USDTTRON
         currencyId = None
