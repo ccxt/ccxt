@@ -442,7 +442,7 @@ class crex24(Exchange):
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
             withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
-            precision = math.pow(10, -withdrawalPrecision)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawalPrecision')))
             address = self.safe_value(currency, 'BaseAddress')
             deposit = self.safe_value(currency, 'depositsAllowed')
             withdraw = self.safe_value(currency, 'withdrawalsAllowed')
@@ -464,8 +464,8 @@ class crex24(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': math.pow(10, withdrawalPrecision),
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),
