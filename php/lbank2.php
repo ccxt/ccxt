@@ -1655,7 +1655,7 @@ class lbank2 extends Exchange {
             $type = 'withdrawal';
         }
         $txid = $this->safe_string($transaction, 'txId');
-        $timestamp = $this->safe_string_2($transaction, 'insertTime', 'applyTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
         $networks = $this->safe_value($this->options, 'inverse-networks', array());
         $networkId = $this->safe_string($transaction, 'networkName');
         $network = $this->safe_string($networks, $networkId, $networkId);

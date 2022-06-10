@@ -397,6 +397,13 @@ class hollaex(Exchange):
         return result
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: not used by hollaex fetchOrderBooks()
+        :param int|None limit: not used by hollaex fetchOrderBooks()
+        :param dict params: extra parameters specific to the hollaex api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         response = await self.publicGetOrderbooks(params)
         result = {}

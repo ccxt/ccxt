@@ -483,6 +483,13 @@ class poloniex(Exchange):
         return orderbook
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: not used by poloniex fetchOrderBooks()
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         self.load_markets()
         request = {
             'currencyPair': 'all',

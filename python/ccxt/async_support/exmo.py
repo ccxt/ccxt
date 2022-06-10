@@ -800,6 +800,13 @@ class exmo(Exchange):
         return self.parse_order_book(result, symbol, None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         ids = None
         if symbols is None:

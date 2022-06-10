@@ -486,6 +486,13 @@ class poloniex extends Exchange {
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|null} $symbols not used by poloniex fetchOrderBooks ()
+         * @param {int|null} $limit max number of entries per $orderbook to return, default is null
+         * @param {dict} $params extra parameters specific to the poloniex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+         */
         $this->load_markets();
         $request = array(
             'currencyPair' => 'all',

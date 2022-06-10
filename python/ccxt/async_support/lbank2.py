@@ -1573,7 +1573,7 @@ class lbank2(Exchange):
         else:
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'txId')
-        timestamp = self.safe_string_2(transaction, 'insertTime', 'applyTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         networks = self.safe_value(self.options, 'inverse-networks', {})
         networkId = self.safe_string(transaction, 'networkName')
         network = self.safe_string(networks, networkId, networkId)
