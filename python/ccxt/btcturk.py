@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -119,6 +120,7 @@ class btcturk(Exchange):
                     'FAILED_MARKET_ORDER': InvalidOrder,
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def fetch_markets(self, params={}):
@@ -221,8 +223,8 @@ class btcturk(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(entry, 'numeratorScale'),
-                    'price': self.safe_integer(entry, 'denominatorScale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'numeratorScale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'denominatorScale'))),
                 },
                 'limits': {
                     'leverage': {

@@ -115,6 +115,7 @@ class btcturk extends Exchange {
                     'FAILED_MARKET_ORDER' => '\\ccxt\\InvalidOrder',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -220,8 +221,8 @@ class btcturk extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($entry, 'numeratorScale'),
-                    'price' => $this->safe_integer($entry, 'denominatorScale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
