@@ -27,9 +27,8 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': false,
                 'createMarketOrder': false,
@@ -841,7 +840,15 @@ module.exports = class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
         }
