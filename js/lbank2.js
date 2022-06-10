@@ -1685,7 +1685,7 @@ module.exports = class lbank2 extends Exchange {
             type = 'withdrawal';
         }
         const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeString2 (transaction, 'insertTime', 'applyTime');
+        const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
         const networks = this.safeValue (this.options, 'inverse-networks', {});
         const networkId = this.safeString (transaction, 'networkName');
         const network = this.safeString (networks, networkId, networkId);
