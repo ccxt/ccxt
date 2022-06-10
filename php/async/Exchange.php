@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.13';
+$version = '1.86.14';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.13';
+    const VERSION = '1.86.14';
 
     public static $loop;
     public static $kernel;
@@ -298,9 +298,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function filter_by_array($objects, $key, $values = null, $indexed = true) {
-        if (gettype($objects) === 'array') {
-            $objects = is_array($objects) ? array_values($objects) : array();
-        }
+        $objects = $this->to_array($objects);
         // return all of them if no $values were passed
         if ($values === null || !$values) {
             return $indexed ? $this->index_by($objects, $key) : $objects;
@@ -905,9 +903,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
         $result = array();
-        if (gettype($tickers) === 'array') {
-            $tickers = is_array($tickers) ? array_values($tickers) : array();
-        }
+        $tickers = $this->to_array($tickers);
         for ($i = 0; $i < count($tickers); $i++) {
             $result[] = array_merge($this->parse_ticker($tickers[$i]), $params);
         }

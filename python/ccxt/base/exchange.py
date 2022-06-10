@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.13'
+__version__ = '1.86.14'
 
 # -----------------------------------------------------------------------------
 
@@ -2491,8 +2491,7 @@ class Exchange(object):
         ]
 
     def filter_by_array(self, objects, key, values=None, indexed=True):
-        if isinstance(objects, dict):
-            objects = list(objects.values())
+        objects = self.to_array(objects)
         # return all of them if no values were passed
         if values is None or not values:
             return self.index_by(objects, key) if indexed else objects
@@ -2960,8 +2959,7 @@ class Exchange(object):
 
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
-        if isinstance(tickers, dict):
-            tickers = list(tickers.values())
+        tickers = self.to_array(tickers)
         for i in range(0, len(tickers)):
             result.append(self.extend(self.parse_ticker(tickers[i]), params))
         return self.filter_by_array(result, 'symbol', symbols)

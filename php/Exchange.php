@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.86.13';
+$version = '1.86.14';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.86.13';
+    const VERSION = '1.86.14';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3330,9 +3330,7 @@ class Exchange {
     }
 
     public function filter_by_array($objects, $key, $values = null, $indexed = true) {
-        if (gettype($objects) === 'array') {
-            $objects = is_array($objects) ? array_values($objects) : array();
-        }
+        $objects = $this->to_array($objects);
         // return all of them if no $values were passed
         if ($values === null || !$values) {
             return $indexed ? $this->index_by($objects, $key) : $objects;
@@ -3937,9 +3935,7 @@ class Exchange {
 
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
         $result = array();
-        if (gettype($tickers) === 'array') {
-            $tickers = is_array($tickers) ? array_values($tickers) : array();
-        }
+        $tickers = $this->to_array($tickers);
         for ($i = 0; $i < count($tickers); $i++) {
             $result[] = array_merge($this->parse_ticker($tickers[$i]), $params);
         }
