@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.29'
+__version__ = '1.86.30'
 
 # -----------------------------------------------------------------------------
 
@@ -2433,7 +2433,7 @@ class Exchange(object):
         accounts = self.to_array(accounts)
         result = []
         for i in range(0, len(accounts)):
-            account = self.extend(self.parse_account(accounts[i], None), params)
+            account = self.extend(self.parse_account(accounts[i]), params)
             result.append(account)
         return result
 

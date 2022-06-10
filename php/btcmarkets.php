@@ -136,6 +136,7 @@ class btcmarkets extends Exchange {
                 '1h' => '1h',
                 '1d' => '1d',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '3' => '\\ccxt\\InvalidOrder',
                 '6' => '\\ccxt\\DDoSProtection',
@@ -368,13 +369,13 @@ class btcmarkets extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
-            $pricePrecision = $this->safe_integer($market, 'priceDecimals');
-            $amountPrecision = $this->safe_integer($market, 'amountDecimals');
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimals')));
             $minAmount = $this->safe_number($market, 'minOrderAmount');
             $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
             if ($quote === 'AUD') {
-                $minPrice = pow(10, -$pricePrecision);
+                $minPrice = $pricePrecision;
             }
             $result[] = array(
                 'id' => $id,

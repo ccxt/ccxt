@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -13,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class btcmarkets(Exchange):
@@ -142,6 +142,7 @@ class btcmarkets(Exchange):
                 '1h': '1h',
                 '1d': '1d',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '3': InvalidOrder,
                 '6': DDoSProtection,
@@ -359,13 +360,13 @@ class btcmarkets(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = self.safe_integer(market, 'priceDecimals')
-            amountPrecision = self.safe_integer(market, 'amountDecimals')
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals')))
             minAmount = self.safe_number(market, 'minOrderAmount')
             maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
             if quote == 'AUD':
-                minPrice = math.pow(10, -pricePrecision)
+                minPrice = pricePrecision
             result.append({
                 'id': id,
                 'symbol': symbol,
