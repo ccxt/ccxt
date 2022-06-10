@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coincheck(Exchange):
@@ -148,6 +149,7 @@ class coincheck(Exchange):
                     'taker': self.parse_number('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError,  # {"success":false,"error":"disabled API Key"}'

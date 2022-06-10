@@ -148,6 +148,7 @@ class coincheck extends Exchange {
                     'taker' => $this->parse_number('0'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'disabled API Key' => '\\ccxt\\AuthenticationError', // array("success":false,"error":"disabled API Key")'
