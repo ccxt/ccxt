@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -128,6 +129,7 @@ module.exports = class bigone extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': BadRequest, // syntax error
@@ -239,8 +241,8 @@ module.exports = class bigone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'base_scale'),
-                    'price': this.safeInteger (market, 'quote_scale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
                 },
                 'limits': {
                     'leverage': {
