@@ -300,37 +300,61 @@ module.exports = class coinbasepro extends Exchange {
          */
         const response = await this.publicGetProducts (params);
         //
-        //    [
-        //        {
-        //            "id": "ZEC-BTC",
-        //            "base_currency": "ZEC",
-        //            "quote_currency": "BTC",
-        //            "base_min_size": "0.0056",
-        //            "base_max_size": "3600",
-        //            "quote_increment": "0.000001",
-        //            "base_increment": "0.0001",
-        //            "display_name": "ZEC/BTC",
-        //            "min_market_funds": "0.000016",
-        //            "max_market_funds": "12",
-        //            "margin_enabled": false,
-        //            "fx_stablecoin": false,
-        //            "max_slippage_percentage": "0.03000000",
-        //            "post_only": false,
-        //            "limit_only": false,
-        //            "cancel_only": false,
-        //            "trading_disabled": false,
-        //            "status": "online",
-        //            "status_message": "",
-        //            "auction_mode": false
-        //          },
-        //    ]
+        //     [
+        //         {
+        //             id: 'BTCAUCTION-USD',
+        //             base_currency: 'BTC',
+        //             quote_currency: 'USD',
+        //             base_min_size: '0.000016',
+        //             base_max_size: '1500',
+        //             quote_increment: '0.01',
+        //             base_increment: '0.00000001',
+        //             display_name: 'BTCAUCTION/USD',
+        //             min_market_funds: '1',
+        //             max_market_funds: '20000000',
+        //             margin_enabled: false,
+        //             fx_stablecoin: false,
+        //             max_slippage_percentage: '0.02000000',
+        //             post_only: false,
+        //             limit_only: false,
+        //             cancel_only: true,
+        //             trading_disabled: false,
+        //             status: 'online',
+        //             status_message: '',
+        //             auction_mode: false
+        //         },
+        //         {
+        //             id: 'BTC-USD',
+        //             base_currency: 'BTC',
+        //             quote_currency: 'USD',
+        //             base_min_size: '0.000016',
+        //             base_max_size: '1500',
+        //             quote_increment: '0.01',
+        //             base_increment: '0.00000001',
+        //             display_name: 'BTC/USD',
+        //             min_market_funds: '1',
+        //             max_market_funds: '20000000',
+        //             margin_enabled: false,
+        //             fx_stablecoin: false,
+        //             max_slippage_percentage: '0.02000000',
+        //             post_only: false,
+        //             limit_only: false,
+        //             cancel_only: false,
+        //             trading_disabled: false,
+        //             status: 'online',
+        //             status_message: '',
+        //             auction_mode: false
+        //         }
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+            const [ baseId, quoteId ] = id.split ('-');
+            // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            // const baseId = this.safeString (market, 'base_currency');
+            // const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
