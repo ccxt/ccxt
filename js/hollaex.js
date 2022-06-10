@@ -1314,6 +1314,14 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name hollaex#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {dict} params extra parameters specific to the hollaex api endpoint
+         * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         params = this.omit (params, 'network');
