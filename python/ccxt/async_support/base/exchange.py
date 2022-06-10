@@ -261,6 +261,26 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in orderbook) else []
+        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in orderbook) else []
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+
+    def parse_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ohlcv(ohlcvs[i], market))
+        sorted = self.sort_by(results, 0)
+        tail = (since is None)
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:
             if reload or not ('limitsLoaded' in self.options):
@@ -314,7 +334,7 @@ class Exchange(BaseExchange):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
-            transfer = self.extend(self.parseTransfer(transfers[i], currency), params)
+            transfer = self.extend(self.parse_transfer(transfers[i], currency), params)
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None

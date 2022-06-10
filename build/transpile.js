@@ -94,6 +94,8 @@ class Transpiler {
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.parseTransactions\s/g, '.parse_transactions'],
             [ /\.parseTransaction\s/g, '.parse_transaction'],
+            [ /\.parseTransfers\s/g, '.parse_transfers'],
+            [ /\.parseTransfer\s/g, '.parse_transfer'],
             [ /\.parseOrderBook\s/g, '.parse_order_book'],
             [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
             [ /\.parseBidAsk\s/g, '.parse_bid_ask'],

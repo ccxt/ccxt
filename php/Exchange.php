@@ -288,7 +288,6 @@ class Exchange {
         'marketSymbols' => 'market_symbols',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
-        'parseOrderBook' => 'parse_order_book',
         'safeBalance' => 'safe_balance',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
@@ -298,7 +297,6 @@ class Exchange {
         'parseOrders' => 'parse_orders',
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
-        'parseOHLCVs' => 'parse_ohlc_vs',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
         'remove0xPrefix' => 'remove0x_prefix',
@@ -315,6 +313,8 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'safeNumber2' => 'safe_number2',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'parseOrderBook' => 'parse_order_book',
+        'parseOHLCVs' => 'parse_ohlc_vs',
         'loadTradingLimits' => 'load_trading_limits',
         'parsePositions' => 'parse_positions',
         'parseAccounts' => 'parse_accounts',
@@ -3230,6 +3230,29 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
+        $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();
+        $asks = (is_array($orderbook) && array_key_exists($asksKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$asksKey], $priceKey, $amountKey) : array();
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->sort_by($bids, 0, true),
+            'asks' => $this->sort_by($asks, 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'nonce' => null,
+        );
+    }
+
+    public function parse_ohlc_vs($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $results = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
+        }
+        $sorted = $this->sort_by($results, 0);
+        $tail = ($since === null);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+    }
+
     public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded', $this->options))) {
@@ -3295,7 +3318,7 @@ class Exchange {
         $transfers = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfers); $i++) {
-            $transfer = array_merge($this->parseTransfer ($transfers[$i], $currency), $params);
+            $transfer = array_merge($this->parse_transfer($transfers[$i], $currency), $params);
             $result[] = $transfer;
         }
         $result = $this->sort_by($result, 'timestamp');
