@@ -213,6 +213,7 @@ class bkex extends Exchange {
             ),
             'commonCurrencies' => array(
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '1005' => '\\ccxt\\InsufficientFunds',
@@ -283,8 +284,8 @@ class bkex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'volumePrecision'),
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volumePrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
