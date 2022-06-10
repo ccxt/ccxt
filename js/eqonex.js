@@ -988,6 +988,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'ordStatus': '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
@@ -995,6 +1005,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'ordStatus': '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };

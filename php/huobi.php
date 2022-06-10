@@ -3397,6 +3397,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', null, $params);
@@ -4189,6 +4197,13 @@ class huobi extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol unified $market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', null, $params);
@@ -4831,35 +4846,42 @@ class huobi extends Exchange {
     }
 
     public function fetch_borrow_rates_per_symbol($params = array ()) {
+        /**
+         * fetch borrow $rates for $currencies within individual markets
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by $market $symbol
+         */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
-        // {
-        //     "status" => "ok",
-        //     "data" => array(
-        //         {
-        //             "symbol" => "1inchusdt",
-        //             "currencies" => array(
-        //                 array(
-        //                     "currency" => "1inch",
-        //                     "interest-$rate" => "0.00098",
-        //                     "min-loan-amt" => "90.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-$rate" => "0.00098"
-        //                 ),
-        //                 array(
-        //                     "currency" => "usdt",
-        //                     "interest-$rate" => "0.00098",
-        //                     "min-loan-amt" => "100.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-$rate" => "0.00098"
-        //                 }
-        //             )
-        //         ),
-        //         ...
-        //     )
-        // }
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "1inchusdt",
+        //                "currencies" => array(
+        //                    array(
+        //                        "currency" => "1inch",
+        //                        "interest-$rate" => "0.00098",
+        //                        "min-loan-amt" => "90.000000000000000000",
+        //                        "max-loan-amt" => "1000.000000000000000000",
+        //                        "loanable-amt" => "0.0",
+        //                        "actual-$rate" => "0.00098"
+        //                    ),
+        //                    array(
+        //                        "currency" => "usdt",
+        //                        "interest-$rate" => "0.00098",
+        //                        "min-loan-amt" => "100.000000000000000000",
+        //                        "max-loan-amt" => "1000.000000000000000000",
+        //                        "loanable-amt" => "0.0",
+        //                        "actual-$rate" => "0.00098"
+        //                    }
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
         $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data', array());
         $rates = array(
@@ -6265,7 +6287,7 @@ class huobi extends Exchange {
         return $this->safe_value($tiers, $symbol);
     }
 
-    public function parse_leverage_tiers($response, $symbols, $marketIdKey) {
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];

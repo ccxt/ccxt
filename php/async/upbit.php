@@ -1467,10 +1467,26 @@ class upbit extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the upbit api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return yield $this->fetch_orders_by_state('done', $symbol, $since, $limit, $params);
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the upbit api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return yield $this->fetch_orders_by_state('cancel', $symbol, $since, $limit, $params);
     }
 

@@ -932,12 +932,28 @@ class eqonex(Exchange):
         return self.parse_order(response)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the eqonex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'ordStatus': '2',  # '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the eqonex api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'ordStatus': '4',  # '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         }

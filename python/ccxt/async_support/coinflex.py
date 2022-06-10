@@ -1916,6 +1916,14 @@ class coinflex(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {}
@@ -2152,6 +2160,13 @@ class coinflex(Exchange):
         return self.parse_order(firstOrder, market)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         market = self.market(symbol)

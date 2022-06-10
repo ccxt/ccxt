@@ -317,6 +317,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -620,11 +629,31 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const state = 'CANCELED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const state = 'FILLED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
@@ -988,6 +1017,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {str} id deposit id
+         * @param {str|undefined} code not used by blockchaincom fetchDeposit ()
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const depositId = this.safeString (params, 'depositId', id);
         const request = {

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.86.35';
+$version = '1.86.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.86.35';
+    const VERSION = '1.86.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -308,12 +308,12 @@ class Exchange {
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
-        'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'safeNumber2' => 'safe_number2',
         'handleHttpStatusCode' => 'handle_http_status_code',
         'parseOrderBook' => 'parse_order_book',
         'parseOHLCVs' => 'parse_ohlc_vs',
+        'parseLeverageTiers' => 'parse_leverage_tiers',
         'loadTradingLimits' => 'load_trading_limits',
         'parsePositions' => 'parse_positions',
         'parseAccounts' => 'parse_accounts',
@@ -3159,25 +3159,6 @@ class Exchange {
         return $string_number;
     }
 
-    public function parse_leverage_tiers($response, $symbols, $market_id_key){
-        $tiers = array();
-        for ($i = 0; $i < count($response); $i++){
-            $item = $response[$i];
-            $id = $this->safe_string($item, $market_id_key);
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $symbols_length = 0;
-            if ($symbols !== null){
-                $symbols_length = count($symbols);
-            }
-            $contract = $this->safe_value($market, 'contract', false);
-            if ($contract && ($symbols_length === 0 || in_array($symbol, $symbols))){
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
-            }
-        }
-        return $tiers;
-    }
-
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
@@ -3232,6 +3213,23 @@ class Exchange {
         $sorted = $this->sort_by($results, 0);
         $tail = ($since === null);
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+    }
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        // $marketIdKey should only be null when $response is a dictionary
+        $symbols = $this->market_symbols($symbols);
+        $tiers = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $id = $this->safe_string($item, $marketIdKey);
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+            }
+        }
+        return $tiers;
     }
 
     public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {

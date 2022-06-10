@@ -645,6 +645,14 @@ class oceanex(Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'states': ['done', 'cancel'],
         }
@@ -811,6 +819,13 @@ class oceanex(Exchange):
         return self.parse_order(data)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by oceanex cancelOrders()
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
         data = self.safe_value(response, 'data')

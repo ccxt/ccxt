@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.35';
+$version = '1.86.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.35';
+    const VERSION = '1.86.43';
 
     public static $loop;
     public static $kernel;
@@ -273,6 +273,23 @@ class Exchange extends \ccxt\Exchange {
         $sorted = $this->sort_by($results, 0);
         $tail = ($since === null);
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+    }
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        // $marketIdKey should only be null when $response is a dictionary
+        $symbols = $this->market_symbols($symbols);
+        $tiers = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $id = $this->safe_string($item, $marketIdKey);
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+            }
+        }
+        return $tiers;
     }
 
     public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {

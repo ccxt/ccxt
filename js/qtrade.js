@@ -1216,6 +1216,16 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name qtrade#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the qtrade api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = { 'open': false };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1289,6 +1299,15 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name qtrade#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {str} id deposit id
+         * @param {str|undefined} code not used by qtrade fetchDeposit ()
+         * @param {dict} params extra parameters specific to the qtrade api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'deposit_id': id,
@@ -1403,6 +1422,16 @@ module.exports = class qtrade extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name qtrade#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the qtrade api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {

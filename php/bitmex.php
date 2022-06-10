@@ -682,6 +682,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         // Bitmex barfs if you set 'open' => false in the filter...
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -1811,6 +1819,13 @@ class bitmex extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol not used by bitmex cancelOrders ()
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return $this->cancel_order($ids, $symbol, $params);
     }
 

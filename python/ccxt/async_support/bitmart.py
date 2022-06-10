@@ -1951,9 +1951,25 @@ class bitmart(Exchange):
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -2193,6 +2209,13 @@ class bitmart(Exchange):
         return self.parse_transactions(records, currency, since, limit)
 
     async def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by bitmart fetchDeposit()
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,

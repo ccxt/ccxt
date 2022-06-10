@@ -2038,6 +2038,13 @@ class okx(Exchange):
             return ids
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -2578,6 +2585,14 @@ class okx(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2712,6 +2727,14 @@ class okx(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         request = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION

@@ -82,6 +82,8 @@ class Transpiler {
             [ /\.parseDate\s/g, '.parse_date'],
             [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
             [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
+            [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
+            [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],

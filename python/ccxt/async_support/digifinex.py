@@ -998,6 +998,13 @@ class digifinex(Exchange):
         return response
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by digifinex cancelOrders()
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)

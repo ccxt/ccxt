@@ -501,6 +501,13 @@ class kuna extends Exchange {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
+         */
         return $this->fetch_order_book($symbol, $limit, $params);
     }
 

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.35'
+__version__ = '1.86.43'
 
 # -----------------------------------------------------------------------------
 
@@ -2367,20 +2367,6 @@ class Exchange(object):
             return None
         return string_number
 
-    def parse_leverage_tiers(self, response, symbols, market_id_key):
-        tiers = {}
-        for item in response:
-            id = self.safe_string(item, market_id_key)
-            market = self.safe_market(id)
-            symbol = market['symbol']
-            symbols_length = 0
-            if (symbols is not None):
-                symbols_length = len(symbols)
-            contract = self.safe_value(market, 'contract', False)
-            if (contract and (symbols_length == 0 or symbol in symbols)):
-                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
-        return tiers
-
     def check_order_arguments(self, market, type, side, amount, price, params):
         if price is None:
             if type == 'limit':
@@ -2419,6 +2405,20 @@ class Exchange(object):
         sorted = self.sort_by(results, 0)
         tail = (since is None)
         return self.filter_by_since_limit(sorted, since, limit, 0, tail)
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        # marketIdKey should only be None when response is a dictionary
+        symbols = self.market_symbols(symbols)
+        tiers = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            id = self.safe_string(item, marketIdKey)
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            contract = self.safe_value(market, 'contract', False)
+            if contract and ((symbols is None) or self.in_array(symbol, symbols)):
+                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        return tiers
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:

@@ -3421,6 +3421,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', undefined, params);
@@ -4219,6 +4229,15 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', undefined, params);
@@ -4873,35 +4892,44 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchBorrowRatesPerSymbol (params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchBorrowRatesPerSymbol
+         * @description fetch borrow rates for currencies within individual markets
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} indexed by market symbol
+         */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1MarginLoanInfo (params);
-        // {
-        //     "status": "ok",
-        //     "data": [
-        //         {
-        //             "symbol": "1inchusdt",
-        //             "currencies": [
-        //                 {
-        //                     "currency": "1inch",
-        //                     "interest-rate": "0.00098",
-        //                     "min-loan-amt": "90.000000000000000000",
-        //                     "max-loan-amt": "1000.000000000000000000",
-        //                     "loanable-amt": "0.0",
-        //                     "actual-rate": "0.00098"
-        //                 },
-        //                 {
-        //                     "currency": "usdt",
-        //                     "interest-rate": "0.00098",
-        //                     "min-loan-amt": "100.000000000000000000",
-        //                     "max-loan-amt": "1000.000000000000000000",
-        //                     "loanable-amt": "0.0",
-        //                     "actual-rate": "0.00098"
-        //                 }
-        //             ]
-        //         },
-        //         ...
-        //     ]
-        // }
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "1inchusdt",
+        //                "currencies": [
+        //                    {
+        //                        "currency": "1inch",
+        //                        "interest-rate": "0.00098",
+        //                        "min-loan-amt": "90.000000000000000000",
+        //                        "max-loan-amt": "1000.000000000000000000",
+        //                        "loanable-amt": "0.0",
+        //                        "actual-rate": "0.00098"
+        //                    },
+        //                    {
+        //                        "currency": "usdt",
+        //                        "interest-rate": "0.00098",
+        //                        "min-loan-amt": "100.000000000000000000",
+        //                        "max-loan-amt": "1000.000000000000000000",
+        //                        "loanable-amt": "0.0",
+        //                        "actual-rate": "0.00098"
+        //                    }
+        //                ]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'data', []);
         const rates = {
@@ -6331,7 +6359,7 @@ module.exports = class huobi extends Exchange {
         return this.safeValue (tiers, symbol);
     }
 
-    parseLeverageTiers (response, symbols, marketIdKey) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
