@@ -454,7 +454,7 @@ module.exports = class bitmart extends Exchange {
         //                  "base_max_size": "100000000.000000000000000000000000000000",
         //                  "price_min_precision": -1,
         //                  "price_max_precision": 2,
-        //                  "quote_increment": "0.00001", // The minimum order quantity is also the minimum order quantity increment [Comment: I think they confuse term 'order quantity' for 'order cost', as price increment is 0.01 for BTC/USDT]
+        //                  "quote_increment": "0.00001", // Api docs says "The minimum order quantity is also the minimum order quantity increment", however I think they mistakenly use the term 'order quantity'
         //                  "expiration": "NA",
         //                  "min_buy_amount": "5.000000000000000000000000000000",
         //                  "min_sell_amount": "5.000000000000000000000000000000",
