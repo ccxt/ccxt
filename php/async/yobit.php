@@ -1072,6 +1072,12 @@ class yobit extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit $address
+         * @param {str} $code unified currency $code of the currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the yobit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $request = array(
             'need_new' => 1,
         );

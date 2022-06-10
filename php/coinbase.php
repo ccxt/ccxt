@@ -302,6 +302,12 @@ class coinbase extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit $address
+         * @param {str} $code unified currency $code of the currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $accountId = $this->safe_string($params, 'account_id');
         $params = $this->omit($params, 'account_id');
         if ($accountId === null) {
