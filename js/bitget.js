@@ -1077,6 +1077,7 @@ module.exports = class bitget extends Exchange {
                     'withdraw': withdrawEnabled === 'true',
                     'deposit': depositEnabled === 'true',
                     'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': undefined,
                 };
             }
             result[code] = {
