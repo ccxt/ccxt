@@ -313,6 +313,13 @@ class blockchaincom(Exchange):
         return await self.fetch_l3_order_book(symbol, limit, params)
 
     async def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified market symbol
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        """
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
