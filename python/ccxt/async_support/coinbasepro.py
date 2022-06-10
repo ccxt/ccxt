@@ -305,37 +305,61 @@ class coinbasepro(Exchange):
         """
         response = await self.publicGetProducts(params)
         #
-        #    [
-        #        {
-        #            "id": "ZEC-BTC",
-        #            "base_currency": "ZEC",
-        #            "quote_currency": "BTC",
-        #            "base_min_size": "0.0056",
-        #            "base_max_size": "3600",
-        #            "quote_increment": "0.000001",
-        #            "base_increment": "0.0001",
-        #            "display_name": "ZEC/BTC",
-        #            "min_market_funds": "0.000016",
-        #            "max_market_funds": "12",
-        #            "margin_enabled": False,
-        #            "fx_stablecoin": False,
-        #            "max_slippage_percentage": "0.03000000",
-        #            "post_only": False,
-        #            "limit_only": False,
-        #            "cancel_only": False,
-        #            "trading_disabled": False,
-        #            "status": "online",
-        #            "status_message": "",
-        #            "auction_mode": False
-        #          },
-        #    ]
+        #     [
+        #         {
+        #             id: 'BTCAUCTION-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTCAUCTION/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: True,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         },
+        #         {
+        #             id: 'BTC-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTC/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: False,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         }
+        #     ]
         #
         result = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
+            baseId, quoteId = id.split('-')
+            # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            # baseId = self.safe_string(market, 'base_currency')
+            # quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
