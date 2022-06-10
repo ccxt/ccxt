@@ -1507,26 +1507,6 @@ module.exports = class Exchange {
         }
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
-        // marketIdKey should only be undefined when response is a dictionary
-        const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            let symbolsLength = 0;
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-            }
-            const contract = this.safeValue (market, 'contract', false);
-            if (contract && (symbolsLength === 0 || symbols.includes (symbol))) {
-                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
-            }
-        }
-        return tiers;
-    }
-
     checkOrderArguments (market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {
@@ -1593,6 +1573,23 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        // marketIdKey should only be undefined when response is a dictionary
+        symbols = this.marketSymbols (symbols);
+        const tiers = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const id = this.safeString (item, marketIdKey);
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+            }
+        }
+        return tiers;
+    }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         if (this.has['fetchTradingLimits']) {

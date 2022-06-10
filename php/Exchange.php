@@ -310,10 +310,10 @@ class Exchange {
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
-        'parseLeverageTiers' => 'parse_leverage_tiers',
         'checkOrderArguments' => 'check_order_arguments',
         'safeNumber2' => 'safe_number2',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'parseLeverageTiers' => 'parse_leverage_tiers',
         'loadTradingLimits' => 'load_trading_limits',
         'parsePositions' => 'parse_positions',
         'parseAccounts' => 'parse_accounts',
@@ -3159,25 +3159,6 @@ class Exchange {
         return $string_number;
     }
 
-    public function parse_leverage_tiers($response, $symbols, $market_id_key){
-        $tiers = array();
-        for ($i = 0; $i < count($response); $i++){
-            $item = $response[$i];
-            $id = $this->safe_string($item, $market_id_key);
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $symbols_length = 0;
-            if ($symbols !== null){
-                $symbols_length = count($symbols);
-            }
-            $contract = $this->safe_value($market, 'contract', false);
-            if ($contract && ($symbols_length === 0 || in_array($symbol, $symbols))){
-                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
-            }
-        }
-        return $tiers;
-    }
-
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
@@ -3210,6 +3191,23 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        // $marketIdKey should only be null when $response is a dictionary
+        $symbols = $this->market_symbols($symbols);
+        $tiers = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $id = $this->safe_string($item, $marketIdKey);
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+            }
+        }
+        return $tiers;
+    }
 
     public function load_trading_limits($symbols = null, $reload = false, $params = array ()) {
         if ($this->has['fetchTradingLimits']) {
