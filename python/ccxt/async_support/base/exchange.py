@@ -271,15 +271,49 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    async def fetch2(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    def nonce(self):
+        return self.seconds()
+
+    def set_headers(self, headers):
+        return headers
+
+    def market_id(self, symbol):
+        market = self.market(symbol)
+        if market is not None:
+            return market['id']
+        return symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return self.safe_string(market, 'symbol', symbol)
+
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path)),
+        ]
+
+    def filter_by_array(self, objects, key, values=None, indexed=True):
+        if isinstance(objects, dict):
+            objects = list(objects.values())
+        # return all of them if no values were passed
+        if values is None or not values:
+            return self.index_by(objects, key) if indexed else objects
+        results = []
+        for i in range(0, len(objects)):
+            if self.in_array(objects[i][key], values):
+                results.append(objects[i])
+        return self.index_by(results, key) if indexed else results
+
+    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(type, method, path, params, config, context)
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             await self.throttle(cost)
-        request = self.sign(path, type, method, params, headers, body)
+        request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def request(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        return await self.fetch2(path, type, method, params, headers, body, config, context)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        return await self.fetch2(path, api, method, params, headers, body, config, context)
 
     async def load_accounts(self, reload=False, params={}):
         if reload:

@@ -358,14 +358,6 @@ module.exports = class Exchange {
         }
     }
 
-    defaults () {
-        return { /* override me */ }
-    }
-
-    nonce () {
-        return this.seconds ()
-    }
-
     encodeURIComponent (...args) {
         return encodeURIComponent (...args)
     }
@@ -530,10 +522,6 @@ module.exports = class Exchange {
         console.log (... args)
     }
 
-    setHeaders (headers) {
-        return headers;
-    }
-
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
@@ -569,14 +557,6 @@ module.exports = class Exchange {
         } catch (e) {
             // SyntaxError
             return undefined
-        }
-    }
-
-    handleHttpStatusCode (code, reason, url, method, body) {
-        const codeAsString = code.toString ()
-        if (codeAsString in this.httpExceptions) {
-            const ErrorClass = this.httpExceptions[codeAsString]
-            throw new ErrorClass ([ this.id, method, url, code, reason, body ].join (' '))
         }
     }
 
@@ -796,28 +776,12 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    marketId (symbol) {
-        const market = this.market (symbol)
-        return (market !== undefined ? market['id'] : symbol)
-    }
-
     marketIds (symbols) {
         return symbols.map ((symbol) => this.marketId (symbol))
     }
 
     marketSymbols (symbols) {
         return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
-    }
-
-    symbol (symbol) {
-        return this.market (symbol).symbol || symbol
-    }
-
-    resolvePath (path, params) {
-        return [
-            this.implodeParams (path, params),
-            this.omit (params, this.extractParams (path))
-        ];
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
@@ -913,21 +877,6 @@ module.exports = class Exchange {
             array = tail ? array.slice (-limit) : array.slice (0, limit)
         }
         return array
-    }
-
-    filterByArray (objects, key, values = undefined, indexed = true) {
-        objects = Object.values (objects)
-        // return all of them if no values were passed
-        if (values === undefined || values === null) {
-            return indexed ? this.indexBy (objects, key) : objects
-        }
-        const result = []
-        for (let i = 0; i < objects.length; i++) {
-            if (values.includes (objects[i][key])) {
-                result.push (objects[i])
-            }
-        }
-        return indexed ? this.indexBy (result, key) : result
     }
 
     safeTicker (ticker, market = undefined) {
@@ -1683,6 +1632,14 @@ module.exports = class Exchange {
         return this.parseNumber (value, d);
     }
 
+    handleHttpStatusCode (code, reason, url, method, body) {
+        const codeAsString = code.toString ();
+        if (codeAsString in this.httpExceptions) {
+            const ErrorClass = this.httpExceptions[codeAsString];
+            throw new ErrorClass (this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
+        }
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1726,17 +1683,62 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+    nonce () {
+        return this.seconds ();
+    }
+
+    setHeaders (headers) {
+        return headers;
+    }
+
+    marketId (symbol) {
+        const market = this.market (symbol);
+        if (market !== undefined) {
+            return market['id'];
+        }
+        return symbol;
+    }
+
+    symbol (symbol) {
+        const market = this.market (symbol);
+        return this.safeString (market, 'symbol', symbol);
+    }
+
+    resolvePath (path, params) {
+        return [
+            this.implodeParams (path, params),
+            this.omit (params, this.extractParams (path)),
+        ];
+    }
+
+    filterByArray (objects, key, values = undefined, indexed = true) {
+        if (typeof objects === 'object') {
+            objects = Object.values (objects);
+        }
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            return indexed ? this.indexBy (objects, key) : objects;
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (this.inArray (objects[i][key], values)) {
+                results.push (objects[i]);
+            }
+        }
+        return indexed ? this.indexBy (results, key) : results;
+    }
+
+    async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost (type, method, path, params, config, context);
+            const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
             await this.throttle (cost);
         }
-        const request = this.sign (path, type, method, params, headers, body);
+        const request = this.sign (path, api, method, params, headers, body);
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 
-    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        return await this.fetch2 (path, type, method, params, headers, body, config, context);
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        return await this.fetch2 (path, api, method, params, headers, body, config, context);
     }
 
     async loadAccounts (reload = false, params = {}) {

@@ -559,9 +559,6 @@ class Exchange(object):
     def log(self, *args):
         print(*args)
 
-    def set_headers(self, headers):
-        return headers
-
     def on_rest_response(self, code, reason, url, method, response_headers, response_body, request_headers, request_body):
         return response_body.strip()
 
@@ -666,12 +663,6 @@ class Exchange(object):
             return http_response
         else:
             return response.content
-
-    def handle_http_status_code(self, http_status_code, http_status_text, url, method, body):
-        string_code = str(http_status_code)
-        if string_code in self.httpExceptions:
-            Exception = self.httpExceptions[string_code]
-            raise Exception(' '.join([self.id, method, url, string_code, http_status_text, body]))
 
     def parse_json(self, http_response):
         try:
@@ -1031,12 +1022,6 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
-
-    def resolve_path(self, path, params):
-        return [
-            self.implode_params(path, params),
-            self.omit(params, self.extract_params(path))
-        ]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
@@ -1410,9 +1395,6 @@ class Exchange(object):
     @staticmethod
     def to_array(value):
         return list(value.values()) if type(value) is dict else value
-
-    def nonce(self):
-        return Exchange.seconds()
 
     @staticmethod
     def check_required_version(required_version, error=True):
@@ -1940,35 +1922,11 @@ class Exchange(object):
             return [entry for entry in array if entry['symbol'] == symbol]
         return array
 
-    def filter_by_array(self, objects, key, values=None, indexed=True):
-
-        objects = self.to_array(objects)
-
-        # return all of them if no values were passed in
-        if values is None:
-            return self.index_by(objects, key) if indexed else objects
-
-        result = []
-        for i in range(0, len(objects)):
-            value = objects[i][key] if key in objects[i] else None
-            if value in values:
-                result.append(objects[i])
-
-        return self.index_by(result, key) if indexed else result
-
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
 
     def market_symbols(self, symbols):
         return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
-
-    def market_id(self, symbol):
-        market = self.market(symbol)
-        return market['id'] if type(market) is dict else symbol
-
-    def symbol(self, symbol):
-        market = self.market(symbol)
-        return market['symbol'] if type(market) is dict else symbol
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -2518,17 +2476,57 @@ class Exchange(object):
         value = self.safe_string_2(object, key1, key2)
         return self.parse_number(value, d)
 
+    def handle_http_status_code(self, code, reason, url, method, body):
+        codeAsString = str(code)
+        if codeAsString in self.httpExceptions:
+            ErrorClass = self.httpExceptions[codeAsString]
+            raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
+
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def fetch2(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+    def nonce(self):
+        return self.seconds()
+
+    def set_headers(self, headers):
+        return headers
+
+    def market_id(self, symbol):
+        market = self.market(symbol)
+        if market is not None:
+            return market['id']
+        return symbol
+
+    def symbol(self, symbol):
+        market = self.market(symbol)
+        return self.safe_string(market, 'symbol', symbol)
+
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path)),
+        ]
+
+    def filter_by_array(self, objects, key, values=None, indexed=True):
+        if isinstance(objects, dict):
+            objects = list(objects.values())
+        # return all of them if no values were passed
+        if values is None or not values:
+            return self.index_by(objects, key) if indexed else objects
+        results = []
+        for i in range(0, len(objects)):
+            if self.in_array(objects[i][key], values):
+                results.append(objects[i])
+        return self.index_by(results, key) if indexed else results
+
+    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(type, method, path, params, config, context)
+            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             self.throttle(cost)
-        request = self.sign(path, type, method, params, headers, body)
+        request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        return self.fetch2(path, type, method, params, headers, body, config, context)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        return self.fetch2(path, api, method, params, headers, body, config, context)
 
     def load_accounts(self, reload=False, params={}):
         if reload:

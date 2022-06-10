@@ -271,9 +271,7 @@ class Exchange {
         'setSandboxMode' => 'set_sandbox_mode',
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
         'defineRestApi' => 'define_rest_api',
-        'setHeaders' => 'set_headers',
         'parseJson' => 'parse_json',
-        'handleHttpStatusCode' => 'handle_http_status_code',
         'getResponseHeaders' => 'get_response_headers',
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
@@ -286,10 +284,8 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
-        'marketId' => 'market_id',
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
-        'resolvePath' => 'resolve_path',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'parseOrderBook' => 'parse_order_book',
@@ -297,7 +293,6 @@ class Exchange {
         'loadTradingLimits' => 'load_trading_limits',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
-        'filterByArray' => 'filter_by_array',
         'safeTicker' => 'safe_ticker',
         'parseAccounts' => 'parse_accounts',
         'parseTickers' => 'parse_tickers',
@@ -327,6 +322,11 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
+        'handleHttpStatusCode' => 'handle_http_status_code',
+        'setHeaders' => 'set_headers',
+        'marketId' => 'market_id',
+        'resolvePath' => 'resolve_path',
+        'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
@@ -832,13 +832,6 @@ class Exchange {
         return $string;
     }
 
-    public function resolve_path($path, $params) {
-        return [
-            $this->implode_params($path, $params),
-            $this->omit($params, $this->extract_params($path))
-        ];
-    }
-
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
@@ -1097,10 +1090,6 @@ class Exchange {
 
     public static function decode($input) {
         return $input;
-    }
-
-    public function nonce() {
-        return $this->seconds();
     }
 
     public function check_address($address) {
@@ -1631,10 +1620,6 @@ class Exchange {
         }
     }
 
-    public function set_headers($headers) {
-        return $headers;
-    }
-
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
         return is_string($response_body) ? trim($response_body) : $response_body;
     }
@@ -1840,17 +1825,6 @@ class Exchange {
         }
 
         return isset($json_response) ? $json_response : $result;
-    }
-
-    public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {
-        $string_code = (string) $http_status_code;
-        if (array_key_exists($string_code, $this->httpExceptions)) {
-            $error_class = $this->httpExceptions[$string_code];
-            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
-                $error_class = '\\ccxt\\' . $error_class;
-            }
-            throw new $error_class($this->id . ' ' . implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
-        }
     }
 
     public function set_markets($markets, $currencies = null) {
@@ -2327,25 +2301,6 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_array($objects, $key, $values = null, $indexed = true) {
-        $objects = array_values($objects);
-
-        // return all of them if no $symbols were passed in the first argument
-        if ($values === null) {
-            return $indexed ? static::index_by($objects, $key) : $objects;
-        }
-
-        $result = array();
-        for ($i = 0; $i < count($objects); $i++) {
-            $value = isset($objects[$i][$key]) ? $objects[$i][$key] : null;
-            if (in_array($value, $values)) {
-                $result[] = $objects[$i];
-            }
-        }
-
-        return $indexed ? static::index_by($result, $key) : $result;
-    }
-
     public function fetch_order_trades($id, $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' fetch_order_trades() is not supported yet');
     }
@@ -2460,14 +2415,6 @@ class Exchange {
 
     public function market_symbols($symbols) {
         return is_array($symbols) ? array_map(array($this, 'symbol'), $symbols) : $symbols;
-    }
-
-    public function market_id($symbol) {
-        return (is_array($market = $this->market($symbol))) ? $market['id'] : $symbol;
-    }
-
-    public function symbol($symbol) {
-        return (is_array($market = $this->market($symbol))) ? $market['symbol'] : $symbol;
     }
 
     public function __call($function, $params) {
@@ -3362,19 +3309,75 @@ class Exchange {
         return $this->parse_number($value, $d);
     }
 
+    public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {
+        $string_code = (string) $http_status_code;
+        if (array_key_exists($string_code, $this->httpExceptions)) {
+            $error_class = $this->httpExceptions[$string_code];
+            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
+                $error_class = '\\ccxt\\' . $error_class;
+            }
+            throw new $error_class($this->id . ' ' . implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
+        }
+    }
+
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function fetch2($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+    public function nonce() {
+        return $this->seconds ();
+    }
+
+    public function set_headers($headers) {
+        return $headers;
+    }
+
+    public function market_id($symbol) {
+        $market = $this->market ($symbol);
+        if ($market !== null) {
+            return $market['id'];
+        }
+        return $symbol;
+    }
+
+    public function symbol($symbol) {
+        $market = $this->market ($symbol);
+        return $this->safe_string($market, 'symbol', $symbol);
+    }
+
+    public function resolve_path($path, $params) {
+        return array(
+            $this->implode_params($path, $params),
+            $this->omit ($params, $this->extract_params($path)),
+        );
+    }
+
+    public function filter_by_array($objects, $key, $values = null, $indexed = true) {
+        if (gettype($objects) === 'array') {
+            $objects = is_array($objects) ? array_values($objects) : array();
+        }
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            return $indexed ? $this->index_by($objects, $key) : $objects;
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if ($this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        return $indexed ? $this->index_by($results, $key) : $results;
+    }
+
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($type, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle ($cost);
         }
-        $request = $this->sign ($path, $type, $method, $params, $headers, $body);
+        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return $this->fetch2 ($path, $type, $method, $params, $headers, $body, $config, $context);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        return $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context);
     }
 
     public function load_accounts($reload = false, $params = array ()) {

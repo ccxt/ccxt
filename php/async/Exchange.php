@@ -269,17 +269,62 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function fetch2($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+    public function nonce() {
+        return $this->seconds ();
+    }
+
+    public function set_headers($headers) {
+        return $headers;
+    }
+
+    public function market_id($symbol) {
+        $market = $this->market ($symbol);
+        if ($market !== null) {
+            return $market['id'];
+        }
+        return $symbol;
+    }
+
+    public function symbol($symbol) {
+        $market = $this->market ($symbol);
+        return $this->safe_string($market, 'symbol', $symbol);
+    }
+
+    public function resolve_path($path, $params) {
+        return array(
+            $this->implode_params($path, $params),
+            $this->omit ($params, $this->extract_params($path)),
+        );
+    }
+
+    public function filter_by_array($objects, $key, $values = null, $indexed = true) {
+        if (gettype($objects) === 'array') {
+            $objects = is_array($objects) ? array_values($objects) : array();
+        }
+        // return all of them if no $values were passed
+        if ($values === null || !$values) {
+            return $indexed ? $this->index_by($objects, $key) : $objects;
+        }
+        $results = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            if ($this->in_array($objects[$i][$key], $values)) {
+                $results[] = $objects[$i];
+            }
+        }
+        return $indexed ? $this->index_by($results, $key) : $results;
+    }
+
+    public function fetch2($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
         if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($type, $method, $path, $params, $config, $context);
+            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield $this->throttle ($cost);
         }
-        $request = $this->sign ($path, $type, $method, $params, $headers, $body);
+        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
-    public function request($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
-        return yield $this->fetch2 ($path, $type, $method, $params, $headers, $body, $config, $context);
+    public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        return yield $this->fetch2 ($path, $api, $method, $params, $headers, $body, $config, $context);
     }
 
     public function load_accounts($reload = false, $params = array ()) {
