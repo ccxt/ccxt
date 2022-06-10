@@ -3411,15 +3411,15 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#fetchClosedOrders
-         * @description fetches all closed orders
-         * @param {str} symbol Unified market symbol of the market to fetch orders for
-         * @param {int} since earliest time in ms for orders in the response
-         * @param {int} limit max number of order structures to return
-         * @param {dict} params exchange specific params
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
