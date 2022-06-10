@@ -335,7 +335,7 @@ class currencycom extends Exchange {
         //         array(
         //             name => "Bitcoin",
         //             displaySymbol => "BTC",
-        //             $precision => "8",
+        //             precision => "8",
         //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
         //             minWithdrawal => "0.00020",
         //             commissionFixed => "0.00010",
@@ -349,7 +349,6 @@ class currencycom extends Exchange {
             $id = $this->safe_string($currency, 'displaySymbol');
             $code = $this->safe_currency_code($id);
             $fee = $this->safe_number($currency, 'commissionFixed');
-            $precision = $this->safe_integer($currency, 'precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -360,7 +359,7 @@ class currencycom extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

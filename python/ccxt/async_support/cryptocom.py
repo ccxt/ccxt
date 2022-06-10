@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -234,6 +235,7 @@ class cryptocom(Exchange):
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': ExchangeError,
@@ -351,8 +353,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantity_decimals'),
-                    'price': int(priceDecimals),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
+                    'price': self.parse_number(self.parse_precision(priceDecimals)),
                 },
                 'limits': {
                     'leverage': {
@@ -450,8 +452,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'quote_decimals'),
-                    'amount': self.safe_integer(market, 'quantity_decimals'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_decimals'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1204,6 +1206,12 @@ class cryptocom(Exchange):
         return self.parse_transaction(result, currency)
 
     async def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {

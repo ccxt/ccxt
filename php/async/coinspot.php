@@ -125,6 +125,7 @@ class coinspot extends Exchange {
             'options' => array(
                 'fetchBalance' => 'private_post_my_balances',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 

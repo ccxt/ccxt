@@ -792,6 +792,12 @@ class coinone extends Exchange {
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {dict} $params extra parameters specific to the coinone api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures}
+         */
         $this->load_markets();
         $response = $this->privatePostAccountDepositAddress ($params);
         //

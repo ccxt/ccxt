@@ -353,7 +353,6 @@ class currencycom(Exchange):
             id = self.safe_string(currency, 'displaySymbol')
             code = self.safe_currency_code(id)
             fee = self.safe_number(currency, 'commissionFixed')
-            precision = self.safe_integer(currency, 'precision')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -364,7 +363,7 @@ class currencycom(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
