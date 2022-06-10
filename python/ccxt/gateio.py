@@ -708,11 +708,10 @@ class gateio(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-            amountPrecisionString = self.safe_string(market, 'amount_precision')
-            pricePrecisionString = self.safe_string(market, 'precision')
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'precision')))
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
-            defaultMinAmountLimit = self.parse_number(self.parse_precision(amountPrecisionString))
             margin = leverage is not None
             result.append({
                 'id': id,
@@ -742,8 +741,8 @@ class gateio(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
-                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -751,7 +750,7 @@ class gateio(Exchange):
                         'max': self.safe_number(market, 'leverage', 1),
                     },
                     'amount': {
-                        'min': self.safe_number(spotMarket, 'min_base_amount', defaultMinAmountLimit),
+                        'min': self.safe_number(spotMarket, 'min_base_amount', amountPrecision),
                         'max': None,
                     },
                     'price': {
@@ -1246,6 +1245,12 @@ class gateio(Exchange):
         return result
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -1299,6 +1304,12 @@ class gateio(Exchange):
         return self.parse_funding_rate(response)
 
     def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetch the funding rate for multiple markets
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
+        """
         self.load_markets()
         request, query = self.prepare_request(None, 'swap', params)
         response = self.publicFuturesGetSettleContracts(self.extend(request, query))
@@ -1459,6 +1470,12 @@ class gateio(Exchange):
         return result
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1502,6 +1519,12 @@ class gateio(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1525,6 +1548,11 @@ class gateio(Exchange):
         return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateWalletGetFee(params)
         #
@@ -1577,6 +1605,12 @@ class gateio(Exchange):
         }
 
     def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by gateio fetchTransactionFees()
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         response = self.privateWalletGetWithdrawStatus(params)
         #
@@ -1617,6 +1651,14 @@ class gateio(Exchange):
         }
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         self.load_markets()
         # defaultType = 'future'
         market = None
@@ -2277,20 +2319,20 @@ class gateio(Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetch personal trading history
-        :param str symbol: The symbol for the market to fetch trades for
-        :param int since: The earliest timestamp, in ms, that fetched trades were made
-        :param int limit: The max number of trades to fetch
-        :param dict params: Exchange specific parameters
-        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :param str params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int params['till']: The latest timestamp, in ms, that fetched trades were made
-        :param int params['page']: *spot only* Page number
-        :param str params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
-        :param str params['order']: *contract only* Futures order ID, return related data only if specified
-        :param int params['offset']: *contract only* list offset, starting from 0
-        :param str params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
-        :param int params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
-        :returns: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
+        :param int|None params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['page']: *spot only* Page number
+        :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
+        :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
+        :param int|None params['offset']: *contract only* list offset, starting from 0
+        :param str|None params['last_id']: *contract only* specify list staring point using the id of last record in previous list-query results
+        :param int|None params['count_total']: *contract only* whether to return total number matched, default to 0(no return)
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
         type = None
@@ -2479,6 +2521,14 @@ class gateio(Exchange):
         }, market)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         currency = None
@@ -2495,6 +2545,14 @@ class gateio(Exchange):
         return self.parse_transactions(response, currency)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         currency = None
@@ -2511,6 +2569,15 @@ class gateio(Exchange):
         return self.parse_transactions(response, currency)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -2626,8 +2693,8 @@ class gateio(Exchange):
         """
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market" *"market" is contract only*
-        :param str side: "buy" or "sell"
+        :param str type: 'limit' or 'market' *"market" is contract only*
+        :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
@@ -2642,7 +2709,7 @@ class gateio(Exchange):
         :param bool params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
         :param bool params['close']: *contract only* Set as True to close the position, with size set to 0
         :param bool params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-        :returns: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3141,29 +3208,29 @@ class gateio(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetches all open orders
-        :param str symbol: Unified market symbol
-        :param int since: earliest time in ms for orders in the response
-        :param int limit: max number of order structures to return
-        :param dict params: exchange specific params
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
-        :returns: An array of order structures
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetches all closed orders
-        :param str symbol: Unified market symbol of the market to fetch orders for
-        :param int since: earliest time in ms for orders in the response
-        :param int limit: max number of order structures to return
-        :param dict params: exchange specific params
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the gateio api endpoint
         :param bool params['stop']: True for fetching stop orders
         :param str params['type']: spot, swap or future, if not provided self.options['defaultType'] is used
         :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :returns: An array of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
@@ -3430,6 +3497,12 @@ class gateio(Exchange):
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
         stop = self.safe_value(params, 'stop')
@@ -3476,13 +3549,13 @@ class gateio(Exchange):
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
-        makes internal transfers of funds between accounts on the same exchange
+        transfer currency internally between wallets on the same account
         :param str code: unified currency code for currency being transferred
         :param float amount: the amount of currency to transfer
         :param str fromAccount: the account to transfer currency from
         :param str toAccount: the account to transfer currency to
-        :param dict params: Exchange specific parameters
-        :param dict params['symbol']: Unified market symbol *required for type == margin*
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['symbol']: Unified market symbol *required for type == margin*
         :returns: A `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()
@@ -3558,6 +3631,13 @@ class gateio(Exchange):
         }
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
@@ -3695,12 +3775,12 @@ class gateio(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         """
-        Fetch trades positions
-        :param [str] symbols: Not used by Gateio, but parsed internally by CCXT
-        :param dict params: exchange specific parameters
+        fetch all open positions
+        :param [str]|None symbols: Not used by Gateio, but parsed internally by CCXT
+        :param dict params: extra parameters specific to the gateio api endpoint
         :param str params['settle']: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         :param str params['type']: swap or future, if not provided self.options['defaultType'] is used
-        :returns: An array of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
         type, query = self.handle_market_type_and_params('fetchPositions', None, params)
@@ -3742,6 +3822,12 @@ class gateio(Exchange):
         return self.parse_positions(response, symbols)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
         self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         request, requestParams = self.prepare_request(None, type, query)
