@@ -331,7 +331,6 @@ module.exports = class delta extends Exchange {
             const depositsEnabled = (depositStatus === 'enabled');
             const withdrawalsEnabled = (withdrawalStatus === 'enabled');
             const active = depositsEnabled && withdrawalsEnabled;
-            const precision = this.safeInteger (currency, 'precision');
             result[code] = {
                 'id': id,
                 'numericId': numericId,
@@ -342,7 +341,7 @@ module.exports = class delta extends Exchange {
                 'deposit': depositsEnabled,
                 'withdraw': withdrawalsEnabled,
                 'fee': this.safeNumber (currency, 'base_withdrawal_fee'),
-                'precision': 1 / Math.pow (10, precision),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': {
