@@ -1835,6 +1835,15 @@ module.exports = class bitmex extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol not used by bitmex cancelOrders ()
+         * @param {dict} params extra parameters specific to the bitmex api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         return await this.cancelOrder (ids, symbol, params);
     }
 
