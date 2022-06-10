@@ -374,6 +374,14 @@ class coinbase(Exchange):
         }
 
     def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch sells
+        :param str|None symbol: not used by coinbase fetchMySells()
+        :param int|None since: timestamp in ms of the earliest sell, default is None
+        :param int|None limit: max number of sells to return, default is None
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # they don't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()
@@ -382,6 +390,14 @@ class coinbase(Exchange):
         return self.parse_trades(sells['data'], None, since, limit)
 
     def fetch_my_buys(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch buys
+        :param str|None symbol: not used by coinbase fetchMyBuys()
+        :param int|None since: timestamp in ms of the earliest buy, default is None
+        :param int|None limit: max number of buys to return, default is None
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # they don't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()

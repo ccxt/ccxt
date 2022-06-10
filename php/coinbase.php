@@ -380,6 +380,14 @@ class coinbase extends Exchange {
     }
 
     public function fetch_my_sells($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch $sells
+         * @param {str|null} $symbol not used by coinbase fetchMySells ()
+         * @param {int|null} $since timestamp in ms of the earliest sell, default is null
+         * @param {int|null} $limit max number of $sells to return, default is null
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#order-structure list of order structures}
+         */
         // they don't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
@@ -389,6 +397,14 @@ class coinbase extends Exchange {
     }
 
     public function fetch_my_buys($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch $buys
+         * @param {str|null} $symbol not used by coinbase fetchMyBuys ()
+         * @param {int|null} $since timestamp in ms of the earliest buy, default is null
+         * @param {int|null} $limit max number of $buys to return, default is null
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a list of  {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // they don't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
