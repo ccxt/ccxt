@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -182,6 +183,7 @@ class bitopro(Exchange):
                     'TRC20': 'TRX',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Unsupported currency.': BadRequest,  # {"error":"Unsupported currency."}
@@ -299,10 +301,6 @@ class bitopro(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'basePrecision'),
-            }
             limits = {
                 'amount': {
                     'min': self.safe_number(market, 'minLimitBaseAmount'),
@@ -347,7 +345,10 @@ class bitopro(Exchange):
                 'strike': None,
                 'optionType': None,
                 'limits': limits,
-                'precision': precision,
+                'precision': {
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+                },
                 'active': active,
                 'info': market,
             })

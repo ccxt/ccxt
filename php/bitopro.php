@@ -177,6 +177,7 @@ class bitopro extends Exchange {
                     'TRC20' => 'TRX',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Unsupported currency.' => '\\ccxt\\BadRequest', // array("error":"Unsupported currency.")
@@ -297,10 +298,6 @@ class bitopro extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'basePrecision'),
-            );
             $limits = array(
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minLimitBaseAmount'),
@@ -345,7 +342,10 @@ class bitopro extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'limits' => $limits,
-                'precision' => $precision,
+                'precision' => array(
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+                ),
                 'active' => $active,
                 'info' => $market,
             );
