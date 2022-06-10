@@ -40,8 +40,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
-                'fetchDepositAddress': undefined, // TODO
-                'fetchDepositAddressesByNetwork': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1414,11 +1413,20 @@ module.exports = class gemini extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @param {str} params.network the deposit network
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const network = this.safeString (params, 'network');
         if (network === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a network parameter');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a network parameter');
         }
         params = this.omit (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
