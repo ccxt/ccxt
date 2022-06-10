@@ -1182,40 +1182,6 @@ module.exports = class zb extends Exchange {
         };
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetGetPayinAddress (params);
-        //
-        //     {
-        //         "code": 1000,
-        //         "message": {
-        //             "des": "success",
-        //             "isSuc": true,
-        //             "datas": [
-        //                 {
-        //                     "blockChain": "btc",
-        //                     "isUseMemo": false,
-        //                     "address": "1LL5ati6pXHZnTGzHSA3rWdqi4mGGXudwM",
-        //                     "canWithdraw": true,
-        //                     "canDeposit": true
-        //                 },
-        //                 {
-        //                     "blockChain": "bts",
-        //                     "isUseMemo": true,
-        //                     "account": "btstest",
-        //                     "memo": "123",
-        //                     "canWithdraw": true,
-        //                     "canDeposit": true
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const message = this.safeValue (response, 'message', {});
-        const datas = this.safeValue (message, 'datas', []);
-        return this.parseDepositAddresses (datas, codes);
-    }
-
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
