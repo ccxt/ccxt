@@ -1623,7 +1623,7 @@ module.exports = class Exchange {
         accounts = this.toArray (accounts);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.extend (this.parseAccount (accounts[i], undefined), params);
+            const account = this.extend (this.parseAccount (accounts[i]), params);
             result.push (account);
         }
         return result;
