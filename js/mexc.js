@@ -2608,6 +2608,16 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the mexc api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
         }

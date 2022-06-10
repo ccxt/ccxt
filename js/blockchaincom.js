@@ -629,6 +629,16 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const state = 'CANCELED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
