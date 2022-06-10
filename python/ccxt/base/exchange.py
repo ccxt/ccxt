@@ -1566,12 +1566,6 @@ class Exchange(object):
         else:
             return ohlcv
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        parsed = [self.parse_ohlcv(ohlcv, market) for ohlcv in ohlcvs]
-        sorted = self.sort_by(parsed, 0)
-        tail = since is None
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
-
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
         if len(bidasks):
@@ -2398,7 +2392,7 @@ class Exchange(object):
             'nonce': None,
         }
 
-    def parse_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
