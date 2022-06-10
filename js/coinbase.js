@@ -384,6 +384,16 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMySells
+         * @description fetch sells
+         * @param {str|undefined} symbol not used by coinbase fetchMySells ()
+         * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
+         * @param {int|undefined} limit max number of sells to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // they don't have an endpoint for all historical trades
         const request = await this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
@@ -393,6 +403,16 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMyBuys
+         * @description fetch buys
+         * @param {str|undefined} symbol not used by coinbase fetchMyBuys ()
+         * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
+         * @param {int|undefined} limit max number of buys to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // they don't have an endpoint for all historical trades
         const request = await this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
