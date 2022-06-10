@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -88,6 +89,7 @@ module.exports = class bw extends Exchange {
                 'funding': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
@@ -226,8 +228,8 @@ module.exports = class bw extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amountDecimal'),
-                    'price': this.safeInteger (market, 'priceDecimal'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimal'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {
