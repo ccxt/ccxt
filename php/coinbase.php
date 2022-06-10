@@ -159,6 +159,7 @@ class coinbase extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'two_factor_required' => '\\ccxt\\AuthenticationError', // 402 When sending money over 2fa limit
