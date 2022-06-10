@@ -221,6 +221,11 @@ class coinbase(Exchange):
         return self.safe_timestamp(data, 'epoch')
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         await self.load_markets()
         request = {
             'limit': 100,
@@ -301,6 +306,12 @@ class coinbase(Exchange):
         }
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         accountId = self.safe_string(params, 'account_id')
         params = self.omit(params, 'account_id')
         if accountId is None:
@@ -386,10 +397,26 @@ class coinbase(Exchange):
         return self.parse_transactions(response['data'], None, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # fiat only, for crypto transactions use fetchLedger
         return await self.fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', code, since, limit, params)
 

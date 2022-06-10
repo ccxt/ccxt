@@ -34,9 +34,8 @@ class woo(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'cancelAllOrders': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': False,
                 'createMarketOrder': False,
@@ -508,6 +507,11 @@ class woo(Exchange):
         return fee
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.v1PrivateGetClientInfo(params)
         #
@@ -630,7 +634,7 @@ class woo(Exchange):
             id = self.safe_string(currency, 'balance_token')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullname')
-            decimals = self.safe_integer(currency, 'decimals')
+            decimals = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             chainedTokenCode = self.safe_string(currency, 'token')
             parts = chainedTokenCode.split('_')
             chainNameId = self.safe_string(parts, 0, chainedTokenCode)
@@ -701,6 +705,16 @@ class woo(Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -751,6 +765,13 @@ class woo(Exchange):
         )
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -782,7 +803,13 @@ class woo(Exchange):
             extendParams['id'] = id
         return self.extend(self.parse_order(response), extendParams)
 
-    async def cancel_orders(self, ids, symbol=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         await self.load_markets()
@@ -798,6 +825,12 @@ class woo(Exchange):
         return response
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
         request = {}
@@ -852,6 +885,14 @@ class woo(Exchange):
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -1039,6 +1080,15 @@ class woo(Exchange):
         ]
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -1073,6 +1123,14 @@ class woo(Exchange):
         return self.parse_trades(trades, market, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -1114,9 +1172,9 @@ class woo(Exchange):
 
     async def fetch_accounts(self, params={}):
         """
-        query to fetchAccounts
+        fetch all the accounts associated with a profile
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns dict: a `account structure <https://docs.ccxt.com/en/latest/manual.html?#account-structure>`
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
         """
         response = await self.v1PrivateGetSubAccountAssets(params)
         #
@@ -1208,6 +1266,12 @@ class woo(Exchange):
         return self.safe_balance(result)
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         # self method is TODO because of networks unification
         await self.load_markets()
         currency = self.currency(code)
@@ -1345,18 +1409,42 @@ class woo(Exchange):
         return currency
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'token_side': 'DEPOSIT',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'token_side': 'WITHDRAW',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'BALANCE',
         }
@@ -1405,6 +1493,15 @@ class woo(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {

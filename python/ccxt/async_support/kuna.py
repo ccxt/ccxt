@@ -8,6 +8,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class kuna(Exchange):
@@ -286,6 +287,7 @@ class kuna(Exchange):
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -631,6 +633,16 @@ class kuna(Exchange):
         return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'market': self.market_id(symbol),
@@ -646,6 +658,13 @@ class kuna(Exchange):
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by kuna cancelOrder()
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -698,6 +717,12 @@ class kuna(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by kuna fetchOrder
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': int(id),
@@ -706,6 +731,14 @@ class kuna(Exchange):
         return self.parse_order(response)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -720,6 +753,22 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = await self.privateGetTradesMy(self.extend(request, params))
         #
         #      [
         #          {
@@ -735,14 +784,6 @@ class kuna(Exchange):
         #          },
         #      ]
         #
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        response = await self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def nonce(self):

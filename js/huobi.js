@@ -87,6 +87,7 @@ module.exports = class huobi extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
+                'fetchSettlementHistory': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1224,6 +1225,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2188,6 +2197,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
         const method = this.getSupportedMapping (marketType, {
@@ -2208,6 +2228,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
@@ -2561,6 +2591,13 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1AccountAccounts (params);
         //
@@ -2969,6 +3006,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
@@ -3347,6 +3392,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', undefined, params);
@@ -3381,6 +3436,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
@@ -3790,6 +3855,18 @@ module.exports = class huobi extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
@@ -4047,6 +4124,15 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
@@ -4254,6 +4340,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
@@ -4389,6 +4483,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         const rawNetwork = this.safeStringUpper (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
@@ -4481,6 +4583,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -4505,6 +4617,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (limit === undefined || limit > 100) {
             limit = 100;
         }
@@ -4637,6 +4759,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -4696,6 +4829,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name huobi#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let type = this.safeString (params, 'type');
@@ -4787,6 +4931,13 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1MarginLoanInfo (params);
         // {
@@ -4909,7 +5060,7 @@ module.exports = class huobi extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         // {
         //      "status": "ok",
@@ -4925,13 +5076,13 @@ module.exports = class huobi extends Exchange {
         //     "ts": 1639085854775
         // }
         //
-        const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
-        const fundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
-        const marketId = this.safeString (fundingRate, 'contract_code');
+        const nextFundingRate = this.safeNumber (contract, 'estimated_rate');
+        const fundingTimestamp = this.safeInteger (contract, 'funding_time');
+        const nextFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const marketId = this.safeString (contract, 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -4939,7 +5090,7 @@ module.exports = class huobi extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': nextFundingRate,
@@ -4952,6 +5103,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
@@ -4985,7 +5144,15 @@ module.exports = class huobi extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRates (symbols, params = {}) {
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchFundingRates', {});
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
@@ -5024,6 +5191,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @param {str|undefined} code unified currency code
+         * @param {str|undefined} symbol unified market symbol when fetch interest in isolated markets
+         * @param {int|undefined} since the earliest time in ms to fetch borrrow interest for
+         * @param {int|undefined} limit the maximum number of structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         */
         await this.loadMarkets ();
         const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
@@ -5272,6 +5450,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
@@ -5345,6 +5533,15 @@ module.exports = class huobi extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -5531,6 +5728,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
@@ -5644,6 +5849,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
@@ -6012,6 +6225,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
         //
@@ -6048,6 +6269,14 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
@@ -6259,6 +6488,207 @@ module.exports = class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchSettlementHistory
+         * @description Fetches historical settlement records
+         * @param {str} symbol unified symbol of the market to fetch the settlement history for
+         * @param {int} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
+         * @param {int} limit page items, default 20, shall not exceed 50
+         * @param {dict} params exchange specific params
+         * @param {int} params.till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} params.page_index page index, default page 1 if not filled
+         * @returns A list of settlement history objects
+         */
+        const code = this.safeString (params, 'code');
+        const till = this.safeInteger (params, 'till');
+        params = this.omit (params, 'till');
+        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
+        if (type === 'future') {
+            if (symbol === undefined && code === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires a symbol argument or params["code"] for fetchSettlementHistory future');
+            }
+        } else if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a symbol argument for fetchSettlementHistory swap');
+        }
+        const request = {};
+        if (market['future']) {
+            request['symbol'] = market['baseId'];
+        } else {
+            request['contract_code'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (till !== undefined) {
+            request['end_at'] = till;
+        }
+        let method = 'contractPublicGetApiV1ContractSettlementRecords';
+        if (market['swap']) {
+            if (market['linear']) {
+                method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords';
+            } else {
+                method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
+            }
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // linear swap, coin-m swap
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //        "total_page": 14,
+        //        "current_page": 1,
+        //        "total_size": 270,
+        //        "settlement_record": [
+        //            {
+        //                "symbol": "ADA",
+        //                "contract_code": "ADA-USDT",
+        //                "settlement_time": 1652313600000,
+        //                "clawback_ratio": 0E-18,
+        //                "settlement_price": 0.512303000000000000,
+        //                "settlement_type": "settlement",
+        //                "business_type": "swap",
+        //                "pair": "ADA-USDT",
+        //                "trade_partition": "USDT"
+        //            },
+        //            ...
+        //        ],
+        //        "ts": 1652338693256
+        //    }
+        //
+        // coin-m future
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": {
+        //            "total_page": 5,
+        //            "current_page": 1,
+        //            "total_size": 90,
+        //            "settlement_record": [
+        //                {
+        //                    "symbol": "FIL",
+        //                    "settlement_time": 1652342400000,
+        //                    "clawback_ratio": 0E-18,
+        //                    "list": [
+        //                        {
+        //                            "contract_code": "FIL220513",
+        //                            "settlement_price": 7.016000000000000000,
+        //                            "settlement_type": "settlement"
+        //                        },
+        //                        ...
+        //                    ]
+        //                },
+        //            ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const settlementRecord = this.safeValue (data, 'settlement_record');
+        const settlements = this.parseSettlements (settlementRecord, market);
+        return this.sortBy (settlements, 'timestamp');
+    }
+
+    parseSettlements (settlements, market) {
+        //
+        // linear swap, coin-m swap, fetchSettlementHistory
+        //
+        //    [
+        //        {
+        //            "symbol": "ADA",
+        //            "contract_code": "ADA-USDT",
+        //            "settlement_time": 1652313600000,
+        //            "clawback_ratio": 0E-18,
+        //            "settlement_price": 0.512303000000000000,
+        //            "settlement_type": "settlement",
+        //            "business_type": "swap",
+        //            "pair": "ADA-USDT",
+        //            "trade_partition": "USDT"
+        //        },
+        //        ...
+        //    ]
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    [
+        //        {
+        //            "symbol": "FIL",
+        //            "settlement_time": 1652342400000,
+        //            "clawback_ratio": 0E-18,
+        //            "list": [
+        //                {
+        //                    "contract_code": "FIL220513",
+        //                    "settlement_price": 7.016000000000000000,
+        //                    "settlement_type": "settlement"
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //    ]
+        //
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            const settlement = settlements[i];
+            const list = this.safeValue (settlement, 'list');
+            if (list !== undefined) {
+                const timestamp = this.safeInteger (settlement, 'settlement_time');
+                const timestampDetails = {
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                };
+                for (let j = 0; j < list.length; j++) {
+                    const item = list[j];
+                    const parsedSettlement = this.parseSettlement (item, market);
+                    result.push (this.extend (parsedSettlement, timestampDetails));
+                }
+            } else {
+                result.push (this.parseSettlement (settlements[i], market));
+            }
+        }
+        return result;
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        // linear swap, coin-m swap, fetchSettlementHistory
+        //
+        //    {
+        //        "symbol": "ADA",
+        //        "contract_code": "ADA-USDT",
+        //        "settlement_time": 1652313600000,
+        //        "clawback_ratio": 0E-18,
+        //        "settlement_price": 0.512303000000000000,
+        //        "settlement_type": "settlement",
+        //        "business_type": "swap",
+        //        "pair": "ADA-USDT",
+        //        "trade_partition": "USDT"
+        //    }
+        //
+        // coin-m future, fetchSettlementHistory
+        //
+        //    {
+        //        "contract_code": "FIL220513",
+        //        "settlement_price": 7.016000000000000000,
+        //        "settlement_type": "settlement"
+        //    }
+        //
+        const timestamp = this.safeInteger (settlement, 'settlement_time');
+        const marketId = this.safeString (settlement, 'contract_code');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settlement_price'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
     }
 };

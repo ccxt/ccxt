@@ -190,6 +190,7 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                         # account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
+                        'contract/v3/public/copytrading/symbol/list': 1,
                     },
                 },
                 'private': {
@@ -251,6 +252,9 @@ class bybit(Exchange):
                         'asset/v1/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'contract/v3/private/copytrading/order/list': 1,
+                        'contract/v3/private/copytrading/position/list': 1,
+                        'contract/v3/private/copytrading/wallet/balance': 1,
                     },
                     'post': {
                         # inverse swap
@@ -342,6 +346,12 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
                         # 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
+                        'contract/v3/private/copytrading/order/create': 2.5,
+                        'contract/v3/private/copytrading/order/cancel': 2.5,
+                        'contract/v3/private/copytrading/order/close': 2.5,
+                        'contract/v3/private/copytrading/position/close': 2.5,
+                        'contract/v3/private/copytrading/position/set-leverage': 2.5,
+                        'contract/v3/private/copytrading/wallet/transfer': 2.5,
                     },
                     'delete': {
                         # spot
@@ -1576,6 +1586,12 @@ class bybit(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2533,6 +2549,12 @@ class bybit(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -2570,6 +2592,16 @@ class bybit(Exchange):
             return self.safe_value(orders, 0)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -2937,6 +2969,13 @@ class bybit(Exchange):
             return await self.edit_contract_order(id, symbol, type, side, amount, price, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -3021,6 +3060,12 @@ class bybit(Exchange):
         return self.parse_order(result, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         isUsdcSettled = None
@@ -3126,6 +3171,14 @@ class bybit(Exchange):
         return self.parse_orders(result, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
@@ -3307,6 +3360,14 @@ class bybit(Exchange):
         return self.parse_orders(result, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = None
         isUsdcSettled = None
         if symbol is not None:
@@ -3382,12 +3443,29 @@ class bybit(Exchange):
         return self.parse_orders(result, market, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         request = {
             'order_id': id,
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
@@ -3600,6 +3678,12 @@ class bybit(Exchange):
         return self.index_by(parsed, 'network')
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         rawNetwork = self.safe_string_upper(params, 'network')
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string(networks, rawNetwork, rawNetwork)
@@ -3626,6 +3710,14 @@ class bybit(Exchange):
         return result
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'coin': currency['id'],
@@ -3681,6 +3773,14 @@ class bybit(Exchange):
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'coin': currency['id'],
@@ -3927,6 +4027,15 @@ class bybit(Exchange):
         return self.safe_string(types, type, type)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         self.check_address(address)
@@ -3961,6 +4070,12 @@ class bybit(Exchange):
         return self.parse_transaction(result, currency)
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -4173,6 +4288,13 @@ class bybit(Exchange):
         }
 
     async def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         await self.load_markets()
@@ -4227,6 +4349,13 @@ class bybit(Exchange):
         return response
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
@@ -4357,6 +4486,12 @@ class bybit(Exchange):
             raise ExchangeError(feedback)  # unknown message
 
     async def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
         await self.load_markets()
         request = {}
         market = None
