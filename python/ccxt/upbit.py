@@ -1484,6 +1484,12 @@ class upbit(Exchange):
         return self.parse_order(response)
 
     def fetch_deposit_addresses(self, codes=None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param dict params: extra parameters specific to the upbit api endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         response = self.privateGetDepositsCoinAddresses(params)
         #
