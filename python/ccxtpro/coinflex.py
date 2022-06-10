@@ -136,7 +136,7 @@ class coinflex(Exchange, ccxt.coinflex):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         channel = 'candles'
