@@ -23,8 +23,8 @@ module.exports = class woo extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': false,
-                'future': true,
+                'swap': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'cancelAllOrders': false,
@@ -293,7 +293,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetInfo',
-            'perp': 'v1PublicGetFutures',
+            'swap': 'v1PublicGetFutures',
         });
         const response = await this[method] (query);
         //
@@ -422,7 +422,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetMarketTrades',
-            'perp': 'v1PublicGetMarketTrades',
+            'swap': 'v1PublicGetMarketTrades',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -785,7 +785,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivatePostOrder',
-            'perp': 'v1PrivatePostOrder',
+            'swap': 'v1PrivatePostOrder',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -827,7 +827,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateDeleteOrder',
-            'perp': 'v1PrivateDeleteOrder',
+            'swap': 'v1PrivateDeleteOrder',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -854,7 +854,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateDeleteOrders',
-            'perp': 'v1PrivateDeleteOrders',
+            'swap': 'v1PrivateDeleteOrders',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -882,7 +882,7 @@ module.exports = class woo extends Exchange {
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': chosenSpotMethod,
-            'perp': chosenSpotMethod,
+            'swap': chosenSpotMethod,
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -937,7 +937,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrders',
-            'perp': 'v1PrivateGetOrders',
+            'swap': 'v1PrivateGetOrders',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1068,7 +1068,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrderbookSymbol',
-            'perp': 'v1PrivateGetOrderbookSymbol',
+            'swap': 'v1PrivateGetOrderbookSymbol',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -1115,7 +1115,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetKline',
-            'perp': 'v1PrivateGetKline',
+            'swap': 'v1PrivateGetKline',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1176,7 +1176,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetOrderOidTrades',
-            'perp': 'v1PrivateGetOrderOidTrades',
+            'swap': 'v1PrivateGetOrderOidTrades',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1215,7 +1215,7 @@ module.exports = class woo extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetClientTrades',
-            'perp': 'v1PrivateGetClientTrades',
+            'swap': 'v1PrivateGetClientTrades',
         });
         const response = await this[method] (this.extend (request, query));
         // {
@@ -2097,7 +2097,7 @@ module.exports = class woo extends Exchange {
             'liquidationPrice': undefined,
             'markPrice': marketPrice,
             'collateral': undefined,
-            'marginMode': undefined,
+            'marginMode': 'isolated',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
