@@ -531,19 +531,6 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
-    def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        """A better wrapper over request for deferred signing"""
-        if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
-            self.throttle(cost)
-        self.lastRestRequestTimestamp = self.milliseconds()
-        request = self.sign(path, api, method, params, headers, body)
-        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        """Exchange.request is the entry point for all generated methods"""
-        return self.fetch2(path, api, method, params, headers, body, config, context)
-
     @staticmethod
     def gzip_deflate(response, text):
         encoding = response.info().get('Content-Encoding')
@@ -2532,6 +2519,16 @@ class Exchange(object):
         return self.parse_number(value, d)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def fetch2(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        if self.enableRateLimit:
+            cost = self.calculate_rate_limiter_cost(type, method, path, params, config, context)
+            self.throttle(cost)
+        request = self.sign(path, type, method, params, headers, body)
+        return self.fetch(request['url'], request['method'], request['headers'], request['body'])
+
+    def request(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        return self.fetch2(path, type, method, params, headers, body, config, context)
 
     def load_accounts(self, reload=False, params={}):
         if reload:

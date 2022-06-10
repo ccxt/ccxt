@@ -184,15 +184,6 @@ class Exchange extends \ccxt\Exchange {
         return isset($json_response) ? $json_response : $response_body;
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
-        if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
-            yield call_user_func($this->throttle, $cost);
-        }
-        $request = $this->sign($path, $api, $method, $params, $headers, $body);
-        return yield $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
-    }
-
     public function load_markets_helper($reload = false, $params = array()) {
         // copied from js
         if (!$reload && $this->markets) {
@@ -277,6 +268,19 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch2($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        if ($this->enableRateLimit) {
+            $cost = $this->calculate_rate_limiter_cost($type, $method, $path, $params, $config, $context);
+            yield $this->throttle ($cost);
+        }
+        $request = $this->sign ($path, $type, $method, $params, $headers, $body);
+        return yield $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
+    }
+
+    public function request($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        return yield $this->fetch2 ($path, $type, $method, $params, $headers, $body, $config, $context);
+    }
 
     public function load_accounts($reload = false, $params = array ()) {
         if ($reload) {

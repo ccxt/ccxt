@@ -96,16 +96,6 @@ class Exchange(BaseExchange):
                 await self.session.close()
             self.session = None
 
-    async def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
-        """A better wrapper over request for deferred signing"""
-        if self.enableRateLimit:
-            cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
-            # insert cost into here...
-            await self.throttle(cost)
-        self.lastRestRequestTimestamp = self.milliseconds()
-        request = self.sign(path, api, method, params, headers, body)
-        return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
-
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
@@ -280,6 +270,16 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def fetch2(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        if self.enableRateLimit:
+            cost = self.calculate_rate_limiter_cost(type, method, path, params, config, context)
+            await self.throttle(cost)
+        request = self.sign(path, type, method, params, headers, body)
+        return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+
+    async def request(self, path, type='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
+        return await self.fetch2(path, type, method, params, headers, body, config, context)
 
     async def load_accounts(self, reload=False, params={}):
         if reload:

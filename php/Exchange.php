@@ -1616,19 +1616,6 @@ class Exchange {
         throw new NotSupported($this->id . ' sign() is not supported yet');
     }
 
-    public function fetch2($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
-        if ($this->enableRateLimit) {
-            $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
-            $this->throttle($cost);
-        }
-        $request = $this->sign($path, $api, $method, $params, $headers, $body);
-        return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
-    }
-
-    public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array(), $context = array()) {
-        return $this->fetch2($path, $api, $method, $params, $headers, $body, $config, $context);
-    }
-
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
@@ -3376,6 +3363,19 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch2($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        if ($this->enableRateLimit) {
+            $cost = $this->calculate_rate_limiter_cost($type, $method, $path, $params, $config, $context);
+            $this->throttle ($cost);
+        }
+        $request = $this->sign ($path, $type, $method, $params, $headers, $body);
+        return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
+    }
+
+    public function request($path, $type = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
+        return $this->fetch2 ($path, $type, $method, $params, $headers, $body, $config, $context);
+    }
 
     public function load_accounts($reload = false, $params = array ()) {
         if ($reload) {

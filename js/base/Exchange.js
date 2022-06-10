@@ -561,19 +561,6 @@ module.exports = class Exchange {
         return this.executeRestRequest (url, method, headers, body)
     }
 
-    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        if (this.enableRateLimit) {
-            const cost = this.calculateRateLimiterCost (type, method, path, params, config, context)
-            await this.throttle (cost)
-        }
-        const request = this.sign (path, type, method, params, headers, body)
-        return this.fetch (request.url, request.method, request.headers, request.body)
-    }
-
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        return this.fetch2 (path, type, method, params, headers, body, config, context)
-    }
-
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
@@ -1698,7 +1685,59 @@ module.exports = class Exchange {
 
     /* eslint-enable */
     // ------------------------------------------------------------------------
+
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+
+    // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        if (this.enableRateLimit) {
+            const cost = this.calculateRateLimiterCost (type, method, path, params, config, context);
+            await this.throttle (cost);
+        }
+        const request = this.sign (path, type, method, params, headers, body);
+        return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+    }
+
+    async request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        return await this.fetch2 (path, type, method, params, headers, body, config, context);
+    }
 
     async loadAccounts (reload = false, params = {}) {
         if (reload) {
