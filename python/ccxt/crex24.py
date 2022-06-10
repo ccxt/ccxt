@@ -1320,6 +1320,13 @@ class crex24(Exchange):
         return self.safe_value(response, 0)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by crex24 cancelOrders()
+        :param dict params: extra parameters specific to the crex24 api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if not isinstance(ids, list):
             raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
         self.load_markets()

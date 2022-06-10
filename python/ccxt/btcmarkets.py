@@ -811,6 +811,13 @@ class btcmarkets(Exchange):
         return self.parse_order(response, market)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by btcmarkets cancelOrders()
+        :param dict params: extra parameters specific to the btcmarkets api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])

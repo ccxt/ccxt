@@ -1812,6 +1812,13 @@ class bitmex extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol not used by bitmex cancelOrders ()
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return yield $this->cancel_order($ids, $symbol, $params);
     }
 

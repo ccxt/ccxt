@@ -3988,6 +3988,13 @@ class huobi(Exchange):
         })
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrders', None, params)
@@ -5932,7 +5939,7 @@ class huobi(Exchange):
         tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
         return self.safe_value(tiers, symbol)
 
-    def parse_leverage_tiers(self, response, symbols, marketIdKey):
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
         result = {}
         for i in range(0, len(response)):
             item = response[i]

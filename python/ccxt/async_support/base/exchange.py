@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.36'
+__version__ = '1.86.37'
 
 # -----------------------------------------------------------------------------
 
@@ -261,6 +261,20 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        # marketIdKey should only be None when response is a dictionary
+        symbols = self.market_symbols(symbols)
+        tiers = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            id = self.safe_string(item, marketIdKey)
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            contract = self.safe_value(market, 'contract', False)
+            if contract and ((symbols is None) or self.in_array(symbol, symbols)):
+                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        return tiers
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if self.has['fetchTradingLimits']:

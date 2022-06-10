@@ -1732,6 +1732,13 @@ class bitmex(Exchange):
         return self.parse_order(order)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by bitmex cancelOrders()
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return self.cancel_order(ids, symbol, params)
 
     def cancel_all_orders(self, symbol=None, params={}):

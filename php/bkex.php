@@ -1042,6 +1042,13 @@ class bkex extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol unified $market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the bkex api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
         }

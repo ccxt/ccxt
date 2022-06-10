@@ -2049,6 +2049,13 @@ class mexc3(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = symbol is not self.market(symbol) if None else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
