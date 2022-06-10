@@ -4579,35 +4579,42 @@ class huobi(Exchange):
         })
 
     def fetch_borrow_rates_per_symbol(self, params={}):
+        """
+        fetch borrow rates for currencies within individual markets
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by market symbol
+        """
         self.load_markets()
         response = self.spotPrivateGetV1MarginLoanInfo(params)
-        # {
-        #     "status": "ok",
-        #     "data": [
-        #         {
-        #             "symbol": "1inchusdt",
-        #             "currencies": [
-        #                 {
-        #                     "currency": "1inch",
-        #                     "interest-rate": "0.00098",
-        #                     "min-loan-amt": "90.000000000000000000",
-        #                     "max-loan-amt": "1000.000000000000000000",
-        #                     "loanable-amt": "0.0",
-        #                     "actual-rate": "0.00098"
-        #                 },
-        #                 {
-        #                     "currency": "usdt",
-        #                     "interest-rate": "0.00098",
-        #                     "min-loan-amt": "100.000000000000000000",
-        #                     "max-loan-amt": "1000.000000000000000000",
-        #                     "loanable-amt": "0.0",
-        #                     "actual-rate": "0.00098"
-        #                 }
-        #             ]
-        #         },
-        #         ...
-        #     ]
-        # }
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": [
+        #            {
+        #                "symbol": "1inchusdt",
+        #                "currencies": [
+        #                    {
+        #                        "currency": "1inch",
+        #                        "interest-rate": "0.00098",
+        #                        "min-loan-amt": "90.000000000000000000",
+        #                        "max-loan-amt": "1000.000000000000000000",
+        #                        "loanable-amt": "0.0",
+        #                        "actual-rate": "0.00098"
+        #                    },
+        #                    {
+        #                        "currency": "usdt",
+        #                        "interest-rate": "0.00098",
+        #                        "min-loan-amt": "100.000000000000000000",
+        #                        "max-loan-amt": "1000.000000000000000000",
+        #                        "loanable-amt": "0.0",
+        #                        "actual-rate": "0.00098"
+        #                    }
+        #                ]
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         timestamp = self.milliseconds()
         data = self.safe_value(response, 'data', [])
         rates = {
