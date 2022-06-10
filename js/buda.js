@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -169,6 +170,7 @@ module.exports = class buda extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }
                 'forbidden': PermissionDenied,  // { message: 'You dont have access to this resource', code: 'forbidden' }
@@ -224,6 +226,30 @@ module.exports = class buda extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const marketsResponse = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "markets": [
+        //           {
+        //             "id": "BTC-CLP",
+        //             "name": "btc-clp",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "CLP",
+        //             "minimum_order_amount": [
+        //               "0.00002",
+        //               "BTC"
+        //             ],
+        //             "disabled": false,
+        //             "illiquid": false,
+        //             "rpo_disabled": null,
+        //             "taker_fee": "0.8",
+        //             "maker_fee": "0.4",
+        //             "max_orders_per_minute": 50,
+        //             "maker_discount_percentage": "0.0",
+        //             "taker_discount_percentage": "0.0"
+        //           },
+        //         ]
+        //     }
+        //
         const markets = this.safeValue (marketsResponse, 'markets', []);
         const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
@@ -238,6 +264,8 @@ module.exports = class buda extends Exchange {
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
             const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
+            const taker_fee = this.safeString (market, 'taker_fee');
+            const maker_fee = this.safeString (market, 'maker_fee');
             result.push ({
                 'id': this.safeString (market, 'id'),
                 'symbol': base + '/' + quote,
@@ -262,9 +290,11 @@ module.exports = class buda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'taker': Precise.stringDiv (taker_fee, '1000'),
+                'maker': Precise.stringDiv (maker_fee, '1000'),
                 'precision': {
-                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                    'price': parseInt (pricePrecisionString),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (baseInfo, 'input_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -330,8 +360,7 @@ module.exports = class buda extends Exchange {
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'input_decimals');
-            const minimum = Math.pow (10, -precision);
+            const tickSize = this.parseNumber (this.parsePrecision (this.safeString (currency, 'input_decimals')));
             const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
             const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
             const minDeposit = this.safeNumber (depositMinimum, 0);
@@ -345,10 +374,10 @@ module.exports = class buda extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': tickSize,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': tickSize,
                         'max': undefined,
                     },
                     'deposit': {
