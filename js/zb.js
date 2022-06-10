@@ -4265,7 +4265,7 @@ module.exports = class zb extends Exchange {
         };
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
-                throw new BadRequest (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
+                throw new BadRequest (this.id + 'createMarginLoan() requires a symbol argument for isolated margin');
             }
             method = 'spotV1PrivateGetBorrow';
             request['marketName'] = market['id'];
