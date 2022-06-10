@@ -135,7 +135,7 @@ module.exports = class coinflex extends ccxt.coinflex {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
