@@ -317,6 +317,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
