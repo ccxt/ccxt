@@ -290,8 +290,8 @@ module.exports = class buda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': Precise.stringDiv (taker_fee, '1000'),
-                'maker': Precise.stringDiv (maker_fee, '1000'),
+                'taker': this.parseNumber (Precise.stringDiv (taker_fee, '1000')),
+                'maker': this.parseNumber (Precise.stringDiv (maker_fee, '1000')),
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (baseInfo, 'input_decimals'))),
                     'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
