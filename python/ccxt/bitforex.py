@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitforex(Exchange):
@@ -129,6 +130,7 @@ class bitforex(Exchange):
                 'NOIA': 'METANOIA',
                 'TON': 'To The Moon',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '1000': OrderNotFound,  # {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
                 '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
@@ -199,8 +201,8 @@ class bitforex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
