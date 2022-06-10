@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -273,6 +274,7 @@ module.exports = class coinex extends Exchange {
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -316,7 +318,7 @@ module.exports = class coinex extends Exchange {
                     'deposit': this.safeValue (currency, 'can_deposit'),
                     'withdraw': this.safeValue (currency, 'can_withdraw'),
                     'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                    'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -357,7 +359,7 @@ module.exports = class coinex extends Exchange {
                 'deposit': this.safeValue (currency, 'can_deposit'),
                 'withdraw': this.safeValue (currency, 'can_withdraw'),
                 'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
@@ -447,8 +449,8 @@ module.exports = class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'trading_decimal'),
-                    'price': this.safeInteger (market, 'pricing_decimal'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'trading_decimal'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricing_decimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -543,8 +545,8 @@ module.exports = class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'stock_prec'),
-                    'price': this.safeInteger (entry, 'money_prec'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'stock_prec'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
