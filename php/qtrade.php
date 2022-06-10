@@ -1258,6 +1258,13 @@ class qtrade extends Exchange {
     }
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a $deposit
+         * @param {str} $id $deposit $id
+         * @param {str|null} $code not used by qtrade fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the qtrade api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->load_markets();
         $request = array(
             'deposit_id' => $id,

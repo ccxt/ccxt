@@ -967,6 +967,13 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a $deposit
+         * @param {str} $id $deposit $id
+         * @param {str|null} $code not used by blockchaincom fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $depositId = $this->safe_string($params, 'depositId', $id);
         $request = array(

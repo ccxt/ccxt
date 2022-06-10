@@ -913,6 +913,13 @@ class blockchaincom(Exchange):
         return self.parse_transactions(response, code, since, limit)
 
     def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by blockchaincom fetchDeposit()
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         depositId = self.safe_string(params, 'depositId', id)
         request = {

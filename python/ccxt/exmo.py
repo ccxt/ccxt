@@ -1777,6 +1777,13 @@ class exmo(Exchange):
         return self.parse_transaction(first, currency)
 
     def fetch_deposit(self, id=None, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: unified currency code, default is None
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {

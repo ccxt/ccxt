@@ -1907,6 +1907,13 @@ class exmo extends Exchange {
     }
 
     public function fetch_deposit($id = null, $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @param {str} $id deposit $id
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $currency = null;
         $request = array(

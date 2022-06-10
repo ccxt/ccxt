@@ -2193,6 +2193,13 @@ class bitmart(Exchange):
         return self.parse_transactions(records, currency, since, limit)
 
     async def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by bitmart fetchDeposit()
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
