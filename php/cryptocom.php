@@ -226,6 +226,7 @@ class cryptocom extends Exchange {
             'commonCurrencies' => array(
                 'USD_STABLE_COIN' => 'USDC',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '10001' => '\\ccxt\\ExchangeError',
@@ -346,8 +347,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
-                    'price' => intval($priceDecimals),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($priceDecimals)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -448,8 +449,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'quote_decimals'),
-                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_decimals'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

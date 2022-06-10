@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -234,6 +235,7 @@ class cryptocom(Exchange):
             'commonCurrencies': {
                 'USD_STABLE_COIN': 'USDC',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': ExchangeError,
@@ -351,8 +353,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantity_decimals'),
-                    'price': int(priceDecimals),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
+                    'price': self.parse_number(self.parse_precision(priceDecimals)),
                 },
                 'limits': {
                     'leverage': {
@@ -450,8 +452,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'quote_decimals'),
-                    'amount': self.safe_integer(market, 'quantity_decimals'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_decimals'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
                 },
                 'limits': {
                     'leverage': {
