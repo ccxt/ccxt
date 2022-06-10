@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -114,6 +115,7 @@ module.exports = class btcturk extends Exchange {
                     'FAILED_MARKET_ORDER': InvalidOrder,
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -221,8 +223,8 @@ module.exports = class btcturk extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'numeratorScale'),
-                    'price': this.safeInteger (entry, 'denominatorScale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'numeratorScale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'denominatorScale'))),
                 },
                 'limits': {
                     'leverage': {
