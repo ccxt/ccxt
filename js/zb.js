@@ -4294,7 +4294,7 @@ module.exports = class zb extends Exchange {
         //     }
         //
         return {
-            'id': this.safeInteger (info, 'tranId'),
+            'id': undefined,
             'currency': currency,
             'amount': undefined,
             'timestamp': undefined,
