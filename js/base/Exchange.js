@@ -936,35 +936,6 @@ module.exports = class Exchange {
         });
     }
 
-    parseAccounts (accounts, params = {}) {
-        const array = Object.values (accounts || [])
-        return array.map ((account) => this.extend (this.parseAccount (account, undefined), params))
-    }
-
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (trades || []).map ((trade) => this.merge (this.parseTrade (trade, market), params))
-        result = this.sortBy2 (result, 'timestamp', 'id')
-        const symbol = (market !== undefined) ? market['symbol'] : undefined
-        const tail = since === undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
-    }
-
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (transactions || []).map ((transaction) => this.extend (this.parseTransaction (transaction, currency), params))
-        result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = since === undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
-    }
-
-    parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = Object.values (transfers || []).map ((transfer) => this.extend (this.parseTransfer (transfer, currency), params))
-        result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = since === undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
-    }
-
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         const array = Object.values (data || []);
@@ -1661,6 +1632,55 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseAccounts (accounts, params = {}) {
+        accounts = this.toArray (accounts);
+        const result = [];
+        for (let i = 0; i < accounts.length; i++) {
+            const account = this.extend (this.parseAccount (accounts[i], undefined), params);
+            result.push (account);
+        }
+        return result;
+    }
+
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        trades = this.toArray (trades);
+        let result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const trade = this.extend (this.parseTrade (trades[i], market), params);
+            result.push (trade);
+        }
+        result = this.sortBy2 (result, 'timestamp', 'id');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const tail = since === undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
+    }
+
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
+        transactions = this.toArray (transactions);
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = this.extend (this.parseTransaction (transactions[i], currency), params);
+            result.push (transaction);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
+
+    parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
+        transfers = this.toArray (transfers);
+        let result = [];
+        for (let i = 0; i < transfers.length; i++) {
+            const transfer = this.extend (this.parseTransfer (transfers[i], currency), params);
+            result.push (transfer);
+        }
+        result = this.sortBy (result, 'timestamp');
+        const code = (currency !== undefined) ? currency['code'] : undefined;
+        const tail = since === undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
+    }
 
     nonce () {
         return this.seconds ();

@@ -1786,34 +1786,6 @@ class Exchange(object):
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
 
-    def parse_accounts(self, accounts, params={}):
-        array = self.to_array(accounts)
-        return [self.extend(self.parse_account(account), params) for account in array]
-
-    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
-        array = self.to_array(trades)
-        array = [self.merge(self.parse_trade(trade, market), params) for trade in array]
-        array = self.sort_by_2(array, 'timestamp', 'id')
-        symbol = market['symbol'] if market else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
-
-    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
-        array = self.to_array(transactions)
-        array = [self.extend(self.parse_transaction(transaction, currency), params) for transaction in array]
-        array = self.sort_by(array, 'timestamp')
-        code = currency['code'] if currency else None
-        tail = since is None
-        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
-
-    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
-        array = self.to_array(transfers)
-        array = [self.extend(self.parse_transfer(transfer, currency), params) for transfer in array]
-        array = self.sort_by(array, 'timestamp')
-        code = currency['code'] if currency else None
-        tail = since is None
-        return self.filter_by_currency_since_limit(array, code, since, limit, tail)
-
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
         result = []
@@ -2467,6 +2439,47 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_accounts(self, accounts, params={}):
+        accounts = self.to_array(accounts)
+        result = []
+        for i in range(0, len(accounts)):
+            account = self.extend(self.parse_account(accounts[i], None), params)
+            result.append(account)
+        return result
+
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
+        trades = self.to_array(trades)
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.extend(self.parse_trade(trades[i], market), params)
+            result.append(trade)
+        result = self.sort_by_2(result, 'timestamp', 'id')
+        symbol = market['symbol'] if (market is not None) else None
+        tail = since is None
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
+
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
+        transactions = self.to_array(transactions)
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.extend(self.parse_transaction(transactions[i], currency), params)
+            result.append(transaction)
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
+
+    def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
+        transfers = self.to_array(transfers)
+        result = []
+        for i in range(0, len(transfers)):
+            transfer = self.extend(self.parseTransfer(transfers[i], currency), params)
+            result.append(transfer)
+        result = self.sort_by(result, 'timestamp')
+        code = currency['code'] if (currency is not None) else None
+        tail = since is None
+        return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def nonce(self):
         return self.seconds()

@@ -294,10 +294,6 @@ class Exchange {
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'safeTicker' => 'safe_ticker',
-        'parseAccounts' => 'parse_accounts',
-        'parseTrades' => 'parse_trades',
-        'parseTransactions' => 'parse_transactions',
-        'parseTransfers' => 'parse_transfers',
         'parseLedger' => 'parse_ledger',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
@@ -321,6 +317,10 @@ class Exchange {
         'parsePositions' => 'parse_positions',
         'safeNumber2' => 'safe_number2',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'parseAccounts' => 'parse_accounts',
+        'parseTrades' => 'parse_trades',
+        'parseTransactions' => 'parse_transactions',
+        'parseTransfers' => 'parse_transfers',
         'setHeaders' => 'set_headers',
         'marketId' => 'market_id',
         'resolvePath' => 'resolve_path',
@@ -2119,51 +2119,6 @@ class Exchange {
         ));
     }
 
-    public function parse_accounts($accounts, $params = array()) {
-        $array = is_array($accounts) ? array_values($accounts) : array();
-        $result = array();
-        foreach ($array as $account) {
-            $result[] = array_replace_recursive($this->parse_account($account), $params);
-        }
-        return $result;
-    }
-
-    public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($trades) ? array_values($trades) : array();
-        $result = array();
-        foreach ($array as $trade) {
-            $result[] = $this->merge($this->parse_trade($trade, $market), $params);
-        }
-        $result = $this->sort_by_2($result, 'timestamp', 'id');
-        $symbol = isset($market) ? $market['symbol'] : null;
-        $tail = $since === null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
-    }
-
-    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($transactions) ? array_values($transactions) : array();
-        $result = array();
-        foreach ($array as $transaction) {
-            $result[] = array_replace_recursive($this->parse_transaction($transaction, $currency), $params);
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
-    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array()) {
-        $array = is_array($transfers) ? array_values($transfers) : array();
-        $result = array();
-        foreach ($array as $transfer) {
-            $result[] = array_replace_recursive($this->parse_transfer($transfer, $currency), $params);
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $code = isset($currency) ? $currency['code'] : null;
-        $tail = $since === null;
-        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
-    }
-
     public function parse_ledger($items, $currency = null, $since = null, $limit = null, $params = array()) {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
@@ -3300,6 +3255,55 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_accounts($accounts, $params = array ()) {
+        $accounts = $this->to_array($accounts);
+        $result = array();
+        for ($i = 0; $i < count($accounts); $i++) {
+            $account = array_merge($this->parse_account($accounts[$i], null), $params);
+            $result[] = $account;
+        }
+        return $result;
+    }
+
+    public function parse_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
+        $trades = $this->to_array($trades);
+        $result = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $trade = array_merge($this->parse_trade($trades[$i], $market), $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
+    }
+
+    public function parse_transactions($transactions, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $transactions = $this->to_array($transactions);
+        $result = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $transaction = array_merge($this->parse_transaction($transactions[$i], $currency), $params);
+            $result[] = $transaction;
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
+
+    public function parse_transfers($transfers, $currency = null, $since = null, $limit = null, $params = array ()) {
+        $transfers = $this->to_array($transfers);
+        $result = array();
+        for ($i = 0; $i < count($transfers); $i++) {
+            $transfer = array_merge($this->parseTransfer ($transfers[$i], $currency), $params);
+            $result[] = $transfer;
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        $code = ($currency !== null) ? $currency['code'] : null;
+        $tail = $since === null;
+        return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
+    }
 
     public function nonce() {
         return $this->seconds ();
