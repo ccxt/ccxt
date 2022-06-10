@@ -1264,6 +1264,15 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name stex#fetchClosedOrder
+         * @description fetch an open order by it's id
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the stex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
