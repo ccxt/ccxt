@@ -25,10 +25,6 @@ function testCalculateFee() {
         'quote':  'BAR',
         'taker':   taker,
         'maker':   maker,
-        'precision': {
-            'amount': 8,
-            'price': 8,
-        },
     }
 
     const exchange = new Exchange ({
@@ -37,6 +33,11 @@ function testCalculateFee() {
             'FOO/BAR': market,
         },
     })
+
+    market['precision'] =  {
+        'amount': exchange.parseNumber ('0.00000001'),
+        'price': exchange.parseNumber ('0.00000001'),
+    };
 
     Object.keys (fees).forEach ((takerOrMaker) => {
 
@@ -55,7 +56,7 @@ function testExchangeConfigExtension () {
 
 
     const cost = { 'min': 0.001, 'max': 1000 }
-    const precision = { 'amount': 3 }
+    const precision = { 'amount': exchange.parseNumber ('0.001') }
     const exchange = new binance ({
         'markets': {
             'ETH/BTC': { 'limits': { cost }, precision },
@@ -63,7 +64,7 @@ function testExchangeConfigExtension () {
     })
 
     deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
-    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': 6, 'amount': 3 })
+    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': exchange.parseNumber ('0.000001'), 'amount': exchange.parseNumber ('0.001') })
     deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
 }
 

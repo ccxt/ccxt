@@ -30,9 +30,9 @@ function testMarket (exchange, market, method) {
         'settle': undefined,
         'settleId': undefined,
         'precision': {
-            'price': 8, // integer or fraction
-            'amount': 8, // integer or fraction
-            'cost': 8, // integer or fraction
+            'price': exchange.parseNumber ('0.00000001'), // integer or fraction
+            'amount': exchange.parseNumber ('0.00000001'), // integer or fraction
+            'cost': exchange.parseNumber ('0.00000001'), // integer or fraction
         },
         // value limits when placing orders on this market
         'limits': {
