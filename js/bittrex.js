@@ -338,7 +338,7 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'amount': this.parseNumber ('0.00000001'),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
                 },
                 'limits': {
@@ -466,7 +466,7 @@ module.exports = class bittrex extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber (this.parsePrecision ('8')); // default precision, todo: fix "magic constants"
+            const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
             const isActive = this.safeString (currency, 'status');
             result[code] = {

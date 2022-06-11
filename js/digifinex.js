@@ -292,7 +292,7 @@ module.exports = class digifinex extends Exchange {
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': this.parseNumber (this.parsePrecision ('8')), // todo fix hardcoded value
+                    'precision': this.parseNumber ('0.00000001'), // todo fix hardcoded value
                     'limits': {
                         'amount': {
                             'min': undefined,

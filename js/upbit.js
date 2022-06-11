@@ -364,8 +364,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision ('8')),
-                'price': this.parseNumber (this.parsePrecision ('8')),
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
             'limits': {
                 'leverage': {
@@ -442,8 +442,8 @@ module.exports = class upbit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision ('8')),
-                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'price': this.parseNumber ('0.00000001'),
+                    'amount': this.parseNumber ('0.00000001'),
                 },
                 'limits': {
                     'leverage': {

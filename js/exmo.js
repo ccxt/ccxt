@@ -609,7 +609,7 @@ module.exports = class exmo extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': this.parseNumber (this.parsePrecision ('8')),
+                'precision': this.parseNumber ('0.00000001'),
                 'limits': limits,
                 'info': providers,
             };
@@ -679,7 +679,7 @@ module.exports = class exmo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'amount': this.parseNumber ('0.00000001'),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
