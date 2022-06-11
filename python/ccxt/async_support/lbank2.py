@@ -16,6 +16,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class lbank2(Exchange):
@@ -189,6 +190,7 @@ class lbank2(Exchange):
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'cacheSecretAsPem': True,
                 'createMarketBuyOrderRequiresPrice': True,
@@ -332,8 +334,8 @@ class lbank2(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityAccuracy'),
-                    'price': self.safe_integer(market, 'priceAccuracy'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
                     'leverage': {
@@ -819,11 +821,22 @@ class lbank2(Exchange):
         }
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         market = self.market(symbol)
         result = await self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
         return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {}
         response = await self.privatePostSupplementCustomerTradeFee(self.extend(request, params))
@@ -1132,6 +1145,14 @@ class lbank2(Exchange):
             return parsedOrders
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
@@ -1176,6 +1197,14 @@ class lbank2(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         # default query is for cancelled and completely filled orders
         # does not return open orders unless specified explicitly
         if symbol is None:
@@ -1223,6 +1252,14 @@ class lbank2(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -1304,6 +1341,12 @@ class lbank2(Exchange):
         return result
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
@@ -1333,6 +1376,12 @@ class lbank2(Exchange):
         return result
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
@@ -1421,6 +1470,15 @@ class lbank2(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -1523,7 +1581,7 @@ class lbank2(Exchange):
         else:
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'txId')
-        timestamp = self.safe_string_2(transaction, 'insertTime', 'applyTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         networks = self.safe_value(self.options, 'inverse-networks', {})
         networkId = self.safe_string(transaction, 'networkName')
         network = self.safe_string(networks, networkId, networkId)
@@ -1574,6 +1632,14 @@ class lbank2(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
@@ -1613,6 +1679,14 @@ class lbank2(Exchange):
         return self.parse_transactions(deposits, code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
@@ -1656,6 +1730,12 @@ class lbank2(Exchange):
         return self.parse_transactions(withdraws, code, since, limit)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by lbank2 fetchTransactionFees()
+        :param dict params: extra parameters specific to the lbank2 api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         # private only returns information for currencies with non-zero balance
         await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
@@ -1769,7 +1849,8 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                sign = self.binary_to_base64(self.rsa(self.encode(uppercaseHash), self.encode(pem), 'RS256'))
+                encodedPem = self.encode(pem)
+                sign = self.binary_to_base64(self.rsa(uppercaseHash, encodedPem, 'RS256'))
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
             query['sign'] = sign

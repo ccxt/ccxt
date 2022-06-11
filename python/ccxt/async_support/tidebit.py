@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class tidebit(Exchange):
@@ -153,6 +154,7 @@ class tidebit(Exchange):
                     'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -160,6 +162,12 @@ class tidebit(Exchange):
         })
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the tidebit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -184,6 +192,24 @@ class tidebit(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         response = await self.publicGetMarkets(params)
+        #
+        #    [
+        #        {
+        #            "id": "btchkd",
+        #            "name": "BTC/HKD",
+        #            "bid_fixed": "2",
+        #            "ask_fixed": "4",
+        #            "price_group_fixed": null
+        #        },
+        #        {
+        #            "id": "btcusdt",
+        #            "name": "BTC/USDT",
+        #            "bid_fixed": "2",
+        #            "ask_fixed": "3",
+        #            "price_group_fixed": null
+        #        },
+        # }
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -214,7 +240,10 @@ class tidebit(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'precision': self.precision,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'ask_fixed'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'bid_fixed'))),
+                },
                 'limits': self.extend({
                     'leverage': {
                         'min': None,
@@ -573,6 +602,15 @@ class tidebit(Exchange):
         return order
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the tidebit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()

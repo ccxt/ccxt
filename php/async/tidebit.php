@@ -153,6 +153,7 @@ class tidebit extends Exchange {
                     'withdraw' => array(), // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
@@ -161,6 +162,12 @@ class tidebit extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the tidebit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -188,6 +195,24 @@ class tidebit extends Exchange {
          * @return {[dict]} an array of objects representing $market data
          */
         $response = yield $this->publicGetMarkets ($params);
+        //
+        //    [
+        //        array(
+        //            "id" => "btchkd",
+        //            "name" => "BTC/HKD",
+        //            "bid_fixed" => "2",
+        //            "ask_fixed" => "4",
+        //            "price_group_fixed" => null
+        //        ),
+        //        array(
+        //            "id" => "btcusdt",
+        //            "name" => "BTC/USDT",
+        //            "bid_fixed" => "2",
+        //            "ask_fixed" => "3",
+        //            "price_group_fixed" => null
+        //        ),
+        // }
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -218,7 +243,10 @@ class tidebit extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'precision' => $this->precision,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'ask_fixed'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'bid_fixed'))),
+                ),
                 'limits' => array_merge(array(
                     'leverage' => array(
                         'min' => null,
@@ -601,6 +629,15 @@ class tidebit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the tidebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();

@@ -300,37 +300,61 @@ module.exports = class coinbasepro extends Exchange {
          */
         const response = await this.publicGetProducts (params);
         //
-        //    [
-        //        {
-        //            "id": "ZEC-BTC",
-        //            "base_currency": "ZEC",
-        //            "quote_currency": "BTC",
-        //            "base_min_size": "0.0056",
-        //            "base_max_size": "3600",
-        //            "quote_increment": "0.000001",
-        //            "base_increment": "0.0001",
-        //            "display_name": "ZEC/BTC",
-        //            "min_market_funds": "0.000016",
-        //            "max_market_funds": "12",
-        //            "margin_enabled": false,
-        //            "fx_stablecoin": false,
-        //            "max_slippage_percentage": "0.03000000",
-        //            "post_only": false,
-        //            "limit_only": false,
-        //            "cancel_only": false,
-        //            "trading_disabled": false,
-        //            "status": "online",
-        //            "status_message": "",
-        //            "auction_mode": false
-        //          },
-        //    ]
+        //     [
+        //         {
+        //             id: 'BTCAUCTION-USD',
+        //             base_currency: 'BTC',
+        //             quote_currency: 'USD',
+        //             base_min_size: '0.000016',
+        //             base_max_size: '1500',
+        //             quote_increment: '0.01',
+        //             base_increment: '0.00000001',
+        //             display_name: 'BTCAUCTION/USD',
+        //             min_market_funds: '1',
+        //             max_market_funds: '20000000',
+        //             margin_enabled: false,
+        //             fx_stablecoin: false,
+        //             max_slippage_percentage: '0.02000000',
+        //             post_only: false,
+        //             limit_only: false,
+        //             cancel_only: true,
+        //             trading_disabled: false,
+        //             status: 'online',
+        //             status_message: '',
+        //             auction_mode: false
+        //         },
+        //         {
+        //             id: 'BTC-USD',
+        //             base_currency: 'BTC',
+        //             quote_currency: 'USD',
+        //             base_min_size: '0.000016',
+        //             base_max_size: '1500',
+        //             quote_increment: '0.01',
+        //             base_increment: '0.00000001',
+        //             display_name: 'BTC/USD',
+        //             min_market_funds: '1',
+        //             max_market_funds: '20000000',
+        //             margin_enabled: false,
+        //             fx_stablecoin: false,
+        //             max_slippage_percentage: '0.02000000',
+        //             post_only: false,
+        //             limit_only: false,
+        //             cancel_only: false,
+        //             trading_disabled: false,
+        //             status: 'online',
+        //             status_message: '',
+        //             auction_mode: false
+        //         }
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+            const [ baseId, quoteId ] = id.split ('-');
+            // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            // const baseId = this.safeString (market, 'base_currency');
+            // const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
@@ -387,6 +411,13 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
         //
@@ -742,6 +773,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         // as of 2018-08-23
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -782,6 +823,13 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
@@ -1000,6 +1048,17 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -1013,6 +1072,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'status': 'all',
         };
@@ -1020,6 +1089,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1035,6 +1114,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'status': 'done',
         };
@@ -1167,6 +1256,14 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1222,6 +1319,17 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1334,6 +1442,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
@@ -1369,6 +1487,16 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         await this.loadAccounts ();
         let currency = undefined;
@@ -1410,10 +1538,30 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'withdraw' }, params));
     }
 
@@ -1485,6 +1633,14 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name coinbasepro#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the coinbasepro api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let accounts = this.safeValue (this.options, 'coinbaseAccounts');

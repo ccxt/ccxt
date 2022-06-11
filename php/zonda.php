@@ -224,6 +224,7 @@ class zonda extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '400' => '\\ccxt\\ExchangeError', // At least one parameter wasn't set
                 '401' => '\\ccxt\\InvalidOrder', // Invalid order type
@@ -331,8 +332,8 @@ class zonda extends Exchange {
                 'optionType' => null,
                 'strike' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($first, 'scale'),
-                    'price' => $this->safe_integer($second, 'scale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -359,6 +360,14 @@ class zonda extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol not used by zonda fetchOpenOrders
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $response = $this->v1_01PrivateGetTradingOffer (array_merge($request, $params));
@@ -417,6 +426,14 @@ class zonda extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array();
         if ($symbol) {
@@ -596,6 +613,14 @@ class zonda extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $balanceCurrencies = array();
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -1284,6 +1309,15 @@ class zonda extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * $transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to $transfer
+         * @param {str} $fromAccount account to $transfer from
+         * @param {str} $toAccount account to $transfer to
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1387,6 +1421,15 @@ class zonda extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();

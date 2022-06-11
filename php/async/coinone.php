@@ -116,10 +116,11 @@ class coinone extends Exchange {
                 ),
             ),
             'precision' => array(
-                'price' => 4,
-                'amount' => 4,
-                'cost' => 8,
+                'price' => $this->parse_number('0.0001'),
+                'amount' => $this->parse_number('0.0001'),
+                'cost' => $this->parse_number('0.00000001'),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
                 '104' => '\\ccxt\\OrderNotFound', // array("errorCode":"104","errorMsg":"Order id is not exist","result":"error")
@@ -673,6 +674,14 @@ class coinone extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinone api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if ($symbol === null) {
@@ -706,6 +715,14 @@ class coinone extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the coinone api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -777,6 +794,12 @@ class coinone extends Exchange {
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {dict} $params extra parameters specific to the coinone api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures}
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostAccountDepositAddress ($params);
         //
