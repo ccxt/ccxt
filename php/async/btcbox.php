@@ -97,6 +97,7 @@ class btcbox extends Exchange {
                 'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100, 'type' => 'spot', 'spot' => true ),
                 'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100, 'type' => 'spot', 'spot' => true ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '104' => '\\ccxt\\AuthenticationError',
                 '105' => '\\ccxt\\PermissionDenied',
