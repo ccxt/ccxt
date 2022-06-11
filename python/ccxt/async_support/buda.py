@@ -5,13 +5,13 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -177,6 +177,7 @@ class buda(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  # {message: 'Invalid credentials', code: 'not_authorized'}
                 'forbidden': PermissionDenied,  # {message: 'You dont have access to self resource', code: 'forbidden'}
@@ -225,6 +226,30 @@ class buda(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         marketsResponse = await self.publicGetMarkets(params)
+        #
+        #     {
+        #         "markets": [
+        #           {
+        #             "id": "BTC-CLP",
+        #             "name": "btc-clp",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "CLP",
+        #             "minimum_order_amount": [
+        #               "0.00002",
+        #               "BTC"
+        #             ],
+        #             "disabled": False,
+        #             "illiquid": False,
+        #             "rpo_disabled": null,
+        #             "taker_fee": "0.8",
+        #             "maker_fee": "0.4",
+        #             "max_orders_per_minute": 50,
+        #             "maker_discount_percentage": "0.0",
+        #             "taker_discount_percentage": "0.0"
+        #           },
+        #         ]
+        #     }
+        #
         markets = self.safe_value(marketsResponse, 'markets', [])
         currenciesResponse = await self.publicGetCurrencies()
         currencies = self.safe_value(currenciesResponse, 'currencies')
@@ -239,6 +264,8 @@ class buda(Exchange):
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
             pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
+            taker_fee = self.safe_string(market, 'taker_fee')
+            maker_fee = self.safe_string(market, 'maker_fee')
             result.append({
                 'id': self.safe_string(market, 'id'),
                 'symbol': base + '/' + quote,
@@ -263,9 +290,11 @@ class buda(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
+                'taker': self.parse_number(Precise.string_div(taker_fee, '1000')),
+                'maker': self.parse_number(Precise.string_div(maker_fee, '1000')),
                 'precision': {
-                    'amount': self.safe_integer(baseInfo, 'input_decimals'),
-                    'price': int(pricePrecisionString),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(baseInfo, 'input_decimals'))),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -326,8 +355,7 @@ class buda(Exchange):
                 continue
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
-            precision = self.safe_number(currency, 'input_decimals')
-            minimum = math.pow(10, -precision)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'input_decimals')))
             depositMinimum = self.safe_value(currency, 'deposit_minimum', [])
             withdrawalMinimum = self.safe_value(currency, 'withdrawal_minimum', [])
             minDeposit = self.safe_number(depositMinimum, 0)
@@ -344,7 +372,7 @@ class buda(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': precision,
                         'max': None,
                     },
                     'deposit': {
