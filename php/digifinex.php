@@ -146,6 +146,7 @@ class digifinex extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '10001' => array( '\\ccxt\\BadRequest', "Wrong request method, please check it's a GET ot POST request" ),
@@ -291,7 +292,7 @@ class digifinex extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => $fee,
-                    'precision' => 8, // todo fix hardcoded value
+                    'precision' => $this->parse_number($this->parse_precision('8')), // todo fix hardcoded value
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -414,8 +415,8 @@ class digifinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_precision'),
-                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -491,8 +492,8 @@ class digifinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'price_precision'),
-                    'amount' => $this->safe_integer($market, 'volume_precision'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

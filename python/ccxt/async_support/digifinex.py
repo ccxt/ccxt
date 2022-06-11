@@ -19,6 +19,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -158,6 +159,7 @@ class digifinex(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': [BadRequest, "Wrong request method, please check it's a GET ot POST request"],
@@ -301,7 +303,7 @@ class digifinex(Exchange):
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': 8,  # todo fix hardcoded value
+                    'precision': self.parse_number(self.parse_precision('8')),  # todo fix hardcoded value
                     'limits': {
                         'amount': {
                             'min': None,
@@ -420,8 +422,8 @@ class digifinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
-                    'price': self.safe_integer(market, 'price_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -495,8 +497,8 @@ class digifinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price_precision'),
-                    'amount': self.safe_integer(market, 'volume_precision'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },
                 'limits': {
                     'leverage': {
