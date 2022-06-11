@@ -971,6 +971,7 @@ module.exports = class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
@@ -2609,17 +2610,12 @@ module.exports = class coinex extends Exchange {
          * @param {dict} params extra parameters specific to the coinex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const swap = market['swap'];
+        let market = undefined;
         if (limit === undefined) {
             limit = 100;
         }
         const request = {
-            'market': market['id'], // SPOT and SWAP
             'limit': limit, // SPOT and SWAP
             'offset': 0, // SWAP, means query from a certain record
             // 'page': 1, // SPOT
@@ -2627,6 +2623,16 @@ module.exports = class coinex extends Exchange {
             // 'start_time': since, // SWAP
             // 'end_time': 1524228297, // SWAP
         };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type !== 'spot' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        }
+        const swap = (type === 'swap');
         let method = undefined;
         if (swap) {
             method = 'perpetualPublicGetMarketUserDeals';
