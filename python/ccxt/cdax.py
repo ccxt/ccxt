@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -20,6 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class cdax(Exchange):
@@ -193,6 +193,7 @@ class cdax(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -421,9 +422,9 @@ class cdax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount-precision'),
-                    'price': self.safe_integer(market, 'price-precision'),
-                    'cost': self.safe_integer(market, 'value-precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -947,7 +948,7 @@ class cdax(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_value(currency, 'name')
-            precision = self.safe_integer(currency, 'withdraw-precision')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
             code = self.safe_currency_code(id)
             depositEnabled = self.safe_value(currency, 'deposit-enabled')
             withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
@@ -971,16 +972,16 @@ class cdax(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
                 'info': currency,

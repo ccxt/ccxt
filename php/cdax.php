@@ -183,6 +183,7 @@ class cdax extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
@@ -420,9 +421,9 @@ class cdax extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount-precision'),
-                    'price' => $this->safe_integer($market, 'price-precision'),
-                    'cost' => $this->safe_integer($market, 'value-precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount-precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price-precision'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'value-precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -977,7 +978,7 @@ class cdax extends Exchange {
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_value($currency, 'name');
-            $precision = $this->safe_integer($currency, 'withdraw-precision');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
             $code = $this->safe_currency_code($id);
             $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
             $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
@@ -1001,16 +1002,16 @@ class cdax extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'deposit-min-amount'),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdraw-min-amount'),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
                 'info' => $currency,
