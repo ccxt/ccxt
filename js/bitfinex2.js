@@ -5,6 +5,7 @@
 const bitfinex = require ('./bitfinex.js');
 const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -283,6 +284,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'withdraw': {},
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0', // P0, P1, P2, P3, P4, R0
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
@@ -374,6 +376,22 @@ module.exports = class bitfinex2 extends bitfinex {
             return this.options['currencyNames'][code];
         }
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
+    }
+
+    amountToPrecision (symbol, amount) {
+        // https://docs.bitfinex.com/docs/introduction#amount-precision
+        // The amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    priceToPrecision (symbol, price) {
+        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchStatus (params = {}) {
