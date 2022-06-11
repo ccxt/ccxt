@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -118,9 +119,10 @@ module.exports = class coinfalcon extends Exchange {
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -185,8 +187,8 @@ module.exports = class coinfalcon extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'size_precision'),
-                    'price': this.safeInteger (market, 'price_precision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'size_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
