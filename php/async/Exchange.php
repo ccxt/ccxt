@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.57';
+$version = '1.86.58';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.57';
+    const VERSION = '1.86.58';
 
     public static $loop;
     public static $kernel;
@@ -265,7 +265,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function parse_ohlc_vs($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);

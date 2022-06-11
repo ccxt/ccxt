@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.57'
+__version__ = '1.86.58'
 
 # -----------------------------------------------------------------------------
 
@@ -274,7 +274,7 @@ class Exchange(BaseExchange):
             'nonce': None,
         }
 
-    def parse_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         results = []
         for i in range(0, len(ohlcvs)):
             results.append(self.parse_ohlcv(ohlcvs[i], market))
