@@ -140,11 +140,11 @@ module.exports = class poloniex extends Exchange {
                 },
                 'price': {
                     'min': 0.00000001,
-                    'max': 1000000000,
+                    'max': undefined,
                 },
                 'cost': {
-                    'min': 0.00000000,
-                    'max': 1000000000,
+                    'min': undefined,
+                    'max': undefined,
                 },
             },
             'commonCurrencies': {

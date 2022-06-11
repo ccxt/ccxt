@@ -296,7 +296,7 @@ module.exports = class liquid extends Exchange {
                 'limits': {
                     'amount': {
                         'min': amountPrecision,
-                        'max': Math.pow (10, assetPrecisionInteger),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),

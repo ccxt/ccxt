@@ -497,7 +497,7 @@ module.exports = class kraken extends Exchange {
             'amount': this.parseNumber ('0.00000001'),
             'price': this.parseNumber ('0.00000001'),
         };
-        const costLimits = { 'min': 0, 'max': undefined };
+        const costLimits = { 'min': undefined, 'max': undefined };
         const priceLimits = { 'min': precision['price'], 'max': undefined };
         const amountLimits = { 'min': precision['amount'], 'max': undefined };
         const limits = { 'amount': amountLimits, 'price': priceLimits, 'cost': costLimits };

@@ -462,7 +462,7 @@ module.exports = class crex24 extends Exchange {
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': Math.pow (10, withdrawalPrecision),
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minDeposit'),
