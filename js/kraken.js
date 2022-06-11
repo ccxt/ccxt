@@ -549,8 +549,7 @@ module.exports = class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (this.safeString (currency, 'altname'));
-            const decimals = this.safeInteger (currency, 'decimals');
-            const precision = this.parseNumber (this.parsePrecision (this.numberToString (decimals)));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             // assumes all currencies are active except those listed above
             const active = !this.inArray (code, this.options['inactiveCurrencies']);
             result[code] = {
@@ -566,11 +565,11 @@ module.exports = class kraken extends Exchange {
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': Math.pow (10, decimals),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, decimals),
+                        'max': undefined,
                     },
                 },
             };
