@@ -261,8 +261,8 @@ class coinex extends Exchange {
                 ),
             ),
             'precision' => array(
-                'amount' => 8,
-                'price' => 8,
+                'amount' => $this->parse_number('0.00000001'),
+                'price' => $this->parse_number('0.00000001'),
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,

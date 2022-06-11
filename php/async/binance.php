@@ -816,6 +816,7 @@ class binance extends Exchange {
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
             ),
+            'precisionMode' => DECIMAL_PLACES,
             // exchange-specific options
             'options' => array(
                 'fetchCurrencies' => true, // this is a private call and it requires API keys

@@ -268,8 +268,8 @@ class coinex(Exchange):
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': self.parse_number('0.00000001'),
+                'price': self.parse_number('0.00000001'),
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
