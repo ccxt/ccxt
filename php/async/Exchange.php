@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.74';
+$version = '1.86.75';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.74';
+    const VERSION = '1.86.75';
 
     public static $loop;
     public static $kernel;
@@ -251,6 +251,11 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_number_2($dictionary, $key1, $key2, $d = null) {
+        $value = $this->safe_string_2($dictionary, $key1, $key2);
+        return $this->parse_number($value, $d);
+    }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
         $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();
