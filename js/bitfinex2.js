@@ -17,8 +17,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
-                'watchBalance': false, // for now
+                'watchBalance': true, // for now
                 'watchOHLCV': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
@@ -456,21 +457,53 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         }
     }
 
-    handleHeartbeat (client, message) {
-        //
-        // every second (approx) if no other updates are sent
-        //
-        //     { "event": "heartbeat" }
-        //
-        const event = this.safeString (message, 'event');
-        client.resolve (message, event);
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin funding
+        const messageHash = 'balance:' + balanceType;
+        return await this.watch (url, messageHash, undefined, 1);
+    }
+
+    handleBalance (client, message, subscription) {
+        // [
+        //     0,
+        //     'wu',
+        //     [
+        //       'exchange',
+        //       'LTC', // currency
+        //       0.06729727, // wallet balance
+        //       0, // unsettled balance
+        //       0.06729727, // available balance
+        //       'Exchange 0.4 LTC for UST @ 65.075',
+        //       {
+        //         reason: 'TRADE',
+        //         order_id: 96596397973,
+        //         order_id_oppo: 96596632735,
+        //         trade_price: '65.075',
+        //         trade_amount: '-0.4',
+        //         order_cid: 1654636218766,
+        //         order_gid: null
+        //       }
+        //     ]
+        // ]
+        const data = this.safeValue (message, 2);
+        const balanceType = this.safeString (data, 0);
+        const currencyId = this.safeString (data, 1);
+        const totalBalance = this.safeString (data, 2);
+        const availableBalance = this.safeString (data, 4);
+        const code = this.safeCurrencyCode (currencyId);
+        const account = (code in this.balance) ? this.balance[code] : this.account ();
+        account['free'] = availableBalance;
+        account['total'] = totalBalance;
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
+        const messageHash = 'balance:' + balanceType;
+        client.resolve (this.balance, messageHash);
     }
 
     handleSystemStatus (client, message) {
-        //
-        // todo: answer the question whether handleSystemStatus should be renamed
-        // and unified as handleStatus for any usage pattern that
-        // involves system status and maintenance updates
         //
         //     {
         //         event: 'info',
@@ -516,10 +549,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'authNonce': nonce,
                 'authPayload': payload,
                 'event': method,
-                'filter': [
-                    'trading',
-                    'wallet',
-                ],
             };
             this.spawn (this.watch, url, method, request, 1);
         }
@@ -543,18 +572,16 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         }
     }
 
-    async watchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const url = this.urls['api']['ws']['private'];
-        await this.authenticate ();
-        return await this.watch (url, id, undefined, 1);
-    }
-
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const orders = await this.watch (url, 'os', undefined, 1);
+        let messageHash = 'order';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += ':' + market['id'];
+        }
+        const orders = await this.watch (url, messageHash, undefined, 1);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -698,60 +725,34 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
     }
 
     handleMessage (client, message) {
-        if (Array.isArray (message)) {
-            const channelId = this.safeString (message, 0);
-            //
-            //     [
-            //         1231,
-            //         'hb',
-            //     ]
-            //
-            if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
-            }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
-            const channel = this.safeString (subscription, 'channel');
-            const name = this.safeString (message, 1);
-            const methods = {
-                'book': this.handleOrderBook,
-                'candles': this.handleOHLCV,
-                'ticker': this.handleTicker,
-                'trades': this.handleTrades,
-                'os': this.handleOrders,
-                'on': this.handleOrders,
-                'oc': this.handleOrders,
-            };
-            const method = this.safeValue2 (methods, channel, name);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
-            }
+        const channelId = this.safeString (message, 0);
+        //
+        //     [
+        //         1231,
+        //         'hb',
+        //     ]
+        //
+        if (message[1] === 'hb') {
+            return message; // skip heartbeats within subscription channels for now
+        }
+        const subscription = this.safeValue (client.subscriptions, channelId, {});
+        const channel = this.safeString (subscription, 'channel');
+        const name = this.safeString (message, 1);
+        const methods = {
+            'book': this.handleOrderBook,
+            'candles': this.handleOHLCV,
+            'ticker': this.handleTicker,
+            'trades': this.handleTrades,
+            'os': this.handleOrders,
+            'on': this.handleOrders,
+            'oc': this.handleOrders,
+            'wu': this.handleBalance,
+        };
+        const method = this.safeValue2 (methods, channel, name);
+        if (method === undefined) {
+            return message;
         } else {
-            // todo add bitfinex handleErrorMessage
-            //
-            //     {
-            //         event: 'info',
-            //         version: 2,
-            //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-            //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
-            //     }
-            //
-            const event = this.safeString (message, 'event');
-            if (event !== undefined) {
-                const methods = {
-                    'info': this.handleSystemStatus,
-                    // 'book': 'handleOrderBook',
-                    'subscribed': this.handleSubscriptionStatus,
-                    'auth': this.handleAuthenticationMessage,
-                };
-                const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
-                }
-            }
+            return method.call (this, client, message, subscription);
         }
     }
 };
