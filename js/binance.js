@@ -6065,14 +6065,15 @@ module.exports = class binance extends Exchange {
             'asset': currency['id'],
             'amount': amount,
         };
-        const isIsolated = this.safeValue (params, 'isIsolated');
-        if (isIsolated) {
-            if (market === undefined) {
-                throw new BadRequest (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
+        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new BadRequest (this.id + 'createMarginLoan() requires a symbol argument for isolated margin');
             }
+            request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, 'isIsolated');
         const response = await this.sapiPostMarginLoan (this.extend (request, params));
         //
         //     {
