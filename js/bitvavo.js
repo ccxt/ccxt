@@ -440,7 +440,6 @@ module.exports = class bitvavo extends Exchange {
             const withdrawal = (withdrawalStatus === 'OK');
             const active = deposit && withdrawal;
             const name = this.safeString (currency, 'name');
-            const precision = this.safeInteger (currency, 'decimals', 8);
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -450,7 +449,7 @@ module.exports = class bitvavo extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdrawal,
                 'fee': this.safeNumber (currency, 'withdrawalFee'),
-                'precision': precision,
+                'precision': this.safeInteger (currency, 'decimals', 8),
                 'limits': {
                     'amount': {
                         'min': undefined,
