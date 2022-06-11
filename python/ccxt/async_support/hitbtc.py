@@ -15,7 +15,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -278,7 +277,7 @@ class hitbtc(Exchange):
         })
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
+        return self.decimal_to_precision(fee, TRUNCATE, 0.00000001, TICK_SIZE)
 
     async def fetch_markets(self, params={}):
         """
@@ -463,8 +462,8 @@ class hitbtc(Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            decimals = self.safe_integer(currency, 'precisionTransfer', 8)
-            precision = 1 / math.pow(10, decimals)
+            precision = self.safe_string(currency, 'precisionTransfer', '8')
+            decimals = self.parse_number(precision)
             code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
@@ -490,7 +489,7 @@ class hitbtc(Exchange):
                 'deposit': payin,
                 'withdraw': payout,
                 'fee': self.safe_number(currency, 'payoutFee'),  # todo: redesign
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(precision)),
                 'limits': {
                     'amount': {
                         'min': 1 / math.pow(10, decimals),
@@ -498,7 +497,7 @@ class hitbtc(Exchange):
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }
