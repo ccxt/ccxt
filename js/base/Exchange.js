@@ -1496,11 +1496,6 @@ module.exports = class Exchange {
         }
     }
 
-    safeNumber2 (object, key1, key2, d = undefined) {
-        const value = this.safeString2 (object, key1, key2);
-        return this.parseNumber (value, d);
-    }
-
     handleHttpStatusCode (code, reason, url, method, body) {
         const codeAsString = code.toString ();
         if (codeAsString in this.httpExceptions) {
@@ -1551,6 +1546,11 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeNumber2 (dictionary, key1, key2, d = undefined) {
+        const value = this.safeString2 (dictionary, key1, key2);
+        return this.parseNumber (value, d);
+    }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         const bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
