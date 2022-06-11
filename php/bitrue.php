@@ -245,6 +245,7 @@ class bitrue extends Exchange {
             'commonCurrencies' => array(
                 'MIM' => 'MIM Swarm',
             ),
+            'precisionMode' => TICK_SIZE,
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
                 'exact' => array(
@@ -482,18 +483,23 @@ class bitrue extends Exchange {
         //                 "defaultPrice":"0.0000006100",
         //             ),
         //         ],
-        //         "coins":[
-        //             array(
-        //                 "coin":"sbr",
-        //                 "coinFulName":"Saber",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "chains":["SOLANA"],
-        //                 "withdrawFee":"2.0",
-        //                 "minWithdraw":"5.0",
-        //                 "maxWithdraw":"1000000000000000",
-        //             ),
-        //         ],
+        //         "coins":array(
+        //           array(
+        //               coin => "near",
+        //               coinFulName => "NEAR Protocol",
+        //               chains => array( "BEP20", ),
+        //               chainDetail => array(
+        //                 array(
+        //                     chain => "BEP20",
+        //                     $enableWithdraw => true,
+        //                     $enableDeposit => true,
+        //                     withdrawFee => "0.2000",
+        //                     minWithdraw => "5.0000",
+        //                     maxWithdraw => "1000000000000000.0000",
+        //                 ),
+        //               ),
+        //           ),
+        //         ),
         //     }
         //
         $result = array();
@@ -505,7 +511,6 @@ class bitrue extends Exchange {
             $code = $this->safe_currency_code($id);
             $enableDeposit = $this->safe_value($currency, 'enableDeposit');
             $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
-            $precision = null;
             $networkIds = $this->safe_value($currency, 'chains', array());
             $networks = array();
             for ($j = 0; $j < count($networkIds); $j++) {
@@ -531,7 +536,7 @@ class bitrue extends Exchange {
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => null,
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => $enableDeposit,
@@ -614,10 +619,12 @@ class bitrue extends Exchange {
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
             $status = $this->safe_string($market, 'status');
-            $priceDefault = $this->safe_integer($market, 'pricePrecision');
-            $amountDefault = $this->safe_integer($market, 'quantityPrecision');
             $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
             $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+            $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
+            $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
+            $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
+            $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
@@ -644,10 +651,10 @@ class bitrue extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($amountFilter, 'volumeScale', $amountDefault),
-                    'price' => $this->safe_integer($priceFilter, 'priceScale', $priceDefault),
-                    'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                    'quote' => $this->safe_integer($market, 'quotePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecision)),
+                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                    'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

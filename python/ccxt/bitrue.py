@@ -22,6 +22,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -259,6 +260,7 @@ class bitrue(Exchange):
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
             },
+            'precisionMode': TICK_SIZE,
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
@@ -489,16 +491,21 @@ class bitrue(Exchange):
         #             },
         #         ],
         #         "coins":[
-        #             {
-        #                 "coin":"sbr",
-        #                 "coinFulName":"Saber",
-        #                 "enableWithdraw":true,
-        #                 "enableDeposit":true,
-        #                 "chains":["SOLANA"],
-        #                 "withdrawFee":"2.0",
-        #                 "minWithdraw":"5.0",
-        #                 "maxWithdraw":"1000000000000000",
-        #             },
+        #           {
+        #               coin: "near",
+        #               coinFulName: "NEAR Protocol",
+        #               chains: ["BEP20",],
+        #               chainDetail: [
+        #                 {
+        #                     chain: "BEP20",
+        #                     enableWithdraw: True,
+        #                     enableDeposit: True,
+        #                     withdrawFee: "0.2000",
+        #                     minWithdraw: "5.0000",
+        #                     maxWithdraw: "1000000000000000.0000",
+        #                 },
+        #               ],
+        #           },
         #         ],
         #     }
         #
@@ -511,7 +518,6 @@ class bitrue(Exchange):
             code = self.safe_currency_code(id)
             enableDeposit = self.safe_value(currency, 'enableDeposit')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
-            precision = None
             networkIds = self.safe_value(currency, 'chains', [])
             networks = {}
             for j in range(0, len(networkIds)):
@@ -536,7 +542,7 @@ class bitrue(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': None,
                 'info': currency,
                 'active': active,
                 'deposit': enableDeposit,
@@ -616,10 +622,12 @@ class bitrue(Exchange):
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'status')
-            priceDefault = self.safe_integer(market, 'pricePrecision')
-            amountDefault = self.safe_integer(market, 'quantityPrecision')
             priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
             amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+            defaultPricePrecision = self.safe_string(market, 'pricePrecision')
+            defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
+            pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
+            amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -646,10 +654,10 @@ class bitrue(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(amountFilter, 'volumeScale', amountDefault),
-                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quotePrecision'),
+                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
