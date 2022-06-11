@@ -270,10 +270,6 @@ module.exports = class probit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const closed = this.safeValue (market, 'closed', false);
-            const amountPrecision = this.safeString (market, 'quantity_precision');
-            const costPrecision = this.safeString (market, 'cost_precision');
-            const amountTickSize = this.parsePrecision (amountPrecision);
-            const costTickSize = this.parsePrecision (costPrecision);
             const takerFeeRate = this.safeString (market, 'taker_fee_rate');
             const taker = Precise.stringDiv (takerFeeRate, '100');
             const makerFeeRate = this.safeString (market, 'maker_fee_rate');
@@ -305,9 +301,9 @@ module.exports = class probit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (amountTickSize),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_precision'))),
                     'price': this.safeNumber (market, 'price_increment'),
-                    'cost': this.parseNumber (costTickSize),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'cost_precision'))),
                 },
                 'limits': {
                     'leverage': {
