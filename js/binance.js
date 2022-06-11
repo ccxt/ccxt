@@ -815,6 +815,7 @@ module.exports = class binance extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultMarginMode': 'cross', // cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -6055,14 +6056,15 @@ module.exports = class binance extends Exchange {
             'asset': currency['id'],
             'amount': amount,
         };
-        const isIsolated = this.safeValue (params, 'isIsolated');
-        if (isIsolated) {
-            if (market === undefined) {
+        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
                 throw new BadRequest (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
             }
+            request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, 'isIsolated');
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
         //
         //     {
