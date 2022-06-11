@@ -359,7 +359,7 @@ module.exports = class xena extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision ('0')),
+                    'amount': this.parseNumber ('0.00000001'),
                     'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                 },
                 'limits': {
