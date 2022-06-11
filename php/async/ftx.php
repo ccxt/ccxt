@@ -2846,13 +2846,13 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * Gets the history of the borrow rate for mutiple currencies
-         * @param {str} code Unified $currency code
-         * @param {int} $since Timestamp in ms of the earliest time to fetch the borrow rate
-         * @param {int} $limit Max number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to return per $currency, max=48 for multiple currencies, max=5000 for a single $currency
-         * @param {dict} $params Exchange specific parameters
-         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
-         * @return A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} with unified $currency $codes as keys
+         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @param {[str]|null} $codes list of unified $currency $codes, default is null
+         * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
+         * @param {int|null} $limit max number of borrow rate prices to return, default is null
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {dict} $params->till timestamp in ms of the latest time to fetch the borrow rate
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
          */
         yield $this->load_markets();
         $request = array();

@@ -2715,13 +2715,13 @@ class ftx(Exchange):
 
     def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         """
-        Gets the history of the borrow rate for mutiple currencies
-        :param str code: Unified currency code
-        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
-        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return per currency, max=48 for multiple currencies, max=5000 for a single currency
-        :param dict params: Exchange specific parameters
-        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
-        :returns: A dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` with unified currency codes as keys
+        retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param int|None since: timestamp in ms of the earliest borrowRate, default is None
+        :param int|None limit: max number of borrow rate prices to return, default is None
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :param dict params['till']: timestamp in ms of the latest time to fetch the borrow rate
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by the market symbol
         """
         self.load_markets()
         request = {}
