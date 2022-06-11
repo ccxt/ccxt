@@ -626,10 +626,10 @@ module.exports = class bitrue extends Exchange {
             const status = this.safeString (market, 'status');
             const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
             const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-            const priceDefault = this.safeString (market, 'pricePrecision');
-            const amountDefault = this.safeString (market, 'quantityPrecision');
-            const amountPrecisionDigits = this.safeString (amountFilter, 'volumeScale', amountDefault);
-            const pricePrecisionDigits = this.safeString (priceFilter, 'priceScale', priceDefault);
+            const defaultPricePrecision = this.safeString (market, 'pricePrecision');
+            const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
+            const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
+            const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -656,8 +656,8 @@ module.exports = class bitrue extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionDigits)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionDigits)),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
                     'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
                     'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
