@@ -122,6 +122,7 @@ class bibox extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2011' => '\\ccxt\\AccountSuspended', // Account is locked
                 '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
@@ -262,8 +263,8 @@ class bibox extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_scale'),
-                    'price' => $this->safe_integer($market, 'decimal'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -550,7 +551,7 @@ class bibox extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name'); // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_integer($currency, 'valid_decimals');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'valid_decimals')));
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
             $active = ($deposit && $withdraw);
@@ -566,7 +567,7 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -648,7 +649,7 @@ class bibox extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $name = $currency['name']; // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
-            $precision = 8;
+            $precision = $this->parse_number($this->parse_precision('8'));
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
             $active = ($deposit && $withdraw);
@@ -662,12 +663,12 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
