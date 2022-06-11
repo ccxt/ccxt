@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -20,6 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -260,6 +260,7 @@ class huobijp(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -497,9 +498,9 @@ class huobijp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price-precision'),
-                    'amount': self.safe_integer(market, 'amount-precision'),
-                    'cost': self.safe_integer(market, 'value-precision'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1004,7 +1005,6 @@ class huobijp(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_value(currency, 'name')
-            precision = self.safe_integer(currency, 'withdraw-precision')
             code = self.safe_currency_code(id)
             depositEnabled = self.safe_value(currency, 'deposit-enabled')
             withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
@@ -1013,6 +1013,7 @@ class huobijp(Exchange):
             state = self.safe_string(currency, 'state')
             active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
             name = self.safe_string(currency, 'display-name')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
             result[code] = {
                 'id': id,
                 'code': code,
@@ -1028,16 +1029,16 @@ class huobijp(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
                 'info': currency,
@@ -1473,7 +1474,7 @@ class huobijp(Exchange):
         return response
 
     def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], self.precisionMode)
 
     def safe_network(self, networkId):
         lastCharacterIndex = len(networkId) - 1

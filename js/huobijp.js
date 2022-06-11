@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -245,6 +245,7 @@ module.exports = class huobijp extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -495,9 +496,9 @@ module.exports = class huobijp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price-precision'),
-                    'amount': this.safeInteger (market, 'amount-precision'),
-                    'cost': this.safeInteger (market, 'value-precision'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1051,7 +1052,6 @@ module.exports = class huobijp extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeValue (currency, 'name');
-            const precision = this.safeInteger (currency, 'withdraw-precision');
             const code = this.safeCurrencyCode (id);
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
@@ -1060,6 +1060,7 @@ module.exports = class huobijp extends Exchange {
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
             result[code] = {
                 'id': id,
                 'code': code,
@@ -1075,16 +1076,16 @@ module.exports = class huobijp extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': precision,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
                 'info': currency,
@@ -1576,7 +1577,7 @@ module.exports = class huobijp extends Exchange {
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
-        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
 
     safeNetwork (networkId) {
