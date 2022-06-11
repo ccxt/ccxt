@@ -257,8 +257,8 @@ module.exports = class coinex extends Exchange {
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
