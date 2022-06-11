@@ -672,7 +672,6 @@ module.exports = class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
             const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
@@ -681,7 +680,7 @@ module.exports = class kucoin extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision'))),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
