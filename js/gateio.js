@@ -1244,8 +1244,6 @@ module.exports = class gateio extends Exchange {
         //    }
         //
         const result = {};
-        // TODO: remove magic constants
-        const amountPrecision = this.parseNumber ('1e-6');
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1265,7 +1263,7 @@ module.exports = class gateio extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': this.parseNumber ('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
