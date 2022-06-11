@@ -967,8 +967,7 @@ module.exports = class cdax extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeValue (currency, 'name');
-            const precisionDigits = this.safeString (currency, 'withdraw-precision');
-            const precision = this.parseNumber (this.parsePrecision (precisionDigits));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
             const code = this.safeCurrencyCode (id);
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
@@ -977,7 +976,6 @@ module.exports = class cdax extends Exchange {
             const state = this.safeString (currency, 'state');
             const active = visible && depositEnabled && withdrawEnabled && (state === 'online') && !countryDisabled;
             const name = this.safeString (currency, 'display-name');
-            const maxPrecisionNum = Math.pow (10, this.parseNumber (precisionDigits));
             result[code] = {
                 'id': id,
                 'code': code,
@@ -994,15 +992,15 @@ module.exports = class cdax extends Exchange {
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': maxPrecisionNum,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': maxPrecisionNum,
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': maxPrecisionNum,
+                        'max': undefined,
                     },
                 },
                 'info': currency,
