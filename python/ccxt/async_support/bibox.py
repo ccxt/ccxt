@@ -636,7 +636,7 @@ class bibox(Exchange):
             id = self.safe_string(currency, 'symbol')
             name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = self.parse_number(self.parse_precision('8'))
+            precision = self.parse_number('0.00000001')
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)

@@ -362,7 +362,7 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('0')),
+                    'amount' => $this->parse_number('0.00000001'),
                     'price' => $this->parse_number($this->parse_precision($pricePrecision)),
                 ),
                 'limits' => array(

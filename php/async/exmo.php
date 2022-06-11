@@ -603,7 +603,7 @@ class exmo extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => $this->parse_number($this->parse_precision('8')),
+                'precision' => $this->parse_number('0.00000001'),
                 'limits' => $limits,
                 'info' => $providers,
             );
@@ -671,7 +671,7 @@ class exmo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('8')),
+                    'amount' => $this->parse_number('0.00000001'),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(

@@ -362,7 +362,7 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('0')),
+                    'amount': self.parse_number('0.00000001'),
                     'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {

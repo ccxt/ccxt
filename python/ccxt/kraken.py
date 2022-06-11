@@ -499,8 +499,8 @@ class kraken(Exchange):
     def append_inactive_markets(self, result):
         # result should be an array to append to
         precision = {
-            'amount': self.parse_number(self.parse_precision('8')),
-            'price': self.parse_number(self.parse_precision('8')),
+            'amount': self.parse_number('0.00000001'),
+            'price': self.parse_number('0.00000001'),
         }
         costLimits = {'min': 0, 'max': None}
         priceLimits = {'min': precision['price'], 'max': None}
