@@ -11,6 +11,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -131,6 +132,7 @@ class bit2c(Exchange):
             'options': {
                 'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
