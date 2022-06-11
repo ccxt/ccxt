@@ -1052,8 +1052,6 @@ module.exports = class huobijp extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeValue (currency, 'name');
-            const precisionDigits = this.safeInteger (currency, 'withdraw-precision');
-            const precision = this.parseNumber (this.parsePrecision (this.numberToString (precisionDigits)));
             const code = this.safeCurrencyCode (id);
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
@@ -1074,19 +1072,19 @@ module.exports = class huobijp extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined, // todo need to fetch from fee endpoint
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision'))),
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': Math.pow (10, precisionDigits),
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': Math.pow (10, precisionDigits),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': Math.pow (10, precisionDigits),
+                        'max': undefined,
                     },
                 },
                 'info': currency,
