@@ -92,6 +92,8 @@ class Transpiler {
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
+            [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.parseTransactions\s/g, '.parse_transactions'],
