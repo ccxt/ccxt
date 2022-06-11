@@ -698,7 +698,6 @@ module.exports = class gateio extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'precision')));
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
@@ -732,7 +731,7 @@ module.exports = class gateio extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
