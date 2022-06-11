@@ -1035,7 +1035,18 @@ module.exports = class bitvavo extends Exchange {
         //          "filledAmountQuote":"0",
         //          "feePaid":"0",
         //          "feeCurrency":"EUR",
-        //          "fills":[],
+        //          "fills":[
+        //             {
+        //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
+        //                 "timestamp":1590505649245,
+        //                 "amount":"0.249825",
+        //                 "price":"183.49",
+        //                 "taker":true,
+        //                 "fee":"0.12038925",
+        //                 "feeCurrency":"EUR",
+        //                 "settled":true
+        //             }
+        //          ],
         //          "selfTradePrevention":"decrementAndCancel",
         //          "visible":true,
         //          "timeInForce":"GTC",
