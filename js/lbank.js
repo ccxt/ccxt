@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -127,6 +128,7 @@ module.exports = class lbank extends Exchange {
             'options': {
                 'cacheSecretAsPem': true,
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -193,8 +195,8 @@ module.exports = class lbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'quantityAccuracy'),
-                    'price': this.safeInteger (market, 'priceAccuracy'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityAccuracy'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
                 },
                 'limits': {
                     'leverage': {
