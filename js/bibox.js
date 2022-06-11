@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -118,6 +119,7 @@ module.exports = class bibox extends Exchange {
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2011': AccountSuspended, // Account is locked
                 '2015': AuthenticationError, // Google authenticator is wrong
@@ -260,8 +262,8 @@ module.exports = class bibox extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amount_scale'),
-                    'price': this.safeInteger (market, 'decimal'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'decimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -560,7 +562,7 @@ module.exports = class bibox extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name'); // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'valid_decimals');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'valid_decimals')));
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
             const active = (deposit && withdraw);
@@ -576,7 +578,7 @@ module.exports = class bibox extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
+                        'min': precision,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -658,7 +660,7 @@ module.exports = class bibox extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
-            const precision = 8;
+            const precision = this.parseNumber (this.parsePrecision ('8'));
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
             const active = (deposit && withdraw);
@@ -672,12 +674,12 @@ module.exports = class bibox extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': precision,
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
             };
