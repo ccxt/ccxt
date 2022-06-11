@@ -334,10 +334,6 @@ module.exports = class bitvavo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const baseCurrency = this.safeValue (currenciesById, baseId);
-            let amountPrecision = undefined;
-            if (baseCurrency !== undefined) {
-                amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
-            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -363,7 +359,7 @@ module.exports = class bitvavo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': this.safeInteger (baseCurrency, 'decimals', 8),
                     'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
