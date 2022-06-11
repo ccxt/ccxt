@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,6 +19,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -134,6 +134,7 @@ class bibox(Exchange):
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2011': AccountSuspended,  # Account is locked
                 '2015': AuthenticationError,  # Google authenticator is wrong
@@ -271,8 +272,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_scale'),
-                    'price': self.safe_integer(market, 'decimal'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -540,7 +541,7 @@ class bibox(Exchange):
             id = self.safe_string(currency, 'symbol')
             name = self.safe_string(currency, 'name')  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'valid_decimals')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'valid_decimals')))
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)
@@ -556,7 +557,7 @@ class bibox(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
+                        'min': precision,
                         'max': None,
                     },
                     'withdraw': {
@@ -635,7 +636,7 @@ class bibox(Exchange):
             id = self.safe_string(currency, 'symbol')
             name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = 8
+            precision = self.parse_number(self.parse_precision('8'))
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)
@@ -649,12 +650,12 @@ class bibox(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }

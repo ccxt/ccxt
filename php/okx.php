@@ -4717,6 +4717,14 @@ class okx extends Exchange {
     }
 
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
+         * @param {int|null} $limit max number of borrow rate prices to return, default is null
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
+         */
         $this->load_markets();
         $request = array(
             // 'ccy' => currency['id'],

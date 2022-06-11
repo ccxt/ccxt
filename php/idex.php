@@ -187,33 +187,51 @@ class idex extends Exchange {
          */
         $response = $this->publicGetMarkets ($params);
         //
-        // array(
-        //   array(
-        //     market => 'DIL-ETH',
-        //     $status => 'active',
-        //     baseAsset => 'DIL',
-        //     baseAssetPrecision => 8,
-        //     quoteAsset => 'ETH',
-        //     quoteAssetPrecision => 8
-        //   ), ...
-        // )
+        //    array(
+        //        array(
+        //            "market" => "ETH-USDC",
+        //            "type" => "hybrid",
+        //            "status" => "activeHybrid",
+        //            "baseAsset" => "ETH",
+        //            "baseAssetPrecision" => "8",
+        //            "quoteAsset" => "USDC",
+        //            "quoteAssetPrecision" => "8",
+        //            "makerFeeRate" => "0.0000",
+        //            "takerFeeRate" => "0.2500",
+        //            "takerIdexFeeRate" => "0.0500",
+        //            "takerLiquidityProviderFeeRate" => "0.2000",
+        //            "tickSize" => "0.01000000"
+        //        ),
+        //    )
         //
         $response2 = $this->publicGetExchange ();
         //
-        // {
-        //     "timeZone" => "UTC",
-        //     "serverTime" => 1590408000000,
-        //     "ethereumDepositContractAddress" => "0x...",
-        //     "ethUsdPrice" => "206.46",
-        //     "gasPrice" => 7,
-        //     "volume24hUsd" => "10416227.98",
-        //     "makerFeeRate" => "0.001",
-        //     "takerFeeRate" => "0.002",
-        //     "makerTradeMinimum" => "0.15000000",
-        //     "takerTradeMinimum" => "0.05000000",
-        //     "withdrawalMinimum" => "0.04000000",
-        //     "tickSize":"0.00001000"
-        // }
+        //    {
+        //        "timeZone" => "UTC",
+        //        "serverTime" => "1654460599952",
+        //        "maticDepositContractAddress" => "0x3253a7e75539edaeb1db608ce6ef9aa1ac9126b6",
+        //        "maticCustodyContractAddress" => "0x3bcc4eca0a40358558ca8d1bcd2d1dbde63eb468",
+        //        "maticUsdPrice" => "0.60",
+        //        "gasPrice" => "180",
+        //        "volume24hUsd" => "10015814.46",
+        //        "totalVolumeUsd" => "1589273533.28",
+        //        "totalTrades" => "1534904",
+        //        "totalValueLockedUsd" => "12041929.44",
+        //        "idexStakingValueLockedUsd" => "20133816.98",
+        //        "idexTokenAddress" => "0x9Cb74C8032b007466865f060ad2c46145d45553D",
+        //        "idexUsdPrice" => "0.07",
+        //        "idexMarketCapUsd" => "48012346.00",
+        //        "makerFeeRate" => "0.0000",
+        //        "takerFeeRate" => "0.0025",
+        //        "takerIdexFeeRate" => "0.0005",
+        //        "takerLiquidityProviderFeeRate" => "0.0020",
+        //        "makerTradeMinimum" => "10.00000000",
+        //        "takerTradeMinimum" => "1.00000000",
+        //        "withdrawMinimum" => "0.50000000",
+        //        "liquidityAdditionMinimum" => "0.50000000",
+        //        "liquidityRemovalMinimum" => "0.40000000",
+        //        "blockConfirmationDelay" => "64"
+        //    }
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
         $taker = $this->safe_number($response2, 'takerFeeRate');
@@ -228,11 +246,9 @@ class idex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
-            $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
-            $basePrecision = $this->parse_number($this->parse_precision($basePrecisionString));
-            $quotePrecision = $this->parse_number($this->parse_precision($quotePrecisionString));
-            $quotePrecision = $this->safe_number($entry, 'tickSize', $quotePrecision);
+            $basePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision')));
+            $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision')));
+            $pricePrecision = $this->safe_number($entry, 'tickSize');
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -266,7 +282,7 @@ class idex extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $basePrecision,
-                    'price' => $quotePrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -690,25 +706,26 @@ class idex extends Exchange {
          * @param {dict} $params extra parameters specific to the idex api endpoint
          * @return {dict} an associative dictionary of currencies
          */
-        // array(
-        //   array(
-        //     $name => 'Ether',
-        //     symbol => 'ETH',
-        //     contractAddress => '0x0000000000000000000000000000000000000000',
-        //     assetDecimals => 18,
-        //     exchangeDecimals => 8
-        //   ), ..
-        // )
         $response = $this->publicGetAssets ($params);
+        //
+        //     array(
+        //        array(
+        //            "name" => "Ethereum",
+        //            "symbol" => "ETH",
+        //            "contractAddress" => "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        //            "assetDecimals" => "18",
+        //            "exchangeDecimals" => "8",
+        //            "maticPrice" => "3029.38503483"
+        //        ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $name = $this->safe_string($entry, 'name');
             $currencyId = $this->safe_string($entry, 'symbol');
-            $precisionString = $this->safe_string($entry, 'exchangeDecimals');
             $code = $this->safe_currency_code($currencyId);
-            $precision = $this->parse_precision($precisionString);
-            $lot = $this->parse_number($precision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'exchangeDecimals')));
             $result[$code] = array(
                 'id' => $currencyId,
                 'code' => $code,
@@ -719,10 +736,10 @@ class idex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => intval($precisionString),
+                'precision' => $precision,
                 'limits' => array(
-                    'amount' => array( 'min' => $lot, 'max' => null ),
-                    'withdraw' => array( 'min' => $lot, 'max' => null ),
+                    'amount' => array( 'min' => $precision, 'max' => null ),
+                    'withdraw' => array( 'min' => $precision, 'max' => null ),
                 ),
             );
         }

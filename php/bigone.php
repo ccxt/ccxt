@@ -131,6 +131,7 @@ class bigone extends Exchange {
                     'fillResponseFromRequest' => true,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '10001' => '\\ccxt\\BadRequest', // syntax error
@@ -240,8 +241,8 @@ class bigone extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'base_scale'),
-                    'price' => $this->safe_integer($market, 'quote_scale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

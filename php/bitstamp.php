@@ -133,6 +133,17 @@ class bitstamp extends Exchange {
                         'sell/{pair}/' => 1,
                         'sell/market/{pair}/' => 1,
                         'sell/instant/{pair}/' => 1,
+                        'transfer-to-main/' => 1,
+                        'transfer-from-main/' => 1,
+                        'withdrawal-requests/' => 1,
+                        'withdrawal/open/' => 1,
+                        'withdrawal/status/' => 1,
+                        'withdrawal/cancel/' => 1,
+                        'liquidation_address/new/' => 1,
+                        'liquidation_address/info/' => 1,
+                        'btc_unconfirmed/' => 1,
+                        'websockets_token/' => 1,
+                        // individual coins
                         'btc_withdrawal/' => 1,
                         'btc_address/' => 1,
                         'ripple_withdrawal/' => 1,
@@ -275,16 +286,6 @@ class bitstamp extends Exchange {
                         'mana_address/' => 1,
                         'lrc_withdrawal/' => 1,
                         'lrc_address/' => 1,
-                        'transfer-to-main/' => 1,
-                        'transfer-from-main/' => 1,
-                        'withdrawal-requests/' => 1,
-                        'withdrawal/open/' => 1,
-                        'withdrawal/status/' => 1,
-                        'withdrawal/cancel/' => 1,
-                        'liquidation_address/new/' => 1,
-                        'liquidation_address/info/' => 1,
-                        'btc_unconfirmed/' => 1,
-                        'websockets_token/' => 1,
                     ),
                 ),
             ),
@@ -352,6 +353,7 @@ class bitstamp extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
                 'UST' => 'USTC',
             ),
@@ -441,8 +443,8 @@ class bitstamp extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'base_decimals'),
-                    'price' => $this->safe_integer($market, 'counter_decimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'counter_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -474,6 +476,7 @@ class bitstamp extends Exchange {
         if ($this->is_fiat($code)) {
             $currencyType = 'fiat';
         }
+        $tickSize = $this->parse_number($this->parse_precision($this->number_to_string($precision)));
         return array(
             'id' => $id,
             'code' => $code,
@@ -484,14 +487,14 @@ class bitstamp extends Exchange {
             'deposit' => null,
             'withdraw' => null,
             'fee' => $this->safe_number($description['fees']['funding']['withdraw'], $code),
-            'precision' => $precision,
+            'precision' => $tickSize,
             'limits' => array(
                 'amount' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'cost' => array(

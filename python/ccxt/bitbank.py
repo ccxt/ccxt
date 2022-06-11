@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitbank(Exchange):
@@ -127,6 +128,7 @@ class bitbank(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '20001': AuthenticationError,
                 '20002': AuthenticationError,
@@ -217,8 +219,8 @@ class bitbank(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(entry, 'amount_digits'),
-                    'price': self.safe_integer(entry, 'price_digits'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_digits'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'price_digits'))),
                 },
                 'limits': {
                     'leverage': {

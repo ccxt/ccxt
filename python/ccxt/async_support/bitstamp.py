@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -143,6 +143,17 @@ class bitstamp(Exchange):
                         'sell/{pair}/': 1,
                         'sell/market/{pair}/': 1,
                         'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        # individual coins
                         'btc_withdrawal/': 1,
                         'btc_address/': 1,
                         'ripple_withdrawal/': 1,
@@ -285,16 +296,6 @@ class bitstamp(Exchange):
                         'mana_address/': 1,
                         'lrc_withdrawal/': 1,
                         'lrc_address/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
                     },
                 },
             },
@@ -362,6 +363,7 @@ class bitstamp(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'UST': 'USTC',
             },
@@ -450,8 +452,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'base_decimals'),
-                    'price': self.safe_integer(market, 'counter_decimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -480,6 +482,7 @@ class bitstamp(Exchange):
         description = self.describe()
         if self.is_fiat(code):
             currencyType = 'fiat'
+        tickSize = self.parse_number(self.parse_precision(self.number_to_string(precision)))
         return {
             'id': id,
             'code': code,
@@ -490,14 +493,14 @@ class bitstamp(Exchange):
             'deposit': None,
             'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'cost': {

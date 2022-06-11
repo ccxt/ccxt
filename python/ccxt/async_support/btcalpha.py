@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -128,6 +129,7 @@ class btcalpha(Exchange):
             'commonCurrencies': {
                 'CBC': 'Cashbery',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -194,8 +196,8 @@ class btcalpha(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('8'),
-                    'price': int(pricePrecision),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                    'price': self.parse_number(self.parse_precision((pricePrecision))),
                 },
                 'limits': {
                     'leverage': {

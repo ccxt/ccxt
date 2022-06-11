@@ -87,7 +87,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransfer': undefined,
@@ -1187,6 +1187,80 @@ module.exports = class ftx extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "backstopProvider": true,
+        //         "collateral": 3568181.02691129,
+        //         "freeCollateral": 1786071.456884368,
+        //         "initialMarginRequirement": 0.12222384240257728,
+        //         "liquidating": false,
+        //         "maintenanceMarginRequirement": 0.07177992558058484,
+        //         "makerFee": 0.0002,
+        //         "marginFraction": 0.5588433331419503,
+        //         "openMarginFraction": 0.2447194090423075,
+        //         "takerFee": 0.0005,
+        //         "totalAccountValue": 3568180.98341129,
+        //         "totalPositionSize": 6384939.6992,
+        //         "username": "user@domain.com",
+        //         "positions": [
+        //             {
+        //                 "cost": -31.7906,
+        //                 "entryPrice": 138.22,
+        //                 "future": "ETH-PERP",
+        //                 "initialMarginRequirement": 0.1,
+        //                 "longOrderSize": 1744.55,
+        //                 "maintenanceMarginRequirement": 0.04,
+        //                 "netSize": -0.23,
+        //                 "openSize": 1744.32,
+        //                 "realizedPnl": 3.39441714,
+        //                 "shortOrderSize": 1732.09,
+        //                 "side": "sell",
+        //                 "size": 0.23,
+        //                 "unrealizedPnl": 0,
+        //             },
+        //         ],
+        //     },
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const maker = this.safeNumber (fee, 'makerFee');
+        const taker = this.safeNumber (fee, 'takerFee');
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
+    parseTradingFees (response) {
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            result[symbol] = this.parseTradingFee (response, market);
+        }
+        return result;
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchTradingFee
+         * @description fetch the trading fee for a market
+         * @param {str} symbol unified symbol of the market to fetch the fee for
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.privateGetAccount (params);
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTradingFee (result, market);
+    }
+
     async fetchTradingFees (params = {}) {
         /**
          * @method
@@ -1235,21 +1309,7 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const maker = this.safeNumber (result, 'makerFee');
-        const taker = this.safeNumber (result, 'takerFee');
-        const tradingFees = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
-            tradingFees[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
-                'percentage': true,
-                'tierBased': true,
-            };
-        }
-        return tradingFees;
+        return this.parseTradingFees (result);
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2840,14 +2900,14 @@ module.exports = class ftx extends Exchange {
     async fetchBorrowRateHistories (codes = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name ftx#fetchBorrowRateHistory
-         * @description Gets the history of the borrow rate for mutiple currencies
-         * @param {str} code Unified currency code
-         * @param {int} since Timestamp in ms of the earliest time to fetch the borrow rate
-         * @param {int} limit Max number of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} to return per currency, max=48 for multiple currencies, max=5000 for a single currency
-         * @param {dict} params Exchange specific parameters
-         * @param {dict} params.till Timestamp in ms of the latest time to fetch the borrow rate
-         * @returns A dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} with unified currency codes as keys
+         * @name ftx#fetchBorrowRateHistories
+         * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
+         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest borrowRate, default is undefined
+         * @param {int|undefined} limit max number of borrow rate prices to return, default is undefined
+         * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @param {dict} params.till timestamp in ms of the latest time to fetch the borrow rate
+         * @returns {dict} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure} indexed by the market symbol
          */
         await this.loadMarkets ();
         const request = {};

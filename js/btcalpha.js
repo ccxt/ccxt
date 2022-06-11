@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -123,6 +124,7 @@ module.exports = class btcalpha extends Exchange {
             'commonCurrencies': {
                 'CBC': 'Cashbery',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -192,8 +194,8 @@ module.exports = class btcalpha extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'),
-                    'price': parseInt (pricePrecision),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                    'price': this.parseNumber (this.parsePrecision ((pricePrecision))),
                 },
                 'limits': {
                     'leverage': {

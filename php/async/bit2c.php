@@ -128,6 +128,7 @@ class bit2c extends Exchange {
             'options' => array(
                 'fetchTradesMethod' => 'public_get_exchanges_pair_trades',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Please provide valid APIkey' => '\\ccxt\\AuthenticationError', // array( "error" : "Please provide valid APIkey" )

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -129,6 +130,17 @@ module.exports = class bitstamp extends Exchange {
                         'sell/{pair}/': 1,
                         'sell/market/{pair}/': 1,
                         'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        // individual coins
                         'btc_withdrawal/': 1,
                         'btc_address/': 1,
                         'ripple_withdrawal/': 1,
@@ -271,16 +283,6 @@ module.exports = class bitstamp extends Exchange {
                         'mana_address/': 1,
                         'lrc_withdrawal/': 1,
                         'lrc_address/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
                     },
                 },
             },
@@ -348,6 +350,7 @@ module.exports = class bitstamp extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'UST': 'USTC',
             },
@@ -439,8 +442,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'base_decimals'),
-                    'price': this.safeInteger (market, 'counter_decimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -472,6 +475,7 @@ module.exports = class bitstamp extends Exchange {
         if (this.isFiat (code)) {
             currencyType = 'fiat';
         }
+        const tickSize = this.parseNumber (this.parsePrecision (this.numberToString (precision)));
         return {
             'id': id,
             'code': code,
@@ -482,14 +486,14 @@ module.exports = class bitstamp extends Exchange {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': this.safeNumber (description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': Math.pow (10, -precision),
+                    'min': tickSize,
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision),
+                    'min': tickSize,
                     'max': undefined,
                 },
                 'cost': {

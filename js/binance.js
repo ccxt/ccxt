@@ -5366,7 +5366,7 @@ module.exports = class binance extends Exchange {
         } else if ((type === 'delivery') || (type === 'inverse')) {
             method = 'dapiPrivateGetPositionRisk';
         } else {
-            throw NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         const result = [];
@@ -5403,7 +5403,7 @@ module.exports = class binance extends Exchange {
             } else if (market['inverse']) {
                 defaultType = 'delivery';
             } else {
-                throw NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+                throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
             }
         }
         if (since !== undefined) {
@@ -5420,7 +5420,7 @@ module.exports = class binance extends Exchange {
         } else if ((type === 'delivery') || (type === 'inverse')) {
             method = 'dapiPrivateGetIncome';
         } else {
-            throw NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);

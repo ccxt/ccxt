@@ -909,6 +909,17 @@ class bitvavo(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitvavo api endpoint
+        :param str params['timeInForce']: "GTC", "IOC", or "PO"
+        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param float params['triggerPrice']: The price at which a trigger order is triggered at
+        :param bool params['postOnly']: If True, the order will only be posted to the order book and not executed immediately
+        :param float params['stopLossPrice']: The price at which a stop loss order is triggered at
+        :param float params['takeProfitPrice']: The price at which a take profit order is triggered at
+        :param str params['triggerType']: "price"
+        :param str params['triggerReference']: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
+        :param str params['selfTradePrevention']: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool params['disableMarketProtection']: don't cancel if the next fill price is 10% worse than the best fill price
+        :param bool params['responseRequired']: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -916,19 +927,17 @@ class bitvavo(Exchange):
         request = {
             'market': market['id'],
             'side': side,
-            'orderType': type,  # 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
-            # 'amount': self.amount_to_precision(symbol, amount),
-            # 'price': self.price_to_precision(symbol, price),
-            # 'amountQuote': self.cost_to_precision(symbol, cost),
-            # 'timeInForce': 'GTC',  # 'GTC', 'IOC', 'FOK'
-            # 'selfTradePrevention': 'decrementAndCancel',  # 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
-            # 'postOnly': False,
-            # 'disableMarketProtection': False,  # don't cancel if the next fill price is 10% worse than the best fill price
-            # 'responseRequired': True,  # False is faster
+            'orderType': type,
         }
-        isStopLimit = (type == 'stopLossLimit') or (type == 'takeProfitLimit')
-        isStopMarket = (type == 'stopLoss') or (type == 'takeProfit')
-        if type == 'market':
+        isMarketOrder = (type == 'market') or (type == 'stopLoss') or (type == 'takeProfit')
+        isLimitOrder = (type == 'limit') or (type == 'stopLossLimit') or (type == 'takeProfitLimit')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
+        postOnly = self.is_post_only(isMarketOrder, False, params)
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
+        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isMarketOrder:
             cost = None
             if price is not None:
                 cost = amount * price
@@ -940,44 +949,51 @@ class bitvavo(Exchange):
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
             params = self.omit(params, ['cost', 'amountQuote'])
-        elif type == 'limit':
+        elif isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
-        elif isStopMarket or isStopLimit:
-            stopPrice = self.safe_number_2(params, 'stopPrice', 'triggerAmount')
-            if stopPrice is None:
-                if isStopLimit:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter for a ' + type + ' order')
-                elif isStopMarket:
-                    if price is None:
-                        raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a stopPrice parameter for a ' + type + ' order')
-                    else:
-                        stopPrice = price
-            if isStopLimit:
-                request['price'] = self.price_to_precision(symbol, price)
-            params = self.omit(params, ['stopPrice', 'triggerAmount'])
-            request['triggerAmount'] = self.price_to_precision(symbol, stopPrice)
+        isTakeProfit = (takeProfitPrice is not None) or (type == 'takeProfit') or (type == 'takeProfitLimit')
+        isStopLoss = (stopLossPrice is not None) or (triggerPrice is not None) and (not isTakeProfit) or (type == 'stopLoss') or (type == 'stopLossLimit')
+        if isStopLoss:
+            if stopLossPrice is not None:
+                triggerPrice = stopLossPrice
+            request['orderType'] = 'stopLoss' if isMarketOrder else 'stopLossLimit'
+        elif isTakeProfit:
+            if takeProfitPrice is not None:
+                triggerPrice = takeProfitPrice
+            request['orderType'] = 'takeProfit' if isMarketOrder else 'takeProfitLimit'
+        if triggerPrice is not None:
+            request['triggerAmount'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = 'price'
-            request['amount'] = self.amount_to_precision(symbol, amount)
+            request['triggerReference'] = 'lastTrade'  # 'bestBid', 'bestAsk', 'midPrice'
+        if (timeInForce is not None) and (timeInForce != 'PO'):
+            request['timeInForce'] = timeInForce
+        if postOnly:
+            request['postOnly'] = True
         response = await self.privatePostOrder(self.extend(request, params))
         #
-        #     {
-        #         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        #         "market":"ETH-EUR",
-        #         "created":1590505649241,
-        #         "updated":1590505649241,
-        #         "status":"filled",
-        #         "side":"sell",
-        #         "orderType":"market",
-        #         "amount":"0.249825",
-        #         "amountRemaining":"0",
-        #         "onHold":"0",
-        #         "onHoldCurrency":"ETH",
-        #         "filledAmount":"0.249825",
-        #         "filledAmountQuote":"45.84038925",
-        #         "feePaid":"0.12038925",
-        #         "feeCurrency":"EUR",
-        #         "fills":[
+        #      {
+        #          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
+        #          "market":"DOGE-EUR",
+        #          "created":1654789135146,
+        #          "updated":1654789135153,
+        #          "status":"new",
+        #          "side":"buy",
+        #          "orderType":"stopLossLimit",
+        #          "amount":"200",
+        #          "amountRemaining":"200",
+        #          "price":"0.07471",
+        #          "triggerPrice":"0.0747",
+        #          "triggerAmount":"0.0747",
+        #          "triggerType":"price",
+        #          "triggerReference":"lastTrade",
+        #          "onHold":"14.98",
+        #          "onHoldCurrency":"EUR",
+        #          "filledAmount":"0",
+        #          "filledAmountQuote":"0",
+        #          "feePaid":"0",
+        #          "feeCurrency":"EUR",
+        #          "fills":[ # filled with market orders only
         #             {
         #                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         #                 "timestamp":1590505649245,
@@ -988,11 +1004,12 @@ class bitvavo(Exchange):
         #                 "feeCurrency":"EUR",
         #                 "settled":true
         #             }
-        #         ],
-        #         "selfTradePrevention":"decrementAndCancel",
-        #         "visible":false,
-        #         "disableMarketProtection":false
-        #     }
+        #          ],
+        #          "selfTradePrevention":"decrementAndCancel",
+        #          "visible":true,
+        #          "timeInForce":"GTC",
+        #          "postOnly":false
+        #      }
         #
         return self.parse_order(response, market)
 

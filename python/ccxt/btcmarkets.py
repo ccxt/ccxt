@@ -625,7 +625,7 @@ class btcmarkets(Exchange):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_ticker2(self, symbol, params={}):
+    def fetch_ticker_2(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {

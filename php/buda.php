@@ -173,6 +173,7 @@ class buda extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'not_authorized' => '\\ccxt\\AuthenticationError',  // array( message => 'Invalid credentials', code => 'not_authorized' )
                 'forbidden' => '\\ccxt\\PermissionDenied',  // array( message => 'You dont have access to this resource', code => 'forbidden' )
@@ -226,6 +227,30 @@ class buda extends Exchange {
          * @return {[dict]} an array of objects representing $market data
          */
         $marketsResponse = $this->publicGetMarkets ($params);
+        //
+        //     {
+        //         "markets" => array(
+        //           array(
+        //             "id" => "BTC-CLP",
+        //             "name" => "btc-clp",
+        //             "base_currency" => "BTC",
+        //             "quote_currency" => "CLP",
+        //             "minimum_order_amount" => array(
+        //               "0.00002",
+        //               "BTC"
+        //             ),
+        //             "disabled" => false,
+        //             "illiquid" => false,
+        //             "rpo_disabled" => null,
+        //             "taker_fee" => "0.8",
+        //             "maker_fee" => "0.4",
+        //             "max_orders_per_minute" => 50,
+        //             "maker_discount_percentage" => "0.0",
+        //             "taker_discount_percentage" => "0.0"
+        //           ),
+        //         )
+        //     }
+        //
         $markets = $this->safe_value($marketsResponse, 'markets', array());
         $currenciesResponse = $this->publicGetCurrencies ();
         $currencies = $this->safe_value($currenciesResponse, 'currencies');
@@ -240,6 +265,8 @@ class buda extends Exchange {
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
             $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
+            $taker_fee = $this->safe_string($market, 'taker_fee');
+            $maker_fee = $this->safe_string($market, 'maker_fee');
             $result[] = array(
                 'id' => $this->safe_string($market, 'id'),
                 'symbol' => $base . '/' . $quote,
@@ -264,9 +291,11 @@ class buda extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
+                'taker' => $this->parse_number(Precise::string_div($taker_fee, '1000')),
+                'maker' => $this->parse_number(Precise::string_div($maker_fee, '1000')),
                 'precision' => array(
-                    'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
-                    'price' => intval($pricePrecisionString),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($baseInfo, 'input_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -330,8 +359,7 @@ class buda extends Exchange {
             }
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_number($currency, 'input_decimals');
-            $minimum = pow(10, -$precision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'input_decimals')));
             $depositMinimum = $this->safe_value($currency, 'deposit_minimum', array());
             $withdrawalMinimum = $this->safe_value($currency, 'withdrawal_minimum', array());
             $minDeposit = $this->safe_number($depositMinimum, 0);
@@ -348,7 +376,7 @@ class buda extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => $minimum,
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'deposit' => array(

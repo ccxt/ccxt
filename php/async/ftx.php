@@ -92,7 +92,7 @@ class ftx extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransfer' => null,
@@ -1178,6 +1178,78 @@ class ftx extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     array(
+        //         "backstopProvider" => true,
+        //         "collateral" => 3568181.02691129,
+        //         "freeCollateral" => 1786071.456884368,
+        //         "initialMarginRequirement" => 0.12222384240257728,
+        //         "liquidating" => false,
+        //         "maintenanceMarginRequirement" => 0.07177992558058484,
+        //         "makerFee" => 0.0002,
+        //         "marginFraction" => 0.5588433331419503,
+        //         "openMarginFraction" => 0.2447194090423075,
+        //         "takerFee" => 0.0005,
+        //         "totalAccountValue" => 3568180.98341129,
+        //         "totalPositionSize" => 6384939.6992,
+        //         "username" => "user@domain.com",
+        //         "positions" => array(
+        //             array(
+        //                 "cost" => -31.7906,
+        //                 "entryPrice" => 138.22,
+        //                 "future" => "ETH-PERP",
+        //                 "initialMarginRequirement" => 0.1,
+        //                 "longOrderSize" => 1744.55,
+        //                 "maintenanceMarginRequirement" => 0.04,
+        //                 "netSize" => -0.23,
+        //                 "openSize" => 1744.32,
+        //                 "realizedPnl" => 3.39441714,
+        //                 "shortOrderSize" => 1732.09,
+        //                 "side" => "sell",
+        //                 "size" => 0.23,
+        //                 "unrealizedPnl" => 0,
+        //             ),
+        //         ),
+        //     ),
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $maker = $this->safe_number($fee, 'makerFee');
+        $taker = $this->safe_number($fee, 'takerFee');
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $maker,
+            'taker' => $taker,
+            'percentage' => true,
+            'tierBased' => true,
+        );
+    }
+
+    public function parse_trading_fees($response) {
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $result[$symbol] = $this->parse_trading_fee($response, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fee for a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the fee for
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $response = yield $this->privateGetAccount ($params);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_trading_fee($result, $market);
+    }
+
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
@@ -1224,21 +1296,7 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $maker = $this->safe_number($result, 'makerFee');
-        $taker = $this->safe_number($result, 'takerFee');
-        $tradingFees = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $tradingFees[$symbol] = array(
-                'info' => $response,
-                'symbol' => $symbol,
-                'maker' => $maker,
-                'taker' => $taker,
-                'percentage' => true,
-                'tierBased' => true,
-            );
-        }
-        return $tradingFees;
+        return $this->parse_trading_fees($result);
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2788,13 +2846,13 @@ class ftx extends Exchange {
 
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * Gets the history of the borrow rate for mutiple currencies
-         * @param {str} code Unified $currency code
-         * @param {int} $since Timestamp in ms of the earliest time to fetch the borrow rate
-         * @param {int} $limit Max number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to return per $currency, max=48 for multiple currencies, max=5000 for a single $currency
-         * @param {dict} $params Exchange specific parameters
-         * @param {dict} $params->till Timestamp in ms of the latest time to fetch the borrow rate
-         * @return A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} with unified $currency $codes as keys
+         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+         * @param {[str]|null} $codes list of unified $currency $codes, default is null
+         * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
+         * @param {int|null} $limit max number of borrow rate prices to return, default is null
+         * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {dict} $params->till timestamp in ms of the latest time to fetch the borrow rate
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
          */
         yield $this->load_markets();
         $request = array();

@@ -817,7 +817,7 @@ class bitget extends Exchange {
         //       maxTradeAmount => '0',
         //       takerFeeRate => '0.001',
         //       makerFeeRate => '0.001',
-        //       $priceScale => '4',
+        //       priceScale => '4',
         //       quantityScale => '4',
         //       $status => 'online'
         //     }
@@ -864,10 +864,8 @@ class bitget extends Exchange {
         if ($typeId === 'SPBL') {
             $type = 'spot';
             $spot = true;
-            $priceScale = $this->safe_string($market, 'priceScale');
-            $amountScale = $this->safe_string($market, 'quantityScale');
-            $pricePrecision = $this->parse_number($this->parse_precision($priceScale));
-            $amountPrecision = $this->parse_number($this->parse_precision($amountScale));
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceScale')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityScale')));
         } else {
             $type = 'swap';
             $swap = true;
@@ -902,10 +900,6 @@ class bitget extends Exchange {
         }
         $maker = $this->safe_number($market, 'makerFeeRate');
         $taker = $this->safe_number($market, 'takerFeeRate');
-        $precision = array(
-            'price' => $pricePrecision,
-            'amount' => $amountPrecision,
-        );
         $limits = array(
             'amount' => array(
                 'min' => $this->safe_number($market, 'minTradeAmount'),
@@ -947,7 +941,10 @@ class bitget extends Exchange {
             'active' => $active,
             'maker' => $maker,
             'taker' => $taker,
-            'precision' => $precision,
+            'precision' => array(
+                'price' => $pricePrecision,
+                'amount' => $amountPrecision,
+            ),
             'limits' => $limits,
         );
     }
@@ -1077,6 +1074,7 @@ class bitget extends Exchange {
                     'withdraw' => $withdrawEnabled === 'true',
                     'deposit' => $depositEnabled === 'true',
                     'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => null,
                 );
             }
             $result[$code] = array(

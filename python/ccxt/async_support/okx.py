@@ -4512,6 +4512,14 @@ class okx(Exchange):
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
     async def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
+        """
+        retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param int|None since: timestamp in ms of the earliest borrowRate, default is None
+        :param int|None limit: max number of borrow rate prices to return, default is None
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by the market symbol
+        """
         await self.load_markets()
         request = {
             # 'ccy': currency['id'],

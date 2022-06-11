@@ -648,7 +648,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_ticker2($symbol, $params = array ()) {
+    public function fetch_ticker_2($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

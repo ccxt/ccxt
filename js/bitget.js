@@ -865,10 +865,8 @@ module.exports = class bitget extends Exchange {
         if (typeId === 'SPBL') {
             type = 'spot';
             spot = true;
-            const priceScale = this.safeString (market, 'priceScale');
-            const amountScale = this.safeString (market, 'quantityScale');
-            pricePrecision = this.parseNumber (this.parsePrecision (priceScale));
-            amountPrecision = this.parseNumber (this.parsePrecision (amountScale));
+            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceScale')));
+            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityScale')));
         } else {
             type = 'swap';
             swap = true;
@@ -903,10 +901,6 @@ module.exports = class bitget extends Exchange {
         }
         const maker = this.safeNumber (market, 'makerFeeRate');
         const taker = this.safeNumber (market, 'takerFeeRate');
-        const precision = {
-            'price': pricePrecision,
-            'amount': amountPrecision,
-        };
         const limits = {
             'amount': {
                 'min': this.safeNumber (market, 'minTradeAmount'),
@@ -948,7 +942,10 @@ module.exports = class bitget extends Exchange {
             'active': active,
             'maker': maker,
             'taker': taker,
-            'precision': precision,
+            'precision': {
+                'price': pricePrecision,
+                'amount': amountPrecision,
+            },
             'limits': limits,
         };
     }
@@ -1080,6 +1077,7 @@ module.exports = class bitget extends Exchange {
                     'withdraw': withdrawEnabled === 'true',
                     'deposit': depositEnabled === 'true',
                     'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': undefined,
                 };
             }
             result[code] = {

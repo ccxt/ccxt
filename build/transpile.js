@@ -92,6 +92,8 @@ class Transpiler {
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
+            [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
             [ /\.parseTransactions\s/g, '.parse_transactions'],
@@ -391,6 +393,7 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
             [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
