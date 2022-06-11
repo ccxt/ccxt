@@ -120,9 +120,10 @@ class coinfalcon extends Exchange {
                 ),
             ),
             'precision' => array(
-                'amount' => 8,
-                'price' => 8,
+                'amount' => $this->parse_number('0.00000001'),
+                'price' => $this->parse_number('0.00000001'),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -185,8 +186,8 @@ class coinfalcon extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'size_precision'),
-                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'size_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

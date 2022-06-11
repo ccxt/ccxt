@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -122,9 +123,10 @@ class coinfalcon(Exchange):
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': self.parse_number('0.00000001'),
+                'price': self.parse_number('0.00000001'),
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
@@ -186,8 +188,8 @@ class coinfalcon(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'size_precision'),
-                    'price': self.safe_integer(market, 'price_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'size_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
