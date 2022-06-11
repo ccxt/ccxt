@@ -507,7 +507,7 @@ class coinflex extends Exchange {
             $fees = array();
             $networks = array();
             $networkList = $this->safe_value($entry, 'networkList', array());
-            $precision = null;
+            $precisionString = null;
             for ($j = 0; $j < count($networkList); $j++) {
                 $networkItem = $networkList[$j];
                 $networkId = $this->safe_string($networkItem, 'network');
@@ -517,8 +517,12 @@ class coinflex extends Exchange {
                 $isDepositEnabled = $isDepositEnabled || $depositEnable;
                 $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
                 $fees[$networkId] = null;
-                $precision = $this->safe_string($networkItem, 'transactionPrecision');
-                $precision = $this->parse_number($this->parse_precision($precision));
+                $networkPrecisionString = $this->safe_string($networkItem, 'transactionPrecision');
+                if ($precisionString === null) {
+                    $precisionString = $networkPrecisionString;
+                } else {
+                    $precisionString = Precise::string_min($precisionString, $networkPrecisionString);
+                }
                 $networks[$networkId] = array(
                     'id' => $networkId,
                     'network' => $networkId,
@@ -526,7 +530,7 @@ class coinflex extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => null,
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($networkPrecisionString)),
                     'limits' => array(
                         'deposit' => array(
                             'min' => $this->safe_number($networkItem, 'minDeposit'),
@@ -544,7 +548,7 @@ class coinflex extends Exchange {
                 'id' => $id,
                 'name' => $code,
                 'code' => $code,
-                'precision' => $precision, // TODO => this need codebase changes, as $precision is network specific, but currencyToPrecision bugs in that case
+                'precision' => $this->parse_number($this->parse_precision($precisionString)),
                 'info' => $entry,
                 'active' => $isWithdrawEnabled && $isDepositEnabled,
                 'deposit' => $isDepositEnabled,

@@ -506,7 +506,7 @@ class coinflex(Exchange):
             fees = {}
             networks = {}
             networkList = self.safe_value(entry, 'networkList', [])
-            precision = None
+            precisionString = None
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
                 networkId = self.safe_string(networkItem, 'network')
@@ -516,8 +516,11 @@ class coinflex(Exchange):
                 isDepositEnabled = isDepositEnabled or depositEnable
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
                 fees[networkId] = None
-                precision = self.safe_string(networkItem, 'transactionPrecision')
-                precision = self.parse_number(self.parse_precision(precision))
+                networkPrecisionString = self.safe_string(networkItem, 'transactionPrecision')
+                if precisionString is None:
+                    precisionString = networkPrecisionString
+                else:
+                    precisionString = Precise.string_min(precisionString, networkPrecisionString)
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -525,7 +528,7 @@ class coinflex(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': None,
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(networkPrecisionString)),
                     'limits': {
                         'deposit': {
                             'min': self.safe_number(networkItem, 'minDeposit'),
@@ -542,7 +545,7 @@ class coinflex(Exchange):
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': precision,  # TODO: self need codebase changes, as precision is network specific, but currencyToPrecision bugs in that case
+                'precision': self.parse_number(self.parse_precision(precisionString)),
                 'info': entry,
                 'active': isWithdrawEnabled and isDepositEnabled,
                 'deposit': isDepositEnabled,
