@@ -928,6 +928,17 @@ class bitvavo extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitvavo api endpoint
+         * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
+         * @param {float} $params->stopPrice The $price at which a trigger order is triggered at
+         * @param {float} $params->triggerPrice The $price at which a trigger order is triggered at
+         * @param {bool} $params->postOnly If true, the order will only be posted to the order book and not executed immediately
+         * @param {float} $params->stopLossPrice The $price at which a stop loss order is triggered at
+         * @param {float} $params->takeProfitPrice The $price at which a take profit order is triggered at
+         * @param {str} $params->triggerType "price"
+         * @param {str} $params->triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders => Use this to determine which parameter will trigger the order
+         * @param {str} $params->selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+         * @param {bool} $params->disableMarketProtection don't cancel if the next fill $price is 10% worse than the best fill $price
+         * @param {bool} $params->responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
@@ -935,19 +946,17 @@ class bitvavo extends Exchange {
         $request = array(
             'market' => $market['id'],
             'side' => $side,
-            'orderType' => $type, // 'market', 'limit', 'stopLoss', 'stopLossLimit', 'takeProfit', 'takeProfitLimit'
-            // 'amount' => $this->amount_to_precision($symbol, $amount),
-            // 'price' => $this->price_to_precision($symbol, $price),
-            // 'amountQuote' => $this->cost_to_precision($symbol, $cost),
-            // 'timeInForce' => 'GTC', // 'GTC', 'IOC', 'FOK'
-            // 'selfTradePrevention' => 'decrementAndCancel', // 'decrementAndCancel', 'cancelOldest', 'cancelNewest', 'cancelBoth'
-            // 'postOnly' => false,
-            // 'disableMarketProtection' => false, // don't cancel if the next fill $price is 10% worse than the best fill $price
-            // 'responseRequired' => true, // false is faster
+            'orderType' => $type,
         );
-        $isStopLimit = ($type === 'stopLossLimit') || ($type === 'takeProfitLimit');
-        $isStopMarket = ($type === 'stopLoss') || ($type === 'takeProfit');
-        if ($type === 'market') {
+        $isMarketOrder = ($type === 'market') || ($type === 'stopLoss') || ($type === 'takeProfit');
+        $isLimitOrder = ($type === 'limit') || ($type === 'stopLossLimit') || ($type === 'takeProfitLimit');
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerAmount' ));
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice'); // trigger when $price crosses from above to below this value
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice'); // trigger when $price crosses from below to above this value
+        $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isMarketOrder) {
             $cost = null;
             if ($price !== null) {
                 $cost = $amount * $price;
@@ -961,49 +970,58 @@ class bitvavo extends Exchange {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             }
             $params = $this->omit($params, array( 'cost', 'amountQuote' ));
-        } elseif ($type === 'limit') {
+        } elseif ($isLimitOrder) {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
-        } elseif ($isStopMarket || $isStopLimit) {
-            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerAmount');
-            if ($stopPrice === null) {
-                if ($isStopLimit) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice parameter for a ' . $type . ' order');
-                } elseif ($isStopMarket) {
-                    if ($price === null) {
-                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument or a $stopPrice parameter for a ' . $type . ' order');
-                    } else {
-                        $stopPrice = $price;
-                    }
-                }
+        }
+        $isTakeProfit = ($takeProfitPrice !== null) || ($type === 'takeProfit') || ($type === 'takeProfitLimit');
+        $isStopLoss = ($stopLossPrice !== null) || ($triggerPrice !== null) && (!$isTakeProfit) || ($type === 'stopLoss') || ($type === 'stopLossLimit');
+        if ($isStopLoss) {
+            if ($stopLossPrice !== null) {
+                $triggerPrice = $stopLossPrice;
             }
-            if ($isStopLimit) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['orderType'] = $isMarketOrder ? 'stopLoss' : 'stopLossLimit';
+        } elseif ($isTakeProfit) {
+            if ($takeProfitPrice !== null) {
+                $triggerPrice = $takeProfitPrice;
             }
-            $params = $this->omit($params, array( 'stopPrice', 'triggerAmount' ));
-            $request['triggerAmount'] = $this->price_to_precision($symbol, $stopPrice);
+            $request['orderType'] = $isMarketOrder ? 'takeProfit' : 'takeProfitLimit';
+        }
+        if ($triggerPrice !== null) {
+            $request['triggerAmount'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['triggerType'] = 'price';
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            $request['triggerReference'] = 'lastTrade'; // 'bestBid', 'bestAsk', 'midPrice'
+        }
+        if (($timeInForce !== null) && ($timeInForce !== 'PO')) {
+            $request['timeInForce'] = $timeInForce;
+        }
+        if ($postOnly) {
+            $request['postOnly'] = true;
         }
         $response = $this->privatePostOrder (array_merge($request, $params));
         //
-        //     {
-        //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
-        //         "market":"ETH-EUR",
-        //         "created":1590505649241,
-        //         "updated":1590505649241,
-        //         "status":"filled",
-        //         "side":"sell",
-        //         "orderType":"market",
-        //         "amount":"0.249825",
-        //         "amountRemaining":"0",
-        //         "onHold":"0",
-        //         "onHoldCurrency":"ETH",
-        //         "filledAmount":"0.249825",
-        //         "filledAmountQuote":"45.84038925",
-        //         "feePaid":"0.12038925",
-        //         "feeCurrency":"EUR",
-        //         "fills":array(
+        //      {
+        //          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
+        //          "market":"DOGE-EUR",
+        //          "created":1654789135146,
+        //          "updated":1654789135153,
+        //          "status":"new",
+        //          "side":"buy",
+        //          "orderType":"stopLossLimit",
+        //          "amount":"200",
+        //          "amountRemaining":"200",
+        //          "price":"0.07471",
+        //          "triggerPrice":"0.0747",
+        //          "triggerAmount":"0.0747",
+        //          "triggerType":"price",
+        //          "triggerReference":"lastTrade",
+        //          "onHold":"14.98",
+        //          "onHoldCurrency":"EUR",
+        //          "filledAmount":"0",
+        //          "filledAmountQuote":"0",
+        //          "feePaid":"0",
+        //          "feeCurrency":"EUR",
+        //          "fills":array( // filled with $market orders only
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
@@ -1014,11 +1032,12 @@ class bitvavo extends Exchange {
         //                 "feeCurrency":"EUR",
         //                 "settled":true
         //             }
-        //         ),
-        //         "selfTradePrevention":"decrementAndCancel",
-        //         "visible":false,
-        //         "disableMarketProtection":false
-        //     }
+        //          ),
+        //          "selfTradePrevention":"decrementAndCancel",
+        //          "visible":true,
+        //          "timeInForce":"GTC",
+        //          "postOnly":false
+        //      }
         //
         return $this->parse_order($response, $market);
     }
