@@ -872,10 +872,8 @@ class bitget(Exchange):
         if typeId == 'SPBL':
             type = 'spot'
             spot = True
-            priceScale = self.safe_string(market, 'priceScale')
-            amountScale = self.safe_string(market, 'quantityScale')
-            pricePrecision = self.parse_number(self.parse_precision(priceScale))
-            amountPrecision = self.parse_number(self.parse_precision(amountScale))
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceScale')))
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityScale')))
         else:
             type = 'swap'
             swap = True
@@ -907,10 +905,6 @@ class bitget(Exchange):
             active = status == 'online'
         maker = self.safe_number(market, 'makerFeeRate')
         taker = self.safe_number(market, 'takerFeeRate')
-        precision = {
-            'price': pricePrecision,
-            'amount': amountPrecision,
-        }
         limits = {
             'amount': {
                 'min': self.safe_number(market, 'minTradeAmount'),
@@ -952,7 +946,10 @@ class bitget(Exchange):
             'active': active,
             'maker': maker,
             'taker': taker,
-            'precision': precision,
+            'precision': {
+                'price': pricePrecision,
+                'amount': amountPrecision,
+            },
             'limits': limits,
         }
 
@@ -1080,6 +1077,7 @@ class bitget(Exchange):
                     'withdraw': withdrawEnabled == 'true',
                     'deposit': depositEnabled == 'true',
                     'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': None,
                 }
             result[code] = {
                 'info': entry,
