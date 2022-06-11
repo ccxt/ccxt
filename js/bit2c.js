@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -124,6 +125,7 @@ module.exports = class bit2c extends Exchange {
             'options': {
                 'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
