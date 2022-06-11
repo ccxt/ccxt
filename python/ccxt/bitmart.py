@@ -451,20 +451,21 @@ class bitmart(Exchange):
         #         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
         #         "data":{
         #             "symbols":[
-        #                 {
-        #                     "symbol":"PRQ_BTC",
-        #                     "symbol_id":1232,
-        #                     "base_currency":"PRQ",
-        #                     "quote_currency":"BTC",
-        #                     "quote_increment":"1.0000000000",
-        #                     "base_min_size":"1.0000000000",
-        #                     "base_max_size":"10000000.0000000000",
-        #                     "price_min_precision":8,
-        #                     "price_max_precision":10,
-        #                     "expiration":"NA",
-        #                     "min_buy_amount":"0.0001000000",
-        #                     "min_sell_amount":"0.0001000000"
-        #                 },
+        #               {
+        #                  "symbol": "BTC_USDT",
+        #                  "symbol_id": 53,
+        #                  "base_currency": "BTC",
+        #                  "quote_currency": "USDT",
+        #                  "base_min_size": "0.000010000000000000000000000000",
+        #                  "base_max_size": "100000000.000000000000000000000000000000",
+        #                  "price_min_precision": -1,
+        #                  "price_max_precision": 2,
+        #                  "quote_increment": "0.00001",  # Api docs says "The minimum order quantity is also the minimum order quantity increment", however I think they mistakenly use the term 'order quantity'
+        #                  "expiration": "NA",
+        #                  "min_buy_amount": "5.000000000000000000000000000000",
+        #                  "min_sell_amount": "5.000000000000000000000000000000",
+        #                  "trade_status": "trading"
+        #               },
         #             ]
         #         }
         #     }
@@ -481,19 +482,10 @@ class bitmart(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            #
-            # https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            # from the above API doc:
-            # quote_increment Minimum order price as well as the price increment
-            # price_min_precision Minimum price precision(digit) used to query price and kline
-            # price_max_precision Maximum price precision(digit) used to query price and kline
-            #
-            # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            #
             minBuyCost = self.safe_string(market, 'min_buy_amount')
             minSellCost = self.safe_string(market, 'min_sell_amount')
             minCost = Precise.string_max(minBuyCost, minSellCost)
-            pricePrecision = self.parse_precision(self.safe_string(market, 'price_max_precision'))
+            baseMinSize = self.safe_number(market, 'base_min_size')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -520,8 +512,8 @@ class bitmart(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'base_min_size'),
-                    'price': self.parse_number(pricePrecision),
+                    'amount': baseMinSize,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_max_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -529,7 +521,7 @@ class bitmart(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
+                        'min': baseMinSize,
                         'max': self.safe_number(market, 'base_max_size'),
                     },
                     'price': {
