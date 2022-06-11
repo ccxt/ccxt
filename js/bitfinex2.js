@@ -17,7 +17,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
-                'watchBalance': true, // for now
+                'watchBalance': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
             },
@@ -52,6 +52,13 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             'symbol': marketId,
         };
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async subscribePrivate (messageHash) {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        return await this.watch (url, messageHash, undefined, 1);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -459,35 +466,35 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
         const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin funding
         const messageHash = 'balance:' + balanceType;
-        return await this.watch (url, messageHash, undefined, 1);
+        return await this.subscribePrivate (messageHash);
     }
 
     handleBalance (client, message, subscription) {
-        // [
-        //     0,
-        //     'wu',
-        //     [
-        //       'exchange',
-        //       'LTC', // currency
-        //       0.06729727, // wallet balance
-        //       0, // unsettled balance
-        //       0.06729727, // available balance
-        //       'Exchange 0.4 LTC for UST @ 65.075',
-        //       {
-        //         reason: 'TRADE',
-        //         order_id: 96596397973,
-        //         order_id_oppo: 96596632735,
-        //         trade_price: '65.075',
-        //         trade_amount: '-0.4',
-        //         order_cid: 1654636218766,
-        //         order_gid: null
-        //       }
-        //     ]
-        // ]
+        //
+        //   [
+        //       0,
+        //       'wu',
+        //       [
+        //         'exchange',
+        //         'LTC', // currency
+        //         0.06729727, // wallet balance
+        //         0, // unsettled balance
+        //         0.06729727, // available balance
+        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         {
+        //           reason: 'TRADE',
+        //           order_id: 96596397973,
+        //           order_id_oppo: 96596632735,
+        //           trade_price: '65.075',
+        //           trade_amount: '-0.4',
+        //           order_cid: 1654636218766,
+        //           order_gid: null
+        //         }
+        //       ]
+        //   ]
+        //
         const data = this.safeValue (message, 2);
         const balanceType = this.safeString (data, 0);
         const currencyId = this.safeString (data, 1);
@@ -574,14 +581,12 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.authenticate ();
-        const url = this.urls['api']['ws']['private'];
         let messageHash = 'order';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             messageHash += ':' + market['id'];
         }
-        const orders = await this.watch (url, messageHash, undefined, 1);
+        const orders = await this.subscribePrivate (messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -734,23 +739,23 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         //
         // auth message
-        // {
-        //     event: 'auth',
-        //     status: 'OK',
-        //     chanId: 0,
-        //     userId: 3159883,
-        //     auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //     caps: {
-        //       orders: { read: 1, write: 1 },
-        //       account: { read: 1, write: 1 },
-        //       funding: { read: 1, write: 1 },
-        //       history: { read: 1, write: 0 },
-        //       wallets: { read: 1, write: 1 },
-        //       withdraw: { read: 0, write: 1 },
-        //       positions: { read: 1, write: 1 },
-        //       ui_withdraw: { read: 0, write: 0 }
-        //     }
-        // }
+        //    {
+        //        event: 'auth',
+        //        status: 'OK',
+        //        chanId: 0,
+        //        userId: 3159883,
+        //        auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
+        //        caps: {
+        //          orders: { read: 1, write: 1 },
+        //          account: { read: 1, write: 1 },
+        //          funding: { read: 1, write: 1 },
+        //          history: { read: 1, write: 0 },
+        //          wallets: { read: 1, write: 1 },
+        //          withdraw: { read: 0, write: 1 },
+        //          positions: { read: 1, write: 1 },
+        //          ui_withdraw: { read: 0, write: 0 }
+        //        }
+        //    }
         //
         if (Array.isArray (message)) {
             if (message[1] === 'hb') {
