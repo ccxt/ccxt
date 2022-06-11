@@ -732,27 +732,64 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //         'hb',
         //     ]
         //
-        if (message[1] === 'hb') {
-            return message; // skip heartbeats within subscription channels for now
-        }
-        const subscription = this.safeValue (client.subscriptions, channelId, {});
-        const channel = this.safeString (subscription, 'channel');
-        const name = this.safeString (message, 1);
-        const methods = {
-            'book': this.handleOrderBook,
-            'candles': this.handleOHLCV,
-            'ticker': this.handleTicker,
-            'trades': this.handleTrades,
-            'os': this.handleOrders,
-            'on': this.handleOrders,
-            'oc': this.handleOrders,
-            'wu': this.handleBalance,
-        };
-        const method = this.safeValue2 (methods, channel, name);
-        if (method === undefined) {
-            return message;
+        //
+        // auth message
+        // {
+        //     event: 'auth',
+        //     status: 'OK',
+        //     chanId: 0,
+        //     userId: 3159883,
+        //     auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
+        //     caps: {
+        //       orders: { read: 1, write: 1 },
+        //       account: { read: 1, write: 1 },
+        //       funding: { read: 1, write: 1 },
+        //       history: { read: 1, write: 0 },
+        //       wallets: { read: 1, write: 1 },
+        //       withdraw: { read: 0, write: 1 },
+        //       positions: { read: 1, write: 1 },
+        //       ui_withdraw: { read: 0, write: 0 }
+        //     }
+        // }
+        //
+        if (Array.isArray (message)) {
+            if (message[1] === 'hb') {
+                return message; // skip heartbeats within subscription channels for now
+            }
+            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const channel = this.safeString (subscription, 'channel');
+            const name = this.safeString (message, 1);
+            const methods = {
+                'book': this.handleOrderBook,
+                'candles': this.handleOHLCV,
+                'ticker': this.handleTicker,
+                'trades': this.handleTrades,
+                'os': this.handleOrders,
+                'on': this.handleOrders,
+                'oc': this.handleOrders,
+                'wu': this.handleBalance,
+            };
+            const method = this.safeValue2 (methods, channel, name);
+            if (method === undefined) {
+                return message;
+            } else {
+                return method.call (this, client, message, subscription);
+            }
         } else {
-            return method.call (this, client, message, subscription);
+            const event = this.safeString (message, 'event');
+            if (event !== undefined) {
+                const methods = {
+                    'info': this.handleSystemStatus,
+                    'subscribed': this.handleSubscriptionStatus,
+                    'auth': this.handleAuthenticationMessage,
+                };
+                const method = this.safeValue (methods, event);
+                if (method === undefined) {
+                    return message;
+                } else {
+                    return method.call (this, client, message);
+                }
+            }
         }
     }
 };
