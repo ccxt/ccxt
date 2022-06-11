@@ -183,6 +183,7 @@ class bitpanda extends Exchange {
                 'apiKey' => true,
                 'secret' => false,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'INVALID_CLIENT_UUID' => '\\ccxt\\InvalidOrder',
@@ -322,7 +323,7 @@ class bitpanda extends Exchange {
                 'info' => $currency, // the original payload
                 'active' => null,
                 'fee' => null,
-                'precision' => $this->safe_integer($currency, 'precision'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -387,8 +388,8 @@ class bitpanda extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_precision'),
-                    'price' => $this->safe_integer($market, 'market_precision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

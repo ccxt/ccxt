@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -192,6 +193,7 @@ class bitpanda(Exchange):
                 'apiKey': True,
                 'secret': False,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -329,7 +331,7 @@ class bitpanda(Exchange):
                 'info': currency,  # the original payload
                 'active': None,
                 'fee': None,
-                'precision': self.safe_integer(currency, 'precision'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
@@ -392,8 +394,8 @@ class bitpanda(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
-                    'price': self.safe_integer(market, 'market_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
                 },
                 'limits': {
                     'leverage': {
