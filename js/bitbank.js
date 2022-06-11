@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -119,6 +120,7 @@ module.exports = class bitbank extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '20001': AuthenticationError,
                 '20002': AuthenticationError,
@@ -212,8 +214,8 @@ module.exports = class bitbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'amount_digits'),
-                    'price': this.safeInteger (entry, 'price_digits'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_digits'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'price_digits'))),
                 },
                 'limits': {
                     'leverage': {
