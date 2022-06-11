@@ -13,6 +13,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bigone(Exchange):
@@ -137,6 +138,7 @@ class bigone(Exchange):
                     'fillResponseFromRequest': True,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '10001': BadRequest,  # syntax error
@@ -245,8 +247,8 @@ class bigone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'base_scale'),
-                    'price': self.safe_integer(market, 'quote_scale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quote_scale'))),
                 },
                 'limits': {
                     'leverage': {
