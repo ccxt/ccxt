@@ -370,7 +370,6 @@ module.exports = class hollaex extends Exchange {
             const isActive = this.safeValue (currency, 'active');
             const active = isActive && depositEnabled && withdrawEnabled;
             const fee = this.safeNumber (currency, 'withdrawal_fee');
-            const precision = this.safeNumber (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
             result[code] = {
                 'id': id,
@@ -382,7 +381,7 @@ module.exports = class hollaex extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.safeNumber (currency, 'increment_unit'),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'min'),
