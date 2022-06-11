@@ -1035,7 +1035,7 @@ module.exports = class bitvavo extends Exchange {
         //          "filledAmountQuote":"0",
         //          "feePaid":"0",
         //          "feeCurrency":"EUR",
-        //          "fills":[
+        //          "fills":[ // filled with market orders only
         //             {
         //                 "id":"b0c86aa5-6ed3-4a2d-ba3a-be9a964220f4",
         //                 "timestamp":1590505649245,
