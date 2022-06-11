@@ -90,6 +90,7 @@ require_once PATH_TO_CCXT . 'RequestTimeout.php';
 require_once PATH_TO_CCXT . 'Precise.php';
 
 require_once PATH_TO_CCXT . 'Exchange.php';
+require_once PATH_TO_CCXT . 'ExchangeDecorator.php';
 require_once PATH_TO_CCXT_ASYNC . 'Exchange.php';
 
 $autoloadFile = __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
