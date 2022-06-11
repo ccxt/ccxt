@@ -509,7 +509,7 @@ module.exports = class coinflex extends Exchange {
             const fees = {};
             const networks = {};
             const networkList = this.safeValue (entry, 'networkList', []);
-            let precision = undefined;
+            let precisionString = undefined;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const networkId = this.safeString (networkItem, 'network');
@@ -519,8 +519,12 @@ module.exports = class coinflex extends Exchange {
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[networkId] = undefined;
-                precision = this.safeString (networkItem, 'transactionPrecision');
-                precision = this.parseNumber (this.parsePrecision (precision));
+                const networkPrecisionString = this.safeString (networkItem, 'transactionPrecision');
+                if (precisionString === undefined) {
+                    precisionString = networkPrecisionString;
+                } else {
+                    precisionString = Precise.stringMin (precisionString, networkPrecisionString);
+                }
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -528,7 +532,7 @@ module.exports = class coinflex extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': undefined,
-                    'precision': precision,
+                    'precision': this.parseNumber (this.parsePrecision (networkPrecisionString)),
                     'limits': {
                         'deposit': {
                             'min': this.safeNumber (networkItem, 'minDeposit'),
@@ -546,7 +550,7 @@ module.exports = class coinflex extends Exchange {
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': precision, // TODO: this need codebase changes, as precision is network specific, but currencyToPrecision bugs in that case
+                'precision': this.parseNumber (this.parsePrecision (precisionString)),
                 'info': entry,
                 'active': isWithdrawEnabled && isDepositEnabled,
                 'deposit': isDepositEnabled,
