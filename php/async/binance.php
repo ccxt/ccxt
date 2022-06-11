@@ -5297,7 +5297,7 @@ class binance extends Exchange {
         } elseif (($type === 'delivery') || ($type === 'inverse')) {
             $method = 'dapiPrivateGetPositionRisk';
         } else {
-            throw NotSupported ($this->id . ' fetchPositionsRisk() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchPositionsRisk() supports linear and inverse contracts only');
         }
         $response = yield $this->$method (array_merge($request, $params));
         $result = array();
@@ -5332,7 +5332,7 @@ class binance extends Exchange {
             } elseif ($market['inverse']) {
                 $defaultType = 'delivery';
             } else {
-                throw NotSupported ($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
+                throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
             }
         }
         if ($since !== null) {
@@ -5349,7 +5349,7 @@ class binance extends Exchange {
         } elseif (($type === 'delivery') || ($type === 'inverse')) {
             $method = 'dapiPrivateGetIncome';
         } else {
-            throw NotSupported ($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' fetchFundingHistory() supports linear and inverse contracts only');
         }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_incomes($response, $market, $since, $limit);
