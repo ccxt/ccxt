@@ -421,7 +421,6 @@ module.exports = class latoken extends Exchange {
             const id = this.safeString (currency, 'id');
             const tag = this.safeString (currency, 'tag');
             const code = this.safeCurrencyCode (tag);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             const fee = this.safeNumber (currency, 'fee');
             const currencyType = this.safeString (currency, 'type');
             const parts = currencyType.split ('_');
@@ -441,7 +440,7 @@ module.exports = class latoken extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'minTransferAmount'),
