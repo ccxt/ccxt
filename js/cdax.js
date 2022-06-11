@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -178,6 +178,7 @@ module.exports = class cdax extends Exchange {
                     'taker': this.parseNumber ('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -419,9 +420,9 @@ module.exports = class cdax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amount-precision'),
-                    'price': this.safeInteger (market, 'price-precision'),
-                    'cost': this.safeInteger (market, 'value-precision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -994,7 +995,7 @@ module.exports = class cdax extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeValue (currency, 'name');
-            const precision = this.safeInteger (currency, 'withdraw-precision');
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdraw-precision')));
             const code = this.safeCurrencyCode (id);
             const depositEnabled = this.safeValue (currency, 'deposit-enabled');
             const withdrawEnabled = this.safeValue (currency, 'withdraw-enabled');
@@ -1018,16 +1019,16 @@ module.exports = class cdax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': precision,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'deposit-min-amount'),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdraw-min-amount'),
-                        'max': Math.pow (10, precision),
+                        'max': undefined,
                     },
                 },
                 'info': currency,
