@@ -11,6 +11,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -198,6 +199,7 @@ class coinmate(Exchange):
                     'Access denied.': AuthenticationError,  # {"error":true,"errorMessage":"Access denied.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
@@ -261,8 +263,8 @@ class coinmate(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'lotDecimals'),
-                    'price': self.safe_integer(market, 'priceDecimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'lotDecimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals'))),
                 },
                 'limits': {
                     'leverage': {

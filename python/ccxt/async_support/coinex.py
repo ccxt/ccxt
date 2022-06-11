@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -285,6 +286,7 @@ class coinex(Exchange):
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_currencies(self, params={}):
@@ -327,7 +329,7 @@ class coinex(Exchange):
                     'deposit': self.safe_value(currency, 'can_deposit'),
                     'withdraw': self.safe_value(currency, 'can_withdraw'),
                     'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                    'precision': self.safe_number(currency, 'withdrawal_precision'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
                     'limits': {
                         'amount': {
                             'min': None,
@@ -367,7 +369,7 @@ class coinex(Exchange):
                 'deposit': self.safe_value(currency, 'can_deposit'),
                 'withdraw': self.safe_value(currency, 'can_withdraw'),
                 'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                'precision': self.safe_number(currency, 'withdrawal_precision'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
             }
             networks[networkId] = network
             result[code]['networks'] = networks
@@ -450,8 +452,8 @@ class coinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'trading_decimal'),
-                    'price': self.safe_integer(market, 'pricing_decimal'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trading_decimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricing_decimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -544,8 +546,8 @@ class coinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(entry, 'stock_prec'),
-                    'price': self.safe_integer(entry, 'money_prec'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'stock_prec'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {

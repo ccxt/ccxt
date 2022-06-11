@@ -279,6 +279,7 @@ class coinex extends Exchange {
             'commonCurrencies' => array(
                 'ACM' => 'Actinium',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -322,7 +323,7 @@ class coinex extends Exchange {
                     'deposit' => $this->safe_value($currency, 'can_deposit'),
                     'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                     'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                    'precision' => $this->safe_number($currency, 'withdrawal_precision'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -363,7 +364,7 @@ class coinex extends Exchange {
                 'deposit' => $this->safe_value($currency, 'can_deposit'),
                 'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                 'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                'precision' => $this->safe_number($currency, 'withdrawal_precision'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
             );
             $networks[$networkId] = $network;
             $result[$code]['networks'] = $networks;
@@ -451,8 +452,8 @@ class coinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'trading_decimal'),
-                    'price' => $this->safe_integer($market, 'pricing_decimal'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'trading_decimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricing_decimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -547,8 +548,8 @@ class coinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($entry, 'stock_prec'),
-                    'price' => $this->safe_integer($entry, 'money_prec'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'stock_prec'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'money_prec'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

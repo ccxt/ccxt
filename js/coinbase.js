@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -157,6 +158,7 @@ module.exports = class coinbase extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
