@@ -309,8 +309,8 @@ class Exchange {
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
-        'safeNumber2' => 'safe_number_2',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeNumber2' => 'safe_number_2',
         'parseOrderBook' => 'parse_order_book',
         'parseOHLCVs' => 'parse_ohlcvs',
         'parseLeverageTiers' => 'parse_leverage_tiers',
@@ -3146,11 +3146,6 @@ class Exchange {
         }
     }
 
-    public function safe_number_2($object, $key1, $key2, $d = null) {
-        $value = $this->safe_string_2($object, $key1, $key2);
-        return $this->parse_number($value, $d);
-    }
-
     public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {
         $string_code = (string) $http_status_code;
         if (array_key_exists($string_code, $this->httpExceptions)) {
@@ -3163,6 +3158,11 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_number_2($dictionary, $key1, $key2, $d = null) {
+        $value = $this->safe_string_2($dictionary, $key1, $key2);
+        return $this->parse_number($value, $d);
+    }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
         $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();

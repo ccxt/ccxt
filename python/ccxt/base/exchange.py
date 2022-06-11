@@ -2368,10 +2368,6 @@ class Exchange(object):
         if amount <= 0:
             raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
 
-    def safe_number_2(self, object, key1, key2, d=None):
-        value = self.safe_string_2(object, key1, key2)
-        return self.parse_number(value, d)
-
     def handle_http_status_code(self, code, reason, url, method, body):
         codeAsString = str(code)
         if codeAsString in self.httpExceptions:
@@ -2379,6 +2375,10 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_number_2(self, dictionary, key1, key2, d=None):
+        value = self.safe_string_2(dictionary, key1, key2)
+        return self.parse_number(value, d)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
         bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in orderbook) else []
