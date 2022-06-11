@@ -360,7 +360,7 @@ module.exports = class buda extends Exchange {
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const tickSize = this.parseNumber (this.parsePrecision (this.safeString (currency, 'input_decimals')));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'input_decimals')));
             const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
             const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
             const minDeposit = this.safeNumber (depositMinimum, 0);
@@ -374,10 +374,10 @@ module.exports = class buda extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': tickSize,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': tickSize,
+                        'min': precision,
                         'max': undefined,
                     },
                     'deposit': {
