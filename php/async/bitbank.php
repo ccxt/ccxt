@@ -122,6 +122,7 @@ class bitbank extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '20001' => '\\ccxt\\AuthenticationError',
                 '20002' => '\\ccxt\\AuthenticationError',
@@ -213,8 +214,8 @@ class bitbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($entry, 'amount_digits'),
-                    'price' => $this->safe_integer($entry, 'price_digits'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'amount_digits'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'price_digits'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
