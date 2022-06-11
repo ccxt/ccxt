@@ -226,13 +226,11 @@ module.exports = class blockchaincom extends Exchange {
             const minPriceIncrementScaleString = this.safeString (market, 'min_price_increment_scale');
             const minPriceScalePrecisionString = this.parsePrecision (minPriceIncrementScaleString);
             const pricePrecisionString = Precise.stringMul (minPriceIncrementString, minPriceScalePrecisionString);
-            const pricePrecision = this.parseNumber (pricePrecisionString);
             // amount precision
             const lotSizeString = this.safeString (market, 'lot_size');
             const lotSizeScaleString = this.safeString (market, 'lot_size_scale');
             const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
             const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
-            const amountPrecision = this.parseNumber (amountPrecisionString);
             // minimum order size
             const minOrderSizeString = this.safeString (market, 'min_order_size');
             const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
@@ -277,8 +275,8 @@ module.exports = class blockchaincom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.parseNumber (amountPrecisionString),
+                    'price': this.parseNumber (pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {
