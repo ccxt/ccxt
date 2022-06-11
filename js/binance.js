@@ -80,8 +80,8 @@ module.exports = class binance extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': undefined,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
-                'fetchPositionMode': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -5255,6 +5255,34 @@ module.exports = class binance extends Exchange {
         const account = await this[method] (query);
         const result = this.parseAccountPositions (account);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchPositionMode (params = {}) {
+        const request = {};
+        let method = undefined;
+        let defaultType = 'future';
+        defaultType = this.safeString (this.options, 'defaultType', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if ((type === 'future') || (type === 'linear')) {
+            method = 'fapiPrivateGetPositionSideDual';
+            //
+            //     {
+            //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
+            //     }
+            //
+        } else if ((type === 'delivery') || (type === 'inverse')) {
+            method = 'dapiPrivateGetPositionSideDual';
+            //
+            //     {
+            //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionMode() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchPositionsRisk (symbols = undefined, params = {}) {
