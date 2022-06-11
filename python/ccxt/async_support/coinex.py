@@ -952,6 +952,7 @@ class coinex(Exchange):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'market')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
@@ -2467,15 +2468,11 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        swap = market['swap']
+        market = None
         if limit is None:
             limit = 100
         request = {
-            'market': market['id'],  # SPOT and SWAP
             'limit': limit,  # SPOT and SWAP
             'offset': 0,  # SWAP, means query from a certain record
             # 'page': 1,  # SPOT
@@ -2483,6 +2480,14 @@ class coinex(Exchange):
             # 'start_time': since,  # SWAP
             # 'end_time': 1524228297,  # SWAP
         }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        if type != 'spot' and symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument for non-spot markets')
+        swap = (type == 'swap')
         method = None
         if swap:
             method = 'perpetualPublicGetMarketUserDeals'

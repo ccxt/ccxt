@@ -966,6 +966,7 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
@@ -2576,17 +2577,12 @@ class coinex extends Exchange {
          * @param {dict} $params extra parameters specific to the coinex api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
         yield $this->load_markets();
-        $market = $this->market($symbol);
-        $swap = $market['swap'];
+        $market = null;
         if ($limit === null) {
             $limit = 100;
         }
         $request = array(
-            'market' => $market['id'], // SPOT and SWAP
             'limit' => $limit, // SPOT and SWAP
             'offset' => 0, // SWAP, means query from a certain record
             // 'page' => 1, // SPOT
@@ -2594,6 +2590,16 @@ class coinex extends Exchange {
             // 'start_time' => $since, // SWAP
             // 'end_time' => 1524228297, // SWAP
         );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        if ($type !== 'spot' && $symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for non-spot markets');
+        }
+        $swap = ($type === 'swap');
         $method = null;
         if ($swap) {
             $method = 'perpetualPublicGetMarketUserDeals';
