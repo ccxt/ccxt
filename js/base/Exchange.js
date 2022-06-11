@@ -796,17 +796,6 @@ module.exports = class Exchange {
         })
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': this.sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        }
-    }
-
     safeBalance (balance) {
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
         balance['free'] = {}
@@ -1012,17 +1001,6 @@ module.exports = class Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
-    }
-
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // this code is commented out temporarily to catch for exchange-specific errors
-        // if (!this.isArray (ohlcvs)) {
-        //     throw new ExchangeError (this.id + ' parseOHLCVs() expected an array in the ohlcvs argument, but got ' + typeof ohlcvs);
-        // }
-        const parsed = ohlcvs.map ((ohlcv) => this.parseOHLCV (ohlcv, market))
-        const sorted = this.sortBy (parsed, 0)
-        const tail = since === undefined
-        return this.filterBySinceLimit (sorted, since, limit, 0, tail)
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1573,6 +1551,29 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        const bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
+        const asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+    }
+
+    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push (this.parseOHLCV (ohlcvs[i], market));
+        }
+        const sorted = this.sortBy (results, 0);
+        const tail = (since === undefined);
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail);
+    }
 
     parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary

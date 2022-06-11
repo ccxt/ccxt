@@ -1566,12 +1566,6 @@ class Exchange(object):
         else:
             return ohlcv
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        parsed = [self.parse_ohlcv(ohlcv, market) for ohlcv in ohlcvs]
-        sorted = self.sort_by(parsed, 0)
-        tail = since is None
-        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
-
     def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
         result = []
         if len(bidasks):
@@ -1593,16 +1587,6 @@ class Exchange(object):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
-
-    def parse_order_book(self, orderbook, symbol, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        return {
-            'symbol': symbol,
-            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
-            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp) if timestamp is not None else None,
-            'nonce': None,
-        }
 
     def safe_balance(self, balance):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
@@ -2395,6 +2379,26 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in orderbook) else []
+        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in orderbook) else []
+        return {
+            'symbol': symbol,
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        results = []
+        for i in range(0, len(ohlcvs)):
+            results.append(self.parse_ohlcv(ohlcvs[i], market))
+        sorted = self.sort_by(results, 0)
+        tail = (since is None)
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
         # marketIdKey should only be None when response is a dictionary

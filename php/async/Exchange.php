@@ -252,6 +252,29 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
+        $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();
+        $asks = (is_array($orderbook) && array_key_exists($asksKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$asksKey], $priceKey, $amountKey) : array();
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->sort_by($bids, 0, true),
+            'asks' => $this->sort_by($asks, 0),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'nonce' => null,
+        );
+    }
+
+    public function parse_ohlc_vs($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $results = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
+        }
+        $sorted = $this->sort_by($results, 0);
+        $tail = ($since === null);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
+    }
+
     public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
         // $marketIdKey should only be null when $response is a dictionary
         $symbols = $this->market_symbols($symbols);
