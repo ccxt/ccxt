@@ -127,6 +127,7 @@ class btcalpha extends Exchange {
             'commonCurrencies' => array(
                 'CBC' => 'Cashbery',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(),
                 'broad' => array(
@@ -194,8 +195,8 @@ class btcalpha extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => intval($pricePrecision),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                    'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
                 ),
                 'limits' => array(
                     'leverage' => array(
