@@ -629,7 +629,7 @@ module.exports = class bitrue extends Exchange {
             const priceDefault = this.safeString (market, 'pricePrecision');
             const amountDefault = this.safeString (market, 'quantityPrecision');
             const amountPrecisionDigits = this.safeString (amountFilter, 'volumeScale', amountDefault);
-            const pricePrecisionDigits = this.safeString (amountFilter, 'priceScale', priceDefault);
+            const pricePrecisionDigits = this.safeString (priceFilter, 'priceScale', priceDefault);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
