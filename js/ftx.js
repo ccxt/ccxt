@@ -1545,7 +1545,6 @@ module.exports = class ftx extends Exchange {
             'market': market['id'],
             'side': side, // 'buy' or 'sell'
             // 'price': 0.306525, // send null for market orders
-            'type': type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'reduceOnly': false, // optional, default is false
             // 'ioc': false, // optional, default is false, limit or market orders only
@@ -1565,17 +1564,16 @@ module.exports = class ftx extends Exchange {
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
         let method = undefined;
-        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeValue (params, 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         let isTakeProfit = false;
         let isStopLoss = false;
+        let isStopPrice = false;
         if (triggerPrice !== undefined) {
             isTakeProfit = type === 'takeProfit';
             isStopLoss = type === 'stop';
-            if (!isTakeProfit && !isStopLoss) {
-                throw new ExchangeError (this.id + ' createOrder() `triggerPrice` param requires type to be "stop" or "takeProfit"');
-            }
+            isStopPrice = !isTakeProfit && !isStopLoss;
         } else if (takeProfitPrice !== undefined) {
             isTakeProfit = true;
             triggerPrice = takeProfitPrice;
@@ -1583,7 +1581,10 @@ module.exports = class ftx extends Exchange {
             isStopLoss = true;
             triggerPrice = stopLossPrice;
         }
-        const isStopOrder = isTakeProfit || isStopLoss;
+        if (!isStopPrice) {
+            request['type'] = type;
+        }
+        const isStopOrder = isTakeProfit || isStopLoss || isStopPrice;
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isStopOrder) {
             method = 'privatePostConditionalOrders';
@@ -1594,7 +1595,9 @@ module.exports = class ftx extends Exchange {
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
             }
-            request['type'] = isStopLoss ? 'stop' : 'takeProfit';
+            if (isStopLoss || isTakeProfit) {
+                request['type'] = isStopLoss ? 'stop' : 'takeProfit';
+            }
         } else if ((type === 'limit') || (type === 'market')) {
             method = 'privatePostOrders';
             let isMarketOrder = false;
