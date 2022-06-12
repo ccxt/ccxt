@@ -1465,14 +1465,15 @@ class bitfinex2(Exchange):
         reduceOnly = self.safe_value(params, 'reduceOnly', False)
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
-        amount = amount if (side == 'buy') else -amount
+        amountString = self.amount_to_precision(symbol, amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
             'type': orderType,
             'symbol': market['id'],
             # 'price': self.number_to_string(price),
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': amountString,
             # 'flags': 0,  # int32, https://docs.bitfinex.com/v2/docs/flag-values
             # 'lev': 10,  # leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
             # 'price_trailing': self.number_to_string(priceTrailing),
