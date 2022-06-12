@@ -3894,7 +3894,6 @@ module.exports = class huobi extends Exchange {
         const accountId = await this.fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
-            'account-id': accountId,
             'symbol': market['id'],
             // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
@@ -3908,56 +3907,78 @@ module.exports = class huobi extends Exchange {
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
         let operator = this.safeStringLower (params, 'operator');
-        const stopPrice = this.safeValue2 (params, 'stopPrice', 'stop-price');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', stopPrice);
+        let stopPrice = this.safeValue2 (params, 'stopPrice', 'stop-price');
+        const triggerPrice = this.safeValue (params, 'triggerPrice', stopPrice);
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopOrder = ();
-        if ((operator !== 'gte') && (operator !== 'lte')) {
+        let method = 'spotPrivatePostV1OrderOrdersPlace';
+        let isTriggerOrder = false;
+        if (operator === undefined) {
+            if (stopLossPrice !== undefined) {
+                stopPrice = stopLossPrice;
+                operator = (side === 'buy') ? 'gte' : 'lte';
+            } else if (takeProfitPrice !== undefined) {
+                stopPrice = takeProfitPrice;
+                operator = (side === 'buy') ? 'lte' : 'gte';
+            }
+            if (triggerPrice !== undefined) {
+                // only stopPrice is defined
+                // hence trigger / conditional order
+                method = 'spotPrivatePostV2AlgoOrders';
+                isTriggerOrder = true;
+            }
+        }
+        if ((operator !== undefined) && (operator !== 'gte') && (operator !== 'lte')) {
             throw new ExchangeError (this.id + ' createOrder() `operator` param must be "gte" or "lte"');
         }
         if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
             throw new ExchangeError (this.id + ' createOrder `stopLossPrice` and `takeProfitPrice` params cannot both be defined');
         }
-        if (stopLossPrice !== undefined) {
-            operator = (side === 'buy') ? 'gte' : 'lte';
-        } else if (takeProfitPrice) {
-            operator = (side === 'buy') ? 'lte' : 'gte';
+        if (isTriggerOrder) {
+            request['accountId'] = accountId;
+        } else {
+            request['account-id'] = accountId;
         }
-
-        if (stopPrice === undefined) {
+        if (isTriggerOrder) {
+            request['stopPrice'] = triggerPrice;
+        } else if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
-            const stopOperator = this.safeString (params, 'operator');
-            if (stopOperator === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
-            }
-            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
             request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
-            request['operator'] = stopOperator;
+            request['operator'] = operator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'stopPrice', 'stop-price', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const isMarketOrder = orderType === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
-        request['type'] = side + '-' + orderType;
+        if (isTriggerOrder) {
+            request['orderType'] = isMarketOrder ? 'market' : 'limit';
+            request['orderSide'] = side;
+        } else {
+            request['type'] = side + '-' + orderType;
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
+        const clientOrderIdField = isTriggerOrder ? 'clientOrderId' : 'client-order-id';
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker', {});
             const brokerId = this.safeString (broker, 'id');
-            request['client-order-id'] = brokerId + this.uuid ();
+            request[clientOrderIdField] = brokerId + this.uuid ();
         } else {
-            request['client-order-id'] = clientOrderId;
+            request[clientOrderIdField] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id', 'postOnly' ]);
-        if ((orderType === 'market') && (side === 'buy')) {
+        if (isMarketOrder && (side === 'buy')) {
+            const amountField = isTriggerOrder ? 'orderValue' : 'amount';
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -3968,25 +3989,38 @@ module.exports = class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request[amountField] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             } else {
-                request['amount'] = this.costToPrecision (symbol, amount);
+                request[amountField] = this.costToPrecision (symbol, amount);
             }
         } else {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            const amountField = isTriggerOrder ? 'orderSize' : 'amount';
+            request[amountField] = this.amountToPrecision (symbol, amount);
         }
         const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            const orderPrice = this.priceToPrecision (symbol, price);
+            if (isTriggerOrder) {
+                request['orderPrice'] = orderPrice;
+            } else {
+                request['price'] = orderPrice;
+            }
         }
-        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
         //     {"status":"ok","data":"438398393065481"}
         //
-        const id = this.safeString (response, 'data');
+        let id = undefined;
+        let clientOrderIdResponse = undefined;
+        if (isTriggerOrder) {
+            const data = this.safeValue (response, 'data');
+            clientOrderIdResponse = this.safeString (data, 'clientOrderId');
+        } else {
+            id = this.safeString (response, 'data');
+        }
         return {
             'info': response,
             'id': id,
@@ -4004,7 +4038,7 @@ module.exports = class huobi extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderIdResponse,
             'average': undefined,
         };
     }
