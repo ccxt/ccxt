@@ -1645,7 +1645,7 @@ module.exports = class bitmex extends Exchange {
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'orderQty');
-        const filled = this.safeString (order, 'cumQty', 0.0);
+        const filled = this.safeString (order, 'cumQty');
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
@@ -1654,7 +1654,10 @@ module.exports = class bitmex extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const stopPrice = this.safeNumber (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
-        const postOnly = (execInst === 'ParticipateDoNotInitiate');
+        let postOnly = undefined;
+        if (execInst !== undefined) {
+            postOnly = (execInst === 'ParticipateDoNotInitiate');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1854,7 +1857,19 @@ module.exports = class bitmex extends Exchange {
          * @param {dict} params extra parameters specific to the bitmex api endpoint
          * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.cancelOrder (ids, symbol, params);
+        // return await this.cancelOrder (ids, symbol, params);
+        await this.loadMarkets ();
+        // https://github.com/ccxt/ccxt/issues/6507
+        const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
+        const request = {};
+        if (clientOrderId === undefined) {
+            request['orderID'] = ids;
+        } else {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        }
+        const response = await this.privateDeleteOrder (this.extend (request, params));
+        return this.parseOrders (response);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
