@@ -7,7 +7,6 @@ const functions = require ('./functions');
 
 const {
     isNode
-    , extend
     , clone
     , flatten
     , unique
@@ -524,23 +523,23 @@ module.exports = class Exchange {
     fetch (url, method = 'GET', headers = undefined, body = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
-                headers = extend ({ 'User-Agent': this.userAgent }, headers)
+                headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
             } else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = extend (this.userAgent, headers)
+                headers = this.extend (this.userAgent, headers)
             }
         }
         if (typeof this.proxy === 'function') {
             url = this.proxy (url)
             if (isNode) {
-                headers = extend ({ 'Origin': this.origin }, headers)
+                headers = this.extend ({ 'Origin': this.origin }, headers)
             }
         } else if (typeof this.proxy === 'string') {
             if (this.proxy.length && isNode) {
-                headers = extend ({ 'Origin': this.origin }, headers)
+                headers = this.extend ({ 'Origin': this.origin }, headers)
             }
             url = this.proxy + url
         }
-        headers = extend (this.headers, headers)
+        headers = this.extend (this.headers, headers)
         headers = this.setHeaders (headers)
         if (this.verbose) {
             this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
@@ -952,89 +951,6 @@ module.exports = class Exchange {
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
-    reduceFeesByCurrency (fees, string = false) {
-        //
-        // this function takes a list of fee structures having the following format
-        //
-        //     string = true
-        //
-        //     [
-        //         { 'currency': 'BTC', 'cost': '0.1' },
-        //         { 'currency': 'BTC', 'cost': '0.2'  },
-        //         { 'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123' },
-        //         { 'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123' },
-        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
-        //         { 'currency': 'USDT', 'cost': '12.3456' },
-        //     ]
-        //
-        //     string = false
-        //
-        //     [
-        //         { 'currency': 'BTC', 'cost': 0.1 },
-        //         { 'currency': 'BTC', 'cost': 0.2 },
-        //         { 'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123 },
-        //         { 'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123 },
-        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
-        //         { 'currency': 'USDT', 'cost': 12.3456 },
-        //     ]
-        //
-        // and returns a reduced fee list, where fees are summed per currency and rate (if any)
-        //
-        //     string = true
-        //
-        //     [
-        //         { 'currency': 'BTC', 'cost': '0.3'  },
-        //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
-        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
-        //         { 'currency': 'USDT', 'cost': '12.3456' },
-        //     ]
-        //
-        //     string  = false
-        //
-        //     [
-        //         { 'currency': 'BTC', 'cost': 0.3  },
-        //         { 'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123 },
-        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
-        //         { 'currency': 'USDT', 'cost': 12.3456 },
-        //     ]
-        //
-        const reduced = {};
-        for (let i = 0; i < fees.length; i++) {
-            const fee = fees[i];
-            const feeCurrencyCode = this.safeString (fee, 'currency');
-            if (feeCurrencyCode !== undefined) {
-                const rate = this.safeString (fee, 'rate');
-                const cost = this.safeValue (fee, 'cost');
-                if (!(feeCurrencyCode in reduced)) {
-                    reduced[feeCurrencyCode] = {};
-                }
-                const rateKey = (rate === undefined) ? '' : rate;
-                if (rateKey in reduced[feeCurrencyCode]) {
-                    if (string) {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    } else {
-                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
-                    }
-                } else {
-                    reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
-                        'cost': string ? cost : this.parseNumber (cost),
-                    };
-                    if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
-                    }
-                }
-            }
-        }
-        let result = [];
-        const feeValues = Object.values (reduced);
-        for (let i = 0; i < feeValues.length; i++) {
-            const reducedFeeValues = Object.values (feeValues[i]);
-            result = this.arrayConcat (result, reducedFeeValues);
-        }
-        return result;
-    }
-
     safeTrade (trade, market = undefined) {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
@@ -1377,6 +1293,89 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    reduceFeesByCurrency (fees, string = false) {
+        //
+        // this function takes a list of fee structures having the following format
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.1' },
+        //         { 'currency': 'BTC', 'cost': '0.2'  },
+        //         { 'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.1 },
+        //         { 'currency': 'BTC', 'cost': 0.2 },
+        //         { 'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
+        // and returns a reduced fee list, where fees are summed per currency and rate (if any)
+        //
+        //     string = true
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
+        //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
+        //         { 'currency': 'USDT', 'cost': '12.3456' },
+        //     ]
+        //
+        //     string  = false
+        //
+        //     [
+        //         { 'currency': 'BTC', 'cost': 0.3  },
+        //         { 'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123 },
+        //         { 'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456 },
+        //         { 'currency': 'USDT', 'cost': 12.3456 },
+        //     ]
+        //
+        const reduced = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const feeCurrencyCode = this.safeString (fee, 'currency');
+            if (feeCurrencyCode !== undefined) {
+                const rate = this.safeString (fee, 'rate');
+                const cost = this.safeValue (fee, 'cost');
+                if (!(feeCurrencyCode in reduced)) {
+                    reduced[feeCurrencyCode] = {};
+                }
+                const rateKey = (rate === undefined) ? '' : rate;
+                if (rateKey in reduced[feeCurrencyCode]) {
+                    if (string) {
+                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    } else {
+                        reduced[feeCurrencyCode][rateKey]['cost'] = this.sum (reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    }
+                } else {
+                    reduced[feeCurrencyCode][rateKey] = {
+                        'currency': feeCurrencyCode,
+                        'cost': string ? cost : this.parseNumber (cost),
+                    };
+                    if (rate !== undefined) {
+                        reduced[feeCurrencyCode][rateKey]['rate'] = string ? rate : this.parseNumber (rate);
+                    }
+                }
+            }
+        }
+        let result = [];
+        const feeValues = Object.values (reduced);
+        for (let i = 0; i < feeValues.length; i++) {
+            const reducedFeeValues = Object.values (feeValues[i]);
+            result = this.arrayConcat (result, reducedFeeValues);
+        }
+        return result;
+    }
 
     safeTicker (ticker, market = undefined) {
         let open = this.safeValue (ticker, 'open');
