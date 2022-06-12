@@ -47,7 +47,7 @@ module.exports = class bitget extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': undefined,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
