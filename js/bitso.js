@@ -39,15 +39,15 @@ module.exports = class bitso extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchDeposit': true,
-                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': true,    
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -68,9 +68,9 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,
@@ -276,40 +276,40 @@ module.exports = class bitso extends Exchange {
         const firstBalance = this.safeValue (balanceUpdates, 0, {});
         let direction = undefined;
         let fee = undefined;
-        let referenceId = undefined;
         const amount = this.safeString (firstBalance, 'amount');
         const currencyId = this.safeString (firstBalance, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const details = this.safeValue (item, 'details', {});
+        let referenceId = this.safeString2 (details, 'fid', 'wid');
+        if (referenceId === undefined) {
+            referenceId = this.safeString (details, 'tid');
+        }
         if (operation === 'funding') {
             direction = 'in';
-            referenceId = this.safeString (details, 'fid');
         } else if (operation === 'withdrawal') {
             direction = 'out';
-            referenceId = this.safeString (details, 'wid');
         } else if (operation === 'trade') {
-            referenceId = this.safeString (details, 'tid')
+            direction = undefined;
         } else if (operation === 'fee') {
             direction = 'out';
             const cost = Precise.stringAbs (amount);
             fee = {
                 'cost': cost,
                 'currency': currency,
-            }
-            referenceId = this.safeString (details, 'tid')
+            };
         }
-        const datetime = this.safeString (item, 'created_at'); // check format
+        const datetime = this.safeString (item, 'created_at');
         return this.safeLedgerEntry ({
             'id': this.safeString (item, 'eid'),
             'direction': direction,
             'account': undefined,
-            'referenceId': this.safeString2 (details, 'fid', 'wid', this.safeString (details, 'tid')),
+            'referenceId': referenceId,
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber (amount),
             'timestamp': this.parse8601 (datetime),
-            'datetime':  datetime,
+            'datetime': datetime,
             'before': undefined,
             'after': undefined,
             'status': 'ok',
@@ -1143,7 +1143,8 @@ module.exports = class bitso extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'payload', []);
-        return this.parseTransactions (transactions);
+        const first = this.safeValue (transactions, 0, {});
+        return this.parseTransaction (first);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1376,7 +1377,8 @@ module.exports = class bitso extends Exchange {
         const receivingAddress = this.safeString (details, 'receiving_address');
         const networkId = this.safeString2 (transaction, 'network', 'method');
         const status = this.safeString (transaction, 'status');
-        return  {
+        const withdrawId = this.safeString (transaction, 'wid');
+        return {
             'id': this.safeString2 (transaction, 'wid', 'fid'),
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
@@ -1386,7 +1388,7 @@ module.exports = class bitso extends Exchange {
             'address': withdrawalAddress !== undefined ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
             'amount': this.safeString (transaction, 'amount'),
-            'type': this.safeString (transaction, 'wid') === undefined ? 'deposit' : 'withdrawal',
+            'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': this.parseTransactionStatus (status),
             'updated': undefined,
