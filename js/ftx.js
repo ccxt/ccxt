@@ -1626,11 +1626,6 @@ module.exports = class ftx extends Exchange {
         if (reduceOnly === true) {
             request['reduceOnly'] = reduceOnly;
         }
-        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientId'] = clientOrderId;
-            params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
-        }
         let method = undefined;
         let stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
@@ -1707,6 +1702,11 @@ module.exports = class ftx extends Exchange {
             }
             if (ioc) {
                 request['ioc'] = true;
+            }
+            const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clientId'] = clientOrderId;
+                params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
             }
         }
         const response = await this[method] (this.extend (request, params));
