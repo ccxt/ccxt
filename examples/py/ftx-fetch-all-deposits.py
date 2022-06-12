@@ -36,12 +36,12 @@ while True:
     params = {
         'end_time': int(end_time / 1000),
     }
-    results = exchange.fetch_my_trades(symbol, since, limit, params)
+    results = exchange.fetch_deposits(symbol, since, limit, params)
     if len(results):
         first = results[0]
         last = results[len(results) - 1]
         end_time = first['timestamp']
-        print('Fetched', len(results), 'trades from', first['datetime'], 'till', last['datetime'])
+        print('Fetched', len(results), 'deposits from', first['datetime'], 'till', last['datetime'])
         fetched_new_results = False
         for result in results:
             if result['id'] not in all_results:
@@ -58,7 +58,7 @@ while True:
 all_results = list(all_results.values())
 all_results = exchange.sort_by(all_results, 'timestamp')
 
-print('Fetched', len(all_results), 'trades')
+print('Fetched', len(all_results), 'deposits')
 for i in range(0, len(all_results)):
     result = all_results[i]
-    print(i, result['id'], result['symbol'], result['datetime'], result['amount'])
+    print(i, result['id'], result['currency'], result['datetime'], result['amount'])
