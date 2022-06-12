@@ -107,7 +107,7 @@ module.exports = class huobi extends Exchange {
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -4041,10 +4041,6 @@ module.exports = class huobi extends Exchange {
     }
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const offset = this.safeString (params, 'offset');
-        if (offset === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
-        }
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
@@ -4058,7 +4054,6 @@ module.exports = class huobi extends Exchange {
             // 'price': this.priceToPrecision (symbol, price), // optional
             'volume': this.amountToPrecision (symbol, amount),
             'direction': side, // buy, sell
-            'offset': offset, // open, close
             //
             //     direction buy, offset open = open long
             //     direction sell, offset close = close long
@@ -4095,11 +4090,20 @@ module.exports = class huobi extends Exchange {
             // 'sl_order_price': this.priceToPrecision (symbol, price),
             // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
         };
-        const stopLossOrderPrice = this.safeString (params, 'sl_order_price');
-        const stopLossTriggerPrice = this.safeString (params, 'sl_trigger_price');
-        const takeProfitOrderPrice = this.safeString (params, 'tp_order_price');
-        const takeProfitTriggerPrice = this.safeString (params, 'tp_trigger_price');
-        const isOpenOrder = (offset === 'open');
+        const offset = this.safeString (params, 'offset');
+        if (offset === undefined) {
+            if (market['inverse']) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
+            }
+        } else {
+            request['offset'] = offset;
+        }
+        const stopLossOrderPrice = this.safeValue (params, 'sl_order_price');
+        const stopLossTriggerPrice = this.safeValue2 (params, 'sl_trigger_price', 'stopLossPrice');
+        const takeProfitOrderPrice = this.safeValue (params, 'tp_order_price');
+        const takeProfitTriggerPrice = this.safeValue2 (params, 'tp_trigger_price', 'takeProfitPrice');
+        // linear orders can be one-way mode also
+        const isOpenOrder = (offset === 'open') || market['linear'];
         let isStopOrder = false;
         if (stopLossTriggerPrice !== undefined) {
             request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
@@ -4126,7 +4130,7 @@ module.exports = class huobi extends Exchange {
         if (isStopOrder && !isOpenOrder) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
-        params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ]);
+        params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price', 'stopLossPrice', 'takeProfitPrice' ]);
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             type = 'post_only';
@@ -5677,6 +5681,30 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
         }
         const response = await this[method] (this.extend (request, query));
+        return response;
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear']) {
+            throw new ExchangeError (this.id + ' setPositionMode() changing position mode is only allowed for linear futures');
+        }
+        const defaultMargin = market['future'] ? 'cross' : 'isolated';
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const method = this.getSupportedMapping (marginMode, {
+            'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode',
+            'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode',
+        });
+        const positionMode = hedged ? 'dual_side' : 'single_side';
+        const request = {
+            'margin_account': market['id'],
+            'position_mode': positionMode,
+        };
+        const response = await this[method] (this.extend (request, params));
         return response;
     }
 
