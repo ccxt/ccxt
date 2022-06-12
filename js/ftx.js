@@ -1637,7 +1637,8 @@ module.exports = class ftx extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopOrder = (stopPrice !== undefined) || (stopLossPrice !== undefined) || (type === 'stop');
         const isTakeProfitOrder = (type === 'takeProfit') || (takeProfitPrice !== undefined);
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        let trailValue = this.safeNumber (params, 'trailValue');
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailValue' ]);
         if (isTakeProfitOrder) {
             method = 'privatePostConditionalOrders';
             stopPrice = (stopPrice === undefined) ? takeProfitPrice : stopPrice;
@@ -1672,10 +1673,10 @@ module.exports = class ftx extends Exchange {
             if ((type === 'limit') || (type === 'market')) {
                 request['type'] = 'stop';
             }
-        } else if (type === 'trailingStop') {
-            const trailValue = this.safeNumber (params, 'trailValue', price);
+        } else if ((type === 'trailingStop') || (trailValue !== undefined)) {
+            trailValue = (trailValue === undefined) ? price : trailValue;
             if (trailValue === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a trailingStop order');
             }
             method = 'privatePostConditionalOrders';
             request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
