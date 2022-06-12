@@ -2350,11 +2350,17 @@ module.exports = class kucoin extends Exchange {
         const timestamp = this.safeInteger (transfer, 'createdAt');
         const currencyId = this.safeString (transfer, 'currency');
         const rawStatus = this.safeString (transfer, 'status');
-        const accountFromRaw = this.safeString (transfer, 'payAccountType');
-        const accountToRaw = this.safeString (transfer, 'recAccountType');
+        let accountFromRaw = this.safeString (transfer, 'payAccountType');
+        if (accountFromRaw !== undefined) {
+            accountFromRaw = accountFromRaw.toLowerCase ();
+        }
+        let accountToRaw = this.safeString (transfer, 'recAccountType');
+        if (accountToRaw !== undefined) {
+            accountToRaw = accountToRaw.toLowerCase ();
+        }
         const accountsByType = this.safeValue (this.options, 'accountsByType');
-        const accountFrom = this.safeString (accountsByType, accountFromRaw.toLowerCase ());
-        const accountTo = this.safeString (accountsByType, accountToRaw.toLowerCase ());
+        const accountFrom = this.safeString (accountsByType, accountFromRaw);
+        const accountTo = this.safeString (accountsByType, accountToRaw);
         return {
             'id': this.safeString2 (transfer, 'applyId', 'orderId'),
             'currency': this.safeCurrencyCode (currencyId, currency),
