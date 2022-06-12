@@ -481,7 +481,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //         'LTC', // currency
         //         0.06729727, // wallet balance
         //         0, // unsettled balance
-        //         0.06729727, // available balance
+        //         0.06729727, // available balance might be null
         //         'Exchange 0.4 LTC for UST @ 65.075',
         //         {
         //           reason: 'TRADE',
@@ -502,7 +502,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const availableBalance = this.safeString (data, 4);
         const code = this.safeCurrencyCode (currencyId);
         const account = (code in this.balance) ? this.balance[code] : this.account ();
-        account['free'] = availableBalance;
+        if (availableBalance !== undefined) {
+            account['free'] = availableBalance;
+        }
         account['total'] = totalBalance;
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
@@ -595,49 +597,43 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
 
     handleOrders (client, message, subscription) {
         //
-        // order snapshot
-        //
-        //     [
-        //         0,
-        //         'os',
-        //         [
-        //             [
-        //                 45287766631,
-        //                 'ETHUST',
-        //                 -0.07,
-        //                 -0.07,
-        //                 'EXCHANGE LIMIT',
-        //                 'ACTIVE',
-        //                 210,
-        //                 0,
-        //                 '2020-05-16T13:17:46Z',
-        //                 0,
-        //                 0,
-        //                 0
-        //             ]
-        //         ]
-        //     ]
-        //
-        // order cancel
-        //
-        //     [
-        //         0,
-        //         'oc',
-        //         [
-        //             45287766631,
-        //             'ETHUST',
-        //             -0.07,
-        //             -0.07,
-        //             'EXCHANGE LIMIT',
-        //             'CANCELED',
-        //             210,
-        //             0,
-        //             '2020-05-16T13:17:46Z',
-        //             0,
-        //             0,
-        //             0,
-        //         ]
-        //     ]
+        //    [
+        //        0,
+        //        "on", // ou or oc
+        //        [
+        //           96923856256, // order id
+        //           null, // gid
+        //           1655029337026, // cid
+        //           "tLTCUST", // symbol
+        //           1655029337027, // created timestamp
+        //           1655029337029, // updated timestamp
+        //           0.1, // amount
+        //           0.1, // amount_orig
+        //           "EXCHANGE LIMIT", // order type
+        //           null, // type_prev
+        //           null, // mts_tif
+        //           null, // placeholder
+        //           0, // flags
+        //           "ACTIVE", // status
+        //           null,
+        //           null,
+        //           30, // price
+        //           0, // price average
+        //           0, // price_trailling
+        //           0, // price_aux_limit
+        //           null,
+        //           null,
+        //           null,
+        //           0, // notify
+        //           0,
+        //           null,
+        //           null,
+        //           null,
+        //           "BFX",
+        //           null,
+        //           null,
+        //        ]
+        //    ]
         //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);
@@ -773,6 +769,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'on': this.handleOrders,
                 'oc': this.handleOrders,
                 'wu': this.handleBalance,
+                'ws': this.handleBalance,
             };
             const method = this.safeValue2 (methods, channel, name);
             if (method === undefined) {
