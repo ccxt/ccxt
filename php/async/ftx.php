@@ -1614,13 +1614,60 @@ class ftx extends Exchange {
         }
         $method = null;
         $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ((($type === 'limit') || ($type === 'market')) && ($stopPrice === null)) {
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopOrder = ($stopPrice !== null) || ($stopLossPrice !== null) || ($type === 'stop');
+        $isTakeProfitOrder = ($type === 'takeProfit') || ($takeProfitPrice !== null);
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isTakeProfitOrder) {
+            $method = 'privatePostConditionalOrders';
+            $stopPrice = ($stopPrice === null) ? $takeProfitPrice : $stopPrice;
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $takeProfitPrice parameter, a triggerPrice parameter, or a $stopPrice parameter for takeProfit orders');
+            } else {
+                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            }
+            if (($type === 'limit') && ($price === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for takeProfit limit orders');
+            }
+            if ($price !== null) {
+                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
+            }
+            if (($type === 'limit') || ($type === 'market')) {
+                $request['type'] = 'takeProfit';
+            }
+        } elseif ($isStopOrder) {
+            $method = 'privatePostConditionalOrders';
+            $stopPrice = ($stopPrice === null) ? $stopLossPrice : $stopPrice;
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopLossPrice parameter, a triggerPrice parameter, or a $stopPrice parameter for stop orders');
+            } else {
+                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            }
+            if (($type === 'limit') && ($price === null)) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
+            }
+            if ($price !== null) {
+                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
+            }
+            if (($type === 'limit') || ($type === 'market')) {
+                $request['type'] = 'stop';
+            }
+        } elseif ($type === 'trailingStop') {
+            $trailValue = $this->safe_number($params, 'trailValue', $price);
+            if ($trailValue === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
+            }
+            $method = 'privatePostConditionalOrders';
+            $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
+        } else {
             $method = 'privatePostOrders';
             if ($type === 'limit') {
                 $request['price'] = floatval($this->price_to_precision($symbol, $price));
             } elseif ($type === 'market') {
                 $request['price'] = null;
+            } else {
+                throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
             }
             $timeInForce = $this->safe_string($params, 'timeInForce');
             $postOnly = $this->safe_value($params, 'postOnly', false);
@@ -1641,32 +1688,6 @@ class ftx extends Exchange {
             if ($ioc) {
                 $request['ioc'] = true;
             }
-        } elseif (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
-            $method = 'privatePostConditionalOrders';
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
-            } else {
-                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
-            }
-            if (($type === 'limit') && ($price === null)) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
-            }
-            if ($price !== null) {
-                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
-            }
-            if (($type === 'limit') || ($type === 'market')) {
-                // default to stop orders for main argument
-                $request['type'] = 'stop';
-            }
-        } elseif ($type === 'trailingStop') {
-            $trailValue = $this->safe_number($params, 'trailValue', $price);
-            if ($trailValue === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
-            }
-            $method = 'privatePostConditionalOrders';
-            $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
-        } else {
-            throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
@@ -1698,25 +1719,29 @@ class ftx extends Exchange {
         // conditional orders
         //
         //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //                 "future" => "XRP-PERP",
-        //                 "id" => 9596912,
-        //                 "market" => "XRP-PERP",
-        //                 "triggerPrice" => 0.306525,
-        //                 "orderId" => null,
-        //                 "side" => "sell",
-        //                 "size" => 31431,
-        //                 "status" => "open",
-        //                 "type" => "stop",
-        //                 "orderPrice" => null,
-        //                 "error" => null,
-        //                 "triggeredAt" => null,
-        //                 "reduceOnly" => false
-        //             }
-        //         )
+        //         "success":true,
+        //         "result":{
+        //             "id":215826320,
+        //             "market":"BTC/USD",
+        //             "future":null,
+        //             "side":"sell",
+        //             "type":"take_profit", // the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" $type with underscore
+        //             "orderPrice":40000.0,
+        //             "triggerPrice":39000.0,
+        //             "size":0.001,
+        //             "status":"open",
+        //             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        //             "triggeredAt":null,
+        //             "orderId":null,
+        //             "error":null,
+        //             "reduceOnly":false,
+        //             "trailValue":null,
+        //             "trailStart":null,
+        //             "cancelledAt":null,
+        //             "cancelReason":null,
+        //             "retryUntilFilled":false,
+        //             "orderType":"limit"
+        //         }
         //     }
         //
         //

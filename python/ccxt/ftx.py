@@ -1569,13 +1569,51 @@ class ftx(Exchange):
             params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
         stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopOrder = (stopPrice is not None) or (stopLossPrice is not None) or (type == 'stop')
+        isTakeProfitOrder = (type == 'takeProfit') or (takeProfitPrice is not None)
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isTakeProfitOrder:
+            method = 'privatePostConditionalOrders'
+            stopPrice = takeProfitPrice if (stopPrice is None) else stopPrice
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a takeProfitPrice parameter, a triggerPrice parameter, or a stopPrice parameter for takeProfit orders')
+            else:
+                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            if (type == 'limit') and (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for takeProfit limit orders')
+            if price is not None:
+                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
+            if (type == 'limit') or (type == 'market'):
+                request['type'] = 'takeProfit'
+        elif isStopOrder:
+            method = 'privatePostConditionalOrders'
+            stopPrice = stopLossPrice if (stopPrice is None) else stopPrice
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopLossPrice parameter, a triggerPrice parameter, or a stopPrice parameter for stop orders')
+            else:
+                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            if (type == 'limit') and (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
+            if price is not None:
+                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
+            if (type == 'limit') or (type == 'market'):
+                request['type'] = 'stop'
+        elif type == 'trailingStop':
+            trailValue = self.safe_number(params, 'trailValue', price)
+            if trailValue is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
+            method = 'privatePostConditionalOrders'
+            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
+        else:
             method = 'privatePostOrders'
             if type == 'limit':
                 request['price'] = float(self.price_to_precision(symbol, price))
             elif type == 'market':
                 request['price'] = None
+            else:
+                raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
             timeInForce = self.safe_string(params, 'timeInForce')
             postOnly = self.safe_value(params, 'postOnly', False)
             params = self.omit(params, ['timeInForce', 'postOnly'])
@@ -1590,27 +1628,6 @@ class ftx(Exchange):
                 request['postOnly'] = True
             if ioc:
                 request['ioc'] = True
-        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
-            method = 'privatePostConditionalOrders'
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
-            else:
-                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
-            if (type == 'limit') and (price is None):
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
-            if price is not None:
-                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
-            if (type == 'limit') or (type == 'market'):
-                # default to stop orders for main argument
-                request['type'] = 'stop'
-        elif type == 'trailingStop':
-            trailValue = self.safe_number(params, 'trailValue', price)
-            if trailValue is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
-            method = 'privatePostConditionalOrders'
-            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
-        else:
-            raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = getattr(self, method)(self.extend(request, params))
         #
         # orders
@@ -1641,25 +1658,29 @@ class ftx(Exchange):
         # conditional orders
         #
         #     {
-        #         "success": True,
-        #         "result": [
-        #             {
-        #                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
-        #                 "future": "XRP-PERP",
-        #                 "id": 9596912,
-        #                 "market": "XRP-PERP",
-        #                 "triggerPrice": 0.306525,
-        #                 "orderId": null,
-        #                 "side": "sell",
-        #                 "size": 31431,
-        #                 "status": "open",
-        #                 "type": "stop",
-        #                 "orderPrice": null,
-        #                 "error": null,
-        #                 "triggeredAt": null,
-        #                 "reduceOnly": False
-        #             }
-        #         ]
+        #         "success":true,
+        #         "result":{
+        #             "id":215826320,
+        #             "market":"BTC/USD",
+        #             "future":null,
+        #             "side":"sell",
+        #             "type":"take_profit",  # the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" type with underscore
+        #             "orderPrice":40000.0,
+        #             "triggerPrice":39000.0,
+        #             "size":0.001,
+        #             "status":"open",
+        #             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        #             "triggeredAt":null,
+        #             "orderId":null,
+        #             "error":null,
+        #             "reduceOnly":false,
+        #             "trailValue":null,
+        #             "trailStart":null,
+        #             "cancelledAt":null,
+        #             "cancelReason":null,
+        #             "retryUntilFilled":false,
+        #             "orderType":"limit"
+        #         }
         #     }
         #
         #
