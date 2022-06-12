@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -121,6 +122,7 @@ module.exports = class eqonex extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'symbol not found': BadSymbol,
@@ -304,8 +306,8 @@ module.exports = class eqonex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeInteger (market, 'quantity_scale'),
-                'price': this.safeInteger (market, 'price_scale'),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
             },
             'limits': {
                 'leverage': {
@@ -380,9 +382,6 @@ module.exports = class eqonex extends Exchange {
         const id = this.safeString (currency, 0);
         const uppercaseId = this.safeString (currency, 1);
         const code = this.safeCurrencyCode (uppercaseId);
-        const priceScale = this.safeInteger (currency, 2);
-        const amountScale = this.safeInteger (currency, 3);
-        const precision = Math.max (priceScale, amountScale);
         const name = this.safeString (currency, 6);
         const status = this.safeInteger (currency, 4);
         const active = (status === 1);
@@ -393,7 +392,7 @@ module.exports = class eqonex extends Exchange {
             'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 3))),
             'fee': fee,
             'active': active,
             'deposit': undefined,
@@ -989,6 +988,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'ordStatus': '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
@@ -996,6 +1005,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'ordStatus': '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
@@ -1003,6 +1022,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -1071,6 +1100,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'account': 123, // for institutional users
@@ -1122,6 +1161,14 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1164,6 +1211,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1196,6 +1253,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1313,6 +1380,17 @@ module.exports = class eqonex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1349,6 +1427,13 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetGetExchangeInfo (params);
         //
@@ -1654,7 +1739,8 @@ module.exports = class eqonex extends Exchange {
         return this.parse8601 (date + ' ' + partTwo);
     }
 
-    convertFromScale (number, scale) {
+    convertFromScale (number, scaleInTicksize) {
+        const scale = this.getScale (scaleInTicksize);
         if ((number === undefined) || (scale === undefined)) {
             return undefined;
         }

@@ -8,6 +8,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class kuna(Exchange):
@@ -286,6 +287,7 @@ class kuna(Exchange):
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -487,6 +489,13 @@ class kuna(Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified market symbol
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        """
         return self.fetch_order_book(symbol, limit, params)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -729,6 +738,14 @@ class kuna(Exchange):
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
@@ -743,6 +760,22 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = self.privateGetTradesMy(self.extend(request, params))
         #
         #      [
         #          {
@@ -758,14 +791,6 @@ class kuna(Exchange):
         #          },
         #      ]
         #
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        response = self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def nonce(self):

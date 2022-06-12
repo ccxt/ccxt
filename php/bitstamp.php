@@ -133,6 +133,17 @@ class bitstamp extends Exchange {
                         'sell/{pair}/' => 1,
                         'sell/market/{pair}/' => 1,
                         'sell/instant/{pair}/' => 1,
+                        'transfer-to-main/' => 1,
+                        'transfer-from-main/' => 1,
+                        'withdrawal-requests/' => 1,
+                        'withdrawal/open/' => 1,
+                        'withdrawal/status/' => 1,
+                        'withdrawal/cancel/' => 1,
+                        'liquidation_address/new/' => 1,
+                        'liquidation_address/info/' => 1,
+                        'btc_unconfirmed/' => 1,
+                        'websockets_token/' => 1,
+                        // individual coins
                         'btc_withdrawal/' => 1,
                         'btc_address/' => 1,
                         'ripple_withdrawal/' => 1,
@@ -269,16 +280,12 @@ class bitstamp extends Exchange {
                         'vega_address/' => 1,
                         '1inch_withdrawal/' => 1,
                         '1inch_address/' => 1,
-                        'transfer-to-main/' => 1,
-                        'transfer-from-main/' => 1,
-                        'withdrawal-requests/' => 1,
-                        'withdrawal/open/' => 1,
-                        'withdrawal/status/' => 1,
-                        'withdrawal/cancel/' => 1,
-                        'liquidation_address/new/' => 1,
-                        'liquidation_address/info/' => 1,
-                        'btc_unconfirmed/' => 1,
-                        'websockets_token/' => 1,
+                        'ens_withdrawal/' => 1,
+                        'ens_address/' => 1,
+                        'mana_withdrawal/' => 1,
+                        'mana_address/' => 1,
+                        'lrc_withdrawal/' => 1,
+                        'lrc_address/' => 1,
                     ),
                 ),
             ),
@@ -346,6 +353,7 @@ class bitstamp extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
                 'UST' => 'USTC',
             ),
@@ -435,8 +443,8 @@ class bitstamp extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'base_decimals'),
-                    'price' => $this->safe_integer($market, 'counter_decimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'counter_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -468,6 +476,7 @@ class bitstamp extends Exchange {
         if ($this->is_fiat($code)) {
             $currencyType = 'fiat';
         }
+        $tickSize = $this->parse_number($this->parse_precision($this->number_to_string($precision)));
         return array(
             'id' => $id,
             'code' => $code,
@@ -478,14 +487,14 @@ class bitstamp extends Exchange {
             'deposit' => null,
             'withdraw' => null,
             'fee' => $this->safe_number($description['fees']['funding']['withdraw'], $code),
-            'precision' => $precision,
+            'precision' => $tickSize,
             'limits' => array(
                 'amount' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'cost' => array(
@@ -1035,6 +1044,12 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1070,6 +1085,11 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         return $this->parse_trading_fees($response);
@@ -1094,6 +1114,12 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch transaction fees
+         * @param {[str]|null} $codes not used by bitstamp fetchTransactionFees ()
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
         return $this->parse_funding_fees($balance);
@@ -1153,6 +1179,12 @@ class bitstamp extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1232,6 +1264,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array();
         $method = 'privatePostUserTransactions';
@@ -1250,6 +1290,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch history of deposits and withdrawals
+         * @param {str|null} $code unified $currency $code for the $currency of the $transactions, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of $transactions to return, default is null
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -1291,6 +1339,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -1646,6 +1702,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -1660,6 +1724,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $market = null;
         $this->load_markets();
         if ($symbol !== null) {
@@ -1693,6 +1765,12 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a currency associated with this account
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         if ($this->is_fiat($code)) {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not supported!');
         }
@@ -1712,6 +1790,15 @@ class bitstamp extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);

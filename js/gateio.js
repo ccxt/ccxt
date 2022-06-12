@@ -1279,6 +1279,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -1334,6 +1342,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
+         */
         await this.loadMarkets ();
         const [ request, query ] = this.prepareRequest (undefined, 'swap', params);
         const response = await this.publicFuturesGetSettleContracts (this.extend (request, query));
@@ -1499,6 +1515,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1545,6 +1569,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1569,6 +1601,13 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privateWalletGetFee (params);
         //
@@ -1625,6 +1664,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by gateio fetchTransactionFees ()
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
         //
@@ -1669,6 +1716,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
         await this.loadMarkets ();
         // let defaultType = 'future';
         let market = undefined;
@@ -2379,20 +2436,20 @@ module.exports = class gateio extends Exchange {
          * @method
          * @name gateio#fetchMyTrades
          * @description Fetch personal trading history
-         * @param {str} symbol The symbol for the market to fetch trades for
-         * @param {int} since The earliest timestamp, in ms, that fetched trades were made
-         * @param {int} limit The max number of trades to fetch
-         * @param {dict} params Exchange specific parameters
-         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @param {str} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-         * @param {int} params.till The latest timestamp, in ms, that fetched trades were made
-         * @param {int} params.page *spot only* Page number
-         * @param {str} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
-         * @param {str} params.order *contract only* Futures order ID, return related data only if specified
-         * @param {int} params.offset *contract only* list offset, starting from 0
-         * @param {str} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
-         * @param {int} params.count_total *contract only* whether to return total number matched, default to 0(no return)
-         * @returns a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {str|undefined} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
+         * @param {int|undefined} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|undefined} params.page *spot only* Page number
+         * @param {str|undefined} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
+         * @param {str|undefined} params.order *contract only* Futures order ID, return related data only if specified
+         * @param {int|undefined} params.offset *contract only* list offset, starting from 0
+         * @param {str|undefined} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
+         * @param {int|undefined} params.count_total *contract only* whether to return total number matched, default to 0(no return)
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -2589,6 +2646,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -2609,6 +2676,16 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -2629,6 +2706,17 @@ module.exports = class gateio extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -3304,15 +3392,17 @@ module.exports = class gateio extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
-         * @description fetches all open orders
-         * @param {str} symbol Unified market symbol
-         * @param {int} since earliest time in ms for orders in the response
-         * @param {int} limit max number of order structures to return
-         * @param {dict} params exchange specific params
+         * @method
+         * @name gateio#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
-         * @returns An array of order structures
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
@@ -3321,15 +3411,15 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#fetchClosedOrders
-         * @description fetches all closed orders
-         * @param {str} symbol Unified market symbol of the market to fetch orders for
-         * @param {int} since earliest time in ms for orders in the response
-         * @param {int} limit max number of order structures to return
-         * @param {dict} params exchange specific params
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {str} params.type spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @returns An array of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
@@ -3607,6 +3697,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const stop = this.safeValue (params, 'stop');
@@ -3656,13 +3754,13 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#transfer
-         * @description makes internal transfers of funds between accounts on the same exchange
+         * @description transfer currency internally between wallets on the same account
          * @param {str} code unified currency code for currency being transferred
          * @param {float} amount the amount of currency to transfer
          * @param {str} fromAccount the account to transfer currency from
          * @param {str} toAccount the account to transfer currency to
-         * @param {dict} params Exchange specific parameters
-         * @param {dict} params.symbol Unified market symbol *required for type == margin*
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.symbol Unified market symbol *required for type == margin*
          * @returns A [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -3747,6 +3845,15 @@ module.exports = class gateio extends Exchange {
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} response from the exchange
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3894,12 +4001,12 @@ module.exports = class gateio extends Exchange {
         /**
          * @method
          * @name gateio#fetchPositions
-         * @description Fetch trades positions
-         * @param {[str]} symbols Not used by Gateio, but parsed internally by CCXT
-         * @param {dict} params exchange specific parameters
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols Not used by Gateio, but parsed internally by CCXT
+         * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {str} params.type swap or future, if not provided this.options['defaultType'] is used
-         * @returns An array of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
@@ -3942,6 +4049,14 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gateio#fetchLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @param {[str]|undefined} symbols list of unified market symbols
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);

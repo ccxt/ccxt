@@ -872,10 +872,8 @@ class bitget(Exchange):
         if typeId == 'SPBL':
             type = 'spot'
             spot = True
-            priceScale = self.safe_string(market, 'priceScale')
-            amountScale = self.safe_string(market, 'quantityScale')
-            pricePrecision = self.parse_number(self.parse_precision(priceScale))
-            amountPrecision = self.parse_number(self.parse_precision(amountScale))
+            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceScale')))
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityScale')))
         else:
             type = 'swap'
             swap = True
@@ -907,10 +905,6 @@ class bitget(Exchange):
             active = status == 'online'
         maker = self.safe_number(market, 'makerFeeRate')
         taker = self.safe_number(market, 'takerFeeRate')
-        precision = {
-            'price': pricePrecision,
-            'amount': amountPrecision,
-        }
         limits = {
             'amount': {
                 'min': self.safe_number(market, 'minTradeAmount'),
@@ -952,7 +946,10 @@ class bitget(Exchange):
             'active': active,
             'maker': maker,
             'taker': taker,
-            'precision': precision,
+            'precision': {
+                'price': pricePrecision,
+                'amount': amountPrecision,
+            },
             'limits': limits,
         }
 
@@ -1080,6 +1077,7 @@ class bitget(Exchange):
                     'withdraw': withdrawEnabled == 'true',
                     'deposit': depositEnabled == 'true',
                     'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': None,
                 }
             result[code] = {
                 'info': entry,
@@ -1446,6 +1444,12 @@ class bitget(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1476,6 +1480,11 @@ class bitget(Exchange):
         return self.parse_trading_fee(data, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.publicSpotGetPublicProducts(params)
         #
@@ -1893,6 +1902,13 @@ class bitget(Exchange):
         return self.parse_order(response, market)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
@@ -2030,6 +2046,14 @@ class bitget(Exchange):
         return self.parse_order(first, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
@@ -2130,6 +2154,14 @@ class bitget(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
@@ -2214,6 +2246,14 @@ class bitget(Exchange):
         return self.parse_orders(orderList, market, since, limit)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -2290,6 +2330,14 @@ class bitget(Exchange):
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
@@ -2329,6 +2377,15 @@ class bitget(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
@@ -2370,6 +2427,12 @@ class bitget(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2409,6 +2472,12 @@ class bitget(Exchange):
         return self.parse_position(data[0], market)
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
         request = {
@@ -2570,6 +2639,12 @@ class bitget(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2663,6 +2738,13 @@ class bitget(Exchange):
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if amount > 0:
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
         holdSide = self.safe_string(params, 'holdSide')
@@ -2671,6 +2753,13 @@ class bitget(Exchange):
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         holdSide = self.safe_string(params, 'holdSide')
         if holdSide is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a holdSide parameter, either long or short')
@@ -2712,6 +2801,12 @@ class bitget(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def fetch_leverage(self, symbol, params={}):
+        """
+        fetch the set leverage for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2733,6 +2828,13 @@ class bitget(Exchange):
         return response
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         holdSide = self.safe_string(params, 'holdSide')
@@ -2749,6 +2851,13 @@ class bitget(Exchange):
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
     def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: response from the exchange
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         marginMode = marginMode.lower()

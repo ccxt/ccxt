@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -122,6 +123,7 @@ module.exports = class coinspot extends Exchange {
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 

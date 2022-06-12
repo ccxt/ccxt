@@ -104,6 +104,7 @@ class paymium extends Exchange {
                     'taker' => $this->parse_number('0.005'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -280,6 +281,12 @@ class paymium extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @param {str} $code unified currency $code of the currency for the deposit address
+         * @param {dict} $params extra parameters specific to the paymium api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostUserAddresses ($params);
         //
@@ -294,6 +301,12 @@ class paymium extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a currency associated with this account
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the paymium api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         yield $this->load_markets();
         $request = array(
             'address' => $code,
@@ -311,6 +324,12 @@ class paymium extends Exchange {
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes list of unified currency $codes, default is null
+         * @param {dict} $params extra parameters specific to the paymium api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetUserAddresses ($params);
         //
@@ -389,6 +408,15 @@ class paymium extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the paymium api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         if (mb_strpos($toAccount, '@') === false) {

@@ -410,7 +410,6 @@ class probit extends Exchange {
             $platforms = $this->safe_value($currency, 'platform', array());
             $platformsByPriority = $this->sort_by($platforms, 'priority');
             $platform = $this->safe_value($platformsByPriority, 0, array());
-            $precision = $this->safe_integer($platform, 'precision');
             $depositSuspended = $this->safe_value($platform, 'deposit_suspended');
             $withdrawalSuspended = $this->safe_value($platform, 'withdrawal_suspended');
             $deposit = !$depositSuspended;
@@ -440,7 +439,7 @@ class probit extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($platform, 'precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -645,6 +644,14 @@ class probit extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array(
@@ -945,6 +952,14 @@ class probit extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $since = $this->parse8601($since);
         $request = array();
@@ -959,6 +974,14 @@ class probit extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $request = array(
             'start_time' => $this->iso8601(0),
@@ -1212,6 +1235,12 @@ class probit extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1238,6 +1267,12 @@ class probit extends Exchange {
     }
 
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes list of unified $currency $codes, default is null
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         */
         $this->load_markets();
         $request = array();
         if ($codes) {
@@ -1254,6 +1289,15 @@ class probit extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and
@@ -1396,6 +1440,11 @@ class probit extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the probit api endpoint
+         * @return $response from exchange
+         */
         $this->check_required_credentials();
         $request = array(
             'grant_type' => 'client_credentials', // the only supported value

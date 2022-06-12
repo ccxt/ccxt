@@ -12,6 +12,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class oceanex(Exchange):
@@ -122,6 +123,7 @@ class oceanex(Exchange):
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'codes': {
                     '-1': BadRequest,
@@ -204,10 +206,8 @@ class oceanex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
-                    'price': self.safe_integer(market, 'price_precision'),
-                    'base': self.safe_integer(market, 'ask_precision'),
-                    'quote': self.safe_integer(market, 'bid_precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -384,6 +384,13 @@ class oceanex(Exchange):
         return self.parse_order_book(orderbook, symbol, timestamp)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         if symbols is None:
             symbols = self.symbols
@@ -521,6 +528,11 @@ class oceanex(Exchange):
         return self.safe_timestamp(response, 'data')
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         response = await self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data', [])
         result = {}
@@ -619,18 +631,42 @@ class oceanex(Exchange):
         return self.parse_order(data[0], market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'states': ['wait'],
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'states': ['done', 'cancel'],
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         await self.load_markets()
@@ -783,12 +819,25 @@ class oceanex(Exchange):
         return self.parse_order(data)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by oceanex cancelOrders()
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the oceanex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostOrdersClear(params)
         data = self.safe_value(response, 'data')

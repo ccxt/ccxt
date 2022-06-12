@@ -286,6 +286,7 @@ class kuna extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'Plair',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
@@ -500,6 +501,13 @@ class kuna extends Exchange {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
+         */
         return yield $this->fetch_order_book($symbol, $limit, $params);
     }
 
@@ -759,6 +767,14 @@ class kuna extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -775,6 +791,23 @@ class kuna extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->privateGetTradesMy (array_merge($request, $params));
         //
         //      array(
         //          array(
@@ -790,15 +823,6 @@ class kuna extends Exchange {
         //          ),
         //      )
         //
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->privateGetTradesMy (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

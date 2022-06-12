@@ -306,6 +306,11 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         throw new BadRequest($this->id . ' fetchAccounts() is not supported yet');
     }
 
@@ -432,12 +437,8 @@ class kucoinfutures extends kucoin {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
                 $type = 'future';
             }
-            $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
-            $baseMinSize = $this->parse_number($baseMinSizeString);
-            $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
-            $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'status');
             $multiplier = $this->safe_string($market, 'multiplier');
@@ -477,16 +478,16 @@ class kucoinfutures extends kucoin {
                         'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
-                        'min' => $baseMinSize,
-                        'max' => $baseMaxSize,
+                        'min' => $this->parse_number($baseMinSizeString),
+                        'max' => $this->safe_number($market, 'baseMaxSize'),
                     ),
                     'price' => array(
                         'min' => null,
                         'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
                     ),
                     'cost' => array(
-                        'min' => $quoteMinSize,
-                        'max' => $quoteMaxSize,
+                        'min' => $this->safe_number($market, 'quoteMinSize'),
+                        'max' => $this->parse_number($quoteMaxSizeString),
                     ),
                 ),
                 'info' => $market,
@@ -579,10 +580,22 @@ class kucoinfutures extends kucoin {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @param {str} $code unified currency $code of the currency for the deposit address
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         throw new BadRequest($this->id . ' createDepositAddress() is not supported yet');
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $currencyId = $currency['id'];
@@ -752,13 +765,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // Private
-        // @param $symbol (string) => The pair for which the contract was traded
-        // @param $since (number) => The unix start time of the first funding payment requested
-        // @param $limit (number) => The number of results to return
-        // @param $params (dict) => Additional parameters to send to the API
-        // @param return => Data for the history of the accounts funding payments for futures contracts
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch funding history for
+         * @param {int|null} $limit the maximum number of funding history structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+         */
         //
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
@@ -822,6 +836,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $response = $this->futuresPrivateGetPositions ($params);
         //
@@ -1099,9 +1119,9 @@ class kucoinfutures extends kucoin {
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
-         * Cancels all orders in one api call
-         * @param {str} $symbol Assign to cancel only the orders in the market matching the unified $symbol
-         * @param {dict} $params Exchange specific parameters
+         * cancel all open orders
+         * @param {str|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
          * @param {dict} $params->stop When true, all the trigger orders will be cancelled
          * @return Response from the exchange
          */
@@ -1127,6 +1147,13 @@ class kucoinfutures extends kucoin {
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
+        /**
+         * add margin
+         * @param {str} $symbol unified $market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $uuid = $this->uuid();
@@ -1304,15 +1331,15 @@ class kucoinfutures extends kucoin {
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * fetch a list of orders
-         * @param {str} $symbol unified market $symbol
-         * @param {int} $since timestamp in ms of the earliest order
-         * @param {int} $limit max number of orders to return
-         * @param {dict} $params exchange specific $params
-         * @param {int} $params->till end time in ms
-         * @param {str} $params->side buy or sell
-         * @param {str} $params->type $limit, or market
-         * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @param {int|null} $params->till end time in ms
+         * @param {str|null} $params->side buy or sell
+         * @param {str|null} $params->type $limit, or market
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return $this->fetch_orders_by_status('done', $symbol, $since, $limit, $params);
     }
@@ -1414,6 +1441,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -1506,6 +1539,15 @@ class kucoinfutures extends kucoin {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         if (($toAccount !== 'main' && $toAccount !== 'funding') || ($fromAccount !== 'futures' && $fromAccount !== 'future' && $fromAccount !== 'contract')) {
             throw new BadRequest($this->id . ' transfer() only supports transfers from contract(future) account to main(funding) account');
         }
@@ -1564,6 +1606,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
@@ -1776,6 +1826,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $currency = null;
@@ -1822,6 +1880,14 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $currency = null;
@@ -1868,6 +1934,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for a transaction
+         * @param {str} $code unified currency $code
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
     }
 
@@ -1876,6 +1948,12 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['contract']) {

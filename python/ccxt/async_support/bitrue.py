@@ -22,6 +22,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -259,6 +260,7 @@ class bitrue(Exchange):
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
             },
+            'precisionMode': TICK_SIZE,
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
@@ -489,16 +491,21 @@ class bitrue(Exchange):
         #             },
         #         ],
         #         "coins":[
-        #             {
-        #                 "coin":"sbr",
-        #                 "coinFulName":"Saber",
-        #                 "enableWithdraw":true,
-        #                 "enableDeposit":true,
-        #                 "chains":["SOLANA"],
-        #                 "withdrawFee":"2.0",
-        #                 "minWithdraw":"5.0",
-        #                 "maxWithdraw":"1000000000000000",
-        #             },
+        #           {
+        #               coin: "near",
+        #               coinFulName: "NEAR Protocol",
+        #               chains: ["BEP20",],
+        #               chainDetail: [
+        #                 {
+        #                     chain: "BEP20",
+        #                     enableWithdraw: True,
+        #                     enableDeposit: True,
+        #                     withdrawFee: "0.2000",
+        #                     minWithdraw: "5.0000",
+        #                     maxWithdraw: "1000000000000000.0000",
+        #                 },
+        #               ],
+        #           },
         #         ],
         #     }
         #
@@ -511,7 +518,6 @@ class bitrue(Exchange):
             code = self.safe_currency_code(id)
             enableDeposit = self.safe_value(currency, 'enableDeposit')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
-            precision = None
             networkIds = self.safe_value(currency, 'chains', [])
             networks = {}
             for j in range(0, len(networkIds)):
@@ -536,7 +542,7 @@ class bitrue(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': None,
                 'info': currency,
                 'active': active,
                 'deposit': enableDeposit,
@@ -616,10 +622,12 @@ class bitrue(Exchange):
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'status')
-            priceDefault = self.safe_integer(market, 'pricePrecision')
-            amountDefault = self.safe_integer(market, 'quantityPrecision')
             priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
             amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+            defaultPricePrecision = self.safe_string(market, 'pricePrecision')
+            defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
+            pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
+            amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -646,10 +654,10 @@ class bitrue(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(amountFilter, 'volumeScale', amountDefault),
-                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quotePrecision'),
+                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
+                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1230,6 +1238,14 @@ class bitrue(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
@@ -1271,6 +1287,14 @@ class bitrue(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -1339,6 +1363,14 @@ class bitrue(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
         if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
             raise ArgumentsRequired(self.id + ' v2PrivateGetMyTrades() requires a symbol argument')
@@ -1380,6 +1412,14 @@ class bitrue(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
         await self.load_markets()
@@ -1438,6 +1478,14 @@ class bitrue(Exchange):
         return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
         await self.load_markets()
@@ -1607,6 +1655,15 @@ class bitrue(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
