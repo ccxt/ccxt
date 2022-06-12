@@ -936,6 +936,10 @@ module.exports = class bitso extends Exchange {
         if (!Array.isArray (ids)) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
         }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         let oids = '';
         for (let i = 0; i < ids.length; i++) {
             oids += ids[i];
@@ -957,38 +961,9 @@ module.exports = class bitso extends Exchange {
         const orders = [];
         for (let i = 0; i < payload.length; i++) {
             const id = payload[i];
-            orders.push (this.parseCancelledOrder (id));
+            orders.push (this.parseOrder (id, market));
         }
         return orders;
-    }
-
-    parseCancelledOrder (order, market = undefined) {
-        //
-        // yWTQGxDMZ0VimZgZ
-        //
-        return this.safeOrder ({
-            'info': order,
-            'id': order,
-            'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
-            'stopPrice': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'remaining': undefined,
-            'filled': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'average': undefined,
-            'trades': undefined,
-        }, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1023,7 +998,12 @@ module.exports = class bitso extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const id = this.safeString (order, 'oid');
+        //
+        //
+        // canceledOrder
+        // yWTQGxDMZ0VimZgZ
+        //
+        const id = this.safeString (order, 'oid', order);
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'book');
