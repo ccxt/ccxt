@@ -1892,15 +1892,46 @@ class Exchange(object):
         string.reverse()
         return ''.join(string)
 
+    def parse_number(self, value, default=None):
+        if value is None:
+            return default
+        else:
+            try:
+                return self.number(value)
+            except Exception:
+                return default
+
+    def omit_zero(self, string_number):
+        if string_number is None or string_number == '':
+            return None
+        if float(string_number) == 0:
+            return None
+        return string_number
+
+    def check_order_arguments(self, market, type, side, amount, price, params):
+        if price is None:
+            if type == 'limit':
+                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
+        if amount <= 0:
+            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
+
+    def handle_http_status_code(self, code, reason, url, method, body):
+        codeAsString = str(code)
+        if codeAsString in self.httpExceptions:
+            ErrorClass = self.httpExceptions[codeAsString]
+            raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
+
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     def safe_order(self, order, market=None):
         # parses numbers as strings
         # it is important pass the trades as unparsed rawTrades
-        amount = self.omit_zero(self.safe_string(order, 'amount'))
+        amount = self.omitZero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
         cost = self.safe_string(order, 'cost')
-        average = self.omit_zero(self.safe_string(order, 'average'))
-        price = self.omit_zero(self.safe_string(order, 'price'))
+        average = self.omitZero(self.safe_string(order, 'average'))
+        price = self.omitZero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         parseFilled = (filled is None)
         parseCost = (cost is None)
@@ -1915,7 +1946,7 @@ class Exchange(object):
             rawTrades = self.safe_value(order, 'trades', trades)
             oldNumber = self.number
             # we parse trades as strings here!
-            self.number = str
+            self.number = String
             trades = self.parse_trades(rawTrades, market, None, None, {
                 'symbol': order['symbol'],
                 'side': order['side'],
@@ -1965,13 +1996,13 @@ class Exchange(object):
             reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.parse_number(reducedFees[i]['cost'])
+                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
                 if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.parse_number(reducedFees[i]['rate'])
+                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
                 fee['cost'] = self.safe_number(fee, 'cost')
                 if 'rate' in fee:
-                    fee['rate'] = self.parse_number(fee['rate'])
+                    fee['rate'] = self.safe_number(fee, 'rate')
                 reducedFees.append(fee)
             if parseFees:
                 order['fees'] = reducedFees
@@ -2041,40 +2072,9 @@ class Exchange(object):
             'average': self.parse_number(average),
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
-            'trades': trades,
             'timeInForce': timeInForce,
+            'trades': trades,
         })
-
-    def parse_number(self, value, default=None):
-        if value is None:
-            return default
-        else:
-            try:
-                return self.number(value)
-            except Exception:
-                return default
-
-    def omit_zero(self, string_number):
-        if string_number is None or string_number == '':
-            return None
-        if float(string_number) == 0:
-            return None
-        return string_number
-
-    def check_order_arguments(self, market, type, side, amount, price, params):
-        if price is None:
-            if type == 'limit':
-                raise ArgumentsRequired(self.id + ' create_order() requires a price argument for a limit order')
-        if amount <= 0:
-            raise ArgumentsRequired(self.id + ' create_order() amount should be above 0')
-
-    def handle_http_status_code(self, code, reason, url, method, body):
-        codeAsString = str(code)
-        if codeAsString in self.httpExceptions:
-            ErrorClass = self.httpExceptions[codeAsString]
-            raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
-
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     def safe_trade(self, trade, market=None):
         amount = self.safe_string(trade, 'amount')

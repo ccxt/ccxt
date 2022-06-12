@@ -951,6 +951,80 @@ module.exports = class Exchange {
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
+    parseNumber (value, d = undefined) {
+        if (value === undefined) {
+            return d
+        } else {
+            try {
+                return this.number (value)
+            } catch (e) {
+                return d
+            }
+        }
+    }
+
+    checkOrderArguments (market, type, side, amount, price, params) {
+        if (price === undefined) {
+            if (type === 'limit') {
+                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+            }
+        }
+        if (amount <= 0) {
+            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+        }
+    }
+
+    handleHttpStatusCode (code, reason, url, method, body) {
+        const codeAsString = code.toString ();
+        if (codeAsString in this.httpExceptions) {
+            const ErrorClass = this.httpExceptions[codeAsString];
+            throw new ErrorClass (this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
+        }
+    }
+
+    /* eslint-enable */
+    // ------------------------------------------------------------------------
+
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+
+    // ------------------------------------------------------------------------
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     safeOrder (order, market = undefined) {
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
@@ -1041,15 +1115,15 @@ module.exports = class Exchange {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees, true) : fees;
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.parseNumber (reducedFees[i]['cost']);
+                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
                 if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.parseNumber (reducedFees[i]['rate'])
+                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
                 fee['cost'] = this.safeNumber (fee, 'cost');
                 if ('rate' in fee) {
-                    fee['rate'] = this.parseNumber (fee['rate'])
+                    fee['rate'] = this.safeNumber (fee, 'rate');
                 }
                 reducedFees.push (fee);
             }
@@ -1106,7 +1180,7 @@ module.exports = class Exchange {
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
-        const emptyPrice = (price === "market_price") || (price === undefined) || Precise.stringEquals (price, '0');
+        const emptyPrice = (price === undefined) || Precise.stringEquals (price, '0');
         if (emptyPrice && (orderType === 'market')) {
             price = average;
         }
@@ -1146,80 +1220,6 @@ module.exports = class Exchange {
             'trades': trades,
         });
     }
-
-    parseNumber (value, d = undefined) {
-        if (value === undefined) {
-            return d
-        } else {
-            try {
-                return this.number (value)
-            } catch (e) {
-                return d
-            }
-        }
-    }
-
-    checkOrderArguments (market, type, side, amount, price, params) {
-        if (price === undefined) {
-            if (type === 'limit') {
-                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
-            }
-        }
-        if (amount <= 0) {
-            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
-        }
-    }
-
-    handleHttpStatusCode (code, reason, url, method, body) {
-        const codeAsString = code.toString ();
-        if (codeAsString in this.httpExceptions) {
-            const ErrorClass = this.httpExceptions[codeAsString];
-            throw new ErrorClass (this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
-        }
-    }
-
-    /* eslint-enable */
-    // ------------------------------------------------------------------------
-
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-
-    // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     safeTrade (trade, market = undefined) {
         const amount = this.safeString (trade, 'amount');

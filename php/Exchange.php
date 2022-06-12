@@ -293,10 +293,10 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
-        'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeOrder' => 'safe_order',
         'safeTrade' => 'safe_trade',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTicker' => 'safe_ticker',
@@ -2578,15 +2578,65 @@ class Exchange {
         return (substr($string, 0, 2) === '0x') ? substr($string, 2) : $string;
     }
 
+    public function parse_number($value, $default = null) {
+        if ($value === null) {
+            return $default;
+        } else {
+            try {
+                return $this->number($value);
+            } catch (Exception $e) {
+                return $default;
+            }
+        }
+    }
+
+    public function omit_zero($string_number) {
+        if ($string_number === null || $string_number === '') {
+            return null;
+        }
+        if (floatval($string_number) === 0.0) {
+            return null;
+        }
+        return $string_number;
+    }
+
+    public function sleep($milliseconds) {
+        sleep($milliseconds / 1000);
+    }
+
+    public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
+        if ($price === null) {
+            if ($type === 'limit') {
+                  throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
+             }
+        }
+        if ($amount <= 0) {
+            throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
+        }
+    }
+
+    public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {
+        $string_code = (string) $http_status_code;
+        if (array_key_exists($string_code, $this->httpExceptions)) {
+            $error_class = $this->httpExceptions[$string_code];
+            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
+                $error_class = '\\ccxt\\' . $error_class;
+            }
+            throw new $error_class($this->id . ' ' . implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
+        }
+    }
+
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     public function safe_order($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
-        $amount = $this->omit_zero($this->safe_string($order, 'amount'));
+        $amount = $this->omitZero ($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
         $cost = $this->safe_string($order, 'cost');
-        $average = $this->omit_zero($this->safe_string($order, 'average'));
-        $price = $this->omit_zero($this->safe_string($order, 'price'));
+        $average = $this->omitZero ($this->safe_string($order, 'average'));
+        $price = $this->omitZero ($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
@@ -2601,7 +2651,7 @@ class Exchange {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
             $oldNumber = $this->number;
             // we parse $trades as strings here!
-            $this->number = 'strval';
+            $this->number = String;
             $trades = $this->parse_trades($rawTrades, $market, null, null, array(
                 'symbol' => $order['symbol'],
                 'side' => $order['side'],
@@ -2609,8 +2659,8 @@ class Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (is_array($trades) && count($trades)) {
-                // move properties that are defined in trades up into the order
+            if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) == 0 && strlen($trades)) {
+                // move properties that are defined in $trades up into the $order
                 if ($order['symbol'] === null) {
                     $order['symbol'] = $trades[0]['symbol'];
                 }
@@ -2644,7 +2694,7 @@ class Exchange {
                         if ($lastTradeTimeTimestamp === null) {
                             $lastTradeTimeTimestamp = $tradeTimestamp;
                         } else {
-                            $lastTradeTimeTimestamp = max($lastTradeTimeTimestamp, $tradeTimestamp);
+                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $tradeTimestamp);
                         }
                     }
                     if ($shouldParseFees) {
@@ -2668,14 +2718,14 @@ class Exchange {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
             $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
             for ($i = 0; $i < $reducedLength; $i++) {
-                $reducedFees[$i]['cost'] = $this->parse_number($reducedFees[$i]['cost']);
-                if (array_key_exists('rate', $reducedFees[$i])) {
+                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
+                if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
                     $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
                 }
             }
             if (!$parseFee && ($reducedLength === 0)) {
                 $fee['cost'] = $this->safe_number($fee, 'cost');
-                if (array_key_exists('rate', $fee)) {
+                if (is_array($fee) && array_key_exists('rate', $fee)) {
                     $fee['rate'] = $this->safe_number($fee, 'rate');
                 }
                 $reducedFees[] = $fee;
@@ -2688,7 +2738,7 @@ class Exchange {
             }
         }
         if ($amount === null) {
-            // ensure $amount = $filled + $remaining
+            // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = Precise::string_add($filled, $remaining);
             } elseif ($this->safe_string($order, 'status') === 'closed') {
@@ -2739,13 +2789,13 @@ class Exchange {
         }
         // we have $trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry = &$trades[$i];
+            $entry = $trades[$i];
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
             $fee = $this->safe_value($entry, 'fee', array());
             $fee['cost'] = $this->safe_number($fee, 'cost');
-            if (array_key_exists('rate', $fee)) {
+            if (is_array($fee) && array_key_exists('rate', $fee)) {
                 $fee['rate'] = $this->safe_number($fee, 'rate');
             }
             $entry['fee'] = $fee;
@@ -2754,7 +2804,7 @@ class Exchange {
         $timeInForce = $this->safe_string($order, 'timeInForce');
         if ($timeInForce === null) {
             if ($this->safe_string($order, 'type') === 'market') {
-                 $timeInForce = 'IOC';
+                $timeInForce = 'IOC';
             }
             // allow postOnly override
             if ($this->safe_value($order, 'postOnly', false)) {
@@ -2769,60 +2819,10 @@ class Exchange {
             'average' => $this->parse_number($average),
             'filled' => $this->parse_number($filled),
             'remaining' => $this->parse_number($remaining),
-            'trades' => $trades,
             'timeInForce' => $timeInForce,
+            'trades' => $trades,
         ));
     }
-
-    public function parse_number($value, $default = null) {
-        if ($value === null) {
-            return $default;
-        } else {
-            try {
-                return $this->number($value);
-            } catch (Exception $e) {
-                return $default;
-            }
-        }
-    }
-
-    public function omit_zero($string_number) {
-        if ($string_number === null || $string_number === '') {
-            return null;
-        }
-        if (floatval($string_number) === 0.0) {
-            return null;
-        }
-        return $string_number;
-    }
-
-    public function sleep($milliseconds) {
-        sleep($milliseconds / 1000);
-    }
-
-    public function check_order_arguments ($market, $type, $side, $amount, $price, $params) {
-        if ($price === null) {
-            if ($type === 'limit') {
-                  throw new ArgumentsRequired ($this->id + ' create_order() requires a price argument for a limit order');
-             }
-        }
-        if ($amount <= 0) {
-            throw new ArgumentsRequired ($this->id + ' create_order() amount should be above 0');
-        }
-    }
-
-    public function handle_http_status_code($http_status_code, $status_text, $url, $method, $body) {
-        $string_code = (string) $http_status_code;
-        if (array_key_exists($string_code, $this->httpExceptions)) {
-            $error_class = $this->httpExceptions[$string_code];
-            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
-                $error_class = '\\ccxt\\' . $error_class;
-            }
-            throw new $error_class($this->id . ' ' . implode(' ', array($this->id, $url, $method, $http_status_code, $body)));
-        }
-    }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function safe_trade($trade, $market = null) {
         $amount = $this->safe_string($trade, 'amount');
