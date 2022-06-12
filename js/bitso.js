@@ -1003,7 +1003,12 @@ module.exports = class bitso extends Exchange {
         // canceledOrder
         // yWTQGxDMZ0VimZgZ
         //
-        const id = this.safeString (order, 'oid', order);
+        let id = undefined;
+        if (typeof order === 'string') {
+            id = order;
+        } else {
+            id = this.safeString (order, 'oid');
+        }
         const side = this.safeString (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'book');
