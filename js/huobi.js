@@ -3934,11 +3934,8 @@ module.exports = class huobi extends Exchange {
         if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
             throw new ExchangeError (this.id + ' createOrder `stopLossPrice` and `takeProfitPrice` params cannot both be defined');
         }
-        if (isTriggerOrder) {
-            request['accountId'] = accountId;
-        } else {
-            request['account-id'] = accountId;
-        }
+        const accountIdField = isTriggerOrder ? 'accountId' : 'account-id';
+        request[accountIdField] = accountId;
         if (isTriggerOrder) {
             request['stopPrice'] = triggerPrice;
         } else if (stopPrice === undefined) {
