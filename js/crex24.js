@@ -438,7 +438,6 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawalPrecision')));
             const address = this.safeValue (currency, 'BaseAddress');
             const deposit = this.safeValue (currency, 'depositsAllowed');
