@@ -502,7 +502,7 @@ class kraken(Exchange):
             'amount': self.parse_number('0.00000001'),
             'price': self.parse_number('0.00000001'),
         }
-        costLimits = {'min': 0, 'max': None}
+        costLimits = {'min': None, 'max': None}
         priceLimits = {'min': precision['price'], 'max': None}
         amountLimits = {'min': precision['amount'], 'max': None}
         limits = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}

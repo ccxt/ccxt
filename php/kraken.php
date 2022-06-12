@@ -504,7 +504,7 @@ class kraken extends Exchange {
             'amount' => $this->parse_number('0.00000001'),
             'price' => $this->parse_number('0.00000001'),
         );
-        $costLimits = array( 'min' => 0, 'max' => null );
+        $costLimits = array( 'min' => null, 'max' => null );
         $priceLimits = array( 'min' => $precision['price'], 'max' => null );
         $amountLimits = array( 'min' => $precision['amount'], 'max' => null );
         $limits = array( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );

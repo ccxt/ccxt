@@ -498,7 +498,7 @@ class hitbtc extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => 1 / pow(10, $decimals),
-                        'max' => pow(10, $decimals),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,

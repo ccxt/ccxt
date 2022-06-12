@@ -141,11 +141,11 @@ class poloniex extends Exchange {
                 ),
                 'price' => array(
                     'min' => 0.00000001,
-                    'max' => 1000000000,
+                    'max' => null,
                 ),
                 'cost' => array(
-                    'min' => 0.00000000,
-                    'max' => 1000000000,
+                    'min' => null,
+                    'max' => null,
                 ),
             ),
             'commonCurrencies' => array(

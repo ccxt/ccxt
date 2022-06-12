@@ -493,7 +493,7 @@ class hitbtc(Exchange):
                 'limits': {
                     'amount': {
                         'min': 1 / math.pow(10, decimals),
-                        'max': math.pow(10, decimals),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
