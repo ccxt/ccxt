@@ -1512,7 +1512,7 @@ class cex extends Exchange {
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $response; // public endpoints may return array()-arrays
         }
         if ($body === 'true') {

@@ -1342,7 +1342,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $rawTicker = null;
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) == 0) {
+        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $rawTicker = $this->safe_value($result, 0);
         } else {
             $rawTicker = $result;
@@ -1454,7 +1454,7 @@ class bybit extends Exchange {
         //         "0" // taker quote volume
         //     )
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_number($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
@@ -2040,7 +2040,7 @@ class bybit extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'result', array());
-        if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) != 0) {
+        if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
             $trades = $this->safe_value($trades, 'dataList', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -2240,7 +2240,7 @@ class bybit extends Exchange {
         );
         $data = $this->safe_value($response, 'result', array());
         $balances = $this->safe_value($data, 'balances');
-        if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
+        if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
             // spot $balances
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
@@ -3311,7 +3311,7 @@ class bybit extends Exchange {
         //    }
         //
         $result = $this->safe_value($response, 'result', array());
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             return $response;
         }
         return $this->parse_orders($result, $market);
@@ -3520,7 +3520,7 @@ class bybit extends Exchange {
         }
         $orders = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($orders, 'result', array());
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $result = $this->safe_value($result, 'dataList', array());
         }
         return $this->parse_orders($result, $market, $since, $limit);
@@ -3576,7 +3576,7 @@ class bybit extends Exchange {
         }
         $orders = $this->$method (array_merge($request, $params));
         $result = $this->safe_value($orders, 'result', array());
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $dataList = $this->safe_value($result, 'dataList');
             if ($dataList === null) {
                 return $this->parse_order($result, $market);
@@ -3796,7 +3796,7 @@ class bybit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $result = $this->safe_value_2($result, 'trade_list', 'data', array());
         }
         return $this->parse_trades($result, $market, $since, $limit);
@@ -4309,7 +4309,7 @@ class bybit extends Exchange {
         $type = null;
         $isLinear = null;
         $isUsdcSettled = null;
-        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+        if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             $length = is_array($symbols) ? count($symbols) : 0;
             if ($length !== 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() takes an array with exactly one symbol');
@@ -4364,7 +4364,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($result, 'dataList', array());
         }
         $positions = null;
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $positions = array( $result );
         } else {
             $positions = $result;

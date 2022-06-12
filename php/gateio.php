@@ -2301,7 +2301,7 @@ class gateio extends Exchange {
         //          "l" => "40783.94"         // Lowest price
         //     }
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
                 $this->safe_number($ohlcv, 5),      // open price

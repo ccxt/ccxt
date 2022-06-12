@@ -2043,7 +2043,7 @@ class mexc extends Exchange {
         } elseif ($stop) {
             $method = 'contractPrivatePostPlanorderCancel';
             $request = array();
-            if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
+            if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
                 for ($i = 0; $i < count($id); $i++) {
                     $request[] = array(
                         'symbol' => $market['id'],

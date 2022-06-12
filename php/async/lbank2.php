@@ -798,7 +798,7 @@ class lbank2 extends Exchange {
             return $this->safe_balance($result);
         }
         // from privatePostSupplementUserInfo
-        $isArray = gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0;
+        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
         if ($isArray === true) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];

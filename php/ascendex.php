@@ -1871,7 +1871,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $isArray = gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0;
+        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
         if (!$isArray) {
             $data = $this->safe_value($data, 'data', array());
         }

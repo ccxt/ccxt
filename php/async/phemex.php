@@ -1342,7 +1342,7 @@ class phemex extends Exchange {
         $symbol = $market['symbol'];
         $orderId = null;
         $takerOrMaker = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $tradeLength = is_array($trade) ? count($trade) : 0;
             $timestamp = $this->safe_integer_product($trade, 0, 0.000001);
             if ($tradeLength > 4) {
@@ -2233,7 +2233,7 @@ class phemex extends Exchange {
         $response = yield $this->$method (array_merge($request, $params));
         $data = $this->safe_value($response, 'data', array());
         $order = $data;
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $numOrders = is_array($data) ? count($data) : 0;
             if ($numOrders < 1) {
                 if ($clientOrderId !== null) {
@@ -2304,7 +2304,7 @@ class phemex extends Exchange {
             }
         }
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_value($data, 'rows', array());
@@ -2374,7 +2374,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             return $this->parse_orders($data, $market, $since, $limit);
         } else {
             $rows = $this->safe_value($data, 'rows', array());

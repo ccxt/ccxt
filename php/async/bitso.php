@@ -889,7 +889,7 @@ class bitso extends Exchange {
             'oid' => $id,
         ));
         $payload = $this->safe_value($response, 'payload');
-        if (gettype($payload) === 'array' && count(array_filter(array_keys($payload), 'is_string')) == 0) {
+        if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
             $numOrders = is_array($response['payload']) ? count($response['payload']) : 0;
             if ($numOrders === 1) {
                 return $this->parse_order($payload[0]);

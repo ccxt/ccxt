@@ -572,7 +572,7 @@ class buda extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         }
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $timestamp = $this->safe_integer($trade, 0);
             $priceString = $this->safe_string($trade, 1);
             $amountString = $this->safe_string($trade, 2);

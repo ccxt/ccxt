@@ -1703,7 +1703,7 @@ class huobi extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && count(array_filter(array_keys($ticker['bid']), 'is_string')) == 0) {
+            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -1712,7 +1712,7 @@ class huobi extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && count(array_filter(array_keys($ticker['ask']), 'is_string')) == 0) {
+            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -2361,7 +2361,7 @@ class huobi extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'data');
-        if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) != 0) {
+        if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
             $trades = $this->safe_value($trades, 'trades');
         }
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -3182,7 +3182,7 @@ class huobi extends Exchange {
         //         "ts" => 1603703678477
         //     }
         $order = $this->safe_value($response, 'data');
-        if (gettype($order) === 'array' && count(array_filter(array_keys($order), 'is_string')) == 0) {
+        if (gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order))) {
             $order = $this->safe_value($order, 0);
         }
         return $this->parse_order($order);
@@ -3571,7 +3571,7 @@ class huobi extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'data');
-        if (gettype($orders) === 'array' && count(array_filter(array_keys($orders), 'is_string')) != 0) {
+        if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
             $orders = $this->safe_value($orders, 'orders', array());
         }
         return $this->parse_orders($orders, $market, $since, $limit);
