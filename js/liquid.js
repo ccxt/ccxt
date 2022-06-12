@@ -282,7 +282,6 @@ module.exports = class liquid extends Exchange {
             const withdrawable = this.safeValue (currency, 'withdrawable');
             const active = depositable && withdrawable;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'assets_precision')));
-            const assetPrecisionInteger = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
