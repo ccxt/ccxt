@@ -2296,11 +2296,11 @@ class kucoin(Exchange):
         timestamp = self.safe_integer(transfer, 'createdAt')
         currencyId = self.safe_string(transfer, 'currency')
         rawStatus = self.safe_string(transfer, 'status')
-        accountFromRaw = self.safe_string(transfer, 'payAccountType')
-        accountToRaw = self.safe_string(transfer, 'recAccountType')
+        accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
+        accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
         accountsByType = self.safe_value(self.options, 'accountsByType')
-        accountFrom = self.safe_string(accountsByType, accountFromRaw.lower())
-        accountTo = self.safe_string(accountsByType, accountToRaw.lower())
+        accountFrom = self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
+        accountTo = self.safe_string(accountsByType, accountToRaw, accountToRaw)
         return {
             'id': self.safe_string_2(transfer, 'applyId', 'orderId'),
             'currency': self.safe_currency_code(currencyId, currency),

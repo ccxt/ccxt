@@ -2392,11 +2392,11 @@ class kucoin extends Exchange {
         $timestamp = $this->safe_integer($transfer, 'createdAt');
         $currencyId = $this->safe_string($transfer, 'currency');
         $rawStatus = $this->safe_string($transfer, 'status');
-        $accountFromRaw = $this->safe_string($transfer, 'payAccountType');
-        $accountToRaw = $this->safe_string($transfer, 'recAccountType');
+        $accountFromRaw = $this->safe_string_lower($transfer, 'payAccountType');
+        $accountToRaw = $this->safe_string_lower($transfer, 'recAccountType');
         $accountsByType = $this->safe_value($this->options, 'accountsByType');
-        $accountFrom = $this->safe_string($accountsByType, strtolower($accountFromRaw));
-        $accountTo = $this->safe_string($accountsByType, strtolower($accountToRaw));
+        $accountFrom = $this->safe_string($accountsByType, $accountFromRaw, $accountFromRaw);
+        $accountTo = $this->safe_string($accountsByType, $accountToRaw, $accountToRaw);
         return array(
             'id' => $this->safe_string_2($transfer, 'applyId', 'orderId'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
