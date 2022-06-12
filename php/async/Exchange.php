@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.98';
+$version = '1.86.99';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.98';
+    const VERSION = '1.86.99';
 
     public static $loop;
     public static $kernel;
@@ -234,6 +234,89 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function reduce_fees_by_currency($fees, $string = false) {
+        //
+        // this function takes a list of $fee structures having the following format
+        //
+        //     $string = true
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => '0.1' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.2'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.2', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.4', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
+        //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
+        //     )
+        //
+        //     $string = false
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => 0.1 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.2 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.2, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.4, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.5, 'rate' => 0.00456 ),
+        //         array( 'currency' => 'USDT', 'cost' => 12.3456 ),
+        //     )
+        //
+        // and returns a $reduced $fee list, where $fees are summed per currency and $rate (if any)
+        //
+        //     $string = true
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => '0.3'  ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.6', 'rate' => '0.00123' ),
+        //         array( 'currency' => 'BTC', 'cost' => '0.5', 'rate' => '0.00456' ),
+        //         array( 'currency' => 'USDT', 'cost' => '12.3456' ),
+        //     )
+        //
+        //     $string  = false
+        //
+        //     array(
+        //         array( 'currency' => 'BTC', 'cost' => 0.3  ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.6, 'rate' => 0.00123 ),
+        //         array( 'currency' => 'BTC', 'cost' => 0.5, 'rate' => 0.00456 ),
+        //         array( 'currency' => 'USDT', 'cost' => 12.3456 ),
+        //     )
+        //
+        $reduced = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $feeCurrencyCode = $this->safe_string($fee, 'currency');
+            if ($feeCurrencyCode !== null) {
+                $rate = $this->safe_string($fee, 'rate');
+                $cost = $this->safe_value($fee, 'cost');
+                if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
+                    $reduced[$feeCurrencyCode] = array();
+                }
+                $rateKey = ($rate === null) ? '' : $rate;
+                if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey, $reduced[$feeCurrencyCode])) {
+                    if ($string) {
+                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
+                    } else {
+                        $reduced[$feeCurrencyCode][$rateKey]['cost'] = $this->sum ($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
+                    }
+                } else {
+                    $reduced[$feeCurrencyCode][$rateKey] = array(
+                        'currency' => $feeCurrencyCode,
+                        'cost' => $string ? $cost : $this->parse_number($cost),
+                    );
+                    if ($rate !== null) {
+                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $string ? $rate : $this->parse_number($rate);
+                    }
+                }
+            }
+        }
+        $result = array();
+        $feeValues = is_array($reduced) ? array_values($reduced) : array();
+        for ($i = 0; $i < count($feeValues); $i++) {
+            $reducedFeeValues = is_array($feeValues[$i]) ? array_values($feeValues[$i]) : array();
+            $result = $this->array_concat($result, $reducedFeeValues);
+        }
+        return $result;
+    }
 
     public function safe_ticker($ticker, $market = null) {
         $open = $this->safe_value($ticker, 'open');

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.98'
+__version__ = '1.86.99'
 
 # -----------------------------------------------------------------------------
 
@@ -247,6 +247,81 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def reduce_fees_by_currency(self, fees, string=False):
+        #
+        # self function takes a list of fee structures having the following format
+        #
+        #     string = True
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': '0.1'},
+        #         {'currency': 'BTC', 'cost': '0.2'  },
+        #         {'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
+        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #     ]
+        #
+        #     string = False
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': 0.1},
+        #         {'currency': 'BTC', 'cost': 0.2},
+        #         {'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
+        #         {'currency': 'USDT', 'cost': 12.3456},
+        #     ]
+        #
+        # and returns a reduced fee list, where fees are summed per currency and rate(if any)
+        #
+        #     string = True
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': '0.3'  },
+        #         {'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
+        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #     ]
+        #
+        #     string  = False
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': 0.3  },
+        #         {'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
+        #         {'currency': 'USDT', 'cost': 12.3456},
+        #     ]
+        #
+        reduced = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            feeCurrencyCode = self.safe_string(fee, 'currency')
+            if feeCurrencyCode is not None:
+                rate = self.safe_string(fee, 'rate')
+                cost = self.safe_value(fee, 'cost')
+                if not (feeCurrencyCode in reduced):
+                    reduced[feeCurrencyCode] = {}
+                rateKey = '' if (rate is None) else rate
+                if rateKey in reduced[feeCurrencyCode]:
+                    if string:
+                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                    else:
+                        reduced[feeCurrencyCode][rateKey]['cost'] = self.sum(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                else:
+                    reduced[feeCurrencyCode][rateKey] = {
+                        'currency': feeCurrencyCode,
+                        'cost': cost if string else self.parse_number(cost),
+                    }
+                    if rate is not None:
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate if string else self.parse_number(rate)
+        result = []
+        feeValues = list(reduced.values())
+        for i in range(0, len(feeValues)):
+            reducedFeeValues = list(feeValues[i].values())
+            result = self.array_concat(result, reducedFeeValues)
+        return result
 
     def safe_ticker(self, ticker, market=None):
         open = self.safe_value(ticker, 'open')
