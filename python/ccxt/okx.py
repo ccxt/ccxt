@@ -3627,9 +3627,9 @@ class okx(Exchange):
         market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchPosition', market, params)
         request = {
-            # instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
+            # instType str No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId': market['id'],
-            # posId String No Single position ID or multiple position IDs(no more than 20) separated with comma
+            # posId str No Single position ID or multiple position IDs(no more than 20) separated with comma
         }
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
@@ -3697,9 +3697,9 @@ class okx(Exchange):
         # defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
         # type = self.safe_string(params, 'type', defaultType)
         request = {
-            # instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-            # instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
-            # posId String No Single position ID or multiple position IDs(no more than 20) separated with comma
+            # instType str No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
+            # instId str No Instrument ID, e.g. BTC-USD-190927-5000-C
+            # posId str No Single position ID or multiple position IDs(no more than 20) separated with comma
         }
         type, query = self.handle_market_type_and_params('fetchPositions', None, params)
         if type is not None:

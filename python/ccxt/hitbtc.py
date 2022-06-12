@@ -1195,7 +1195,7 @@ class hitbtc(Exchange):
         request = {
             # 'symbol': 'BTC/USD',  # optional
             # 'sort':   'DESC',  # or 'ASC'
-            # 'by':     'timestamp',  # or 'id' String timestamp by default, or id
+            # 'by':     'timestamp',  # or 'id' str timestamp by default, or id
             # 'from':   'Datetime or Number',  # ISO 8601
             # 'till':   'Datetime or Number',
             # 'limit':  100,

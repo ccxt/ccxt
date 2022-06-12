@@ -1616,10 +1616,10 @@ class kucoinfutures extends kucoin {
          */
         $this->load_markets();
         $request = array(
-            // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
-            // $symbol (String) [optional] Symbol of the contract
-            // side (String) [optional] buy or sell
-            // type (String) [optional] $limit, $market, limit_stop or market_stop
+            // orderId ('strval') [optional] Fills for a specific order (other parameters can be ignored if specified)
+            // $symbol ('strval') [optional] Symbol of the contract
+            // side ('strval') [optional] buy or sell
+            // type ('strval') [optional] $limit, $market, limit_stop or market_stop
             // startAt (long) [optional] Start time (milisecond)
             // endAt (long) [optional] End time (milisecond)
         );

@@ -326,14 +326,14 @@ class bitget extends Exchange {
                     '32038' => '\\ccxt\\AuthenticationError', // User does not exist
                     '32040' => '\\ccxt\\ExchangeError', // User have open contract orders or position
                     '32044' => '\\ccxt\\ExchangeError', // array( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
-                    '32045' => '\\ccxt\\ExchangeError', // String of commission over 1 million
+                    '32045' => '\\ccxt\\ExchangeError', // 'strval' of commission over 1 million
                     '32046' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 trade plans at the same time
                     '32047' => '\\ccxt\\ExchangeError', // system error
                     '32048' => '\\ccxt\\InvalidOrder', // Order strategy track range error
                     '32049' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 track plans at the same time
                     '32050' => '\\ccxt\\InvalidOrder', // Order strategy rang error
                     '32051' => '\\ccxt\\InvalidOrder', // Order strategy ice depth error
-                    '32052' => '\\ccxt\\ExchangeError', // String of commission over 100 thousand
+                    '32052' => '\\ccxt\\ExchangeError', // 'strval' of commission over 100 thousand
                     '32053' => '\\ccxt\\ExchangeError', // Each user can hold up to 6 ice plans at the same time
                     '32057' => '\\ccxt\\ExchangeError', // The order price is zero. Market-close-all function cannot be executed
                     '32054' => '\\ccxt\\ExchangeError', // Trade not allow
