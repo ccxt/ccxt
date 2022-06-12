@@ -1550,7 +1550,6 @@ class ftx(Exchange):
             'market': market['id'],
             'side': side,  # 'buy' or 'sell'
             # 'price': 0.306525,  # send null for market orders
-            'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
             # 'reduceOnly': False,  # optional, default is False
             # 'ioc': False,  # optional, default is False, limit or market orders only
@@ -1563,75 +1562,70 @@ class ftx(Exchange):
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is True:
             request['reduceOnly'] = reduceOnly
+        clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientId'] = clientOrderId
+            params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
-        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isStopOrder = (stopPrice is not None) or (stopLossPrice is not None) or (type == 'stop')
-        isTakeProfitOrder = (type == 'takeProfit') or (takeProfitPrice is not None)
-        trailValue = self.safe_number(params, 'trailValue')
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailValue'])
-        if isTakeProfitOrder:
+        isTakeProfit = False
+        isStopLoss = False
+        isTriggerPrice = False
+        if triggerPrice is not None:
+            isTakeProfit = type == 'takeProfit'
+            isStopLoss = type == 'stop'
+            isTriggerPrice = not isTakeProfit and not isStopLoss
+        elif takeProfitPrice is not None:
+            isTakeProfit = True
+            triggerPrice = takeProfitPrice
+        elif stopLossPrice is not None:
+            isStopLoss = True
+            triggerPrice = stopLossPrice
+        if not isTriggerPrice:
+            request['type'] = type
+        isStopOrder = isTakeProfit or isStopLoss or isTriggerPrice
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isStopOrder:
             method = 'privatePostConditionalOrders'
-            stopPrice = takeProfitPrice if (stopPrice is None) else stopPrice
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a takeProfitPrice parameter, a triggerPrice parameter, or a stopPrice parameter for takeProfit orders')
-            else:
-                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
-            if (type == 'limit') and (price is None):
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for takeProfit limit orders')
-            if price is not None:
-                request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
-            if (type == 'limit') or (type == 'market'):
-                request['type'] = 'takeProfit'
-        elif isStopOrder:
-            method = 'privatePostConditionalOrders'
-            stopPrice = stopLossPrice if (stopPrice is None) else stopPrice
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopLossPrice parameter, a triggerPrice parameter, or a stopPrice parameter for stop orders')
-            else:
-                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
             if (type == 'limit') and (price is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
-            if (type == 'limit') or (type == 'market'):
-                request['type'] = 'stop'
-        elif (type == 'trailingStop') or (trailValue is not None):
-            trailValue = price if (trailValue is None) else trailValue
-            if trailValue is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a trailingStop order')
-            method = 'privatePostConditionalOrders'
-            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
-        else:
+            if isStopLoss or isTakeProfit:
+                request['type'] = 'stop' if isStopLoss else 'takeProfit'
+        elif (type == 'limit') or (type == 'market'):
             method = 'privatePostOrders'
+            isMarketOrder = False
             if type == 'limit':
                 request['price'] = float(self.price_to_precision(symbol, price))
             elif type == 'market':
                 request['price'] = None
-            else:
-                raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
+                isMarketOrder = True
             timeInForce = self.safe_string(params, 'timeInForce')
-            postOnly = self.safe_value(params, 'postOnly', False)
+            postOnly = self.is_post_only(isMarketOrder, None, params)
             params = self.omit(params, ['timeInForce', 'postOnly'])
             if timeInForce is not None:
                 if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
                     raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
-            maker = ((timeInForce == 'PO') or postOnly)
-            if (type == 'market') and maker:
-                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
             ioc = (timeInForce == 'IOC')
-            if maker:
+            if postOnly:
                 request['postOnly'] = True
             if ioc:
                 request['ioc'] = True
-            clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
-            if clientOrderId is not None:
-                request['clientId'] = clientOrderId
-                params = self.omit(params, ['clientId', 'clientOrderId'])
+        elif type == 'trailingStop':
+            trailValue = self.safe_number(params, 'trailValue', price)
+            if trailValue is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
+            method = 'privatePostConditionalOrders'
+            request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
+        else:
+            raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = await getattr(self, method)(self.extend(request, params))
         #
-        # orders
+        # regular orders
         #
         #     {
         #         "success": True,
@@ -1683,7 +1677,6 @@ class ftx(Exchange):
         #             "orderType":"limit"
         #         }
         #     }
-        #
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
