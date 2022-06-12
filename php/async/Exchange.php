@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.87.1';
+$version = '1.87.2';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.87.1';
+    const VERSION = '1.87.2';
 
     public static $loop;
     public static $kernel;
@@ -235,88 +235,6 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
-        //
-        // the value of $orders is either a dict or a list
-        //
-        // dict
-        //
-        //     {
-        //         'id1' => array( ... ),
-        //         'id2' => array( ... ),
-        //         'id3' => array( ... ),
-        //         ...
-        //     }
-        //
-        // list
-        //
-        //     array(
-        //         array( 'id' => 'id1', ... ),
-        //         array( 'id' => 'id2', ... ),
-        //         array( 'id' => 'id3', ... ),
-        //         ...
-        //     )
-        //
-        $results = array();
-        if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
-            for ($i = 0; $i < count($orders); $i++) {
-                $order = array_merge($this->parse_order($orders[$i], $market), $params);
-                $results[] = $order;
-            }
-        } else {
-            $ids = is_array($orders) ? array_keys($orders) : array();
-            for ($i = 0; $i < count($ids); $i++) {
-                $id = $ids[$i];
-                $order = array_merge($this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]), $market), $params);
-                $results[] = $order;
-            }
-        }
-        $results = $this->sort_by($results, 'timestamp');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = $since === null;
-        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $tail);
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
-        $market = $this->markets[$symbol];
-        $feeSide = $this->safe_string($market, 'feeSide', 'quote');
-        $key = 'quote';
-        $cost = null;
-        if ($feeSide === 'quote') {
-            // the fee is always in quote currency
-            $cost = $amount * $price;
-        } elseif ($feeSide === 'base') {
-            // the fee is always in base currency
-            $cost = $amount;
-        } elseif ($feeSide === 'get') {
-            // the fee is always in the currency you get
-            $cost = $amount;
-            if ($side === 'sell') {
-                $cost *= $price;
-            } else {
-                $key = 'base';
-            }
-        } elseif ($feeSide === 'give') {
-            // the fee is always in the currency you give
-            $cost = $amount;
-            if ($side === 'buy') {
-                $cost *= $price;
-            } else {
-                $key = 'base';
-            }
-        }
-        $rate = $market[$takerOrMaker];
-        if ($cost !== null) {
-            $cost *= $rate;
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
-    }
-
     public function safe_order($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
@@ -348,7 +266,7 @@ class Exchange extends \ccxt\Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)) && strlen($trades)) {
+            if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) == 0 && strlen($trades)) {
                 // move properties that are defined in $trades up into the $order
                 if ($order['symbol'] === null) {
                     $order['symbol'] = $trades[0]['symbol'];

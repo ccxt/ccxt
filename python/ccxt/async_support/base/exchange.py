@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.87.1'
+__version__ = '1.87.2'
 
 # -----------------------------------------------------------------------------
 
@@ -247,79 +247,6 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
-
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        #
-        # the value of orders is either a dict or a list
-        #
-        # dict
-        #
-        #     {
-        #         'id1': {...},
-        #         'id2': {...},
-        #         'id3': {...},
-        #         ...
-        #     }
-        #
-        # list
-        #
-        #     [
-        #         {'id': 'id1', ...},
-        #         {'id': 'id2', ...},
-        #         {'id': 'id3', ...},
-        #         ...
-        #     ]
-        #
-        results = []
-        if isinstance(orders, list):
-            for i in range(0, len(orders)):
-                order = self.extend(self.parse_order(orders[i], market), params)
-                results.append(order)
-        else:
-            ids = list(orders.keys())
-            for i in range(0, len(ids)):
-                id = ids[i]
-                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
-                results.append(order)
-        results = self.sort_by(results, 'timestamp')
-        symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        feeSide = self.safe_string(market, 'feeSide', 'quote')
-        key = 'quote'
-        cost = None
-        if feeSide == 'quote':
-            # the fee is always in quote currency
-            cost = amount * price
-        elif feeSide == 'base':
-            # the fee is always in base currency
-            cost = amount
-        elif feeSide == 'get':
-            # the fee is always in the currency you get
-            cost = amount
-            if side == 'sell':
-                cost *= price
-            else:
-                key = 'base'
-        elif feeSide == 'give':
-            # the fee is always in the currency you give
-            cost = amount
-            if side == 'buy':
-                cost *= price
-            else:
-                key = 'base'
-        rate = market[takerOrMaker]
-        if cost is not None:
-            cost *= rate
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        }
 
     def safe_order(self, order, market=None):
         # parses numbers as strings
