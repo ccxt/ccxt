@@ -919,11 +919,7 @@ module.exports = class huobi extends Exchange {
                 'spot': {
                     'stopOrderTypes': {
                         'stop-limit': true,
-                        'buy-stop-limit': true,
-                        'sell-stop-limit': true,
                         'stop-limit-fok': true,
-                        'buy-stop-limit-fok': true,
-                        'sell-stop-limit-fok': true,
                     },
                     'limitOrderTypes': {
                         'limit': true,
@@ -3845,7 +3841,23 @@ module.exports = class huobi extends Exchange {
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
+        let operator = this.safeStringLower (params, 'operator');
+        const stopPrice = this.safeValue2 (params, 'stopPrice', 'stop-price');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', stopPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopOrder = ();
+        if ((operator !== 'gte') && (operator !== 'lte')) {
+            throw new ExchangeError (this.id + ' createOrder() `operator` param must be "gte" or "lte"');
+        }
+        if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
+            throw new ExchangeError (this.id + ' createOrder `stopLossPrice` and `takeProfitPrice` params cannot both be defined');
+        }
+        if (stopLossPrice !== undefined) {
+            operator = (side === 'buy') ? 'gte' : 'lte';
+        } else if (takeProfitPrice) {
+            operator = (side === 'buy') ? 'lte' : 'gte';
+        }
+
         if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
