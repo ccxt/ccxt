@@ -1938,13 +1938,13 @@ class okx extends Exchange {
         );
         $spot = $market['spot'];
         $contract = $market['contract'];
-        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
+        $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
-        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'tpTriggerPx');
-        $tpOrdPx = $this->safe_string($params, 'tpOrdPx', $price);
+        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $tpOrdPx = $this->safe_value($params, 'tpOrdPx', $price);
         $tpTriggerPxType = $this->safe_string($params, 'tpTriggerPxType', 'last');
-        $stopLossPrice = $this->safe_string_2($params, 'stopLossPrice', 'slTriggerPx');
-        $slOrdPx = $this->safe_string($params, 'slOrdPx', $price);
+        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        $slOrdPx = $this->safe_value($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
         if ($spot) {

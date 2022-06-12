@@ -1207,9 +1207,9 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # default is take profit
-        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'stopPrice')
+        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'stopPrice')
         isStopLoss = stopLossPrice is not None
         isTakeProfit = takeProfitPrice is not None
         if isStopLoss and isTakeProfit:

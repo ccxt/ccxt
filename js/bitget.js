@@ -47,6 +47,7 @@ module.exports = class bitget extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -57,6 +58,7 @@ module.exports = class bitget extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -110,8 +112,9 @@ module.exports = class bitget extends Exchange {
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
-                    'https://bitgetlimited.github.io/apidoc/en/swap',
+                    'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
+                    'https://bitgetlimited.github.io/apidoc/en/broker',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'test': {

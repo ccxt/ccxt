@@ -1886,13 +1886,13 @@ class okx(Exchange):
         }
         spot = market['spot']
         contract = market['contract']
-        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
+        triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
-        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'tpTriggerPx')
-        tpOrdPx = self.safe_string(params, 'tpOrdPx', price)
+        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        tpOrdPx = self.safe_value(params, 'tpOrdPx', price)
         tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
-        stopLossPrice = self.safe_string_2(params, 'stopLossPrice', 'slTriggerPx')
-        slOrdPx = self.safe_string(params, 'slOrdPx', price)
+        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         if spot:

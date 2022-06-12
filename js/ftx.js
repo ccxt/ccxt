@@ -1612,7 +1612,6 @@ module.exports = class ftx extends Exchange {
             'market': market['id'],
             'side': side, // 'buy' or 'sell'
             // 'price': 0.306525, // send null for market orders
-            'type': type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'reduceOnly': false, // optional, default is false
             // 'ioc': false, // optional, default is false, limit or market orders only
@@ -1632,50 +1631,63 @@ module.exports = class ftx extends Exchange {
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
         let method = undefined;
-        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (((type === 'limit') || (type === 'market')) && (stopPrice === undefined)) {
-            method = 'privatePostOrders';
-            if (type === 'limit') {
-                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
-            } else if (type === 'market') {
-                request['price'] = null;
-            }
-            const timeInForce = this.safeString (params, 'timeInForce');
-            const postOnly = this.safeValue (params, 'postOnly', false);
-            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
-            if (timeInForce !== undefined) {
-                if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
-                    throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
-                }
-            }
-            const maker = ((timeInForce === 'PO') || postOnly);
-            if ((type === 'market') && maker) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept postOnly: true or timeInForce: PO for market orders');
-            }
-            const ioc = (timeInForce === 'IOC');
-            if (maker) {
-                request['postOnly'] = true;
-            }
-            if (ioc) {
-                request['ioc'] = true;
-            }
-        } else if ((type === 'stop') || (type === 'takeProfit') || (stopPrice !== undefined)) {
+        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        let isTakeProfit = false;
+        let isStopLoss = false;
+        let isTriggerPrice = false;
+        if (triggerPrice !== undefined) {
+            isTakeProfit = type === 'takeProfit';
+            isStopLoss = type === 'stop';
+            isTriggerPrice = !isTakeProfit && !isStopLoss;
+        } else if (takeProfitPrice !== undefined) {
+            isTakeProfit = true;
+            triggerPrice = takeProfitPrice;
+        } else if (stopLossPrice !== undefined) {
+            isStopLoss = true;
+            triggerPrice = stopLossPrice;
+        }
+        if (!isTriggerPrice) {
+            request['type'] = type;
+        }
+        const isStopOrder = isTakeProfit || isStopLoss || isTriggerPrice;
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isStopOrder) {
             method = 'privatePostConditionalOrders';
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
-            } else {
-                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            }
+            request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
             if ((type === 'limit') && (price === undefined)) {
                 throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for stop limit orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
             }
-            if ((type === 'limit') || (type === 'market')) {
-                // default to stop orders for main argument
-                request['type'] = 'stop';
+            if (isStopLoss || isTakeProfit) {
+                request['type'] = isStopLoss ? 'stop' : 'takeProfit';
+            }
+        } else if ((type === 'limit') || (type === 'market')) {
+            method = 'privatePostOrders';
+            let isMarketOrder = false;
+            if (type === 'limit') {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            } else if (type === 'market') {
+                request['price'] = null;
+                isMarketOrder = true;
+            }
+            const timeInForce = this.safeString (params, 'timeInForce');
+            const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+            params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+            if (timeInForce !== undefined) {
+                if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
+                    throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
+                }
+            }
+            const ioc = (timeInForce === 'IOC');
+            if (postOnly) {
+                request['postOnly'] = true;
+            }
+            if (ioc) {
+                request['ioc'] = true;
             }
         } else if (type === 'trailingStop') {
             const trailValue = this.safeNumber (params, 'trailValue', price);
