@@ -2154,6 +2154,9 @@ module.exports = class ftx extends Exchange {
             request['end_time'] = parseInt (till / 1000);
             params = this.omit (params, 'till');
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privateGetFills (this.extend (request, params));
         //
         //     {
