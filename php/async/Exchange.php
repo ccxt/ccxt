@@ -222,14 +222,6 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->load_accounts($reload, $params);
     }
 
-    public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
-        $orderbook = yield $this->fetch_order_book($symbol, $limit, $params);
-        return array_merge($orderbook, array(
-            'bids' => $this->sort_by($this->aggregate($orderbook['bids']), 0, true),
-            'asks' => $this->sort_by($this->aggregate($orderbook['asks']), 0),
-        ));
-    }
-
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
@@ -252,14 +244,117 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function market_ids($symbols) {
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->market_id($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function market_symbols($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->symbol ($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
+        $bidasks = $this->to_array($bidasks);
+        $result = array();
+        for ($i = 0; $i < count($bidasks); $i++) {
+            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey);
+        }
+        return $result;
+    }
+
+    public function fetch_l2_order_book($symbol, $limit = null, $params = array ()) {
+        $orderbook = yield $this->fetch_order_book($symbol, $limit, $params);
+        return extend ($orderbook, array(
+            'asks' => $this->sort_by($this->aggregate ($orderbook['asks']), 0),
+            'bids' => $this->sort_by($this->aggregate ($orderbook['bids']), 0, true),
+        ));
+    }
+
+    public function filter_by_symbol($objects, $symbol = null) {
+        if ($symbol === null) {
+            return $objects;
+        }
+        $result = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            $objectSymbol = $this->safe_string($objects[$i], 'symbol');
+            if ($objectSymbol === $symbol) {
+                $result[] = $objects[$i];
+            }
+        }
+        return $result;
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_integer($ohlcv, 0), // timestamp
+                $this->safe_number($ohlcv, 1), // open
+                $this->safe_number($ohlcv, 2), // high
+                $this->safe_number($ohlcv, 3), // low
+                $this->safe_number($ohlcv, 4), // close
+                $this->safe_number($ohlcv, 5), // volume
+            );
+        }
+        return $ohlcv;
+    }
+
+    public function get_network($network, $code) {
+        $network = strtoupper($network);
+        $aliases = array(
+            'ETHEREUM' => 'ETH',
+            'ETHER' => 'ETH',
+            'ERC20' => 'ETH',
+            'ETH' => 'ETH',
+            'TRC20' => 'TRX',
+            'TRON' => 'TRX',
+            'TRX' => 'TRX',
+            'BEP20' => 'BSC',
+            'BSC' => 'BSC',
+            'HRC20' => 'HT',
+            'HECO' => 'HT',
+            'SPL' => 'SOL',
+            'SOL' => 'SOL',
+            'TERRA' => 'LUNA',
+            'LUNA' => 'LUNA',
+            'POLYGON' => 'MATIC',
+            'MATIC' => 'MATIC',
+            'EOS' => 'EOS',
+            'WAVES' => 'WAVES',
+            'AVALANCHE' => 'AVAX',
+            'AVAX' => 'AVAX',
+            'QTUM' => 'QTUM',
+            'CHZ' => 'CHZ',
+            'NEO' => 'NEO',
+            'ONT' => 'ONT',
+            'RON' => 'RON',
+        );
+        if ($network === $code) {
+            return $network;
+        } elseif (is_array($aliases) && array_key_exists($network, $aliases)) {
+            return $aliases[$network];
+        } else {
+            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
+        }
+    }
+
     public function safe_number_2($dictionary, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($dictionary, $key1, $key2);
         return $this->parse_number($value, $d);
     }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
-        $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();
-        $asks = (is_array($orderbook) && array_key_exists($asksKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$asksKey], $priceKey, $amountKey) : array();
+        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey);
+        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -500,8 +595,8 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safeNumber ($bidask, $priceKey);
-        $amount = $this->safeNumber ($bidask, $amountKey);
+        $price = $this->safe_number($bidask, $priceKey);
+        $amount = $this->safe_number($bidask, $amountKey);
         return array( $price, $amount );
     }
 

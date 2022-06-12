@@ -776,26 +776,6 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    marketIds (symbols) {
-        return symbols.map ((symbol) => this.marketId (symbol))
-    }
-
-    marketSymbols (symbols) {
-        return (symbols === undefined) ? symbols : symbols.map ((symbol) => this.symbol (symbol))
-    }
-
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map ((bidask) => this.parseBidAsk (bidask, priceKey, amountKey))
-    }
-
-    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
-        const orderbook = await this.fetchOrderBook (symbol, limit, params)
-        return extend (orderbook, {
-            'bids': this.sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': this.sortBy (aggregate (orderbook.asks), 0),
-        })
-    }
-
     safeBalance (balance) {
         const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
         balance['free'] = {}
@@ -995,14 +975,6 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
     }
 
-    filterBySymbol (array, symbol = undefined) {
-        return ((symbol !== undefined) ? array.filter ((entry) => entry.symbol === symbol) : array)
-    }
-
-    parseOHLCV (ohlcv, market = undefined) {
-        return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
@@ -1080,45 +1052,6 @@ module.exports = class Exchange {
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
-    }
-
-    getNetwork (network, code) {
-        network = network.toUpperCase ();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        } else if (network in aliases) {
-            return aliases[network];
-        } else {
-            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
-        }
     }
 
     reduceFeesByCurrency (fees, string = false) {
@@ -1547,14 +1480,117 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    marketIds (symbols) {
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            result.push (this.marketId (symbols[i]));
+        }
+        return result;
+    }
+
+    marketSymbols (symbols) {
+        if (symbols === undefined) {
+            return symbols;
+        }
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            result.push (this.symbol (symbols[i]));
+        }
+        return result;
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+        bidasks = this.toArray (bidasks);
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey));
+        }
+        return result;
+    }
+
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        const orderbook = await this.fetchOrderBook (symbol, limit, params);
+        return extend (orderbook, {
+            'asks': this.sortBy (this.aggregate (orderbook['asks']), 0),
+            'bids': this.sortBy (this.aggregate (orderbook['bids']), 0, true),
+        });
+    }
+
+    filterBySymbol (objects, symbol = undefined) {
+        if (symbol === undefined) {
+            return objects;
+        }
+        const result = [];
+        for (let i = 0; i < objects.length; i++) {
+            const objectSymbol = this.safeString (objects[i], 'symbol');
+            if (objectSymbol === symbol) {
+                result.push (objects[i]);
+            }
+        }
+        return result;
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        if (Array.isArray (ohlcv)) {
+            return [
+                this.safeInteger (ohlcv, 0), // timestamp
+                this.safeNumber (ohlcv, 1), // open
+                this.safeNumber (ohlcv, 2), // high
+                this.safeNumber (ohlcv, 3), // low
+                this.safeNumber (ohlcv, 4), // close
+                this.safeNumber (ohlcv, 5), // volume
+            ];
+        }
+        return ohlcv;
+    }
+
+    getNetwork (network, code) {
+        network = network.toUpperCase ();
+        const aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        };
+        if (network === code) {
+            return network;
+        } else if (network in aliases) {
+            return aliases[network];
+        } else {
+            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
+        }
+    }
+
     safeNumber2 (dictionary, key1, key2, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
-        const asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
+        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
+        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
             'symbol': symbol,
             'bids': this.sortBy (bids, 0, true),

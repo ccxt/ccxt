@@ -1553,41 +1553,6 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
 
-    def parse_ohlcv(self, ohlcv, market=None):
-        if isinstance(ohlcv, list):
-            return [
-                self.safe_integer(ohlcv, 0),
-                self.safe_float(ohlcv, 1),
-                self.safe_float(ohlcv, 2),
-                self.safe_float(ohlcv, 3),
-                self.safe_float(ohlcv, 4),
-                self.safe_float(ohlcv, 5),
-            ]
-        else:
-            return ohlcv
-
-    def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
-        result = []
-        if len(bidasks):
-            if type(bidasks[0]) is list:
-                for bidask in bidasks:
-                    if bidask[price_key] and bidask[amount_key]:
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            elif type(bidasks[0]) is dict:
-                for bidask in bidasks:
-                    if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            else:
-                raise ExchangeError(self.id + ' unrecognized bidask format: ' + str(bidasks[0]))
-        return result
-
-    def fetch_l2_order_book(self, symbol, limit=None, params={}):
-        orderbook = self.fetch_order_book(symbol, limit, params)
-        return self.extend(orderbook, {
-            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
-            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
-        })
-
     def safe_balance(self, balance):
         currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
         balance['free'] = {}
@@ -1832,18 +1797,6 @@ class Exchange(object):
             array = array[-limit:] if tail else array[:limit]
         return array
 
-    def filter_by_symbol(self, array, symbol=None):
-        array = self.to_array(array)
-        if symbol:
-            return [entry for entry in array if entry['symbol'] == symbol]
-        return array
-
-    def market_ids(self, symbols):
-        return [self.market_id(symbol) for symbol in symbols]
-
-    def market_symbols(self, symbols):
-        return [self.symbol(symbol) for symbol in symbols] if symbols else symbols
-
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
@@ -1952,43 +1905,6 @@ class Exchange(object):
         message_hash = self.hashMessage(message)
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
-
-    def get_network(self, network, code):
-        network = network.upper()
-        aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        }
-        if network == code:
-            return network
-        elif network in aliases:
-            return aliases[network]
-        else:
-            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
 
     @staticmethod
     def totp(key):
@@ -2376,13 +2292,100 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def market_ids(self, symbols):
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market_id(symbols[i]))
+        return result
+
+    def market_symbols(self, symbols):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.symbol(symbols[i]))
+        return result
+
+    def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
+        bidasks = self.to_array(bidasks)
+        result = []
+        for i in range(0, len(bidasks)):
+            result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey))
+        return result
+
+    def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = self.fetch_order_book(symbol, limit, params)
+        return self.extend(orderbook, {
+            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
+            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
+        })
+
+    def filter_by_symbol(self, objects, symbol=None):
+        if symbol is None:
+            return objects
+        result = []
+        for i in range(0, len(objects)):
+            objectSymbol = self.safe_string(objects[i], 'symbol')
+            if objectSymbol == symbol:
+                result.append(objects[i])
+        return result
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_integer(ohlcv, 0),  # timestamp
+                self.safe_number(ohlcv, 1),  # open
+                self.safe_number(ohlcv, 2),  # high
+                self.safe_number(ohlcv, 3),  # low
+                self.safe_number(ohlcv, 4),  # close
+                self.safe_number(ohlcv, 5),  # volume
+            ]
+        return ohlcv
+
+    def get_network(self, network, code):
+        network = network.upper()
+        aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        }
+        if network == code:
+            return network
+        elif network in aliases:
+            return aliases[network]
+        else:
+            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
+
     def safe_number_2(self, dictionary, key1, key2, d=None):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
-        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in orderbook) else []
-        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in orderbook) else []
+        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
+        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -2574,8 +2577,8 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safeNumber(bidask, priceKey)
-        amount = self.safeNumber(bidask, amountKey)
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
     def safe_currency(self, currencyId, currency=None):

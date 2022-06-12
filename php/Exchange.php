@@ -284,18 +284,12 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
-        'marketIds' => 'market_ids',
-        'marketSymbols' => 'market_symbols',
-        'parseBidsAsks' => 'parse_bids_asks',
-        'fetchL2OrderBook' => 'fetch_l2_order_book',
         'safeBalance' => 'safe_balance',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'safeTicker' => 'safe_ticker',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'parseOrders' => 'parse_orders',
-        'filterBySymbol' => 'filter_by_symbol',
-        'parseOHLCV' => 'parse_ohlcv',
         'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
         'remove0xPrefix' => 'remove0x_prefix',
@@ -303,13 +297,19 @@ class Exchange {
         'signHash' => 'sign_hash',
         'signMessage' => 'sign_message',
         'signMessageString' => 'sign_message_string',
-        'getNetwork' => 'get_network',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTrade' => 'safe_trade',
         'safeOrder' => 'safe_order',
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'marketIds' => 'market_ids',
+        'marketSymbols' => 'market_symbols',
+        'parseBidsAsks' => 'parse_bids_asks',
+        'fetchL2OrderBook' => 'fetch_l2_order_book',
+        'filterBySymbol' => 'filter_by_symbol',
+        'parseOHLCV' => 'parse_ohlcv',
+        'getNetwork' => 'get_network',
         'safeNumber2' => 'safe_number_2',
         'parseOrderBook' => 'parse_order_book',
         'parseOHLCVs' => 'parse_ohlcvs',
@@ -1927,29 +1927,8 @@ class Exchange {
         return $this->set_markets($markets, $currencies);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
-        return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
-    }
-
     public function number($n) {
         return call_user_func($this->number, $n);
-    }
-
-    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
-        $result = array();
-        $array = is_array($bidasks) ? array_values($bidasks) : array();
-        foreach ($array as $bidask) {
-            $result[] = $this->parse_bid_ask($bidask, $price_key, $amount_key);
-        }
-        return $result;
-    }
-
-    public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
-        $orderbook = $this->fetch_order_book($symbol, $limit, $params);
-        return array_merge($orderbook, array(
-            'bids' => $this->sort_by($this->aggregate($orderbook['bids']), 0, true),
-            'asks' => $this->sort_by($this->aggregate($orderbook['asks']), 0),
-        ));
     }
 
     public function safe_balance($balance) {
@@ -2146,17 +2125,6 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
-    public function filter_by_symbol($array, $symbol = null) {
-        if ($symbol) {
-            $grouped = $this->group_by($array, 'symbol');
-            if (is_array($grouped) && array_key_exists($symbol, $grouped)) {
-                return $grouped[$symbol];
-            }
-            return array();
-        }
-        return $array;
-    }
-
     public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
@@ -2278,14 +2246,6 @@ class Exchange {
     public function precision_from_string($string) {
         $parts = explode('.', preg_replace('/0+$/', '', $string));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
-    }
-
-    public function market_ids($symbols) {
-        return array_map(array($this, 'market_id'), $symbols);
-    }
-
-    public function market_symbols($symbols) {
-        return is_array($symbols) ? array_map(array($this, 'symbol'), $symbols) : $symbols;
     }
 
     public function __call($function, $params) {
@@ -2627,45 +2587,6 @@ class Exchange {
     public function sign_message_string($message, $privateKey) {
         $signature = static::signMessage($message, $privateKey);
         return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
-    }
-
-    public function get_network($network, $code) {
-        $network = strtoupper($network);
-        $aliases = array(
-            'ETHEREUM' => 'ETH',
-            'ETHER' => 'ETH',
-            'ERC20' => 'ETH',
-            'ETH' => 'ETH',
-            'TRC20' => 'TRX',
-            'TRON' => 'TRX',
-            'TRX' => 'TRX',
-            'BEP20' => 'BSC',
-            'BSC' => 'BSC',
-            'HRC20' => 'HT',
-            'HECO' => 'HT',
-            'SPL' => 'SOL',
-            'SOL' => 'SOL',
-            'TERRA' => 'LUNA',
-            'LUNA' => 'LUNA',
-            'POLYGON' => 'MATIC',
-            'MATIC' => 'MATIC',
-            'EOS' => 'EOS',
-            'WAVES' => 'WAVES',
-            'AVALANCHE' => 'AVAX',
-            'AVAX' => 'AVAX',
-            'QTUM' => 'QTUM',
-            'CHZ' => 'CHZ',
-            'NEO' => 'NEO',
-            'ONT' => 'ONT',
-            'RON' => 'RON',
-        );
-        if ($network === $code) {
-            return $network;
-        } elseif (is_array($aliases) && array_key_exists($network, $aliases)) {
-            return $aliases[$network];
-        } else {
-            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
-        }
     }
 
     public static function base32_decode($s) {
@@ -3159,14 +3080,117 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function market_ids($symbols) {
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->market_id($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function market_symbols($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $result[] = $this->symbol ($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
+        $bidasks = $this->to_array($bidasks);
+        $result = array();
+        for ($i = 0; $i < count($bidasks); $i++) {
+            $result[] = $this->parse_bid_ask($bidasks[$i], $priceKey, $amountKey);
+        }
+        return $result;
+    }
+
+    public function fetch_l2_order_book($symbol, $limit = null, $params = array ()) {
+        $orderbook = $this->fetch_order_book($symbol, $limit, $params);
+        return extend ($orderbook, array(
+            'asks' => $this->sort_by($this->aggregate ($orderbook['asks']), 0),
+            'bids' => $this->sort_by($this->aggregate ($orderbook['bids']), 0, true),
+        ));
+    }
+
+    public function filter_by_symbol($objects, $symbol = null) {
+        if ($symbol === null) {
+            return $objects;
+        }
+        $result = array();
+        for ($i = 0; $i < count($objects); $i++) {
+            $objectSymbol = $this->safe_string($objects[$i], 'symbol');
+            if ($objectSymbol === $symbol) {
+                $result[] = $objects[$i];
+            }
+        }
+        return $result;
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+            return array(
+                $this->safe_integer($ohlcv, 0), // timestamp
+                $this->safe_number($ohlcv, 1), // open
+                $this->safe_number($ohlcv, 2), // high
+                $this->safe_number($ohlcv, 3), // low
+                $this->safe_number($ohlcv, 4), // close
+                $this->safe_number($ohlcv, 5), // volume
+            );
+        }
+        return $ohlcv;
+    }
+
+    public function get_network($network, $code) {
+        $network = strtoupper($network);
+        $aliases = array(
+            'ETHEREUM' => 'ETH',
+            'ETHER' => 'ETH',
+            'ERC20' => 'ETH',
+            'ETH' => 'ETH',
+            'TRC20' => 'TRX',
+            'TRON' => 'TRX',
+            'TRX' => 'TRX',
+            'BEP20' => 'BSC',
+            'BSC' => 'BSC',
+            'HRC20' => 'HT',
+            'HECO' => 'HT',
+            'SPL' => 'SOL',
+            'SOL' => 'SOL',
+            'TERRA' => 'LUNA',
+            'LUNA' => 'LUNA',
+            'POLYGON' => 'MATIC',
+            'MATIC' => 'MATIC',
+            'EOS' => 'EOS',
+            'WAVES' => 'WAVES',
+            'AVALANCHE' => 'AVAX',
+            'AVAX' => 'AVAX',
+            'QTUM' => 'QTUM',
+            'CHZ' => 'CHZ',
+            'NEO' => 'NEO',
+            'ONT' => 'ONT',
+            'RON' => 'RON',
+        );
+        if ($network === $code) {
+            return $network;
+        } elseif (is_array($aliases) && array_key_exists($network, $aliases)) {
+            return $aliases[$network];
+        } else {
+            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
+        }
+    }
+
     public function safe_number_2($dictionary, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($dictionary, $key1, $key2);
         return $this->parse_number($value, $d);
     }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
-        $bids = (is_array($orderbook) && array_key_exists($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array();
-        $asks = (is_array($orderbook) && array_key_exists($asksKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$asksKey], $priceKey, $amountKey) : array();
+        $bids = $this->parse_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey);
+        $asks = $this->parse_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey);
         return array(
             'symbol' => $symbol,
             'bids' => $this->sort_by($bids, 0, true),
@@ -3407,8 +3431,8 @@ class Exchange {
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safeNumber ($bidask, $priceKey);
-        $amount = $this->safeNumber ($bidask, $amountKey);
+        $price = $this->safe_number($bidask, $priceKey);
+        $amount = $this->safe_number($bidask, $amountKey);
         return array( $price, $amount );
     }
 
