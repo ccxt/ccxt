@@ -66,6 +66,7 @@ class bitget(Exchange):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -76,6 +77,7 @@ class bitget(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -129,8 +131,9 @@ class bitget(Exchange):
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
-                    'https://bitgetlimited.github.io/apidoc/en/swap',
+                    'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
+                    'https://bitgetlimited.github.io/apidoc/en/broker',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'test': {

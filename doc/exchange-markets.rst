@@ -263,7 +263,7 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://bitgetlimited.github.io/apidoc/en/swap
+          :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
      - 

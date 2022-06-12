@@ -1229,9 +1229,9 @@ class kucoin extends Exchange {
             $request['size'] = $amountString;
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         // default is take profit
-        $takeProfitPrice = $this->safe_string_2($params, 'takeProfitPrice', 'stopPrice');
+        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'stopPrice');
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         if ($isStopLoss && $isTakeProfit) {

@@ -1592,7 +1592,6 @@ class ftx extends Exchange {
             'market' => $market['id'],
             'side' => $side, // 'buy' or 'sell'
             // 'price' => 0.306525, // send null for $market orders
-            'type' => $type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'reduceOnly' => false, // optional, default is false
             // 'ioc' => false, // optional, default is false, limit or $market orders only
@@ -1612,50 +1611,63 @@ class ftx extends Exchange {
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
         }
         $method = null;
-        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ((($type === 'limit') || ($type === 'market')) && ($stopPrice === null)) {
-            $method = 'privatePostOrders';
-            if ($type === 'limit') {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
-            } elseif ($type === 'market') {
-                $request['price'] = null;
-            }
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
-            if ($timeInForce !== null) {
-                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
-                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
-                }
-            }
-            $maker = (($timeInForce === 'PO') || $postOnly);
-            if (($type === 'market') && $maker) {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept $postOnly => true or $timeInForce => PO for $market orders');
-            }
-            $ioc = ($timeInForce === 'IOC');
-            if ($maker) {
-                $request['postOnly'] = true;
-            }
-            if ($ioc) {
-                $request['ioc'] = true;
-            }
-        } elseif (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isTakeProfit = false;
+        $isStopLoss = false;
+        $isTriggerPrice = false;
+        if ($triggerPrice !== null) {
+            $isTakeProfit = $type === 'takeProfit';
+            $isStopLoss = $type === 'stop';
+            $isTriggerPrice = !$isTakeProfit && !$isStopLoss;
+        } elseif ($takeProfitPrice !== null) {
+            $isTakeProfit = true;
+            $triggerPrice = $takeProfitPrice;
+        } elseif ($stopLossPrice !== null) {
+            $isStopLoss = true;
+            $triggerPrice = $stopLossPrice;
+        }
+        if (!$isTriggerPrice) {
+            $request['type'] = $type;
+        }
+        $isStopOrder = $isTakeProfit || $isStopLoss || $isTriggerPrice;
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopOrder) {
             $method = 'privatePostConditionalOrders';
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
-            } else {
-                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
-            }
+            $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
             if (($type === 'limit') && ($price === null)) {
                 throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
             }
             if ($price !== null) {
                 $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
             }
-            if (($type === 'limit') || ($type === 'market')) {
-                // default to stop orders for main argument
-                $request['type'] = 'stop';
+            if ($isStopLoss || $isTakeProfit) {
+                $request['type'] = $isStopLoss ? 'stop' : 'takeProfit';
+            }
+        } elseif (($type === 'limit') || ($type === 'market')) {
+            $method = 'privatePostOrders';
+            $isMarketOrder = false;
+            if ($type === 'limit') {
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            } elseif ($type === 'market') {
+                $request['price'] = null;
+                $isMarketOrder = true;
+            }
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+            if ($timeInForce !== null) {
+                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
+                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+                }
+            }
+            $ioc = ($timeInForce === 'IOC');
+            if ($postOnly) {
+                $request['postOnly'] = true;
+            }
+            if ($ioc) {
+                $request['ioc'] = true;
             }
         } elseif ($type === 'trailingStop') {
             $trailValue = $this->safe_number($params, 'trailValue', $price);
