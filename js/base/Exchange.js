@@ -857,131 +857,6 @@ module.exports = class Exchange {
         }
     }
 
-    /* eslint-enable */
-    // ------------------------------------------------------------------------
-
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########        ########################        ########################
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########                        ########                        ########
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ########        ########        ########                        ########
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ################        ########################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########        ########        ################        ################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-    // ########################################################################
-
-    // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // the value of orders is either a dict or a list
-        //
-        // dict
-        //
-        //     {
-        //         'id1': { ... },
-        //         'id2': { ... },
-        //         'id3': { ... },
-        //         ...
-        //     }
-        //
-        // list
-        //
-        //     [
-        //         { 'id': 'id1', ... },
-        //         { 'id': 'id2', ... },
-        //         { 'id': 'id3', ... },
-        //         ...
-        //     ]
-        //
-        let results = [];
-        if (Array.isArray (orders)) {
-            for (let i = 0; i < orders.length; i++) {
-                const order = this.extend (this.parseOrder (orders[i], market), params);
-                results.push (order);
-            }
-        } else {
-            const ids = Object.keys (orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
-                results.push (order);
-            }
-        }
-        results = this.sortBy (results, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = since === undefined;
-        return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const feeSide = this.safeString (market, 'feeSide', 'quote');
-        let key = 'quote';
-        let cost = undefined;
-        if (feeSide === 'quote') {
-            // the fee is always in quote currency
-            cost = amount * price;
-        } else if (feeSide === 'base') {
-            // the fee is always in base currency
-            cost = amount;
-        } else if (feeSide === 'get') {
-            // the fee is always in the currency you get
-            cost = amount;
-            if (side === 'sell') {
-                cost *= price;
-            } else {
-                key = 'base';
-            }
-        } else if (feeSide === 'give') {
-            // the fee is always in the currency you give
-            cost = amount;
-            if (side === 'buy') {
-                cost *= price;
-            } else {
-                key = 'base';
-            }
-        }
-        const rate = market[takerOrMaker];
-        if (cost !== undefined) {
-            cost *= rate;
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
-    }
-
     safeOrder (order, market = undefined) {
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
@@ -1176,6 +1051,131 @@ module.exports = class Exchange {
             'timeInForce': timeInForce,
             'trades': trades,
         });
+    }
+
+    /* eslint-enable */
+    // ------------------------------------------------------------------------
+
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+
+    // ------------------------------------------------------------------------
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
+        let results = [];
+        if (Array.isArray (orders)) {
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.extend (this.parseOrder (orders[i], market), params);
+                results.push (order);
+            }
+        } else {
+            const ids = Object.keys (orders);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                results.push (order);
+            }
+        }
+        results = this.sortBy (results, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const tail = since === undefined;
+        return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const market = this.markets[symbol];
+        const feeSide = this.safeString (market, 'feeSide', 'quote');
+        let key = 'quote';
+        let cost = undefined;
+        if (feeSide === 'quote') {
+            // the fee is always in quote currency
+            cost = amount * price;
+        } else if (feeSide === 'base') {
+            // the fee is always in base currency
+            cost = amount;
+        } else if (feeSide === 'get') {
+            // the fee is always in the currency you get
+            cost = amount;
+            if (side === 'sell') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        } else if (feeSide === 'give') {
+            // the fee is always in the currency you give
+            cost = amount;
+            if (side === 'buy') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        }
+        const rate = market[takerOrMaker];
+        if (cost !== undefined) {
+            cost *= rate;
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        };
     }
 
     safeTrade (trade, market = undefined) {
