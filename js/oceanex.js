@@ -291,7 +291,7 @@ module.exports = class oceanex extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetTickersPair (this.extend (request, params));
+        const response = await this.spotPublicGetTickersPair (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -586,7 +586,7 @@ module.exports = class oceanex extends Exchange {
          * @param {dict} params extra parameters specific to the oceanex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTimestamp (params);
+        const response = await this.spotPublicGetTimestamp (params);
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
@@ -594,7 +594,7 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        const response = await this.publicGetFeesTrading (params);
+        const response = await this.spotPublicGetFeesTrading (params);
         const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
