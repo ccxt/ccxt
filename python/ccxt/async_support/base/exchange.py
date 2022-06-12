@@ -240,13 +240,6 @@ class Exchange(BaseExchange):
     async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        ohlcvs = await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
-        return [ohlcv[0:-1] for ohlcv in ohlcvs]
-
-    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
-
     async def fetch_full_tickers(self, symbols=None, params={}):
         return await self.fetch_tickers(symbols, params)
 
@@ -254,6 +247,61 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if not self.has['fetchTrades']:
+            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
+        await self.load_markets()
+        trades = await self.fetchTrades(symbol, since, limit, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
+        result = []
+        for i in range(0, len(ohlcvc)):
+            result.append([
+                self.safe_integer(ohlcvc[i], 0),
+                self.safe_number(ohlcvc[i], 1),
+                self.safe_number(ohlcvc[i], 2),
+                self.safe_number(ohlcvc[i], 3),
+                self.safe_number(ohlcvc[i], 4),
+                self.safe_number(ohlcvc[i], 5),
+            ])
+        return result
+
+    def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+        result = []
+        timestamps = self.safe_value(ohlcvs, timestamp, [])
+        opens = self.safe_value(ohlcvs, open, [])
+        highs = self.safe_value(ohlcvs, high, [])
+        lows = self.safe_value(ohlcvs, low, [])
+        closes = self.safe_value(ohlcvs, close, [])
+        volumes = self.safe_value(ohlcvs, volume, [])
+        for i in range(0, len(timestamps)):
+            result.append([
+                self.safe_integer(timestamps, i) if ms else self.safe_timestamp(timestamps, i),
+                self.safe_value(opens, i),
+                self.safe_value(highs, i),
+                self.safe_value(lows, i),
+                self.safe_value(closes, i),
+                self.safe_value(volumes, i),
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+        result = {}
+        result[timestamp] = []
+        result[open] = []
+        result[high] = []
+        result[low] = []
+        result[close] = []
+        result[volume] = []
+        for i in range(0, len(ohlcvs)):
+            ts = ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000)
+            result[timestamp].append(ts)
+            result[open].append(ohlcvs[i][1])
+            result[high].append(ohlcvs[i][2])
+            result[low].append(ohlcvs[i][3])
+            result[close].append(ohlcvs[i][4])
+            result[volume].append(ohlcvs[i][5])
+        return result
 
     def market_ids(self, symbols):
         result = []

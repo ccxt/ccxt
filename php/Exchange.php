@@ -279,9 +279,6 @@ class Exchange {
         'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',
-        'fetchOHLCV' => 'fetch_ohlcv',
-        'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
-        'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
         'safeBalance' => 'safe_balance',
@@ -303,6 +300,9 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'fetchOHLCV' => 'fetch_ohlcv',
+        'convertTradingViewToOHLCV' => 'convert_trading_view_to_ohlcv',
+        'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
         'parseBidsAsks' => 'parse_bids_asks',
@@ -2160,49 +2160,6 @@ class Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
-        if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
-        }
-        $this->load_markets();
-        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
-        return $this->build_ohlcv($trades, $timeframe, $since, $limit);
-    }
-
-    public function convert_trading_view_to_ohlcv($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
-        $result = array();
-        for ($i = 0; $i < count($ohlcvs[$t]); $i++) {
-            $result[] = array(
-                $ms ? $ohlcvs[$t][$i] : ($ohlcvs[$t][$i] * 1000),
-                $ohlcvs[$o][$i],
-                $ohlcvs[$h][$i],
-                $ohlcvs[$l][$i],
-                $ohlcvs[$c][$i],
-                $ohlcvs[$v][$i],
-            );
-        }
-        return $result;
-    }
-
-    public function convert_ohlcv_to_trading_view($ohlcvs, $t = 't', $o = 'o', $h = 'h', $l = 'l', $c = 'c', $v = 'v', $ms = false) {
-        $result = array();
-        $result[$t] = array();
-        $result[$o] = array();
-        $result[$h] = array();
-        $result[$l] = array();
-        $result[$c] = array();
-        $result[$v] = array();
-        for ($i = 0; $i < count($ohlcvs); $i++) {
-            $result[$t][] = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
-            $result[$o][] = $ohlcvs[$i][1];
-            $result[$h][] = $ohlcvs[$i][2];
-            $result[$l][] = $ohlcvs[$i][3];
-            $result[$c][] = $ohlcvs[$i][4];
-            $result[$v][] = $ohlcvs[$i][5];
-        }
-        return $result;
-    }
-
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
@@ -3079,6 +3036,68 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if (!$this->has['fetchTrades']) {
+            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+        }
+        $this->load_markets();
+        $trades = $this->fetchTrades ($symbol, $since, $limit, $params);
+        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+        $result = array();
+        for ($i = 0; $i < count($ohlcvc); $i++) {
+            $result[] = [
+                $this->safe_integer($ohlcvc[$i], 0),
+                $this->safe_number($ohlcvc[$i], 1),
+                $this->safe_number($ohlcvc[$i], 2),
+                $this->safe_number($ohlcvc[$i], 3),
+                $this->safe_number($ohlcvc[$i], 4),
+                $this->safe_number($ohlcvc[$i], 5),
+            ];
+        }
+        return $result;
+    }
+
+    public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+        $result = array();
+        $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
+        $opens = $this->safe_value($ohlcvs, $open, array());
+        $highs = $this->safe_value($ohlcvs, $high, array());
+        $lows = $this->safe_value($ohlcvs, $low, array());
+        $closes = $this->safe_value($ohlcvs, $close, array());
+        $volumes = $this->safe_value($ohlcvs, $volume, array());
+        for ($i = 0; $i < count($timestamps); $i++) {
+            $result[] = array(
+                $ms ? $this->safe_integer($timestamps, $i) : $this->safe_timestamp($timestamps, $i),
+                $this->safe_value($opens, $i),
+                $this->safe_value($highs, $i),
+                $this->safe_value($lows, $i),
+                $this->safe_value($closes, $i),
+                $this->safe_value($volumes, $i),
+            );
+        }
+        return $result;
+    }
+
+    public function convert_ohlcv_to_trading_view($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+        $result = array();
+        $result[$timestamp] = array();
+        $result[$open] = array();
+        $result[$high] = array();
+        $result[$low] = array();
+        $result[$close] = array();
+        $result[$volume] = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $ts = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
+            $result[$timestamp][] = $ts;
+            $result[$open][] = $ohlcvs[$i][1];
+            $result[$high][] = $ohlcvs[$i][2];
+            $result[$low][] = $ohlcvs[$i][3];
+            $result[$close][] = $ohlcvs[$i][4];
+            $result[$volume][] = $ohlcvs[$i][5];
+        }
+        return $result;
+    }
 
     public function market_ids($symbols) {
         $result = array();

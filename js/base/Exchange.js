@@ -716,50 +716,6 @@ module.exports = class Exchange {
         return this.marketsLoading
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet')
-        }
-        await this.loadMarkets ()
-        const trades = await this.fetchTrades (symbol, since, limit, params)
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit)
-        return ohlcvc.map ((c) => c.slice (0, -1))
-    }
-
-    convertTradingViewToOHLCV (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
-        const result = [];
-        for (let i = 0; i < ohlcvs[t].length; i++) {
-            result.push ([
-                ms ? ohlcvs[t][i] : (ohlcvs[t][i] * 1000),
-                ohlcvs[o][i],
-                ohlcvs[h][i],
-                ohlcvs[l][i],
-                ohlcvs[c][i],
-                ohlcvs[v][i],
-            ])
-        }
-        return result
-    }
-
-    convertOHLCVToTradingView (ohlcvs, t = 't', o = 'o', h = 'h', l = 'l', c = 'c', v = 'v', ms = false) {
-        const result = {}
-        result[t] = []
-        result[o] = []
-        result[h] = []
-        result[l] = []
-        result[c] = []
-        result[v] = []
-        for (let i = 0; i < ohlcvs.length; i++) {
-            result[t].push (ms ? ohlcvs[i][0] : parseInt (ohlcvs[i][0] / 1000))
-            result[o].push (ohlcvs[i][1])
-            result[h].push (ohlcvs[i][2])
-            result[l].push (ohlcvs[i][3])
-            result[c].push (ohlcvs[i][4])
-            result[v].push (ohlcvs[i][5])
-        }
-        return result
-    }
-
     fetchCurrencies (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -1479,6 +1435,68 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (!this.has['fetchTrades']) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
+        }
+        await this.loadMarkets ();
+        const trades = await this.fetchTrades (symbol, since, limit, params);
+        const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
+        const result = [];
+        for (let i = 0; i < ohlcvc.length; i++) {
+            result.push ([
+                this.safeInteger (ohlcvc[i], 0),
+                this.safeNumber (ohlcvc[i], 1),
+                this.safeNumber (ohlcvc[i], 2),
+                this.safeNumber (ohlcvc[i], 3),
+                this.safeNumber (ohlcvc[i], 4),
+                this.safeNumber (ohlcvc[i], 5),
+            ]);
+        }
+        return result;
+    }
+
+    convertTradingViewToOHLCV (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
+        const result = [];
+        const timestamps = this.safeValue (ohlcvs, timestamp, []);
+        const opens = this.safeValue (ohlcvs, open, []);
+        const highs = this.safeValue (ohlcvs, high, []);
+        const lows = this.safeValue (ohlcvs, low, []);
+        const closes = this.safeValue (ohlcvs, close, []);
+        const volumes = this.safeValue (ohlcvs, volume, []);
+        for (let i = 0; i < timestamps.length; i++) {
+            result.push ([
+                ms ? this.safeInteger (timestamps, i) : this.safeTimestamp (timestamps, i),
+                this.safeValue (opens, i),
+                this.safeValue (highs, i),
+                this.safeValue (lows, i),
+                this.safeValue (closes, i),
+                this.safeValue (volumes, i),
+            ]);
+        }
+        return result;
+    }
+
+    convertOHLCVToTradingView (ohlcvs, timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
+        const result = {};
+        result[timestamp] = [];
+        result[open] = [];
+        result[high] = [];
+        result[low] = [];
+        result[close] = [];
+        result[volume] = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            const ts = ms ? ohlcvs[i][0] : parseInt (ohlcvs[i][0] / 1000);
+            result[timestamp].push (ts);
+            result[open].push (ohlcvs[i][1]);
+            result[high].push (ohlcvs[i][2]);
+            result[low].push (ohlcvs[i][3]);
+            result[close].push (ohlcvs[i][4]);
+            result[volume].push (ohlcvs[i][5]);
+        }
+        return result;
+    }
 
     marketIds (symbols) {
         const result = [];

@@ -222,15 +222,6 @@ class Exchange extends \ccxt\Exchange {
         return yield $this->load_accounts($reload, $params);
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
-        if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->id . ' fetch_ohlcv() is not supported yet');
-        }
-        yield $this->load_markets();
-        $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
-        return $this->build_ohlcv($trades, $timeframe, $since, $limit);
-    }
-
     public function sleep($milliseconds) {
         $time = $milliseconds / 1000;
         $loop = $this->get_loop();
@@ -243,6 +234,68 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if (!$this->has['fetchTrades']) {
+            throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
+        }
+        yield $this->load_markets();
+        $trades = yield $this->fetchTrades ($symbol, $since, $limit, $params);
+        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+        $result = array();
+        for ($i = 0; $i < count($ohlcvc); $i++) {
+            $result[] = [
+                $this->safe_integer($ohlcvc[$i], 0),
+                $this->safe_number($ohlcvc[$i], 1),
+                $this->safe_number($ohlcvc[$i], 2),
+                $this->safe_number($ohlcvc[$i], 3),
+                $this->safe_number($ohlcvc[$i], 4),
+                $this->safe_number($ohlcvc[$i], 5),
+            ];
+        }
+        return $result;
+    }
+
+    public function convert_trading_view_to_ohlcv($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+        $result = array();
+        $timestamps = $this->safe_value($ohlcvs, $timestamp, array());
+        $opens = $this->safe_value($ohlcvs, $open, array());
+        $highs = $this->safe_value($ohlcvs, $high, array());
+        $lows = $this->safe_value($ohlcvs, $low, array());
+        $closes = $this->safe_value($ohlcvs, $close, array());
+        $volumes = $this->safe_value($ohlcvs, $volume, array());
+        for ($i = 0; $i < count($timestamps); $i++) {
+            $result[] = array(
+                $ms ? $this->safe_integer($timestamps, $i) : $this->safe_timestamp($timestamps, $i),
+                $this->safe_value($opens, $i),
+                $this->safe_value($highs, $i),
+                $this->safe_value($lows, $i),
+                $this->safe_value($closes, $i),
+                $this->safe_value($volumes, $i),
+            );
+        }
+        return $result;
+    }
+
+    public function convert_ohlcv_to_trading_view($ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
+        $result = array();
+        $result[$timestamp] = array();
+        $result[$open] = array();
+        $result[$high] = array();
+        $result[$low] = array();
+        $result[$close] = array();
+        $result[$volume] = array();
+        for ($i = 0; $i < count($ohlcvs); $i++) {
+            $ts = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
+            $result[$timestamp][] = $ts;
+            $result[$open][] = $ohlcvs[$i][1];
+            $result[$high][] = $ohlcvs[$i][2];
+            $result[$low][] = $ohlcvs[$i][3];
+            $result[$close][] = $ohlcvs[$i][4];
+            $result[$volume][] = $ohlcvs[$i][5];
+        }
+        return $result;
+    }
 
     public function market_ids($symbols) {
         $result = array();
