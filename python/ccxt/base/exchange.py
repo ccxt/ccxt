@@ -1684,16 +1684,6 @@ class Exchange(object):
             'info': None,
         }, entry)
 
-    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
-        if isinstance(orders, list):
-            array = [self.extend(self.parse_order(order, market), params) for order in orders]
-        else:
-            array = [self.extend(self.parse_order(self.extend({'id': id}, order), market), params) for id, order in orders.items()]
-        array = self.sort_by(array, 'timestamp')
-        symbol = market['symbol'] if market else None
-        tail = since is None
-        return self.filter_by_symbol_since_limit(array, symbol, since, limit, tail)
-
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
         if value is not None:
@@ -1711,41 +1701,6 @@ class Exchange(object):
         if limit is not None:
             array = array[-limit:] if tail else array[:limit]
         return array
-
-    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        market = self.markets[symbol]
-        feeSide = self.safe_string(market, 'feeSide', 'quote')
-        key = 'quote'
-        cost = None
-        if feeSide == 'quote':
-            # the fee is always in quote currency
-            cost = amount * price
-        elif feeSide == 'base':
-            # the fee is always in base currency
-            cost = amount
-        elif feeSide == 'get':
-            # the fee is always in the currency you get
-            cost = amount
-            if side == 'sell':
-                cost *= price
-            else:
-                key = 'base'
-        elif feeSide == 'give':
-            # the fee is always in the currency you give
-            cost = amount
-            if side == 'buy':
-                cost *= price
-            else:
-                key = 'base'
-        rate = market[takerOrMaker]
-        if cost is not None:
-            cost *= rate
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
@@ -1922,6 +1877,79 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
+        #
+        # the value of orders is either a dict or a list
+        #
+        # dict
+        #
+        #     {
+        #         'id1': {...},
+        #         'id2': {...},
+        #         'id3': {...},
+        #         ...
+        #     }
+        #
+        # list
+        #
+        #     [
+        #         {'id': 'id1', ...},
+        #         {'id': 'id2', ...},
+        #         {'id': 'id3', ...},
+        #         ...
+        #     ]
+        #
+        results = []
+        if isinstance(orders, list):
+            for i in range(0, len(orders)):
+                order = self.extend(self.parse_order(orders[i], market), params)
+                results.append(order)
+        else:
+            ids = list(orders.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
+                results.append(order)
+        results = self.sort_by(results, 'timestamp')
+        symbol = market['symbol'] if (market is not None) else None
+        tail = since is None
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        feeSide = self.safe_string(market, 'feeSide', 'quote')
+        key = 'quote'
+        cost = None
+        if feeSide == 'quote':
+            # the fee is always in quote currency
+            cost = amount * price
+        elif feeSide == 'base':
+            # the fee is always in base currency
+            cost = amount
+        elif feeSide == 'get':
+            # the fee is always in the currency you get
+            cost = amount
+            if side == 'sell':
+                cost *= price
+            else:
+                key = 'base'
+        elif feeSide == 'give':
+            # the fee is always in the currency you give
+            cost = amount
+            if side == 'buy':
+                cost *= price
+            else:
+                key = 'base'
+        rate = market[takerOrMaker]
+        if cost is not None:
+            cost *= rate
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        }
 
     def safe_order(self, order, market=None):
         # parses numbers as strings

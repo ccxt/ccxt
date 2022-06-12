@@ -12,7 +12,6 @@ const {
     , unique
     , unCamelCase
     , throttle
-    , capitalize
     , timeout
     , TimedOut
     , defaultFetch
@@ -342,7 +341,7 @@ module.exports = class Exchange {
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
-            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+            this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
         // generate implicit api
         if (this.api) {
@@ -561,7 +560,7 @@ module.exports = class Exchange {
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {
-            key = key.split ('-').map ((word) => capitalize (word)).join ('-')
+            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-')
             result[key] = value
         })
         return result
@@ -788,130 +787,6 @@ module.exports = class Exchange {
         return array
     }
 
-    safeLedgerEntry (entry, currency = undefined) {
-        currency = this.safeCurrency (undefined, currency);
-        let direction = this.safeString (entry, 'direction');
-        let before = this.safeString (entry, 'before');
-        let after = this.safeString (entry, 'after');
-        let amount = this.safeString (entry, 'amount');
-        let fee = this.safeString (entry, 'fee');
-        if (amount !== undefined && fee !== undefined) {
-            if (before === undefined && after !== undefined) {
-                const amountAndFee = Precise.stringAdd (amount, fee);
-                before = Precise.stringSub (after, amountAndFee);
-            } else if (before !== undefined && after === undefined) {
-                const amountAndFee = Precise.stringAdd (amount, fee);
-                after = Precise.stringAdd (before, amountAndFee);
-            }
-        }
-        if (before !== undefined && after !== undefined) {
-            if (direction === undefined) {
-                if (Precise.stringGt (before, after)) {
-                    direction = 'out';
-                }
-                if (Precise.stringGt (after, before)) {
-                    direction = 'in';
-                }
-            }
-            if (amount === undefined && fee !== undefined) {
-                const betweenAfterBefore = Precise.stringSub (after, before);
-                amount = Precise.stringSub (betweenAfterBefore, fee);
-            }
-            if (amount !== undefined && fee === undefined) {
-                const betweenAfterBefore = Precise.stringSub (after, before);
-                fee = Precise.stringSub (betweenAfterBefore, amount);
-            }
-        }
-        return this.extend ({
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'direction': undefined,
-            'account': undefined,
-            'referenceId': undefined,
-            'referenceAccount': undefined,
-            'type': undefined,
-            'currency': currency['code'],
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': undefined,
-            'fee': fee,
-            'info': undefined,
-        }, entry);
-    }
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        // the value of orders is either a dict or a list
-        //
-        // dict
-        //
-        //     {
-        //         'id1': { ... },
-        //         'id2': { ... },
-        //         'id3': { ... },
-        //         ...
-        //     }
-        //
-        // list
-        //
-        //     [
-        //         { 'id': 'id1', ... },
-        //         { 'id': 'id2', ... },
-        //         { 'id': 'id3', ... },
-        //         ...
-        //     ]
-        //
-        let result = Array.isArray (orders) ?
-            Object.values (orders).map ((order) => this.extend (this.parseOrder (order, market), params)) :
-            Object.entries (orders).map (([ id, order ]) => this.extend (this.parseOrder (this.extend ({ 'id': id }, order), market), params))
-        result = this.sortBy (result, 'timestamp')
-        const symbol = (market !== undefined) ? market['symbol'] : undefined
-        const tail = since === undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail)
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const market = this.markets[symbol];
-        const feeSide = this.safeString (market, 'feeSide', 'quote');
-        let key = 'quote';
-        let cost = undefined;
-        if (feeSide === 'quote') {
-            // the fee is always in quote currency
-            cost = amount * price;
-        } else if (feeSide === 'base') {
-            // the fee is always in base currency
-            cost = amount;
-        } else if (feeSide === 'get') {
-            // the fee is always in the currency you get
-            cost = amount;
-            if (side === 'sell') {
-                cost *= price;
-            } else {
-                key = 'base';
-            }
-        } else if (feeSide === 'give') {
-            // the fee is always in the currency you give
-            cost = amount;
-            if (side === 'buy') {
-                cost *= price;
-            } else {
-                key = 'base';
-            }
-        }
-        const rate = market[takerOrMaker];
-        if (cost !== undefined) {
-            cost *= rate;
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
-        };
-    }
-
     checkRequiredDependencies () {
         return
     }
@@ -1024,6 +899,88 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
+        let results = [];
+        if (Array.isArray (orders)) {
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.extend (this.parseOrder (orders[i], market), params);
+                results.push (order);
+            }
+        } else {
+            const ids = Object.keys (orders);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const order = this.extend (this.parseOrder (this.extend ({ 'id': id }, orders[id]), market), params);
+                results.push (order);
+            }
+        }
+        results = this.sortBy (results, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const tail = since === undefined;
+        return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const market = this.markets[symbol];
+        const feeSide = this.safeString (market, 'feeSide', 'quote');
+        let key = 'quote';
+        let cost = undefined;
+        if (feeSide === 'quote') {
+            // the fee is always in quote currency
+            cost = amount * price;
+        } else if (feeSide === 'base') {
+            // the fee is always in base currency
+            cost = amount;
+        } else if (feeSide === 'get') {
+            // the fee is always in the currency you get
+            cost = amount;
+            if (side === 'sell') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        } else if (feeSide === 'give') {
+            // the fee is always in the currency you give
+            cost = amount;
+            if (side === 'buy') {
+                cost *= price;
+            } else {
+                key = 'base';
+            }
+        }
+        const rate = market[takerOrMaker];
+        if (cost !== undefined) {
+            cost *= rate;
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        };
+    }
 
     safeOrder (order, market = undefined) {
         // parses numbers as strings

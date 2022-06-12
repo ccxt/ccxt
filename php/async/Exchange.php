@@ -235,6 +235,284 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // the value of $orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1' => array( ... ),
+        //         'id2' => array( ... ),
+        //         'id3' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'id' => 'id1', ... ),
+        //         array( 'id' => 'id2', ... ),
+        //         array( 'id' => 'id3', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = array_merge($this->parse_order($orders[$i], $market), $params);
+                $results[] = $order;
+            }
+        } else {
+            $ids = is_array($orders) ? array_keys($orders) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $order = array_merge($this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]), $market), $params);
+                $results[] = $order;
+            }
+        }
+        $results = $this->sort_by($results, 'timestamp');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $tail);
+    }
+
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $feeSide = $this->safe_string($market, 'feeSide', 'quote');
+        $key = 'quote';
+        $cost = null;
+        if ($feeSide === 'quote') {
+            // the fee is always in quote currency
+            $cost = $amount * $price;
+        } elseif ($feeSide === 'base') {
+            // the fee is always in base currency
+            $cost = $amount;
+        } elseif ($feeSide === 'get') {
+            // the fee is always in the currency you get
+            $cost = $amount;
+            if ($side === 'sell') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        } elseif ($feeSide === 'give') {
+            // the fee is always in the currency you give
+            $cost = $amount;
+            if ($side === 'buy') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        }
+        $rate = $market[$takerOrMaker];
+        if ($cost !== null) {
+            $cost *= $rate;
+        }
+        return array(
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => $cost,
+        );
+    }
+
+    public function safe_order($order, $market = null) {
+        // parses numbers as strings
+        // it is important pass the $trades as unparsed $rawTrades
+        $amount = $this->omitZero ($this->safe_string($order, 'amount'));
+        $remaining = $this->safe_string($order, 'remaining');
+        $filled = $this->safe_string($order, 'filled');
+        $cost = $this->safe_string($order, 'cost');
+        $average = $this->omitZero ($this->safe_string($order, 'average'));
+        $price = $this->omitZero ($this->safe_string($order, 'price'));
+        $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $parseFilled = ($filled === null);
+        $parseCost = ($cost === null);
+        $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
+        $fee = $this->safe_value($order, 'fee');
+        $parseFee = ($fee === null);
+        $parseFees = $this->safe_value($order, 'fees') === null;
+        $shouldParseFees = $parseFee || $parseFees;
+        $fees = $this->safe_value($order, 'fees', array());
+        $trades = array();
+        if ($parseFilled || $parseCost || $shouldParseFees) {
+            $rawTrades = $this->safe_value($order, 'trades', $trades);
+            $oldNumber = $this->number;
+            // we parse $trades as strings here!
+            $this->number = String;
+            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
+                'symbol' => $order['symbol'],
+                'side' => $order['side'],
+                'type' => $order['type'],
+                'order' => $order['id'],
+            ));
+            $this->number = $oldNumber;
+            if (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)) && strlen($trades)) {
+                // move properties that are defined in $trades up into the $order
+                if ($order['symbol'] === null) {
+                    $order['symbol'] = $trades[0]['symbol'];
+                }
+                if ($order['side'] === null) {
+                    $order['side'] = $trades[0]['side'];
+                }
+                if ($order['type'] === null) {
+                    $order['type'] = $trades[0]['type'];
+                }
+                if ($order['id'] === null) {
+                    $order['id'] = $trades[0]['order'];
+                }
+                if ($parseFilled) {
+                    $filled = '0';
+                }
+                if ($parseCost) {
+                    $cost = '0';
+                }
+                for ($i = 0; $i < count($trades); $i++) {
+                    $trade = $trades[$i];
+                    $tradeAmount = $this->safe_string($trade, 'amount');
+                    if ($parseFilled && ($tradeAmount !== null)) {
+                        $filled = Precise::string_add($filled, $tradeAmount);
+                    }
+                    $tradeCost = $this->safe_string($trade, 'cost');
+                    if ($parseCost && ($tradeCost !== null)) {
+                        $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    $tradeTimestamp = $this->safe_value($trade, 'timestamp');
+                    if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
+                        if ($lastTradeTimeTimestamp === null) {
+                            $lastTradeTimeTimestamp = $tradeTimestamp;
+                        } else {
+                            $lastTradeTimeTimestamp = max ($lastTradeTimeTimestamp, $tradeTimestamp);
+                        }
+                    }
+                    if ($shouldParseFees) {
+                        $tradeFees = $this->safe_value($trade, 'fees');
+                        if ($tradeFees !== null) {
+                            for ($j = 0; $j < count($tradeFees); $j++) {
+                                $tradeFee = $tradeFees[$j];
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        } else {
+                            $tradeFee = $this->safe_value($trade, 'fee');
+                            if ($tradeFee !== null) {
+                                $fees[] = array_merge(array(), $tradeFee);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if ($shouldParseFees) {
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
+                if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
+                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
+                }
+            }
+            if (!$parseFee && ($reducedLength === 0)) {
+                $fee['cost'] = $this->safe_number($fee, 'cost');
+                if (is_array($fee) && array_key_exists('rate', $fee)) {
+                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                }
+                $reducedFees[] = $fee;
+            }
+            if ($parseFees) {
+                $order['fees'] = $reducedFees;
+            }
+            if ($parseFee && ($reducedLength === 1)) {
+                $order['fee'] = $reducedFees[0];
+            }
+        }
+        if ($amount === null) {
+            // ensure $amount = $filled . $remaining
+            if ($filled !== null && $remaining !== null) {
+                $amount = Precise::string_add($filled, $remaining);
+            } elseif ($this->safe_string($order, 'status') === 'closed') {
+                $amount = $filled;
+            }
+        }
+        if ($filled === null) {
+            if ($amount !== null && $remaining !== null) {
+                $filled = Precise::string_sub($amount, $remaining);
+            }
+        }
+        if ($remaining === null) {
+            if ($amount !== null && $filled !== null) {
+                $remaining = Precise::string_sub($amount, $filled);
+            }
+        }
+        // ensure that the $average field is calculated correctly
+        if ($average === null) {
+            if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
+                $average = Precise::string_div($cost, $filled);
+            }
+        }
+        // also ensure the $cost field is calculated correctly
+        $costPriceExists = ($average !== null) || ($price !== null);
+        if ($parseCost && ($filled !== null) && $costPriceExists) {
+            $multiplyPrice = null;
+            if ($average === null) {
+                $multiplyPrice = $price;
+            } else {
+                $multiplyPrice = $average;
+            }
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
+                }
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            }
+            $cost = Precise::string_mul($multiplyPrice, $filled);
+        }
+        // support for $market orders
+        $orderType = $this->safe_value($order, 'type');
+        $emptyPrice = ($price === null) || Precise::string_equals($price, '0');
+        if ($emptyPrice && ($orderType === 'market')) {
+            $price = $average;
+        }
+        // we have $trades with string values at this point so we will mutate them
+        for ($i = 0; $i < count($trades); $i++) {
+            $entry = $trades[$i];
+            $entry['amount'] = $this->safe_number($entry, 'amount');
+            $entry['price'] = $this->safe_number($entry, 'price');
+            $entry['cost'] = $this->safe_number($entry, 'cost');
+            $fee = $this->safe_value($entry, 'fee', array());
+            $fee['cost'] = $this->safe_number($fee, 'cost');
+            if (is_array($fee) && array_key_exists('rate', $fee)) {
+                $fee['rate'] = $this->safe_number($fee, 'rate');
+            }
+            $entry['fee'] = $fee;
+        }
+        // timeInForceHandling
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        if ($timeInForce === null) {
+            if ($this->safe_string($order, 'type') === 'market') {
+                $timeInForce = 'IOC';
+            }
+            // allow postOnly override
+            if ($this->safe_value($order, 'postOnly', false)) {
+                $timeInForce = 'PO';
+            }
+        }
+        return array_merge($order, array(
+            'lastTradeTimestamp' => $lastTradeTimeTimestamp,
+            'price' => $this->parse_number($price),
+            'amount' => $this->parse_number($amount),
+            'cost' => $this->parse_number($cost),
+            'average' => $this->parse_number($average),
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number($remaining),
+            'timeInForce' => $timeInForce,
+            'trades' => $trades,
+        ));
+    }
+
     public function safe_trade($trade, $market = null) {
         $amount = $this->safe_string($trade, 'amount');
         $price = $this->safe_string($trade, 'price');
@@ -561,7 +839,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
                 $this->safe_number($ohlcv, 1), // open
@@ -737,7 +1015,7 @@ class Exchange extends \ccxt\Exchange {
         $array = $this->to_array($data);
         for ($i = 0; $i < count($array); $i++) {
             $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
-            if (gettype($itemOrItems) === 'array' && count(array_filter(array_keys($itemOrItems), 'is_string')) == 0) {
+            if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
                 }

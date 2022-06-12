@@ -284,9 +284,6 @@ class Exchange {
         'safeBalance' => 'safe_balance',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
-        'safeLedgerEntry' => 'safe_ledger_entry',
-        'parseOrders' => 'parse_orders',
-        'calculateFee' => 'calculate_fee',
         'checkRequiredDependencies' => 'check_required_dependencies',
         'remove0xPrefix' => 'remove0x_prefix',
         'hashMessage' => 'hash_message',
@@ -296,6 +293,8 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'parseOrders' => 'parse_orders',
+        'calculateFee' => 'calculate_fee',
         'safeOrder' => 'safe_order',
         'safeTrade' => 'safe_trade',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
@@ -2050,24 +2049,6 @@ class Exchange {
         ), $entry);
     }
 
-    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array()) {
-        $result = array();
-        $keys = array_keys($orders);
-        if ($keys === array_keys($keys)) {
-            foreach ($orders as $order) {
-                $result[] = array_replace_recursive($this->parse_order($order, $market), $params);
-            }
-        } else {
-            foreach ($orders as $id => $order) {
-                $result[] = array_replace_recursive($this->parse_order(array_replace_recursive(array('id' => (string) $id), $order), $market), $params);
-            }
-        }
-        $result = $this->sort_by($result, 'timestamp');
-        $symbol = isset($market) ? $market['symbol'] : null;
-        $tail = $since === null;
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
-    }
-
     public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsSet = isset($value);
         $sinceIsSet = isset($since);
@@ -2101,46 +2082,6 @@ class Exchange {
         // this is for historical reasons
         // and may be changed for consistency later
         return $this->currencies ? $this->currencies : array();
-    }
-
-    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array()) {
-        $market = $this->markets[$symbol];
-        $feeSide = $this->safe_string($market, 'feeSide', 'quote');
-        $key = 'quote';
-        $cost = null;
-        if ($feeSide === 'quote') {
-            // the fee is always in quote currency
-            $cost = $amount * $price;
-        } elseif ($feeSide === 'base') {
-            // the fee is always in base currency
-            $cost = $amount;
-        } elseif ($feeSide === 'get') {
-            // the fee is always in the currency you get
-            $cost = $amount;
-            if ($side === 'sell') {
-                $cost *= $price;
-            } else {
-                $key = 'base';
-            }
-        } elseif ($feeSide === 'give') {
-            // the fee is always in the currency you give
-            $cost = $amount;
-            if ($side === 'buy') {
-                $cost *= $price;
-            } else {
-                $key = 'base';
-            }
-        }
-        $rate = $market[$takerOrMaker];
-        if ($cost !== null) {
-            $cost *= $rate;
-        }
-        return array(
-            'type' => $takerOrMaker,
-            'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
-        );
     }
 
     public function precision_from_string($string) {
@@ -2628,6 +2569,88 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+        //
+        // the value of $orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1' => array( ... ),
+        //         'id2' => array( ... ),
+        //         'id3' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'id' => 'id1', ... ),
+        //         array( 'id' => 'id2', ... ),
+        //         array( 'id' => 'id3', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = array_merge($this->parse_order($orders[$i], $market), $params);
+                $results[] = $order;
+            }
+        } else {
+            $ids = is_array($orders) ? array_keys($orders) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $order = array_merge($this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]), $market), $params);
+                $results[] = $order;
+            }
+        }
+        $results = $this->sort_by($results, 'timestamp');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $tail = $since === null;
+        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit, $tail);
+    }
+
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $feeSide = $this->safe_string($market, 'feeSide', 'quote');
+        $key = 'quote';
+        $cost = null;
+        if ($feeSide === 'quote') {
+            // the fee is always in quote currency
+            $cost = $amount * $price;
+        } elseif ($feeSide === 'base') {
+            // the fee is always in base currency
+            $cost = $amount;
+        } elseif ($feeSide === 'get') {
+            // the fee is always in the currency you get
+            $cost = $amount;
+            if ($side === 'sell') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        } elseif ($feeSide === 'give') {
+            // the fee is always in the currency you give
+            $cost = $amount;
+            if ($side === 'buy') {
+                $cost *= $price;
+            } else {
+                $key = 'base';
+            }
+        }
+        $rate = $market[$takerOrMaker];
+        if ($cost !== null) {
+            $cost *= $rate;
+        }
+        return array(
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => $cost,
+        );
+    }
+
     public function safe_order($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
@@ -2659,7 +2682,7 @@ class Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) == 0 && strlen($trades)) {
+            if (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)) && strlen($trades)) {
                 // move properties that are defined in $trades up into the $order
                 if ($order['symbol'] === null) {
                     $order['symbol'] = $trades[0]['symbol'];
@@ -3150,7 +3173,7 @@ class Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
                 $this->safe_number($ohlcv, 1), // open
@@ -3326,7 +3349,7 @@ class Exchange {
         $array = $this->to_array($data);
         for ($i = 0; $i < count($array); $i++) {
             $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
-            if (gettype($itemOrItems) === 'array' && count(array_filter(array_keys($itemOrItems), 'is_string')) == 0) {
+            if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
                 }
