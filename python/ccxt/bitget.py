@@ -66,7 +66,7 @@ class bitget(Exchange):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': None,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
