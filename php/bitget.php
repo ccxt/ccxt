@@ -50,7 +50,7 @@ class bitget extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => null,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
