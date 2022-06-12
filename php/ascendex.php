@@ -282,7 +282,7 @@ class ascendex extends Exchange {
                     '100009' => '\\ccxt\\AuthenticationError', // AUTHORIZATION_NEEDED Authorization is require for the API access or request
                     '100010' => '\\ccxt\\BadRequest', // INVALID_OPERATION The action is invalid or not allowed for the account
                     '100011' => '\\ccxt\\BadRequest', // INVALID_TIMESTAMP Not a valid timestamp
-                    '100012' => '\\ccxt\\BadRequest', // INVALID_STR_FORMAT String format does not
+                    '100012' => '\\ccxt\\BadRequest', // INVALID_STR_FORMAT 'strval' format does not
                     '100013' => '\\ccxt\\BadRequest', // INVALID_NUM_FORMAT Invalid number input
                     '100101' => '\\ccxt\\ExchangeError', // UNKNOWN_ERROR Some unknown error
                     '150001' => '\\ccxt\\BadRequest', // INVALID_JSON_FORMAT Require a valid json object

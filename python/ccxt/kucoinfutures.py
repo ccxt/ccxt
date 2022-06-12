@@ -1563,10 +1563,10 @@ class kucoinfutures(kucoin):
         """
         self.load_markets()
         request = {
-            # orderId(String) [optional] Fills for a specific order(other parameters can be ignored if specified)
-            # symbol(String) [optional] Symbol of the contract
-            # side(String) [optional] buy or sell
-            # type(String) [optional] limit, market, limit_stop or market_stop
+            # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
+            # symbol(str) [optional] Symbol of the contract
+            # side(str) [optional] buy or sell
+            # type(str) [optional] limit, market, limit_stop or market_stop
             # startAt(long) [optional] Start time(milisecond)
             # endAt(long) [optional] End time(milisecond)
         }

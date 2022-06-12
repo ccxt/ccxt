@@ -3780,9 +3780,9 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
         $request = array(
-            // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
+            // instType 'strval' No Instrument $type, MARGIN, SWAP, FUTURES, OPTION
             'instId' => $market['id'],
-            // posId String No Single $position ID or multiple $position IDs (no more than 20) separated with comma
+            // posId 'strval' No Single $position ID or multiple $position IDs (no more than 20) separated with comma
         );
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
@@ -3853,9 +3853,9 @@ class okx extends Exchange {
         // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
         // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
-            // instType String No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-            // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
-            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // instType 'strval' No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
+            // instId 'strval' No Instrument ID, e.g. BTC-USD-190927-5000-C
+            // posId 'strval' No Single position ID or multiple position IDs (no more than 20) separated with comma
         );
         list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
         if ($type !== null) {

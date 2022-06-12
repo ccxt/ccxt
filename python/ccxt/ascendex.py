@@ -287,7 +287,7 @@ class ascendex(Exchange):
                     '100009': AuthenticationError,  # AUTHORIZATION_NEEDED Authorization is require for the API access or request
                     '100010': BadRequest,  # INVALID_OPERATION The action is invalid or not allowed for the account
                     '100011': BadRequest,  # INVALID_TIMESTAMP Not a valid timestamp
-                    '100012': BadRequest,  # INVALID_STR_FORMAT String format does not
+                    '100012': BadRequest,  # INVALID_STR_FORMAT str format does not
                     '100013': BadRequest,  # INVALID_NUM_FORMAT Invalid number input
                     '100101': ExchangeError,  # UNKNOWN_ERROR Some unknown error
                     '150001': BadRequest,  # INVALID_JSON_FORMAT Require a valid json object
