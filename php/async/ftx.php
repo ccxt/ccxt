@@ -1607,18 +1607,14 @@ class ftx extends Exchange {
         if ($reduceOnly === true) {
             $request['reduceOnly'] = $reduceOnly;
         }
-        $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['clientId'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
-        }
         $method = null;
         $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isStopOrder = ($stopPrice !== null) || ($stopLossPrice !== null) || ($type === 'stop');
         $isTakeProfitOrder = ($type === 'takeProfit') || ($takeProfitPrice !== null);
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $trailValue = $this->safe_number($params, 'trailValue');
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailValue' ));
         if ($isTakeProfitOrder) {
             $method = 'privatePostConditionalOrders';
             $stopPrice = ($stopPrice === null) ? $takeProfitPrice : $stopPrice;
@@ -1653,10 +1649,10 @@ class ftx extends Exchange {
             if (($type === 'limit') || ($type === 'market')) {
                 $request['type'] = 'stop';
             }
-        } elseif ($type === 'trailingStop') {
-            $trailValue = $this->safe_number($params, 'trailValue', $price);
+        } elseif (($type === 'trailingStop') || ($trailValue !== null)) {
+            $trailValue = ($trailValue === null) ? $price : $trailValue;
             if ($trailValue === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a trailingStop order');
             }
             $method = 'privatePostConditionalOrders';
             $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
@@ -1687,6 +1683,11 @@ class ftx extends Exchange {
             }
             if ($ioc) {
                 $request['ioc'] = true;
+            }
+            $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clientId'] = $clientOrderId;
+                $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
             }
         }
         $response = yield $this->$method (array_merge($request, $params));

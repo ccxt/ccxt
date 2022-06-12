@@ -1563,17 +1563,14 @@ class ftx(Exchange):
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is True:
             request['reduceOnly'] = reduceOnly
-        clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
-        if clientOrderId is not None:
-            request['clientId'] = clientOrderId
-            params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
         stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isStopOrder = (stopPrice is not None) or (stopLossPrice is not None) or (type == 'stop')
         isTakeProfitOrder = (type == 'takeProfit') or (takeProfitPrice is not None)
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        trailValue = self.safe_number(params, 'trailValue')
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailValue'])
         if isTakeProfitOrder:
             method = 'privatePostConditionalOrders'
             stopPrice = takeProfitPrice if (stopPrice is None) else stopPrice
@@ -1600,10 +1597,10 @@ class ftx(Exchange):
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
             if (type == 'limit') or (type == 'market'):
                 request['type'] = 'stop'
-        elif type == 'trailingStop':
-            trailValue = self.safe_number(params, 'trailValue', price)
+        elif (type == 'trailingStop') or (trailValue is not None):
+            trailValue = price if (trailValue is None) else trailValue
             if trailValue is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a ' + type + ' order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a trailValue parameter or a price argument(negative or positive) for a trailingStop order')
             method = 'privatePostConditionalOrders'
             request['trailValue'] = float(self.price_to_precision(symbol, trailValue))  # negative for "sell", positive for "buy"
         else:
@@ -1628,6 +1625,10 @@ class ftx(Exchange):
                 request['postOnly'] = True
             if ioc:
                 request['ioc'] = True
+            clientOrderId = self.safe_string_2(params, 'clientId', 'clientOrderId')
+            if clientOrderId is not None:
+                request['clientId'] = clientOrderId
+                params = self.omit(params, ['clientId', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # orders
