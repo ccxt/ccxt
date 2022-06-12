@@ -2570,12 +2570,12 @@ class Exchange {
     public function safe_order($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
-        $amount = $this->omitZero ($this->safe_string($order, 'amount'));
+        $amount = $this->omit_zero ($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
         $cost = $this->safe_string($order, 'cost');
-        $average = $this->omitZero ($this->safe_string($order, 'average'));
-        $price = $this->omitZero ($this->safe_string($order, 'price'));
+        $average = $this->omit_zero ($this->safe_string($order, 'average'));
+        $price = $this->omit_zero ($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);

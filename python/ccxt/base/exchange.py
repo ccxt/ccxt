@@ -1879,12 +1879,12 @@ class Exchange(object):
     def safe_order(self, order, market=None):
         # parses numbers as strings
         # it is important pass the trades as unparsed rawTrades
-        amount = self.omitZero(self.safe_string(order, 'amount'))
+        amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
         cost = self.safe_string(order, 'cost')
-        average = self.omitZero(self.safe_string(order, 'average'))
-        price = self.omitZero(self.safe_string(order, 'price'))
+        average = self.omit_zero(self.safe_string(order, 'average'))
+        price = self.omit_zero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
         parseFilled = (filled is None)
         parseCost = (cost is None)
