@@ -2121,6 +2121,9 @@ class ftx extends Exchange {
             $request['end_time'] = intval($till / 1000);
             $params = $this->omit($params, 'till');
         }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = yield $this->privateGetFills (array_merge($request, $params));
         //
         //     {

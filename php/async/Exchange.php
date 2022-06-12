@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.99';
+$version = '1.87.1';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.99';
+    const VERSION = '1.87.1';
 
     public static $loop;
     public static $kernel;
@@ -234,6 +234,79 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_trade($trade, $market = null) {
+        $amount = $this->safe_string($trade, 'amount');
+        $price = $this->safe_string($trade, 'price');
+        $cost = $this->safe_string($trade, 'cost');
+        if ($cost === null) {
+            // contract trading
+            $contractSize = $this->safe_string($market, 'contractSize');
+            $multiplyPrice = $price;
+            if ($contractSize !== null) {
+                $inverse = $this->safe_value($market, 'inverse', false);
+                if ($inverse) {
+                    $multiplyPrice = Precise::string_div('1', $price);
+                }
+                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            }
+            $cost = Precise::string_mul($multiplyPrice, $amount);
+        }
+        $parseFee = $this->safe_value($trade, 'fee') === null;
+        $parseFees = $this->safe_value($trade, 'fees') === null;
+        $shouldParseFees = $parseFee || $parseFees;
+        $fees = $this->safe_value($trade, 'fees', array());
+        if ($shouldParseFees) {
+            $tradeFees = $this->safe_value($trade, 'fees');
+            if ($tradeFees !== null) {
+                for ($j = 0; $j < count($tradeFees); $j++) {
+                    $tradeFee = $tradeFees[$j];
+                    $fees[] = array_merge(array(), $tradeFee);
+                }
+            } else {
+                $tradeFee = $this->safe_value($trade, 'fee');
+                if ($tradeFee !== null) {
+                    $fees[] = array_merge(array(), $tradeFee);
+                }
+            }
+        }
+        $fee = $this->safe_value($trade, 'fee');
+        if ($shouldParseFees) {
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees, true) : $fees;
+            $reducedLength = is_array($reducedFees) ? count($reducedFees) : 0;
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
+                if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
+                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
+                }
+            }
+            if (!$parseFee && ($reducedLength === 0)) {
+                $fee['cost'] = $this->safe_number($fee, 'cost');
+                if (is_array($fee) && array_key_exists('rate', $fee)) {
+                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                }
+                $reducedFees[] = $fee;
+            }
+            if ($parseFees) {
+                $trade['fees'] = $reducedFees;
+            }
+            if ($parseFee && ($reducedLength === 1)) {
+                $trade['fee'] = $reducedFees[0];
+            }
+            $tradeFee = $this->safe_value($trade, 'fee');
+            if ($tradeFee !== null) {
+                $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
+                if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
+                    $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
+                }
+                $trade['fee'] = $tradeFee;
+            }
+        }
+        $trade['amount'] = $this->parse_number($amount);
+        $trade['price'] = $this->parse_number($price);
+        $trade['cost'] = $this->parse_number($cost);
+        return $trade;
+    }
 
     public function reduce_fees_by_currency($fees, $string = false) {
         //

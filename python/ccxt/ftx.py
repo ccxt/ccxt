@@ -2031,6 +2031,8 @@ class ftx(Exchange):
         if till is not None:
             request['end_time'] = int(till / 1000)
             params = self.omit(params, 'till')
+        if limit is not None:
+            request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
         #
         #     {
