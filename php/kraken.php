@@ -1060,7 +1060,7 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';

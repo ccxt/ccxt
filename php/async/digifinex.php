@@ -277,7 +277,7 @@ class digifinex extends Exchange {
             $active = $deposit && $withdraw;
             $fee = $this->safe_number($currency, 'withdraw_fee_rate');
             if (is_array($result) && array_key_exists($code, $result)) {
-                if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
+                if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
                     $result[$code]['info'][] = $currency;
                 } else {
                     $result[$code]['info'] = [ $result[$code]['info'], $currency ];

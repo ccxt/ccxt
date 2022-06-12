@@ -1766,7 +1766,7 @@ class binance extends Exchange {
             }
         } else {
             $balances = $response;
-            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $balances = $this->safe_value($response, 'assets', array());
             }
             for ($i = 0; $i < count($balances); $i++) {
@@ -2170,7 +2170,7 @@ class binance extends Exchange {
             $method = 'dapiPublicGetTicker24hr';
         }
         $response = yield $this->$method (array_merge($request, $params));
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             $firstTicker = $this->safe_value($response, 0, array());
             return $this->parse_ticker($firstTicker, $market);
         }
@@ -3191,7 +3191,7 @@ class binance extends Exchange {
             $method = 'dapiPrivateDeleteAllOpenOrders';
         }
         $response = yield $this->$method (array_merge($request, $query));
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market);
         } else {
             return $response;
@@ -5197,7 +5197,7 @@ class binance extends Exchange {
          * @return {dict} data on $account positions
          */
         if ($symbols !== null) {
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
+            if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires an array argument for symbols');
             }
         }
@@ -5227,7 +5227,7 @@ class binance extends Exchange {
          * @return {dict} data on the positions risk
          */
         if ($symbols !== null) {
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
+            if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
                 throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
             }
         }

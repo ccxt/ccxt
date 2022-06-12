@@ -850,7 +850,7 @@ class kuna extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = null;
-        if (gettype($api) === 'array' && count(array_filter(array_keys($api), 'is_string')) == 0) {
+        if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             list($version, $access) = $api;
             $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
             if ($access === 'public') {

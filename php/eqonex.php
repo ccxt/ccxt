@@ -618,7 +618,7 @@ class eqonex extends Exchange {
         $amountString = null;
         $fee = null;
         $marketId = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $id = $this->safe_string($trade, 3);
             $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
             $amountString = $this->convert_from_scale($this->safe_string($trade, 1), $market['precision']['amount']);

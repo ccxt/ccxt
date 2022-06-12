@@ -1024,7 +1024,7 @@ class coinflex extends Exchange {
         yield $this->load_markets();
         $request = array();
         $market = null;
-        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0 && strlen($symbols) === 1) {
+        if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)) && strlen($symbols) === 1) {
             $market = $this->market($symbols[0]);
             $request['marketCode'] = $market['id'];
         }
@@ -1084,7 +1084,7 @@ class coinflex extends Exchange {
         yield $this->load_markets();
         $request = array();
         $market = null;
-        if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0 && strlen($symbols) === 1) {
+        if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)) && strlen($symbols) === 1) {
             $market = $this->market($symbols[0]);
             $request['marketCode'] = $market['id'];
         }

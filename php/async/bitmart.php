@@ -1223,7 +1223,7 @@ class bitmart extends Exchange {
         //         '0.25', // volume
         //     )
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),

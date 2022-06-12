@@ -877,7 +877,7 @@ class ndax extends Exchange {
         $takerOrMaker = null;
         $fee = null;
         $type = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $priceString = $this->safe_string($trade, 3);
             $amountString = $this->safe_string($trade, 2);
             $timestamp = $this->safe_integer($trade, 6);

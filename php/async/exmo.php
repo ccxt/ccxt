@@ -1114,7 +1114,7 @@ class exmo extends Exchange {
         yield $this->load_markets();
         $pair = null;
         $market = null;
-        if (gettype($symbol) === 'array' && count(array_filter(array_keys($symbol), 'is_string')) == 0) {
+        if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
             $numSymbols = is_array($symbol) ? count($symbol) : 0;
             if ($numSymbols < 1) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a non-empty $symbol array');

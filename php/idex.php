@@ -442,7 +442,7 @@ class idex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetCandles (array_merge($request, $params));
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // array(
             //   array(
             //     start => 1598345580000,
@@ -993,7 +993,7 @@ class idex extends Exchange {
         //        liquidity => 'taker',
         //        txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
         //        txStatus => 'mined' } ) }
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
             return $this->parse_order($response, $market);

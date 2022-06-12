@@ -4184,7 +4184,7 @@ class okx extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
+        $isArray = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;

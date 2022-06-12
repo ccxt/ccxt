@@ -2462,7 +2462,7 @@ class bitfinex2 extends Exchange {
 
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response !== null) {
-            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $message = $this->safe_string_2($response, 'message', 'error');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

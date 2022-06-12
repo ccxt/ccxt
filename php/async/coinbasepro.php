@@ -569,7 +569,7 @@ class coinbasepro extends Exchange {
         $open = null;
         $volume = null;
         $symbol = ($market === null) ? null : $market['symbol'];
-        if (gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0) {
+        if (gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker))) {
             $last = $this->safe_string($ticker, 4);
             $timestamp = $this->milliseconds();
         } else {

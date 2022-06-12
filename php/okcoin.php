@@ -1522,7 +1522,7 @@ class okcoin extends Exchange {
         //         725179.26172331,
         //     )
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             $numElements = is_array($ohlcv) ? count($ohlcv) : 0;
             $volumeIndex = ($numElements > 6) ? 6 : 5;
             $timestamp = $this->safe_value($ohlcv, 0);
@@ -3791,7 +3791,7 @@ class okcoin extends Exchange {
         if ($responseLength < 1) {
             return array();
         }
-        $isArray = gettype($response[0]) === 'array' && count(array_filter(array_keys($response[0]), 'is_string')) == 0;
+        $isArray = gettype($response[0]) === 'array' && array_keys($response[0]) === array_keys(array_keys($response[0]));
         $isMargin = ($type === 'margin');
         $entries = ($isMargin && $isArray) ? $response[0] : $response;
         if ($type === 'swap') {
@@ -3933,7 +3933,7 @@ class okcoin extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
+        $isArray = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
         $request = '/api/' . $api . '/' . $this->version . '/';
         $request .= $isArray ? $path : $this->implode_params($path, $params);
         $query = $isArray ? $params : $this->omit($params, $this->extract_params($path));

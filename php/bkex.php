@@ -527,7 +527,7 @@ class bkex extends Exchange {
         $this->load_markets();
         $request = array();
         if ($symbols !== null) {
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) != 0) {
+            if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
                 throw new BadRequest($this->id . ' fetchTickers () $symbols argument should be an array');
             }
         }
@@ -1049,7 +1049,7 @@ class bkex extends Exchange {
          * @param {dict} $params extra parameters specific to the bkex api endpoint
          * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
-        if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
+        if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
         }
         $this->load_markets();
