@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, NotSupported, BadRequest, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -25,21 +25,29 @@ module.exports = class bitso extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDeposit': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchLedger': true,    
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -55,9 +63,12 @@ module.exports = class bitso extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactions': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
                 'fetchTransfer': false,
@@ -147,6 +158,7 @@ module.exports = class bitso extends Exchange {
                         'litecoin_withdrawal',
                     ],
                     'delete': [
+                        'orders',
                         'orders/{oid}',
                         'orders/all',
                     ],
@@ -158,6 +170,152 @@ module.exports = class bitso extends Exchange {
                 '0304': BadRequest, // {"success":false,"error":{"code":"0304","message":"The field time_bucket () is either invalid or missing"}}
             },
         });
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetLedger (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         payload: [{
+        //             eid: '2510b3e2bc1c87f584500a18084f35ed',
+        //             created_at: '2022-06-08T12:21:42+0000',
+        //             balance_updates: [{
+        //                 amount: '0.00080000',
+        //                 currency: 'btc'
+        //             }],
+        //             operation: 'funding',
+        //             details: {
+        //                 network: 'btc',
+        //                 method: 'btc',
+        //                 method_name: 'Bitcoin',
+        //                 asset: 'btc',
+        //                 protocol: 'btc',
+        //                 integration: 'bitgo-v2',
+        //                 fid: '6112c6369100d6ecceb7f54f17cf0511'
+        //             }
+        //         }]
+        //     }
+        //
+        const payload = this.safeValue (response, 'payload', []);
+        return this.parseLedger (payload, code, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'funding': 'transaction',
+            'withdrawal': 'transaction',
+            'trade': 'trade',
+            'fee': 'fee',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         eid: '2510b3e2bc1c87f584500a18084f35ed',
+        //         created_at: '2022-06-08T12:21:42+0000',
+        //         balance_updates: [{
+        //             amount: '0.00080000',
+        //             currency: 'btc'
+        //         }],
+        //         operation: 'funding',
+        //         details: {
+        //             network: 'btc',
+        //             method: 'btc',
+        //             method_name: 'Bitcoin',
+        //             asset: 'btc',
+        //             protocol: 'btc',
+        //             integration: 'bitgo-v2',
+        //             fid: '6112c6369100d6ecceb7f54f17cf0511'
+        //         }
+        //     }
+        //
+        //  trade
+        //     {
+        //         eid: '8976c6053f078f704f037d82a813678a',
+        //         created_at: '2022-06-08T17:01:48+0000',
+        //         balance_updates: [{
+        //                 amount: '59.21320500',
+        //                 currency: 'mxn'
+        //             },
+        //             {
+        //                 amount: '-0.00010000',
+        //                 currency: 'btc'
+        //             }
+        //         ],
+        //         operation: 'trade',
+        //         details: {
+        //             tid: '72145428',
+        //             oid: 'JO5TZmMZjzjlZDyT'
+        //         }
+        //     }
+        //
+        //  fee
+        //     {
+        //         eid: 'cbbb3c8d4e41723d25d2850dcb7c3c74',
+        //         created_at: '2022-06-08T17:01:48+0000',
+        //         balance_updates: [{
+        //             amount: '-0.38488583',
+        //             currency: 'mxn'
+        //         }],
+        //         operation: 'fee',
+        //         details: {
+        //             tid: '72145428',
+        //             oid: 'JO5TZmMZjzjlZDyT'
+        //         }
+        //     }
+        const operation = this.safeString (item, 'operation');
+        const type = this.parseLedgerEntryType (operation);
+        const balanceUpdates = this.safeValue (item, 'balance_updates', []);
+        const firstBalance = this.safeValue (balanceUpdates, 0, {});
+        let direction = undefined;
+        let fee = undefined;
+        let referenceId = undefined;
+        const amount = this.safeString (firstBalance, 'amount');
+        const currencyId = this.safeString (firstBalance, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const details = this.safeValue (item, 'details', {});
+        if (operation === 'funding') {
+            direction = 'in';
+            referenceId = this.safeString (details, 'fid');
+        } else if (operation === 'withdrawal') {
+            direction = 'out';
+            referenceId = this.safeString (details, 'wid');
+        } else if (operation === 'trade') {
+            referenceId = this.safeString (details, 'tid')
+        } else if (operation === 'fee') {
+            direction = 'out';
+            const cost = Precise.stringAbs (amount);
+            fee = {
+                'cost': cost,
+                'currency': currency,
+            }
+            referenceId = this.safeString (details, 'tid')
+        }
+        const datetime = this.safeString (item, 'created_at'); // check format
+        return this.safeLedgerEntry ({
+            'id': this.safeString (item, 'eid'),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': this.safeString2 (details, 'fid', 'wid', this.safeString (details, 'tid')),
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'timestamp': this.parse8601 (datetime),
+            'datetime':  datetime,
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': fee,
+            'info': item,
+        }, currency);
     }
 
     async fetchMarkets (params = {}) {
@@ -774,6 +932,88 @@ module.exports = class bitso extends Exchange {
         return await this.privateDeleteOrdersOid (this.extend (request, params));
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (!Array.isArray (ids)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
+        }
+        let oids = '';
+        for (let i = 0; i < ids.length; i++) {
+            oids += ids[i];
+            if (i < ids.length - 1) {
+                oids += ',';
+            }
+        }
+        const request = {
+            'oids': oids,
+        };
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        const payload = this.safeValue (response, 'payload', []);
+        const orders = [];
+        for (let i = 0; i < payload.length; i++) {
+            const id = payload[i];
+            orders.push (this.parseCancelledOrder (id));
+        }
+        return orders;
+    }
+
+    parseCancelledOrder (order, market = undefined) {
+        //
+        // yWTQGxDMZ0VimZgZ
+        //
+        return this.safeOrder ({
+            'info': order,
+            'id': order,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'remaining': undefined,
+            'filled': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'average': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
+        }
+        const response = await this.privateDeleteOrdersAll (params);
+        //
+        //     {
+        //         success: true,
+        //         payload: ['NWUZUYNT12ljwzDT', 'kZUkZmQ2TTjkkYTY']
+        //     }
+        //
+        const payload = this.safeValue (response, 'payload', []);
+        const cancelledOrders = [];
+        for (let i = 0; i < payload.length; i++) {
+            const order = this.safeOrder ({
+                'info': payload[i],
+                'id': payload[i],
+            });
+            cancelledOrders.push (order);
+        }
+        return cancelledOrders;
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'partial-fill': 'open', // this is a common substitution in ccxt
@@ -871,6 +1111,69 @@ module.exports = class bitso extends Exchange {
         };
         const response = await this.privateGetOrderTradesOid (this.extend (request, params));
         return this.parseTrades (response['payload'], market);
+    }
+
+    async fetchDeposit (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'fid': id,
+        };
+        const response = await this.privateGetFundingsFid (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         payload: [{
+        //             fid: '6112c6369100d6ecceb7f54f17cf0511',
+        //             status: 'complete',
+        //             created_at: '2022-06-08T12:02:49+0000',
+        //             currency: 'btc',
+        //             method: 'btc',
+        //             method_name: 'Bitcoin',
+        //             amount: '0.00080000',
+        //             asset: 'btc',
+        //             network: 'btc',
+        //             protocol: 'btc',
+        //             integration: 'bitgo-v2',
+        //             details: {
+        //                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //                 confirmations: '4'
+        //             }
+        //         }]
+        //     }
+        //
+        const transactions = this.safeValue (response, 'payload', []);
+        return this.parseTransactions (transactions);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetFundings (params);
+        //
+        //     {
+        //         success: true,
+        //         payload: [{
+        //             fid: '6112c6369100d6ecceb7f54f17cf0511',
+        //             status: 'complete',
+        //             created_at: '2022-06-08T12:02:49+0000',
+        //             currency: 'btc',
+        //             method: 'btc',
+        //             method_name: 'Bitcoin',
+        //             amount: '0.00080000',
+        //             asset: 'btc',
+        //             network: 'btc',
+        //             protocol: 'btc',
+        //             integration: 'bitgo-v2',
+        //             details: {
+        //                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //                 confirmations: '4'
+        //             }
+        //         }]
+        //     }
+        //
+        const transactions = this.safeValue (response, 'payload', []);
+        return this.parseTransactions (transactions, code, since, limit, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1014,7 +1317,41 @@ module.exports = class bitso extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
+    safeNetwork (networkId) {
+        if (networkId === undefined) {
+            return undefined;
+        }
+        networkId = networkId.toUpperCase ();
+        const networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'bsc': 'BEP20',
+            'bep2': 'BEP2',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
     parseTransaction (transaction, currency = undefined) {
+        //
+        // deposit
+        //     {
+        //         fid: '6112c6369100d6ecceb7f54f17cf0511',
+        //         status: 'complete',
+        //         created_at: '2022-06-08T12:02:49+0000',
+        //         currency: 'btc',
+        //         method: 'btc',
+        //         method_name: 'Bitcoin',
+        //         amount: '0.00080000',
+        //         asset: 'btc',
+        //         network: 'btc',
+        //         protocol: 'btc',
+        //         integration: 'bitgo-v2',
+        //         details: {
+        //             receiving_address: '3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //             tx_hash: '327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //             confirmations: '4'
+        //         }
+        //     }
         //
         // withdraw
         //
@@ -1031,20 +1368,27 @@ module.exports = class bitso extends Exchange {
         //         }
         //     }
         //
-        currency = this.safeCurrency (undefined, currency);
-        return {
-            'id': this.safeString (transaction, 'wid'),
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
-            'currency': currency['code'],
-            'status': undefined,
+        const currencyId = this.safeString2 (transaction, 'currency', 'asset');
+        currency = this.safeCurrency (currencyId, currency);
+        const details = this.safeValue (transaction, 'details', {});
+        const datetime = this.safeString (transaction, 'created_at');
+        const withdrawalAddress = this.safeString (details, 'withdrawal_address');
+        const receivingAddress = this.safeString (details, 'receiving_address');
+        const networkId = this.safeString2 (transaction, 'network', 'method');
+        const status = this.safeString (transaction, 'status');
+        return  {
+            'id': this.safeString2 (transaction, 'wid', 'fid'),
+            'txid': this.safeString (details, 'tx_hash'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': this.safeNetwork (networkId),
+            'addressFrom': receivingAddress,
+            'address': withdrawalAddress !== undefined ? withdrawalAddress : receivingAddress,
+            'addressTo': withdrawalAddress,
+            'amount': this.safeString (transaction, 'amount'),
+            'type': this.safeString (transaction, 'wid') === undefined ? 'deposit' : 'withdrawal',
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
             'tag': undefined,
@@ -1055,10 +1399,20 @@ module.exports = class bitso extends Exchange {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'in_progress': 'pending',
+            'complete': 'ok',
+            'failed': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method === 'GET' || method === 'DELETE') {
             if (Object.keys (query).length) {
                 endpoint += '?' + this.urlencode (query);
             }
@@ -1068,7 +1422,7 @@ module.exports = class bitso extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             let request = [ nonce, method, endpoint ].join ('');
-            if (method !== 'GET') {
+            if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length) {
                     body = this.json (query);
                     request += body;
