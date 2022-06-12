@@ -1569,11 +1569,11 @@ module.exports = class ftx extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         let isTakeProfit = false;
         let isStopLoss = false;
-        let isStopPrice = false;
+        let isTriggerPrice = false;
         if (triggerPrice !== undefined) {
             isTakeProfit = type === 'takeProfit';
             isStopLoss = type === 'stop';
-            isStopPrice = !isTakeProfit && !isStopLoss;
+            isTriggerPrice = !isTakeProfit && !isStopLoss;
         } else if (takeProfitPrice !== undefined) {
             isTakeProfit = true;
             triggerPrice = takeProfitPrice;
@@ -1581,10 +1581,10 @@ module.exports = class ftx extends Exchange {
             isStopLoss = true;
             triggerPrice = stopLossPrice;
         }
-        if (!isStopPrice) {
+        if (!isTriggerPrice) {
             request['type'] = type;
         }
-        const isStopOrder = isTakeProfit || isStopLoss || isStopPrice;
+        const isStopOrder = isTakeProfit || isStopLoss || isTriggerPrice;
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isStopOrder) {
             method = 'privatePostConditionalOrders';
