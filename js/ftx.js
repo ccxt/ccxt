@@ -1632,14 +1632,61 @@ module.exports = class ftx extends Exchange {
             params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
         }
         let method = undefined;
-        const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (((type === 'limit') || (type === 'market')) && (stopPrice === undefined)) {
+        let stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopOrder = (stopPrice !== undefined) || (stopLossPrice !== undefined) || (type === 'stop');
+        const isTakeProfitOrder = (type === 'takeProfit') || (takeProfitPrice !== undefined);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isTakeProfitOrder) {
+            method = 'privatePostConditionalOrders';
+            stopPrice = (stopPrice === undefined) ? takeProfitPrice : stopPrice;
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a takeProfitPrice parameter, a triggerPrice parameter, or a stopPrice parameter for takeProfit orders');
+            } else {
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            }
+            if ((type === 'limit') && (price === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for takeProfit limit orders');
+            }
+            if (price !== undefined) {
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
+            if ((type === 'limit') || (type === 'market')) {
+                request['type'] = 'takeProfit';
+            }
+        } else if (isStopOrder) {
+            method = 'privatePostConditionalOrders';
+            stopPrice = (stopPrice === undefined) ? stopLossPrice : stopPrice;
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopLossPrice parameter, a triggerPrice parameter, or a stopPrice parameter for stop orders');
+            } else {
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            }
+            if ((type === 'limit') && (price === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for stop limit orders');
+            }
+            if (price !== undefined) {
+                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
+            }
+            if ((type === 'limit') || (type === 'market')) {
+                request['type'] = 'stop';
+            }
+        } else if (type === 'trailingStop') {
+            const trailValue = this.safeNumber (params, 'trailValue', price);
+            if (trailValue === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
+            }
+            method = 'privatePostConditionalOrders';
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
+        } else {
             method = 'privatePostOrders';
             if (type === 'limit') {
                 request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             } else if (type === 'market') {
                 request['price'] = null;
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
             }
             const timeInForce = this.safeString (params, 'timeInForce');
             const postOnly = this.safeValue (params, 'postOnly', false);
@@ -1660,32 +1707,6 @@ module.exports = class ftx extends Exchange {
             if (ioc) {
                 request['ioc'] = true;
             }
-        } else if ((type === 'stop') || (type === 'takeProfit') || (stopPrice !== undefined)) {
-            method = 'privatePostConditionalOrders';
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders');
-            } else {
-                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            }
-            if ((type === 'limit') && (price === undefined)) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for stop limit orders');
-            }
-            if (price !== undefined) {
-                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
-            }
-            if ((type === 'limit') || (type === 'market')) {
-                // default to stop orders for main argument
-                request['type'] = 'stop';
-            }
-        } else if (type === 'trailingStop') {
-            const trailValue = this.safeNumber (params, 'trailValue', price);
-            if (trailValue === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
-            }
-            method = 'privatePostConditionalOrders';
-            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
-        } else {
-            throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1717,25 +1738,29 @@ module.exports = class ftx extends Exchange {
         // conditional orders
         //
         //     {
-        //         "success": true,
-        //         "result": [
-        //             {
-        //                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
-        //                 "future": "XRP-PERP",
-        //                 "id": 9596912,
-        //                 "market": "XRP-PERP",
-        //                 "triggerPrice": 0.306525,
-        //                 "orderId": null,
-        //                 "side": "sell",
-        //                 "size": 31431,
-        //                 "status": "open",
-        //                 "type": "stop",
-        //                 "orderPrice": null,
-        //                 "error": null,
-        //                 "triggeredAt": null,
-        //                 "reduceOnly": false
-        //             }
-        //         ]
+        //         "success":true,
+        //         "result":{
+        //             "id":215826320,
+        //             "market":"BTC/USD",
+        //             "future":null,
+        //             "side":"sell",
+        //             "type":"take_profit", // the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" type with underscore
+        //             "orderPrice":40000.0,
+        //             "triggerPrice":39000.0,
+        //             "size":0.001,
+        //             "status":"open",
+        //             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        //             "triggeredAt":null,
+        //             "orderId":null,
+        //             "error":null,
+        //             "reduceOnly":false,
+        //             "trailValue":null,
+        //             "trailStart":null,
+        //             "cancelledAt":null,
+        //             "cancelReason":null,
+        //             "retryUntilFilled":false,
+        //             "orderType":"limit"
+        //         }
         //     }
         //
         //
