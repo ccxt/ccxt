@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.86.92';
+$version = '1.86.93';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.86.92';
+    const VERSION = '1.86.93';
 
     public static $loop;
     public static $kernel;
@@ -384,7 +384,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_l2_order_book($symbol, $limit = null, $params = array ()) {
         $orderbook = yield $this->fetch_order_book($symbol, $limit, $params);
-        return extend ($orderbook, array(
+        return array_merge($orderbook, array(
             'asks' => $this->sort_by($this->aggregate ($orderbook['asks']), 0),
             'bids' => $this->sort_by($this->aggregate ($orderbook['bids']), 0, true),
         ));
