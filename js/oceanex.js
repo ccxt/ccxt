@@ -972,17 +972,32 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name oceanex#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @param {str|undefined} params.category 'depost or withdraw, default will be defined in options.fetchTransfers.defaultCategory'
+         * @param {int|undefined} params.status 'filter status of position. holding: 1, system_in: 2, holding + system_in: 3, closed: 4'
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const fetchTransfers = this.safeString2 (this.options, 'fetchTransfers', {});
-        const defaultCategory = this.safeString (fetchTransfers, 'defaultCategory');
+        let category = this.safeString (params, 'category');
+        if (category === undefined) {
+            const fetchTransfers = this.safeString2 (this.options, 'fetchTransfers', {});
+            category = this.safeString (fetchTransfers, 'defaultCategory');
+        }
         const request = {
-            'category': defaultCategory,
+            'category': category,
             'coinCode': currency['id'],
-            'status': 3, // Status of position. holding: 1, system_in: 2, holding + system_in: 3, closed: 4
+            'status': 3,
         };
         if (limit !== undefined) {
             request['size'] = limit;
