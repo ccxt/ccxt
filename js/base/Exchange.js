@@ -11,7 +11,6 @@ const {
     , clone
     , flatten
     , unique
-    , aggregate
     , unCamelCase
     , throttle
     , capitalize
@@ -790,63 +789,6 @@ module.exports = class Exchange {
         return array
     }
 
-    safeTicker (ticker, market = undefined) {
-        let open = this.safeValue (ticker, 'open');
-        let close = this.safeValue (ticker, 'close');
-        let last = this.safeValue (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let percentage = this.safeValue (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        let vwap = this.safeValue (ticker, 'vwap');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        if (vwap === undefined) {
-            vwap = Precise.stringDiv (quoteVolume, baseVolume);
-        }
-        if ((last !== undefined) && (close === undefined)) {
-            close = last;
-        } else if ((last === undefined) && (close !== undefined)) {
-            last = close;
-        }
-        if ((last !== undefined) && (open !== undefined)) {
-            if (change === undefined) {
-                change = Precise.stringSub (last, open);
-            }
-            if (average === undefined) {
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
-            }
-        }
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
-            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-        }
-        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
-            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
-        }
-        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = Precise.stringSub (last, change);
-        }
-        // timestamp and symbol operations don't belong in safeTicker
-        // they should be done in the derived classes
-        return this.extend (ticker, {
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'open': this.parseNumber (open),
-            'close': this.parseNumber (close),
-            'last': this.parseNumber (last),
-            'change': this.parseNumber (change),
-            'percentage': this.parseNumber (percentage),
-            'average': this.parseNumber (average),
-            'vwap': this.parseNumber (vwap),
-            'baseVolume': this.parseNumber (baseVolume),
-            'quoteVolume': this.parseNumber (quoteVolume),
-            'previousClose': this.safeNumber (ticker, 'previousClose'),
-        });
-    }
-
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -1436,6 +1378,63 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    safeTicker (ticker, market = undefined) {
+        let open = this.safeValue (ticker, 'open');
+        let close = this.safeValue (ticker, 'close');
+        let last = this.safeValue (ticker, 'last');
+        let change = this.safeValue (ticker, 'change');
+        let percentage = this.safeValue (ticker, 'percentage');
+        let average = this.safeValue (ticker, 'average');
+        let vwap = this.safeValue (ticker, 'vwap');
+        const baseVolume = this.safeValue (ticker, 'baseVolume');
+        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+        if (vwap === undefined) {
+            vwap = Precise.stringDiv (quoteVolume, baseVolume);
+        }
+        if ((last !== undefined) && (close === undefined)) {
+            close = last;
+        } else if ((last === undefined) && (close !== undefined)) {
+            last = close;
+        }
+        if ((last !== undefined) && (open !== undefined)) {
+            if (change === undefined) {
+                change = Precise.stringSub (last, open);
+            }
+            if (average === undefined) {
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+            }
+        }
+        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
+            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        }
+        if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
+            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+        }
+        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+            open = Precise.stringSub (last, change);
+        }
+        // timestamp and symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return this.extend (ticker, {
+            'bid': this.safeNumber (ticker, 'bid'),
+            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+            'ask': this.safeNumber (ticker, 'ask'),
+            'askVolume': this.safeNumber (ticker, 'askVolume'),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (close),
+            'last': this.parseNumber (last),
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'vwap': this.parseNumber (vwap),
+            'baseVolume': this.parseNumber (baseVolume),
+            'quoteVolume': this.parseNumber (quoteVolume),
+            'previousClose': this.safeNumber (ticker, 'previousClose'),
+        });
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
@@ -1528,7 +1527,7 @@ module.exports = class Exchange {
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.fetchOrderBook (symbol, limit, params);
-        return extend (orderbook, {
+        return this.extend (orderbook, {
             'asks': this.sortBy (this.aggregate (orderbook['asks']), 0),
             'bids': this.sortBy (this.aggregate (orderbook['bids']), 0, true),
         });

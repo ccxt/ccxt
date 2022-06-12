@@ -235,6 +235,63 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_ticker($ticker, $market = null) {
+        $open = $this->safe_value($ticker, 'open');
+        $close = $this->safe_value($ticker, 'close');
+        $last = $this->safe_value($ticker, 'last');
+        $change = $this->safe_value($ticker, 'change');
+        $percentage = $this->safe_value($ticker, 'percentage');
+        $average = $this->safe_value($ticker, 'average');
+        $vwap = $this->safe_value($ticker, 'vwap');
+        $baseVolume = $this->safe_value($ticker, 'baseVolume');
+        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+        if ($vwap === null) {
+            $vwap = Precise::string_div($quoteVolume, $baseVolume);
+        }
+        if (($last !== null) && ($close === null)) {
+            $close = $last;
+        } elseif (($last === null) && ($close !== null)) {
+            $last = $close;
+        }
+        if (($last !== null) && ($open !== null)) {
+            if ($change === null) {
+                $change = Precise::string_sub($last, $open);
+            }
+            if ($average === null) {
+                $average = Precise::string_div(Precise::string_add($last, $open), '2');
+            }
+        }
+        if (($percentage === null) && ($change !== null) && ($open !== null) && Precise::string_gt($open, '0')) {
+            $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+        }
+        if (($change === null) && ($percentage !== null) && ($open !== null)) {
+            $change = Precise::string_div(Precise::string_mul($percentage, $open), '100');
+        }
+        if (($open === null) && ($last !== null) && ($change !== null)) {
+            $open = Precise::string_sub($last, $change);
+        }
+        // timestamp and symbol operations don't belong in safeTicker
+        // they should be done in the derived classes
+        return array_merge($ticker, array(
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
+            'ask' => $this->safe_number($ticker, 'ask'),
+            'askVolume' => $this->safe_number($ticker, 'askVolume'),
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'open' => $this->parse_number($open),
+            'close' => $this->parse_number($close),
+            'last' => $this->parse_number($last),
+            'change' => $this->parse_number($change),
+            'percentage' => $this->parse_number($percentage),
+            'average' => $this->parse_number($average),
+            'vwap' => $this->parse_number($vwap),
+            'baseVolume' => $this->parse_number($baseVolume),
+            'quoteVolume' => $this->parse_number($quoteVolume),
+            'previousClose' => $this->safe_number($ticker, 'previousClose'),
+        ));
+    }
+
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
