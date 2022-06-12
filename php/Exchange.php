@@ -293,9 +293,9 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeOrder' => 'safe_order',
         'parseOrders' => 'parse_orders',
         'calculateFee' => 'calculate_fee',
-        'safeOrder' => 'safe_order',
         'safeTrade' => 'safe_trade',
         'reduceFeesByCurrency' => 'reduce_fees_by_currency',
         'safeTicker' => 'safe_ticker',
@@ -1228,6 +1228,7 @@ class Exchange {
         $this->apiKey = '';
         $this->secret = '';
         $this->password = '';
+        $this->login = '';
         $this->uid = '';
         $this->privateKey = '';
         $this->walletAddress = '';
@@ -2567,15 +2568,17 @@ class Exchange {
         }
     }
 
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     public function safe_order($order, $market = null) {
         // parses numbers as strings
         // it is important pass the $trades as unparsed $rawTrades
-        $amount = $this->omit_zero ($this->safe_string($order, 'amount'));
+        $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
         $cost = $this->safe_string($order, 'cost');
-        $average = $this->omit_zero ($this->safe_string($order, 'average'));
-        $price = $this->omit_zero ($this->safe_string($order, 'price'));
+        $average = $this->omit_zero($this->safe_string($order, 'average'));
+        $price = $this->omit_zero($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
@@ -2677,7 +2680,7 @@ class Exchange {
             }
         }
         if ($amount === null) {
-            // ensure $amount = $filled + $remaining
+            // ensure $amount = $filled . $remaining
             if ($filled !== null && $remaining !== null) {
                 $amount = Precise::string_add($filled, $remaining);
             } elseif ($this->safe_string($order, 'status') === 'closed') {
@@ -2728,7 +2731,7 @@ class Exchange {
         }
         // we have $trades with string values at this point so we will mutate them
         for ($i = 0; $i < count($trades); $i++) {
-            $entry = &$trades[$i];
+            $entry = $trades[$i];
             $entry['amount'] = $this->safe_number($entry, 'amount');
             $entry['price'] = $this->safe_number($entry, 'price');
             $entry['cost'] = $this->safe_number($entry, 'cost');
@@ -2762,8 +2765,6 @@ class Exchange {
             'trades' => $trades,
         ));
     }
-
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function parse_orders($orders, $market = null, $since = null, $limit = null, $params = array ()) {
         //

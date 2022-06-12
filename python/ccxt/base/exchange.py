@@ -1876,6 +1876,8 @@ class Exchange(object):
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
     def safe_order(self, order, market=None):
         # parses numbers as strings
         # it is important pass the trades as unparsed rawTrades
@@ -2028,8 +2030,6 @@ class Exchange(object):
             'timeInForce': timeInForce,
             'trades': trades,
         })
-
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         #
