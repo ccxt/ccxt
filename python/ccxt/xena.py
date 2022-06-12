@@ -335,7 +335,7 @@ class xena(Exchange):
                     swap = True
             inverse = self.safe_value(market, 'inverse', False)
             contract = swap or future
-            pricePrecision = self.safe_integer_2(market, 'tickSize', 'pricePrecision')
+            pricePrecision = self.safe_string_2(market, 'tickSize', 'pricePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -362,7 +362,7 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
+                    'amount': self.parse_number('1'),
                     'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
