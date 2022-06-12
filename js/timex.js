@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 module.exports = class timex extends Exchange {
@@ -175,6 +176,7 @@ module.exports = class timex extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -564,6 +566,18 @@ module.exports = class timex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseSide = side.toUpperCase ();
@@ -679,11 +693,29 @@ module.exports = class timex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by timex cancelOrder ()
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol unified market symbol, default is undefined
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': ids,
@@ -717,6 +749,14 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by timex fetchOrder
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderHash': id,
@@ -761,6 +801,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
@@ -806,6 +856,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
@@ -856,6 +916,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchMyTrades', {});
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
@@ -926,6 +996,14 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the timex api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1002,8 +1080,8 @@ module.exports = class timex extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+                'amount': this.safeNumber (market, 'quantityIncrement'),
+                'price': this.safeNumber (market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1068,7 +1146,6 @@ module.exports = class timex extends Exchange {
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (currency, 'name');
-        const precision = this.safeInteger (currency, 'decimals');
         const depositEnabled = this.safeValue (currency, 'depositEnabled');
         const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
         const isActive = this.safeValue (currency, 'active');
@@ -1102,7 +1179,7 @@ module.exports = class timex extends Exchange {
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },

@@ -965,6 +965,14 @@ class aax(Exchange):
         }, market)
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -1087,6 +1095,11 @@ class aax(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         response = self.privateGetAccountBalances(params)
         #
         #     {
@@ -1188,6 +1201,16 @@ class aax(Exchange):
         return self.safe_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         orderType = type.upper()
         orderSide = side.upper()
         self.load_markets()
@@ -1419,6 +1442,13 @@ class aax(Exchange):
         return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'orderID': id,
@@ -1516,6 +1546,12 @@ class aax(Exchange):
         return self.parse_order(data, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
@@ -1543,6 +1579,12 @@ class aax(Exchange):
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         params['type'] = self.safe_string(params, 'type', defaultType)
@@ -1563,6 +1605,14 @@ class aax(Exchange):
         return order
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -1687,18 +1737,42 @@ class aax(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'orderStatus': '2',  # 1 new, 2 filled, 3 canceled
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'orderStatus': '3',  # 1 new, 2 filled, 3 canceled
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -1966,6 +2040,14 @@ class aax(Exchange):
         }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -2042,6 +2124,12 @@ class aax(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2071,6 +2159,14 @@ class aax(Exchange):
         return self.parse_deposit_address(data, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
@@ -2105,6 +2201,14 @@ class aax(Exchange):
         return self.parse_transactions(data, code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
@@ -2243,6 +2347,12 @@ class aax(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2386,6 +2496,14 @@ class aax(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -2435,6 +2553,13 @@ class aax(Exchange):
         return result
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
@@ -2487,6 +2612,15 @@ class aax(Exchange):
         return self.safe_string(statuses, status, 'canceled')
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountTypes = self.safe_value(self.options, 'accountsByType', {})
@@ -2572,36 +2706,66 @@ class aax(Exchange):
         contractSize = self.safe_string(market, 'contractSize')
         initialQuote = Precise.string_mul(currentQty, contractSize)
         marketPrice = self.safe_string(position, 'marketPrice')
-        notional = Precise.string_mul(initialQuote, marketPrice)
         timestamp = self.safe_integer(position, 'ts')
         liquidationPrice = self.safe_string(position, 'liquidationPrice')
-        marginMode = self.safe_string(position, 'settleType')
+        marketInfo = self.safe_value(market, 'info')
+        multiplier = self.safe_string(marketInfo, 'multiplier')
+        settleType = self.safe_string(position, 'settleType')
+        avgEntryPrice = self.safe_string(position, 'avgEntryPrice')
+        commission = self.safe_string(position, 'commission')
+        initialMargin = None
+        maintenanceMargin = None
+        notional = None
+        # https://support.aax.com/en/articles/5295653-what-is-margin
+        if settleType == 'VANILLA':
+            notional = Precise.string_mul(initialQuote, marketPrice)
+            # Initial Margin(Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.string_div(Precise.string_mul(Precise.string_mul(currentQty, avgEntryPrice), multiplier), leverage)
+            # Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            tmp = Precise.string_div(Precise.string_mul(currentQty, multiplier), Precise.string_mul(avgEntryPrice, leverage))
+            maintenanceMargin = Precise.string_add(tmp, commission)
+        else:
+            # inverse contracts
+            notional = Precise.string_div(initialQuote, marketPrice)
+            # Initial Margin(Limit Order) = Number of contracts / Entry Price / Leverage
+            # ^ no brackets /<::>\
+            initialMargin = Precise.string_div(currentQty, Precise.string_mul(leverage, avgEntryPrice))
+            # Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin
+        collateral = self.safe_string(position, 'posMargin')
+        percentage = Precise.string_div(unrealisedPnl, initialMargin)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMargin, notional)),
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_div(maintenanceMargin, notional)),
+            'entryPrice': self.parse_number(avgEntryPrice),
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(size),
             'contractSize': self.parse_number(contractSize),
-            'marginRatio': None,
+            'marginRatio': self.parse_number(marginRatio),
             'liquidationPrice': liquidationPrice,
             'markPrice': self.safe_number(position, 'marketPrice'),
-            'collateral': self.safe_number(position, 'posMargin'),
-            'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
+            'collateral': self.parse_number(collateral),
+            'marginMode': 'isolated',
             'side': side,
-            'percentage': None,
+            'percentage': self.parse_number(percentage),
         }
 
     def fetch_position(self, symbol=None, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2658,6 +2822,12 @@ class aax(Exchange):
         })
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         request = {}
         if symbols is not None:
