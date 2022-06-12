@@ -1612,7 +1612,6 @@ module.exports = class ftx extends Exchange {
             'market': market['id'],
             'side': side, // 'buy' or 'sell'
             // 'price': 0.306525, // send null for market orders
-            'type': type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': parseFloat (this.amountToPrecision (symbol, amount)),
             // 'reduceOnly': false, // optional, default is false
             // 'ioc': false, // optional, default is false, limit or market orders only
@@ -1626,92 +1625,83 @@ module.exports = class ftx extends Exchange {
         if (reduceOnly === true) {
             request['reduceOnly'] = reduceOnly;
         }
+        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientId'] = clientOrderId;
+            params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
+        }
         let method = undefined;
-        let stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopOrder = (stopPrice !== undefined) || (stopLossPrice !== undefined) || (type === 'stop');
-        const isTakeProfitOrder = (type === 'takeProfit') || (takeProfitPrice !== undefined);
-        let trailValue = this.safeNumber (params, 'trailValue');
-        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailValue' ]);
-        if (isTakeProfitOrder) {
+        let isTakeProfit = false;
+        let isStopLoss = false;
+        let isTriggerPrice = false;
+        if (triggerPrice !== undefined) {
+            isTakeProfit = type === 'takeProfit';
+            isStopLoss = type === 'stop';
+            isTriggerPrice = !isTakeProfit && !isStopLoss;
+        } else if (takeProfitPrice !== undefined) {
+            isTakeProfit = true;
+            triggerPrice = takeProfitPrice;
+        } else if (stopLossPrice !== undefined) {
+            isStopLoss = true;
+            triggerPrice = stopLossPrice;
+        }
+        if (!isTriggerPrice) {
+            request['type'] = type;
+        }
+        const isStopOrder = isTakeProfit || isStopLoss || isTriggerPrice;
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (isStopOrder) {
             method = 'privatePostConditionalOrders';
-            stopPrice = (stopPrice === undefined) ? takeProfitPrice : stopPrice;
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a takeProfitPrice parameter, a triggerPrice parameter, or a stopPrice parameter for takeProfit orders');
-            } else {
-                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            }
-            if ((type === 'limit') && (price === undefined)) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for takeProfit limit orders');
-            }
-            if (price !== undefined) {
-                request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
-            }
-            if ((type === 'limit') || (type === 'market')) {
-                request['type'] = 'takeProfit';
-            }
-        } else if (isStopOrder) {
-            method = 'privatePostConditionalOrders';
-            stopPrice = (stopPrice === undefined) ? stopLossPrice : stopPrice;
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a stopLossPrice parameter, a triggerPrice parameter, or a stopPrice parameter for stop orders');
-            } else {
-                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-            }
+            request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
             if ((type === 'limit') && (price === undefined)) {
                 throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for stop limit orders');
             }
             if (price !== undefined) {
                 request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price)); // optional, order type is limit if this is specified, otherwise market
             }
-            if ((type === 'limit') || (type === 'market')) {
-                request['type'] = 'stop';
+            if (isStopLoss || isTakeProfit) {
+                request['type'] = isStopLoss ? 'stop' : 'takeProfit';
             }
-        } else if ((type === 'trailingStop') || (trailValue !== undefined)) {
-            trailValue = (trailValue === undefined) ? price : trailValue;
-            if (trailValue === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a trailingStop order');
-            }
-            method = 'privatePostConditionalOrders';
-            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
-        } else {
+        } else if ((type === 'limit') || (type === 'market')) {
             method = 'privatePostOrders';
+            let isMarketOrder = false;
             if (type === 'limit') {
                 request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             } else if (type === 'market') {
                 request['price'] = null;
-            } else {
-                throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
+                isMarketOrder = true;
             }
             const timeInForce = this.safeString (params, 'timeInForce');
-            const postOnly = this.safeValue (params, 'postOnly', false);
+            const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
             params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
             if (timeInForce !== undefined) {
                 if (!((timeInForce === 'IOC') || (timeInForce === 'PO'))) {
                     throw new InvalidOrder (this.id + ' createOrder () does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed');
                 }
             }
-            const maker = ((timeInForce === 'PO') || postOnly);
-            if ((type === 'market') && maker) {
-                throw new InvalidOrder (this.id + ' createOrder () does not accept postOnly: true or timeInForce: PO for market orders');
-            }
             const ioc = (timeInForce === 'IOC');
-            if (maker) {
+            if (postOnly) {
                 request['postOnly'] = true;
             }
             if (ioc) {
                 request['ioc'] = true;
             }
-            const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
-            if (clientOrderId !== undefined) {
-                request['clientId'] = clientOrderId;
-                params = this.omit (params, [ 'clientId', 'clientOrderId' ]);
+        } else if (type === 'trailingStop') {
+            const trailValue = this.safeNumber (params, 'trailValue', price);
+            if (trailValue === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a trailValue parameter or a price argument (negative or positive) for a ' + type + ' order');
             }
+            method = 'privatePostConditionalOrders';
+            request['trailValue'] = parseFloat (this.priceToPrecision (symbol, trailValue)); // negative for "sell", positive for "buy"
+        } else {
+            throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported');
         }
         const response = await this[method] (this.extend (request, params));
         //
-        // orders
+        // regular orders
         //
         //     {
         //         "success": true,
@@ -1763,7 +1753,6 @@ module.exports = class ftx extends Exchange {
         //             "orderType":"limit"
         //         }
         //     }
-        //
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
