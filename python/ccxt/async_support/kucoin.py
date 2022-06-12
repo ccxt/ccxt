@@ -581,12 +581,6 @@ class kucoin(Exchange):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            baseMaxSize = self.safe_number(market, 'baseMaxSize')
-            baseMinSizeString = self.safe_string(market, 'baseMinSize')
-            quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
-            baseMinSize = self.parse_number(baseMinSizeString)
-            quoteMaxSize = self.parse_number(quoteMaxSizeString)
-            quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
@@ -629,16 +623,16 @@ class kucoin(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
+                        'min': self.safe_number(market, 'baseMinSize'),
+                        'max': self.safe_number(market, 'baseMaxSize'),
                     },
                     'price': {
                         'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
+                        'min': self.safe_number(market, 'quoteMinSize'),
+                        'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,

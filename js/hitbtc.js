@@ -500,7 +500,7 @@ module.exports = class hitbtc extends Exchange {
                 'limits': {
                     'amount': {
                         'min': 1 / Math.pow (10, decimals),
-                        'max': Math.pow (10, decimals),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': undefined,

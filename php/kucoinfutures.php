@@ -437,12 +437,8 @@ class kucoinfutures extends kucoin {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
                 $type = 'future';
             }
-            $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
-            $baseMinSize = $this->parse_number($baseMinSizeString);
-            $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
-            $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'status');
             $multiplier = $this->safe_string($market, 'multiplier');
@@ -482,16 +478,16 @@ class kucoinfutures extends kucoin {
                         'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
-                        'min' => $baseMinSize,
-                        'max' => $baseMaxSize,
+                        'min' => $this->parse_number($baseMinSizeString),
+                        'max' => $this->safe_number($market, 'baseMaxSize'),
                     ),
                     'price' => array(
                         'min' => null,
                         'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
                     ),
                     'cost' => array(
-                        'min' => $quoteMinSize,
-                        'max' => $quoteMaxSize,
+                        'min' => $this->safe_number($market, 'quoteMinSize'),
+                        'max' => $this->parse_number($quoteMaxSizeString),
                     ),
                 ),
                 'info' => $market,

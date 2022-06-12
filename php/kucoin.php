@@ -570,12 +570,6 @@ class kucoin extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
-            $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
-            $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
-            $baseMinSize = $this->parse_number($baseMinSizeString);
-            $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
-            $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
             $ticker = $this->safe_value($tickersByMarketId, $id, array());
             $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
@@ -618,16 +612,16 @@ class kucoin extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $baseMinSize,
-                        'max' => $baseMaxSize,
+                        'min' => $this->safe_number($market, 'baseMinSize'),
+                        'max' => $this->safe_number($market, 'baseMaxSize'),
                     ),
                     'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $quoteMinSize,
-                        'max' => $quoteMaxSize,
+                        'min' => $this->safe_number($market, 'quoteMinSize'),
+                        'max' => $this->safe_number($market, 'quoteMaxSize'),
                     ),
                 ),
                 'info' => $market,
