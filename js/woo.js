@@ -178,6 +178,9 @@ module.exports = class woo extends Exchange {
                 },
             },
             'options': {
+                'fetchDepositAddress': {
+                    'no-network': [ 'BTC', 'ETH' ],
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks-ids-for-fetch-deposits': {
                     'ALGO': 'ALGO',
@@ -185,15 +188,14 @@ module.exports = class woo extends Exchange {
                     'AVAXC': 'AVAXC',
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
-                    'BTC': undefined,
+                    'BTC': 'BTC',
                     'BSV': 'BCHSV',
                     'EOS': 'EOS',
-                    'ERC20': undefined,
+                    'ERC20': 'ETH',
                     'HRC20': 'HECO',
                     'POLYGON': 'MATIC',
                     'ONT': 'ONT',
                     'SPL': 'SOL',
-                    'TERRA': 'TERRA',
                     'TRC20': 'TRON',
                 },
                 'network-aliases': {
@@ -1391,20 +1393,21 @@ module.exports = class woo extends Exchange {
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let codeId = ''; 
-        const networksKeys = Object.keys (currency.networks);
-        const networksLength = Object.keys (networksKeys);
-        if (networksLength > 1) {
+        let codeId = '';
+        const addressOptions = this.safeValue (this.options, 'fetchDepositAddress', {});
+        const exceptions = this.safeValue (addressOptions, 'no-network');
+        if (this.inArray (code, exceptions)) {
+            codeId = currency['id'];
+        } else {
             const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-            const networkCode = this.safeValue (params, 'network', networkCodeDefault);
+            const networkCode = this.safeString (params, 'network', networkCodeDefault);
             params = this.omit (params, 'network');
-            const networks = this.safeValue (this.options, 'networks-ids-for-fetch-deposits', {});
-            const networkId = this.safeString (networks, networkCode);
+            const networksIds = this.safeValue (this.options, 'networks-ids-for-fetch-deposits', {});
+            const networkId = this.safeString (networksIds, networkCode);
             if (networkId !== undefined) {
-                codeId = networkId + '_';
+                codeId = networkId + '_' + currency['id'];
             }
         }
-        codeId += currency['id'];
         const request = {
             'token': codeId,
         };
