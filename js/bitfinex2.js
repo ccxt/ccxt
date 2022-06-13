@@ -803,7 +803,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const parsed = this.parseWsOrder (data);
         const symbolIds = {};
         if (messageType === 'os') {
             for (let i = 0; i < data.length; i++) {
@@ -818,13 +817,13 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             orders.append (parsed);
         }
         const name = 'order';
-        client.resolve (parsed, name);
+        client.resolve (this.orders, name);
         const keys = Object.keys (symbolIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const market = this.safeMarket (symbol);
             const messageHash = name + ':' + market['id'];
-            client.resolve (messageHash, name);
+            client.resolve (this.orders, messageHash);
         }
     }
 
@@ -899,7 +898,10 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const price = this.safeString (order, 16);
         const timestamp = this.safeInteger (order, 4);
         const average = this.safeString (order, 17);
-        const stopPrice = this.safeString (order, 18);
+        let stopPrice = this.safeString (order, 18);
+        if (stopPrice === '0') {
+            stopPrice = undefined;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -930,7 +932,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //         1231,
         //         'hb',
         //     ]
-        //
         //
         // auth message
         //    {
