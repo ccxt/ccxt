@@ -1780,13 +1780,15 @@ class wavesexchange(Exchange):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
         address = await self.get_waves_address()
         request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['amountAsset'] = market['baseId']
+            request['priceAsset'] = market['quoteId']
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
         #

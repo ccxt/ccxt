@@ -1885,13 +1885,16 @@ class wavesexchange extends Exchange {
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $this->load_markets();
-        $market = $this->market($symbol);
         $address = $this->get_waves_address();
         $request = array(
             'sender' => $address,
-            'amountAsset' => $market['baseId'],
-            'priceAsset' => $market['quoteId'],
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['amountAsset'] = $market['baseId'];
+            $request['priceAsset'] = $market['quoteId'];
+        }
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
         //
