@@ -1879,13 +1879,16 @@ module.exports = class wavesexchange extends Exchange {
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const address = await this.getWavesAddress ();
         const request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['amountAsset'] = market['baseId'];
+            request['priceAsset'] = market['quoteId'];
+        }
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         //
