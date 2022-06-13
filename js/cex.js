@@ -362,19 +362,17 @@ module.exports = class cex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
             const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
-            let pricePrecisionDigitsStr = this.safeString (quoteCurrency, 'precision', '8');
+            let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
                 if ((pair['symbol1'] === baseId) && (pair['symbol2'] === quoteId)) {
                     // we might need to account for `priceScale` here
-                    pricePrecisionDigitsStr = this.safeString (pair, 'pricePrecision', pricePrecisionDigitsStr);
+                    pricePrecisionString = this.safeString (pair, 'pricePrecision', pricePrecisionString);
                 }
             }
-            const precisionPrice = this.parseNumber (this.parsePrecision (pricePrecisionDigitsStr));
-            const baseCcyPrecisionStr = this.safeString (baseCurrency, 'precision', '8');
-            const baseCcyScaleStr = this.safeString (baseCurrency, 'scale', '0');
-            const precisionAmountDigits = Precise.stringSub (baseCcyPrecisionStr, baseCcyScaleStr);
-            const precisionAmount = this.parseNumber (this.parsePrecision (precisionAmountDigits));
+            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision', '8');
+            const baseCurrencyScale = this.safeString (baseCurrency, 'scale', '0');
+            const amountPrecisionString = Precise.stringSub (baseCurrencyPrecision, baseCurrencyScale);
             result.push ({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -400,8 +398,8 @@ module.exports = class cex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': precisionAmount,
-                    'price': precisionPrice,
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
