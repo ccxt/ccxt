@@ -371,7 +371,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
         let fee = undefined;
-        if (feeValue !== 'null' && fee !== undefined) {
+        if (feeValue !== 'null' && feeValue !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
             fee = {
@@ -798,16 +798,33 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const parsed = this.parseWsOrder (data);
+        const symbolIds = {};
         if (messageType === 'os') {
             for (let i = 0; i < data.length; i++) {
                 const value = data[i];
-                this.handleOrder (client, value);
+                const parsed = this.parseWsOrder (value);
+                const symbol = parsed['symbol'];
+                symbolIds[symbol] = true;
+                orders.append (parsed);
             }
         } else {
-            this.handleOrder (client, data);
+            const parsed = this.parseWsOrder (data);
+            orders.append (parsed);
         }
-        if (this.orders !== undefined) {
-            client.resolve (this.orders, 'os');
+        const name = 'order';
+        client.resolve (parsed, name);
+        const keys = Object.keys (symbolIds);
+        for (let i = 0; i < keys.length; i++) {
+            const symbol = keys[i];
+            const market = this.safeMarket (symbol);
+            const messageHash = name + ':' + market['id'];
+            client.resolve (messageHash, name);
         }
     }
 
@@ -815,47 +832,75 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const statuses = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
+            'EXECUTED': 'closed',
+            'PARTIALLY FILLED': 'open',
         };
         return this.safeString (statuses, status, status);
     }
 
-    handleOrder (client, order) {
+    parseWsOrder (order, market = undefined) {
         //
-        // [ 45287766631,
-        //     'ETHUST',
-        //     -0.07,
-        //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
-        //     210,
-        //     0,
-        //     '2020-05-16T13:17:46Z',
-        //     0,
-        //     0,
-        //     0 ]
+        //   [
+        //       97084883506, // order id
+        //       null,
+        //       1655110144596,
+        //       'tLTCUST', // symbol
+        //       1655110144596, // created timestamp
+        //       1655110144598, // updated timestamp
+        //       0, // amount
+        //       0.1, // amount_orig
+        //       'EXCHANGE MARKET', // type
+        //       null,
+        //       null,
+        //       null,
+        //       0,
+        //       'EXECUTED @ 42.821(0.1)', // status
+        //       null,
+        //       null,
+        //       42.799, // price
+        //       42.821, // price average
+        //       0, // price trailling
+        //       0, // price_aux_limit
+        //       null,
+        //       null,
+        //       null,
+        //       0,
+        //       0,
+        //       null,
+        //       null,
+        //       null,
+        //       'BFX',
+        //       null,
+        //       null,
+        //       {}
+        //   ]
         //
         const id = this.safeString (order, 0);
-        const marketId = this.safeString (order, 1);
+        const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
-        let amount = this.safeFloat (order, 2);
-        let remaining = this.safeFloat (order, 3);
+        market = this.safeMarket (symbol);
+        let remaining = this.safeNumber (order, 6);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs (amount);
+        if (remaining < 0) {
             remaining = Math.abs (remaining);
             side = 'sell';
         }
-        let type = this.safeString (order, 4);
+        const amount = this.safeString (order, 7);
+        let type = this.safeString (order, 8);
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
         } else if (type.indexOf ('MARKET') > -1) {
             type = 'market';
         }
-        const status = this.parseWsOrderStatus (this.safeString (order, 5));
-        const price = this.safeFloat (order, 6);
-        const rawDatetime = this.safeString (order, 8);
-        const timestamp = this.parse8601 (rawDatetime);
-        const parsed = {
+        const rawState = this.safeString (order, 13);
+        const stateParts = rawState.split (' ');
+        const trimmedStatus = this.safeString (stateParts, 0);
+        const status = this.parseWsOrderStatus (trimmedStatus);
+        const price = this.safeString (order, 16);
+        const timestamp = this.safeInteger (order, 4);
+        const average = this.safeString (order, 17);
+        const stopPrice = this.safeString (order, 18);
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -866,24 +911,16 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             'type': type,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'average': undefined,
+            'stopPrice': stopPrice,
+            'average': average,
             'amount': amount,
             'remaining': remaining,
-            'filled': amount - remaining,
+            'filled': undefined,
             'status': status,
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        };
-        if (this.orders === undefined) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
-        const orders = this.orders;
-        orders.append (parsed);
-        client.resolve (parsed, id);
-        return parsed;
+        }, market);
     }
 
     handleMessage (client, message) {
