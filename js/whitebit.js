@@ -705,22 +705,64 @@ module.exports = class whitebit extends Exchange {
         }
         const response = await this.v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
         //
-        //      [
-        //          {
-        //              "tradeID": 158056419,
-        //              "price": "9186.13",
-        //              "quote_volume": "0.0021",
-        //              "base_volume": "9186.13",
-        //              "trade_timestamp": 1594391747,
-        //              "type": "sell"
-        //          },
-        //      ],
+        // when no symbol is provided
         //
-        return this.parseTrades (response, market, since, limit);
+        //   {
+        //       "USDC_USDT":[
+        //          {
+        //             "id":"1343815269",
+        //             "clientOrderId":"",
+        //             "time":"1641051917.532965",
+        //             "side":"sell",
+        //             "role":"2",
+        //             "amount":"9.986",
+        //             "price":"0.9995",
+        //             "deal":"9.981007",
+        //             "fee":"0.009981007",
+        //             "orderId":"58166729555"
+        //          },
+        //       ]
+        //   }
+        //
+        // when a symbol is provided
+        //
+        //     [
+        //         {
+        //             'id': 1343815269,
+        //             'clientOrderId': '',
+        //             'time': 1641051917.532965,
+        //             'side': 'sell',
+        //             'role': 2,
+        //             'amount': '9.986',
+        //             'price': '0.9995',
+        //             'deal': '9.981007',
+        //             'fee': '0.009981007',
+        //             'orderId': 58166729555,
+        //         },
+        //     ]
+        //
+        let trades = [];
+        if (Array.isArray (response)) {
+            trades = response;
+        } else {
+            const keys = Object.keys (response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const marketTrades = response[marketId];
+                for (let j = 0; j < marketTrades.length; j++) {
+                    const trade = marketTrades[j];
+                    trade['marketId'] = marketId;
+                    trades.push (trade);
+                }
+            }
+        }
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // fetchTradesV4
+        //
         //     {
         //       "tradeID": 158056419,
         //       "price": "9186.13",
@@ -728,7 +770,7 @@ module.exports = class whitebit extends Exchange {
         //       "base_volume": "9186.13",
         //       "trade_timestamp": 1594391747,
         //       "type": "sell"
-        //     },
+        //     }
         //
         // orderTrades (v4Private)
         //
@@ -744,13 +786,31 @@ module.exports = class whitebit extends Exchange {
         //         "deal": "0.00419198" // amount in money
         //     }
         //
+        // fetchMyTrades
+        //
+        //      {
+        //          'id': 1343815269,
+        //          'clientOrderId': '',
+        //          'time': 1641051917.532965,
+        //          'side': 'sell',
+        //          'role': 2,
+        //          'amount': '9.986',
+        //          'price': '0.9995',
+        //          'deal': '9.981007',
+        //          'fee': '0.009981007',
+        //          'orderId': 58166729555,
+        //          'marketId': 'USDC_USDT', // artificially added
+        //      }
+        //
+        const marketId = this.safeString (trade, 'marketId');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
-        const orderId = this.safeString (trade, 'dealOrderId');
+        const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'base_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
-        const side = this.safeString (trade, 'type');
+        const side = this.safeString2 (trade, 'type', 'side');
         const symbol = this.safeSymbol (undefined, market);
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
