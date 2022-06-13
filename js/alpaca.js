@@ -139,13 +139,10 @@ module.exports = class alpaca extends Exchange {
         //     "easy_to_borrow": true,
         //     "fractionable": true
         //   }
-        const ids = [];
-        for (let i = 0; i < assets.length; i++) {
-            ids.push (assets[i]['symbol']);
-        }
         const markets = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            const id = this.safeString (asset, 'symbol');
             // will need to change if base or quote currency ticker` length changes
             const base = id.slice (0, 3).toUpperCase ();
             const quote = id.slice (3, 6).toUpperCase ();
@@ -163,8 +160,6 @@ module.exports = class alpaca extends Exchange {
                 'amount': undefined,
                 'cost': undefined,
             };
-            const info = undefined;
-            const spot = true;
             markets.push ({
                 'id': id,
                 'symbol': symbol,
@@ -179,7 +174,7 @@ module.exports = class alpaca extends Exchange {
                 'percentage': tierBased,
                 'feeSide': feeSide,
                 'type': 'spot',
-                'spot': spot,
+                'spot': true,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -187,7 +182,7 @@ module.exports = class alpaca extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': info,
+                'info': asset,
             });
         }
         return markets;
@@ -206,6 +201,7 @@ module.exports = class alpaca extends Exchange {
             params['exchanges'] = this.safeString (this.options, 'defaultExchange');
         }
         const response = await this.cryptoPrivateGetCryptoSymbolXbboLatest (this.extend (request, params));
+        //
         // {
         //     "symbol": "BTCUSD",
         //     "xbbo": {
@@ -217,6 +213,7 @@ module.exports = class alpaca extends Exchange {
         //     "bp": 60555,
         //     "bs": 0.36
         // }
+        //
         const ticker = this.safeValue (response, 'xbbo', {});
         return this.parseTicker (ticker, market);
     }
@@ -230,12 +227,9 @@ module.exports = class alpaca extends Exchange {
         };
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
-        } else {
-            request['start'] = this.iso8601 (this.milliseconds ());
         }
         if (limit !== undefined) {
-            // hack to parse limit as integer
-            request['limit'] = this.safeInteger ({ 'limit': limit }, 'limit');
+            request['limit'] = parseInt (limit);
         }
         const response = await this.cryptoPrivateGetCryptoSymbolTrades (this.extend (request, params));
         // {
