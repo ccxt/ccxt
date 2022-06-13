@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.87.8'
+__version__ = '1.87.9'
 
 # -----------------------------------------------------------------------------
 
@@ -247,6 +247,31 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_balance(self, balance):
+        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
+        codes = list(balances.keys())
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+        for i in range(0, len(codes)):
+            code = codes[i]
+            total = self.safe_string(balance[code], 'total')
+            free = self.safe_string(balance[code], 'free')
+            used = self.safe_string(balance[code], 'used')
+            if total is None:
+                total = Precise.string_add(free, used)
+            if free is None:
+                free = Precise.string_sub(total, used)
+            if used is None:
+                used = Precise.string_sub(total, free)
+            balance[code]['free'] = self.parse_number(free)
+            balance[code]['used'] = self.parse_number(used)
+            balance[code]['total'] = self.parse_number(total)
+            balance['free'][code] = balance[code]['free']
+            balance['used'][code] = balance[code]['used']
+            balance['total'][code] = balance[code]['total']
+        return balance
 
     def safe_order(self, order, market=None):
         # parses numbers as strings
