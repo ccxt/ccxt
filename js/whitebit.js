@@ -811,7 +811,7 @@ module.exports = class whitebit extends Exchange {
         const amount = this.safeString2 (trade, 'amount', 'base_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
-        const symbol = this.safeSymbol (undefined, market);
+        const symbol = market['symbol'];
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
