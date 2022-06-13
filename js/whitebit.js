@@ -685,6 +685,40 @@ module.exports = class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "tradeID": 158056419,
+        //              "price": "9186.13",
+        //              "quote_volume": "0.0021",
+        //              "base_volume": "9186.13",
+        //              "trade_timestamp": 1594391747,
+        //              "type": "sell"
+        //          },
+        //      ],
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         // fetchTradesV4
         //     {
