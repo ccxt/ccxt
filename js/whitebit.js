@@ -741,22 +741,22 @@ module.exports = class whitebit extends Exchange {
         //         },
         //     ]
         //
-        let trades = [];
         if (Array.isArray (response)) {
-            trades = response;
+            return this.parseTrades (response, market, since, limit);
         } else {
+            let results = [];
             const keys = Object.keys (response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const marketTrades = response[marketId];
-                for (let j = 0; j < marketTrades.length; j++) {
-                    const trade = marketTrades[j];
-                    trade['marketId'] = marketId;
-                    trades.push (trade);
-                }
+                const market = this.safeMarket (marketId, undefined, '_');
+                const rawTrades = this.safeValue (response, marketId, []);
+                const parsed = this.parseTrades (rawTrades, market, since, limit);
+                results = this.arrayConcat (results, parsed);
             }
+            results = this.sortBy2 (results, 'timestamp', 'id');
+            const tail = (since === undefined);
+            return this.filterBySinceLimit (results, since, limit, 'timestamp', tail);
         }
-        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
@@ -799,11 +799,9 @@ module.exports = class whitebit extends Exchange {
         //          'deal': '9.981007',
         //          'fee': '0.009981007',
         //          'orderId': 58166729555,
-        //          'marketId': 'USDC_USDT', // artificially added
         //      }
         //
-        const marketId = this.safeString (trade, 'marketId');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (undefined, market);
         const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
         const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
@@ -820,11 +818,9 @@ module.exports = class whitebit extends Exchange {
         let fee = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
-            const safeMarket = this.safeMarket (undefined, market);
-            const quote = safeMarket['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             };
         }
         return this.safeTrade ({
