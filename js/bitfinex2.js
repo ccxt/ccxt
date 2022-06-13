@@ -190,6 +190,44 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         return await this.subscribe ('ticker', symbol, params);
     }
 
+    handleMyTrade (client, message) {
+        //
+        // trade execution
+        // [
+        //     0,
+        //     "te", // or tu
+        //     [
+        //        1133411090,
+        //        "tLTCUST",
+        //        1655110144598,
+        //        97084883506,
+        //        0.1,
+        //        42.821,
+        //        "EXCHANGE MARKET",
+        //        42.799,
+        //        -1,
+        //        null,
+        //        null,
+        //        1655110144596
+        //     ]
+        // ]
+        //
+        const name = 'usertrade';
+        const data = this.safeValue (message, 2);
+        const trade = this.parseWsTrade (data);
+        const symbol = trade['symbol'];
+        const market = this.safeMarket (symbol);
+        const messageHash = name + ':' + market['id'];
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCache (limit);
+        }
+        const array = this.myTrades;
+        array.append (trade);
+        this.myTrades = array;
+        client.resolve (array, messageHash);
+    }
+
     handleTrades (client, message, subscription) {
         //
         // initial snapshot
@@ -267,32 +305,90 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //        1818.5, // price
         //    ]
         //
+        // trade execution
+        //
+        //    [
+        //        1133411090, // id
+        //        "tLTCUST", // symbol
+        //        1655110144598, // create ms
+        //        97084883506, // order id
+        //        0.1, // amount
+        //        42.821, // price
+        //        "EXCHANGE MARKET", // order type
+        //        42.799, // order price
+        //        -1, // maker
+        //        null, // fee
+        //        null, // fee currency
+        //        1655110144596 // cid
+        //    ]
+        //
+        // trade update
+        //
+        //    [
+        //       1133411090,
+        //       "tLTCUST",
+        //       1655110144598,
+        //       97084883506,
+        //       0.1,
+        //       42.821,
+        //       "EXCHANGE MARKET",
+        //       42.799,
+        //       -1,
+        //       -0.0002,
+        //       "LTC",
+        //       1655110144596
+        //    ]
+        //
+        const tradesLength = trade.length;
+        const isPublic = (tradesLength === 4) ? true : false;
         market = this.safeMarket (undefined, market);
+        const createdKey = isPublic ? 1 : 2;
+        const priceKey = isPublic ? 3 : 5;
+        const amountKey = isPublic ? 2 : 4;
         const marketId = market['id'];
+        let type = this.safeString (trade, 7);
+        if (type.indexOf ('LIMIT') > -1) {
+            type = 'limit';
+        } else if (type.indexOf ('MARKET') > -1) {
+            type = 'market';
+        }
         const id = this.safeString (trade, 0);
-        const timestamp = this.safeInteger (trade, 1);
-        const price = this.safeString (trade, 3);
-        let amount = this.safeFloat (trade, 2);
+        const orderId = this.safeString (trade, 4);
+        const timestamp = this.safeInteger (trade, createdKey);
+        const price = this.safeString (trade, priceKey);
+        let amount = this.safeFloat (trade, amountKey);
         let side = undefined;
         if (amount !== undefined) {
             side = (amount > 0) ? 'buy' : 'sell';
             amount = Math.abs (amount);
         }
         const symbol = this.safeSymbol (marketId, market);
+        const feeValue = this.safeString (trade, 9);
+        let fee = undefined;
+        if (feeValue !== 'null') {
+            const currencyId = this.safeString (trade, 10);
+            const code = this.safeCurrencyCode (currencyId);
+            fee = {
+                'cost': feeValue,
+                'currency': code,
+            };
+        }
+        const maker = this.safeInteger (trade, 8);
+        const takerOrMaker = (maker === -1) ? 'taker' : 'maker';
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
+            'order': orderId,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
