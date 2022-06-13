@@ -1827,91 +1827,6 @@ class Exchange {
         return isset($json_response) ? $json_response : $result;
     }
 
-    public function set_markets($markets, $currencies = null) {
-        $values = is_array($markets) ? array_values($markets) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = array_replace_recursive(
-                array(
-                    'id' => null,
-                    'symbol' => null,
-                    'base' => null,
-                    'quote' => null,
-                    'baseId' => null,
-                    'quoteId' => null,
-                    'active' => null,
-                    'type' => null,
-                    'linear' => null,
-                    'inverse' => null,
-                    'spot' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'margin' => false,
-                    'contract' => false,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'optionType' => null,
-                    'strike' => null,
-                    'settle' => null,
-                    'settleId' => null,
-                    'precision' => $this->precision,
-                    'limits' => $this->limits,
-                    'info' => null,
-
-                ),
-                $this->fees['trading'],
-                $values[$i]
-            );
-        }
-        $this->markets = static::index_by($values, 'symbol');
-        $this->markets_by_id = static::index_by($values, 'id');
-        $this->symbols = array_keys($this->markets);
-        sort($this->symbols);
-        $this->ids = array_keys($this->markets_by_id);
-        sort($this->ids);
-        if ($currencies) {
-            $this->currencies = array_replace_recursive($this->currencies, $currencies);
-        } else {
-            $base_currencies = array_map(function ($market) {
-                return array(
-                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
-                    'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
-                    'code' => $market['base'],
-                    'precision' => array_key_exists('precision', $market) ? (
-                        array_key_exists('base', $market['precision']) ? $market['precision']['base'] : (
-                            array_key_exists('amount', $market['precision']) ? $market['precision']['amount'] : null
-                        )) : 8,
-                );
-            }, array_filter($values, function ($market) {
-                return array_key_exists('base', $market);
-            }));
-            $quote_currencies = array_map(function ($market) {
-                return array(
-                    'id' => isset($market['quoteId']) ? $market['quoteId'] : $market['quote'],
-                    'numericId' => array_key_exists('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
-                    'code' => $market['quote'],
-                    'precision' => array_key_exists('precision', $market) ? (
-                        array_key_exists('quote', $market['precision']) ? $market['precision']['quote'] : (
-                            array_key_exists('price', $market['precision']) ? $market['precision']['price'] : null
-                        )) : 8,
-                );
-            }, array_filter($values, function ($market) {
-                return array_key_exists('quote', $market);
-            }));
-            $base_currencies = static::sort_by($base_currencies, 'code');
-            $quote_currencies = static::sort_by($quote_currencies, 'code');
-            $this->base_currencies = static::index_by($base_currencies, 'code');
-            $this->quote_currencies = static::index_by($quote_currencies, 'code');
-            $currencies = array_merge($this->base_currencies, $this->quote_currencies);
-            $this->currencies = array_replace_recursive($this->currencies, $currencies);
-        }
-        $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
-        $this->codes = array_keys($this->currencies);
-        sort($this->codes);
-        return $this->markets;
-    }
-
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
@@ -2482,6 +2397,43 @@ class Exchange {
         }
     }
 
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function set_markets($markets, $currencies = null) {
@@ -2537,19 +2489,27 @@ class Exchange {
             $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
             $groupedCurrencies = $this->group_by($allCurrencies, 'code');
             $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
-            $currencies = array();
+            $resultingCurrencies = array();
             for ($i = 0; $i < count($codes); $i++) {
                 $code = $codes[$i];
-                var_dump ($code);
-                // $currencies = is_array($groupedCurrencies).map (($code) ? array_keys($groupedCurrencies).map (($code) : array() =>
-                // $groupedCurrencies[$code].reduce ((previous, current) =>
-                //     ((previous.precision > current.precision) ? previous : current), $groupedCurrencies[$code][0]));
+                $groupedCurrenciesCode = $this->safe_value($groupedCurrencies, $code, array());
+                $highestPrecisionCurrency = $this->safe_value($groupedCurrenciesCode, 0);
+                for ($j = 1; $j < count($groupedCurrenciesCode); $j++) {
+                    $currentCurrency = $groupedCurrenciesCode[$j];
+                    if ($this->precisionMode === TICK_SIZE) {
+                        $highestPrecisionCurrency = ($currentCurrency['precision'] < $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
+                    } else {
+                        $highestPrecisionCurrency = ($currentCurrency['precision'] > $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
+                    }
+                }
+                $resultingCurrencies[] = $highestPrecisionCurrency;
             }
-            $sortedCurrencies = $this->sort_by(flatten ($currencies), 'code');
+            $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
             $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
         }
         $this->currencies_by_id = $this->index_by($this->currencies, 'id');
-        $this->codes = is_array($this->currencies).sort () ? array_keys($this->currencies).sort () : array();
+        $currenciesSortedByCode = $this->keysort ($this->currencies);
+        $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
     }
 
@@ -3328,7 +3288,7 @@ class Exchange {
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
@@ -3341,7 +3301,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
@@ -3354,7 +3314,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
@@ -3509,7 +3469,7 @@ class Exchange {
         );
     }
 
-    public function safe_market($marketId, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,

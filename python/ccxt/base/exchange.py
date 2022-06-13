@@ -25,7 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
 
@@ -1433,78 +1433,6 @@ class Exchange(object):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
-    def set_markets(self, markets, currencies=None):
-        values = list(markets.values()) if type(markets) is dict else markets
-        for i in range(0, len(values)):
-            values[i] = self.extend(
-                {
-                    'id': None,
-                    'symbol': None,
-                    'base': None,
-                    'quote': None,
-                    'baseId': None,
-                    'quoteId': None,
-                    'active': None,
-                    'type': None,
-                    'linear': None,
-                    'inverse': None,
-                    'spot': False,
-                    'swap': False,
-                    'future': False,
-                    'option': False,
-                    'margin': False,
-                    'contract': False,
-                    'contractSize': None,
-                    'expiry': None,
-                    'expiryDatetime': None,
-                    'optionType': None,
-                    'strike': None,
-                    'settle': None,
-                    'settleId': None,
-                    'precision': self.precision,
-                    'limits': self.limits,
-                    'info': None,
-                },
-                self.fees['trading'],
-                values[i]
-            )
-        self.markets = self.index_by(values, 'symbol')
-        self.markets_by_id = self.index_by(values, 'id')
-        self.symbols = sorted(self.markets.keys())
-        self.ids = sorted(self.markets_by_id.keys())
-        if currencies:
-            self.currencies = self.deep_extend(self.currencies, currencies)
-        else:
-            base_currencies = [{
-                'id': market['baseId'] if (('baseId' in market) and (market['baseId'] is not None)) else market['base'],
-                'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
-                'code': market['base'],
-                'precision': (
-                    market['precision']['base'] if 'base' in market['precision'] else (
-                        market['precision']['amount'] if 'amount' in market['precision'] else None
-                    )
-                ) if 'precision' in market else 8,
-            } for market in values if 'base' in market]
-            quote_currencies = [{
-                'id': market['quoteId'] if (('quoteId' in market) and (market['quoteId'] is not None)) else market['quote'],
-                'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
-                'code': market['quote'],
-                'precision': (
-                    market['precision']['quote'] if 'quote' in market['precision'] else (
-                        market['precision']['price'] if 'price' in market['precision'] else None
-                    )
-                ) if 'precision' in market else 8,
-            } for market in values if 'quote' in market]
-            base_currencies = self.sort_by(base_currencies, 'code')
-            quote_currencies = self.sort_by(quote_currencies, 'code')
-            self.base_currencies = self.index_by(base_currencies, 'code')
-            self.quote_currencies = self.index_by(quote_currencies, 'code')
-            currencies = self.sort_by(base_currencies + quote_currencies, 'code')
-            self.currencies = self.deep_extend(self.currencies, self.index_by(currencies, 'code'))
-        self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
-        self.codes = sorted(self.currencies.keys())
-        return self.markets
-
     def load_markets(self, reload=False, params={}):
         if not reload:
             if self.markets:
@@ -1809,8 +1737,42 @@ class Exchange(object):
             ErrorClass = self.httpExceptions[codeAsString]
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
-    def sort(self, objects, descending = False):
-        return objects.sort(reverse=descending)
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
@@ -1863,17 +1825,23 @@ class Exchange(object):
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
             groupedCurrencies = self.group_by(allCurrencies, 'code')
             codes = list(groupedCurrencies.keys())
-            currencies = []
+            resultingCurrencies = []
             for i in range(0, len(codes)):
                 code = codes[i]
-                print(code)
-                # currencies = list(groupedCurrencies).map((code.keys()) =>
-                # groupedCurrencies[code].reduce((previous, current) =>
-                #     previous if ((previous.precision > current.precision) else current), groupedCurrencies[code][0]))
-            sortedCurrencies = self.sort_by(flatten(currencies), 'code')
+                groupedCurrenciesCode = self.safe_value(groupedCurrencies, code, [])
+                highestPrecisionCurrency = self.safe_value(groupedCurrenciesCode, 0)
+                for j in range(1, len(groupedCurrenciesCode)):
+                    currentCurrency = groupedCurrenciesCode[j]
+                    if self.precisionMode == TICK_SIZE:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] < highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                    else:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                resultingCurrencies.append(highestPrecisionCurrency)
+            sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
             self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
         self.currencies_by_id = self.index_by(self.currencies, 'id')
-        self.codes = list(self.currencies).sort(.keys())
+        currenciesSortedByCode = self.keysort(self.currencies)
+        self.codes = list(currenciesSortedByCode.keys())
         return self.markets
 
     def safe_balance(self, balance):
@@ -2521,7 +2489,7 @@ class Exchange(object):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
@@ -2532,7 +2500,7 @@ class Exchange(object):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
@@ -2543,7 +2511,7 @@ class Exchange(object):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
@@ -2663,7 +2631,7 @@ class Exchange(object):
             'code': code,
         }
 
-    def safe_market(self, marketId, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None):
         result = {
             'id': marketId,
             'symbol': marketId,

@@ -31,7 +31,7 @@ const { // eslint-disable-line object-curly-newline
     , RateLimitExceeded
     , ArgumentsRequired } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 const Precise = require ('./Precise')
@@ -756,11 +756,6 @@ module.exports = class Exchange {
         }
     }
 
-    sort (objects, descending = false) {
-        const sorted = objects.sort ();
-        return (descending) ? sorted.reverse () : sorted;
-    }
-
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -857,19 +852,27 @@ module.exports = class Exchange {
             const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
             const groupedCurrencies = this.groupBy (allCurrencies, 'code');
             const codes = Object.keys (groupedCurrencies);
-            const currencies = [];
+            const resultingCurrencies = [];
             for (let i = 0; i < codes.length; i++) {
                 const code = codes[i];
-                console.log (code);
-                // const currencies = Object.keys (groupedCurrencies).map ((code) =>
-                // groupedCurrencies[code].reduce ((previous, current) =>
-                //     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]));
+                const groupedCurrenciesCode = this.safeValue (groupedCurrencies, code, []);
+                let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
+                for (let j = 1; j < groupedCurrenciesCode.length; j++) {
+                    const currentCurrency = groupedCurrenciesCode[j];
+                    if (this.precisionMode === TICK_SIZE) {
+                        highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    } else {
+                        highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    }
+                }
+                resultingCurrencies.push (highestPrecisionCurrency);
             }
-            const sortedCurrencies = this.sortBy (flatten (currencies), 'code');
+            const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
             this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'));
         }
         this.currencies_by_id = this.indexBy (this.currencies, 'id');
-        this.codes = Object.keys (this.currencies).sort ();
+        const currenciesSortedByCode = this.keysort (this.currencies);
+        this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
     }
 
@@ -1829,7 +1832,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,

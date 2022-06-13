@@ -29,7 +29,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.decimal_to_precision import TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE
 
 # -----------------------------------------------------------------------------
 
@@ -246,7 +246,112 @@ class Exchange(BaseExchange):
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def set_markets(self, markets, currencies=None):
+        values = []
+        marketValues = self.to_array(markets)
+        for i in range(0, len(marketValues)):
+            market = self.deep_extend(self.safe_market(), {
+                'precision': self.precision,
+                'limits': self.limits,
+            }, self.fees['trading'], marketValues[i])
+            values.append(market)
+        self.markets = self.index_by(values, 'symbol')
+        self.markets_by_id = self.index_by(markets, 'id')
+        marketsSortedBySymbol = self.keysort(self.markets)
+        marketsSortedById = self.keysort(self.markets_by_id)
+        self.symbols = list(marketsSortedBySymbol.keys())
+        self.ids = list(marketsSortedById.keys())
+        if currencies is not None:
+            self.currencies = self.deep_extend(self.currencies, currencies)
+        else:
+            baseCurrencies = []
+            quoteCurrencies = []
+            for i in range(0, len(values)):
+                market = values[i]
+                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('0.00000001')
+                marketPrecision = self.safe_value(market, 'precision', {})
+                if 'base' in market:
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
+                    currency = {
+                        'id': self.safe_string_2(market, 'baseId', 'base'),
+                        'numericId': self.safe_string(market, 'baseNumericId'),
+                        'code': self.safe_string(market, 'base'),
+                        'precision': currencyPrecision,
+                    }
+                    baseCurrencies.append(currency)
+                if 'quote' in market:
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currency = {
+                        'id': self.safe_string_2(market, 'quoteId', 'quote'),
+                        'numericId': self.safe_string(market, 'quoteNumericId'),
+                        'code': self.safe_string(market, 'quote'),
+                        'precision': currencyPrecision,
+                    }
+                    quoteCurrencies.append(currency)
+            baseCurrencies = self.sort_by(baseCurrencies, 'code')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            self.baseCurrencies = self.index_by(baseCurrencies, 'code')
+            self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
+            allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
+            groupedCurrencies = self.group_by(allCurrencies, 'code')
+            codes = list(groupedCurrencies.keys())
+            resultingCurrencies = []
+            for i in range(0, len(codes)):
+                code = codes[i]
+                groupedCurrenciesCode = self.safe_value(groupedCurrencies, code, [])
+                highestPrecisionCurrency = self.safe_value(groupedCurrenciesCode, 0)
+                for j in range(1, len(groupedCurrenciesCode)):
+                    currentCurrency = groupedCurrenciesCode[j]
+                    if self.precisionMode == TICK_SIZE:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] < highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                    else:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                resultingCurrencies.append(highestPrecisionCurrency)
+            sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
+            self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
+        self.currencies_by_id = self.index_by(self.currencies, 'id')
+        currenciesSortedByCode = self.keysort(self.currencies)
+        self.codes = list(currenciesSortedByCode.keys())
+        return self.markets
 
     def safe_balance(self, balance):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
@@ -893,7 +998,7 @@ class Exchange(BaseExchange):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
@@ -904,7 +1009,7 @@ class Exchange(BaseExchange):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
@@ -915,7 +1020,7 @@ class Exchange(BaseExchange):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
@@ -1035,7 +1140,51 @@ class Exchange(BaseExchange):
             'code': code,
         }
 
-    def safe_market(self, marketId, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None):
+        result = {
+            'id': marketId,
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+            'baseId': None,
+            'quoteId': None,
+            'active': None,
+            'type': None,
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'margin': False,
+            'contract': False,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': None,
+            'strike': None,
+            'settle': None,
+            'settleId': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
@@ -1043,38 +1192,17 @@ class Exchange(BaseExchange):
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
                 if partsLength == 2:
-                    baseId = self.safe_string(parts, 0)
-                    quoteId = self.safe_string(parts, 1)
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    return {
-                        'id': marketId,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                    }
+                    result['baseId'] = self.safe_string(parts, 0)
+                    result['quoteId'] = self.safe_string(parts, 1)
+                    result['base'] = self.safe_currency_code(result['baseId'])
+                    result['quote'] = self.safe_currency_code(result['quoteId'])
+                    result['symbol'] = result['base'] + '/' + result['quote']
+                    return result
                 else:
-                    return {
-                        'id': marketId,
-                        'symbol': marketId,
-                        'base': None,
-                        'quote': None,
-                        'baseId': None,
-                        'quoteId': None,
-                    }
+                    return result
         if market is not None:
             return market
-        return {
-            'id': marketId,
-            'symbol': marketId,
-            'base': None,
-            'quote': None,
-            'baseId': None,
-            'quoteId': None,
-        }
+        return result
 
     def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
