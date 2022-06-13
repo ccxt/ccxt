@@ -17,25 +17,62 @@ module.exports = class probit extends Exchange {
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -150,6 +187,7 @@ module.exports = class probit extends Exchange {
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'AZU': 'Azultec',
                 'BCC': 'BCC',
                 'BDP': 'BidiPass',
                 'BIRD': 'Birdchain',
@@ -157,20 +195,31 @@ module.exports = class probit extends Exchange {
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
+                'CLR': 'Color Platform',
+                'CTK': 'Cryptyk',
+                'CTT': 'Castweet',
                 'DIP': 'Dipper',
+                'DKT': 'DAKOTA',
+                'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
                 'GDT': 'Gorilla Diamond',
+                'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'HUSL': 'The Hustle App',
+                'LAND': 'Landbox',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PXP': 'PIXSHOP COIN',
+                'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
+                'TOR': 'Torex',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
@@ -179,6 +228,13 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchMarkets
+         * @description retrieves data on all markets for probit
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarket (params);
         //
         //     {
@@ -213,37 +269,51 @@ module.exports = class probit extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency_id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
-            const active = !closed;
             const amountPrecision = this.safeString (market, 'quantity_precision');
             const costPrecision = this.safeString (market, 'cost_precision');
             const amountTickSize = this.parsePrecision (amountPrecision);
             const costTickSize = this.parsePrecision (costPrecision);
-            const precision = {
-                'amount': this.parseNumber (amountTickSize),
-                'price': this.safeNumber (market, 'price_increment'),
-                'cost': this.parseNumber (costTickSize),
-            };
             const takerFeeRate = this.safeString (market, 'taker_fee_rate');
             const taker = Precise.stringDiv (takerFeeRate, '100');
             const makerFeeRate = this.safeString (market, 'maker_fee_rate');
             const maker = Precise.stringDiv (makerFeeRate, '100');
             result.push ({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': !closed,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.parseNumber (taker),
                 'maker': this.parseNumber (maker),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (amountTickSize),
+                    'price': this.safeNumber (market, 'price_increment'),
+                    'cost': this.parseNumber (costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -257,12 +327,20 @@ module.exports = class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencyWithPlatform (params);
         //
         //     {
@@ -320,7 +398,7 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const currencies = this.safeValue (response, 'data');
+        const currencies = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -331,10 +409,11 @@ module.exports = class probit extends Exchange {
             const platforms = this.safeValue (currency, 'platform', []);
             const platformsByPriority = this.sortBy (platforms, 'priority');
             const platform = this.safeValue (platformsByPriority, 0, {});
-            const precision = this.safeInteger (platform, 'precision');
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
-            const active = !(depositSuspended && withdrawalSuspended);
+            const deposit = !depositSuspended;
+            const withdraw = !withdrawalSuspended;
+            const active = deposit && withdraw;
             const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
             const fees = [];
             // sometimes the withdrawal fee is an empty object
@@ -356,12 +435,14 @@ module.exports = class probit extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (platform, 'precision'))),
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
@@ -377,7 +458,33 @@ module.exports = class probit extends Exchange {
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'currency_id');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'total');
+            account['free'] = this.safeString (balance, 'available');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
         //
@@ -391,25 +498,19 @@ module.exports = class probit extends Exchange {
         //         ]
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const data = this.safeValue (response, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const currencyId = this.safeString (balance, 'currency_id');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'total');
-            account['free'] = this.safeString (balance, 'available');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -431,6 +532,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -459,6 +568,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -505,22 +622,21 @@ module.exports = class probit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const close = this.safeNumber (ticker, 'last');
-        const change = this.safeNumber (ticker, 'change');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const close = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
@@ -535,6 +651,16 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -577,6 +703,16 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -659,21 +795,18 @@ module.exports = class probit extends Exchange {
         const side = this.safeString (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderId = this.safeString (trade, 'order_id');
-        const feeCost = this.safeNumber (trade, 'fee_amount');
+        const feeCostString = this.safeString (trade, 'fee_amount');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency_id');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -683,14 +816,21 @@ module.exports = class probit extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name probit#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     { "data":"2020-04-12T18:54:25.390Z" }
@@ -736,6 +876,17 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
@@ -816,6 +967,16 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         since = this.parse8601 (since);
         const request = {};
@@ -830,6 +991,16 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = {
             'start_time': this.iso8601 (0),
@@ -853,6 +1024,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -922,12 +1101,9 @@ module.exports = class probit extends Exchange {
         if (type === 'market') {
             price = undefined;
         }
-        let clientOrderId = this.safeString (order, 'client_order_id');
-        if (clientOrderId === '') {
-            clientOrderId = undefined;
-        }
+        const clientOrderId = this.safeString (order, 'client_order_id');
         const timeInForce = this.safeStringUpper (order, 'time_in_force');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -956,6 +1132,18 @@ module.exports = class probit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeInForce');
@@ -1033,6 +1221,15 @@ module.exports = class probit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1063,6 +1260,14 @@ module.exports = class probit extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1083,12 +1288,20 @@ module.exports = class probit extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const firstAddress = this.safeValue (data, 0);
         if (firstAddress === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress returned an empty response');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() returned an empty response');
         }
         return this.parseDepositAddress (firstAddress, currency);
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (codes) {
@@ -1105,6 +1318,17 @@ module.exports = class probit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name probit#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // In order to use this method
         // you need to allow API withdrawal from the API Settings Page, and
@@ -1163,6 +1387,7 @@ module.exports = class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
@@ -1174,6 +1399,7 @@ module.exports = class probit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
             'info': transaction,
         };
@@ -1245,6 +1471,13 @@ module.exports = class probit extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name probit#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the probit api endpoint
+         * @returns response from exchange
+         */
         this.checkRequiredCredentials ();
         const request = {
             'grant_type': 'client_credentials', // the only supported value

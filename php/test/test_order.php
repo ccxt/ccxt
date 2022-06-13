@@ -51,7 +51,7 @@ function test_order($exchange, $order, $symbol, $now) {
     }
     assert (is_array($order) && array_key_exists('trades', $order));
     if ($order['trades']) {
-        assert (gettype($order['trades']) === 'array' && count(array_filter(array_keys($order['trades']), 'is_string')) == 0);
+        assert (gettype($order['trades']) === 'array' && array_keys($order['trades']) === array_keys(array_keys($order['trades'])));
     }
     assert (is_array($order) && array_key_exists('fee', $order));
     $fee = $order['fee'];

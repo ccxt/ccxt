@@ -164,6 +164,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
 def number_to_string(x):
     # avoids scientific notation for too large and too small numbers
+    if x is None:
+        return None
     d = decimal.Decimal(str(x))
     formatted = '{:f}'.format(d)
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted

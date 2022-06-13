@@ -13,18 +13,51 @@ class bl3p extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bl3p',
             'name' => 'BL3P',
-            'countries' => array( 'NL', 'EU' ), // Netherlands, EU
+            'countries' => array( 'NL' ), // Netherlands
             'rateLimit' => 1000,
             'version' => '1',
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
+                'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -65,14 +98,13 @@ class bl3p extends Exchange {
                 'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
                 'LTC/EUR' => array( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'LTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
-    public function fetch_balance($params = array ()) {
-        $this->load_markets();
-        $response = $this->privatePostGENMKTMoneyInfo ($params);
+    public function parse_balance($response) {
         $data = $this->safe_value($response, 'data', array());
-        $wallets = $this->safe_value($data, 'wallets');
+        $wallets = $this->safe_value($data, 'wallets', array());
         $result = array( 'info' => $data );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -87,7 +119,18 @@ class bl3p extends Exchange {
             $account['total'] = $this->safe_string($balance, 'value');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        $this->load_markets();
+        $response = $this->privatePostGENMKTMoneyInfo ($params);
+        return $this->parse_balance($response);
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
@@ -100,6 +143,13 @@ class bl3p extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -109,22 +159,35 @@ class bl3p extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $request = array(
-            'market' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        $volume = $this->safe_value($ticker, 'volume', array());
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -134,44 +197,74 @@ class bl3p extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker['volume'], '24h'),
+            'baseVolume' => $this->safe_string($volume, '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
         );
+        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
-        $priceString = $this->safe_string($trade, 'price_int');
-        $priceString = Precise::string_div($priceString, '100000');
-        $amountString = $this->safe_string($trade, 'amount_int');
-        $amountString = Precise::string_div($amountString, '100000000');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price_int');
+        $amount = $this->safe_string($trade, 'amount_int');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => Precise::string_div($price, '100000'),
+            'amount' => Precise::string_div($amount, '100000000'),
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $market = $this->market($symbol);
         $response = $this->publicGetMarketTrades (array_merge(array(
             'market' => $market['id'],
@@ -180,7 +273,71 @@ class bl3p extends Exchange {
         return $result;
     }
 
+    public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
+        $this->load_markets();
+        $response = $this->privatePostGENMKTMoneyInfo ($params);
+        //
+        //     {
+        //         $result => 'success',
+        //         $data => {
+        //             user_id => '13396',
+        //             wallets => {
+        //                 BTC => array(
+        //                     balance => array(
+        //                         value_int => '0',
+        //                         display => '0.00000000 BTC',
+        //                         currency => 'BTC',
+        //                         value => '0.00000000',
+        //                         display_short => '0.00 BTC'
+        //                     ),
+        //                     available => array(
+        //                         value_int => '0',
+        //                         display => '0.00000000 BTC',
+        //                         currency => 'BTC',
+        //                         value => '0.00000000',
+        //                         display_short => '0.00 BTC'
+        //                     }
+        //                 ),
+        //                 ...
+        //             ),
+        //             trade_fee => '0.25'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $feeString = $this->safe_string($data, 'trade_fee');
+        $fee = $this->parse_number(Precise::string_div($feeString, '100'));
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $data,
+                'symbol' => $symbol,
+                'maker' => $fee,
+                'taker' => $fee,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $market = $this->market($symbol);
         $order = array(
             'market' => $market['id'],
@@ -200,6 +357,13 @@ class bl3p extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $request = array(
             'order_id' => $id,
         );

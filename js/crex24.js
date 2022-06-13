@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol, AccountSuspended } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol, AccountSuspended, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,33 +18,66 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
+                'cancelOrders': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined, // actually, true, but will be implemented later
-                'fetchTradingFees': undefined, // actually, true, but will be implemented later
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -137,15 +169,19 @@ module.exports = class crex24 extends Exchange {
                 'BULL': 'BuySell',
                 'CLC': 'CaluraCoin',
                 'CREDIT': 'TerraCredit',
+                'DMS': 'Documentchain', // conflict with Dragon Mainland Shards
                 'EGG': 'NestEGG Coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GM': 'GM Holding',
+                'GMT': 'GMT Token',
                 'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT', // SiamBitcoin
+                'SPH': 'SapphireCoin',
                 'SUPER': 'SuperCoin',
                 'UNI': 'Universe',
                 'YOYO': 'YOYOW',
@@ -165,6 +201,9 @@ module.exports = class crex24 extends Exchange {
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+                'fetchTradingFees': {
+                    'method': 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
+                },
             },
             'exceptions': {
                 'exact': {
@@ -195,6 +234,13 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchMarkets
+         * @description retrieves data on all markets for crex24
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //         [ {
@@ -279,18 +325,6 @@ module.exports = class crex24 extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const tickSize = this.safeNumber (market, 'tickSize');
-            const minPrice = this.safeNumber (market, 'minPrice');
-            const maxPrice = this.safeNumber (market, 'maxPrice');
-            const minAmount = this.safeNumber (market, 'minVolume');
-            const maxAmount = this.safeNumber (market, 'maxVolume');
-            const minCost = this.safeNumber (market, 'minQuoteVolume');
-            const maxCost = this.safeNumber (market, 'maxQuoteVolume');
-            const precision = {
-                'amount': minAmount,
-                'price': tickSize,
-            };
             let maker = undefined;
             let taker = undefined;
             const feeSchedule = this.safeString (market, 'feeSchedule');
@@ -309,41 +343,69 @@ module.exports = class crex24 extends Exchange {
                     break;
                 }
             }
-            const active = (market['state'] === 'active');
+            const state = this.safeString (market, 'state');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'volumeIncrement'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': this.safeNumber (market, 'minVolume'),
+                        'max': this.safeNumber (market, 'maxVolume'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': this.safeNumber (market, 'minQuoteVolume'),
+                        'max': this.safeNumber (market, 'maxQuoteVolume'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     [ {                   symbol: "$PAC",
@@ -376,11 +438,14 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
-            const precision = Math.pow (10, -withdrawalPrecision);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawalPrecision')));
             const address = this.safeValue (currency, 'BaseAddress');
-            const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
-            const type = currency['isFiat'] ? 'fiat' : 'crypto';
+            const deposit = this.safeValue (currency, 'depositsAllowed');
+            const withdraw = this.safeValue (currency, 'withdrawalsAllowed');
+            const delisted = this.safeValue (currency, 'isDelisted');
+            const active = deposit && withdraw && !delisted;
+            const fiat = this.safeValue (currency, 'isFiat');
+            const type = fiat ? 'fiat' : 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -389,12 +454,14 @@ module.exports = class crex24 extends Exchange {
                 'type': type,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': this.safeNumber (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': precision,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minDeposit'),
@@ -410,7 +477,15 @@ module.exports = class crex24 extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTransactionFees
+         * @description fetch transaction fees
+         * @param {[str]|undefined} codes not used by crex24 fetchTransactionFees
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetCurrenciesWithdrawalFees (params);
         //
@@ -453,7 +528,28 @@ module.exports = class crex24 extends Exchange {
         };
     }
 
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'reserved');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'currency': 'ETH', // comma-separated list of currency ids
@@ -469,20 +565,19 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'reserved');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -531,16 +626,16 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const marketId = this.safeString (ticker, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -548,15 +643,23 @@ module.exports = class crex24 extends Exchange {
             'last': last,
             'previousClose': undefined, // previous day close
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'percentChange'),
+            'percentage': this.safeString (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -579,12 +682,20 @@ module.exports = class crex24 extends Exchange {
         //
         const numTickers = response.length;
         if (numTickers < 1) {
-            throw new ExchangeError (this.id + ' fetchTicker could not load quotes for symbol ' + symbol);
+            throw new ExchangeError (this.id + ' fetchTicker() could not load quotes for symbol ' + symbol);
         }
         return this.parseTicker (response[0], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -647,9 +758,6 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'volume');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
@@ -658,15 +766,15 @@ module.exports = class crex24 extends Exchange {
         let fee = undefined;
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
         const feeCode = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCode,
             };
         }
         const takerOrMaker = undefined;
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -676,14 +784,24 @@ module.exports = class crex24 extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': priceString,
+            'cost': undefined,
+            'amount': amountString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -704,6 +822,111 @@ module.exports = class crex24 extends Exchange {
         //         timestamp: "2018-10-31T04:19:35Z" }  ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        let method = this.safeString (params, 'method');
+        params = this.omit (params, 'method');
+        if (method === undefined) {
+            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        }
+        return await this[method] (params);
+    }
+
+    async fetchPublicTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingFeeSchedules (params);
+        //
+        //     [
+        //         {
+        //             name: 'FeeSchedule05',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: 0.0005, taker: 0.0005 },
+        //                 { volumeThreshold: 5, maker: 0.0004, taker: 0.0004 },
+        //                 { volumeThreshold: 15, maker: 0.0003, taker: 0.0003 },
+        //                 { volumeThreshold: 30, maker: 0.0002, taker: 0.0002 },
+        //                 { volumeThreshold: 50, maker: 0.0001, taker: 0.0001 }
+        //             ]
+        //         },
+        //         {
+        //             name: 'OriginalSchedule',
+        //             feeRates: [
+        //                 { volumeThreshold: 0, maker: -0.0001, taker: 0.001 },
+        //                 { volumeThreshold: 5, maker: -0.0002, taker: 0.0009 },
+        //                 { volumeThreshold: 15, maker: -0.0003, taker: 0.0008 },
+        //                 { volumeThreshold: 30, maker: -0.0004, taker: 0.0007 },
+        //                 { volumeThreshold: 50, maker: -0.0005, taker: 0.0006 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const feeSchedulesByName = this.indexBy (response, 'name');
+        const originalSchedule = this.safeValue (feeSchedulesByName, 'OriginalSchedule', {});
+        const feeRates = this.safeValue (originalSchedule, 'feeRates', []);
+        const firstFee = this.safeValue (feeRates, 0, {});
+        const maker = this.safeNumber (firstFee, 'maker');
+        const taker = this.safeNumber (firstFee, 'taker');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    async fetchPrivateTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.tradingGetTradingFee (params);
+        //
+        //     {
+        //         feeRates: [
+        //             { schedule: 'FeeSchedule05', maker: 0.0005, taker: 0.0005 },
+        //             { schedule: 'FeeSchedule08', maker: 0.0008, taker: 0.0008 },
+        //             { schedule: 'FeeSchedule10', maker: 0.001, taker: 0.001 },
+        //             { schedule: 'FeeSchedule15', maker: 0.0015, taker: 0.0015 },
+        //             { schedule: 'FeeSchedule20', maker: 0.002, taker: 0.002 },
+        //             { schedule: 'FeeSchedule30', maker: 0.003, taker: 0.003 },
+        //             { schedule: 'FeeSchedule40', maker: 0.004, taker: 0.004 },
+        //             { schedule: 'FeeSchedule50', maker: 0.005, taker: 0.005 },
+        //             { schedule: 'OriginalSchedule', maker: -0.0001, taker: 0.001 }
+        //         ],
+        //         tradingVolume: 0,
+        //         lastUpdate: '2022-03-16T04:55:02Z'
+        //     }
+        //
+        const feeRates = this.safeValue (response, 'feeRates', []);
+        const feeRatesBySchedule = this.indexBy (feeRates, 'schedule');
+        const originalSchedule = this.safeValue (feeRatesBySchedule, 'OriginalSchedule', {});
+        const maker = this.safeNumber (originalSchedule, 'maker');
+        const taker = this.safeNumber (originalSchedule, 'taker');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -728,6 +951,17 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -788,20 +1022,21 @@ module.exports = class crex24 extends Exchange {
         //         "childOrderId": null
         //     }
         //
+        // cancelOrder, cancelOrders, cancelAllOrders
+        //
+        //  465448358
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'volume');
-        const remaining = this.safeNumber (order, 'remainingVolume');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remainingVolume');
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
-        const id = this.safeString (order, 'id');
+        const id = this.safeString (order, 'id', order); // if order was integer
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
-        const fee = undefined;
-        const trades = undefined;
-        const average = undefined;
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
@@ -819,16 +1054,28 @@ module.exports = class crex24 extends Exchange {
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
-            'average': average,
+            'average': undefined,
             'filled': undefined,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
-            'trades': trades,
-        });
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -892,6 +1139,14 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -920,12 +1175,22 @@ module.exports = class crex24 extends Exchange {
         //
         const numOrders = response.length;
         if (numOrders < 1) {
-            throw new OrderNotFound (this.id + ' fetchOrder could not fetch order id ' + id);
+            throw new OrderNotFound (this.id + ' fetchOrder() could not fetch order id ' + id);
         }
         return this.parseOrder (response[0]);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -995,6 +1260,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1046,6 +1321,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1103,12 +1388,40 @@ module.exports = class crex24 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        const response = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeValue (response, 0);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str|undefined} symbol not used by crex24 cancelOrders ()
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (!Array.isArray (ids)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
+        }
         await this.loadMarkets ();
         const request = {
-            'ids': [
-                parseInt (id),
-            ],
+            'ids': [],
         };
+        for (let i = 0; i < ids.length; i++) {
+            const id = parseInt (ids[i]);
+            request['ids'].push (id);
+        }
         const response = await this.tradingPostCancelOrdersById (this.extend (request, params));
         //
         //     [
@@ -1116,21 +1429,103 @@ module.exports = class crex24 extends Exchange {
         //         468364313
         //     ]
         //
-        return this.parseOrder (response);
+        return this.parseOrders (response);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        const response = await this.tradingPostCancelAllOrders (params);
+    async cancelAllOrders (symbol = undefined, params = {}) { // TODO: atm, this doesnt accept an array as symbol argument, because of unification (however, exchange allows multiple symbols)
+        /**
+         * @method
+         * @name crex24#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        let response = undefined;
+        let market = undefined;
+        if (symbol === undefined) {
+            response = await this.tradingPostCancelAllOrders (params);
+            //
+            //     [
+            //         465448358,
+            //         468364313
+            //     ]
+            //
+        } else {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            const request = {
+                'instruments': [ market['id'] ],
+            };
+            response = await this.tradingPostCancelOrdersByInstrument (this.extend (request, params));
+            //
+            //     [
+            //         465441234,
+            //         468364321
+            //     ]
+            //
+        }
+        return this.parseOrders (response, market, undefined, undefined, params);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.tradingGetOrderTrades (this.extend (request, params));
         //
         //     [
-        //         465448358,
-        //         468364313
+        //         {
+        //             "id": 3005866,
+        //             "orderId": 468533093,
+        //             "timestamp": "2018-06-02T16:26:27Z",
+        //             "instrument": "BCH-ETH",
+        //             "side": "buy",
+        //             "price": 1.78882,
+        //             "volume": 0.027,
+        //             "fee": 0.0000483,
+        //             "feeCurrency": "ETH"
+        //         },
+        //         {
+        //             "id": 3005812,
+        //             "orderId": 468515771,
+        //             "timestamp": "2018-06-02T16:16:05Z",
+        //             "instrument": "ETC-BTC",
+        //             "side": "sell",
+        //             "price": 0.00210958,
+        //             "volume": 0.05994006,
+        //             "fee": -0.000000063224,
+        //             "feeCurrency": "BTC"
+        //         },
+        //         ...
         //     ]
         //
-        return response;
+        return this.parseTrades (response, undefined, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1176,6 +1571,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -1228,6 +1633,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         const request = {
             'type': 'deposit',
         };
@@ -1235,6 +1650,16 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         const request = {
             'type': 'withdrawal',
         };
@@ -1291,8 +1716,13 @@ module.exports = class crex24 extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -1303,6 +1733,14 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1328,6 +1766,17 @@ module.exports = class crex24 extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the crex24 api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -17,20 +17,42 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchL3OrderBook': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
                 'withdraw': undefined,
             },
             'timeframes': undefined,
@@ -236,8 +258,8 @@ module.exports = class kuna extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': this.parseNumber ('0.0025'),
+                    'maker': this.parseNumber ('0.0025'),
                 },
                 'funding': {
                     'withdraw': {
@@ -261,6 +283,7 @@ module.exports = class kuna extends Exchange {
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -269,6 +292,13 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTimestamp (params);
         //
         //     1594911427
@@ -277,9 +307,32 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchMarkets
+         * @description retrieves data on all markets for kuna
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const markets = [];
         const response = await this.publicGetTickers (params);
+        //
+        //    {
+        //        shibuah: {
+        //            at: '1644463685',
+        //            ticker: {
+        //                buy: '0.000911',
+        //                sell: '0.00092',
+        //                low: '0.000872',
+        //                high: '0.000963',
+        //                last: '0.000911',
+        //                vol: '1539278096.0',
+        //                price: '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -296,22 +349,39 @@ module.exports = class kuna extends Exchange {
                     const baseId = id[0] + slicedId.replace (quoteId, '');
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
                     markets.push ({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': undefined,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': false,
                         'active': undefined,
+                        'contract': false,
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDatetime': undefined,
+                        'strike': undefined,
+                        'optionType': undefined,
                         'precision': {
                             'amount': undefined,
                             'price': undefined,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                             'amount': {
                                 'min': undefined,
                                 'max': undefined,
@@ -334,6 +404,15 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -350,36 +429,41 @@ module.exports = class kuna extends Exchange {
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = ticker['ticker'];
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const symbol = this.safeSymbol (undefined, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
         const ids = Object.keys (response);
@@ -406,6 +490,14 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -416,20 +508,81 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
         };
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "id":11353466,
+        //              "price":"3000.16",
+        //              "volume":"0.000397",
+        //              "funds":"1.19106352",
+        //              "market":"ethusdt",
+        //              "created_at":"2022-04-12T18:32:36Z",
+        //              "side":null,
+        //              "trend":"sell"
+        //          },
+        //      ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":11353466,
+        //          "price":"3000.16",
+        //          "volume":"0.000397",
+        //          "funds":"1.19106352",
+        //          "market":"ethusdt",
+        //          "created_at":"2022-04-12T18:32:36Z",
+        //          "side":null,
+        //          "trend":"sell"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //          "id":11353719,
+        //          "price":"0.13566",
+        //          "volume":"99.0",
+        //          "funds":"13.43034",
+        //          "market":"dogeusdt",
+        //          "created_at":"2022-04-12T18:58:44Z",
+        //          "side":"ask",
+        //          "order_id":1665670371,
+        //          "trend":"buy"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         let symbol = undefined;
         if (market) {
@@ -445,15 +598,10 @@ module.exports = class kuna extends Exchange {
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'volume');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'funds');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeNumber (trade, 'funds');
         const orderId = this.safeString (trade, 'order_id');
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -463,14 +611,25 @@ module.exports = class kuna extends Exchange {
             'side': side,
             'order': orderId,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const trades = await this.fetchTrades (symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
@@ -489,10 +648,8 @@ module.exports = class kuna extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetMembersMe (params);
-        const balances = this.safeValue (response, 'accounts');
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'accounts', []);
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -503,10 +660,35 @@ module.exports = class kuna extends Exchange {
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetMembersMe (params);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
@@ -524,6 +706,15 @@ module.exports = class kuna extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by kuna cancelOrder ()
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -554,7 +745,7 @@ module.exports = class kuna extends Exchange {
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
         const id = this.safeString (order, 'id');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
@@ -580,6 +771,14 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by kuna fetchOrder
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': parseInt (id),
@@ -589,6 +788,16 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -605,6 +814,16 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -614,6 +833,21 @@ module.exports = class kuna extends Exchange {
             'market': market['id'],
         };
         const response = await this.privateGetTradesMy (this.extend (request, params));
+        //
+        //      [
+        //          {
+        //              "id":11353719,
+        //              "price":"0.13566",
+        //              "volume":"99.0",
+        //              "funds":"13.43034",
+        //              "market":"dogeusdt",
+        //              "created_at":"2022-04-12T18:58:44Z",
+        //              "side":"ask",
+        //              "order_id":1665670371,
+        //              "trend":"buy"
+        //          },
+        //      ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 

@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -21,20 +22,51 @@ class itbit(Exchange):
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -96,9 +128,17 @@ class itbit(Exchange):
             'commonCurrencies': {
                 'XBT': 'BTC',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -106,34 +146,49 @@ class itbit(Exchange):
         orderbook = await self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'symbol': self.market_id(symbol),
-        }
-        ticker = await self.publicGetMarketsSymbolTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "pair":"XBTUSD",
+        #     "bid":"36734.50",
+        #     "bidAmt":"0.01000000",
+        #     "ask":"36734.75",
+        #     "askAmt":"0.30750480",
+        #     "lastPrice":"36721.75",
+        #     "lastAmt":"0.00070461",
+        #     "volume24h":"275.50596346",
+        #     "volumeToday":"118.19025141",
+        #     "high24h":"37510.50",
+        #     "low24h":"35542.75",
+        #     "highToday":"37510.50",
+        #     "lowToday":"36176.50",
+        #     "openToday":"37156.50",
+        #     "vwapToday":"37008.22463903",
+        #     "vwap24h":"36580.27146808",
+        #     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
-            raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
+            raise ExchangeError(self.id + ' fetchTicker() returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(serverTimeUTC)
-        vwap = self.safe_number(ticker, 'vwap24h')
-        baseVolume = self.safe_number(ticker, 'volume24h')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'lastPrice')
-        return {
+        vwap = self.safe_string(ticker, 'vwap24h')
+        baseVolume = self.safe_string(ticker, 'volume24h')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'lastPrice')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low24h'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low24h'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'openToday'),
+            'open': self.safe_string(ticker, 'openToday'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -143,7 +198,43 @@ class itbit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market)
+
+    async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
         }
+        ticker = await self.publicGetMarketsSymbolTicker(self.extend(request, params))
+        #
+        # {
+        #     "pair":"XBTUSD",
+        #     "bid":"36734.50",
+        #     "bidAmt":"0.01000000",
+        #     "ask":"36734.75",
+        #     "askAmt":"0.30750480",
+        #     "lastPrice":"36721.75",
+        #     "lastAmt":"0.00070461",
+        #     "volume24h":"275.50596346",
+        #     "volumeToday":"118.19025141",
+        #     "high24h":"37510.50",
+        #     "low24h":"35542.75",
+        #     "highToday":"37510.50",
+        #     "lowToday":"36176.50",
+        #     "openToday":"37156.50",
+        #     "vwapToday":"37008.22463903",
+        #     "vwap24h":"36580.27146808",
+        #     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -251,10 +342,18 @@ class itbit(Exchange):
         return result
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: not used by itbit fetchTransactions()
+        :param int|None since: not used by itbit fetchTransactions()
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a walletId parameter')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a walletId parameter')
         request = {
             'walletId': walletId,
         }
@@ -315,6 +414,14 @@ class itbit(Exchange):
         return self.safe_string(options, status, 'pending')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         walletId = self.safe_string(params, 'walletId')
         if walletId is None:
@@ -360,6 +467,14 @@ class itbit(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -382,9 +497,7 @@ class itbit(Exchange):
         trades = self.safe_value(response, 'recentTrades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.fetch_wallets(params)
+    def parse_balance(self, response):
         balances = response[0]['balances']
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -395,7 +508,17 @@ class itbit(Exchange):
             account['free'] = self.safe_string(balance, 'availableBalance')
             account['total'] = self.safe_string(balance, 'totalBalance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.fetch_wallets(params)
+        return self.parse_balance(response)
 
     async def fetch_wallets(self, params={}):
         await self.load_markets()
@@ -414,18 +537,42 @@ class itbit(Exchange):
         return await self.privateGetWalletsWalletId(self.extend(request, params))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'open',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'status': 'filled',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -485,7 +632,7 @@ class itbit(Exchange):
         id = self.safe_string(order, 'id')
         postOnlyString = self.safe_string(order, 'postOnly')
         postOnly = (postOnlyString == 'True')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -514,9 +661,19 @@ class itbit(Exchange):
         return self.milliseconds()
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' createOrder() requires a walletId parameter')
@@ -539,6 +696,12 @@ class itbit(Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by itbit fetchOrder
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
@@ -550,6 +713,13 @@ class itbit(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the itbit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         walletIdInParams = ('walletId' in params)
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder() requires a walletId parameter')

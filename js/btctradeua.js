@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -16,15 +17,45 @@ module.exports = class btctradeua extends Exchange {
             'countries': [ 'UA' ], // Ukraine,
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
             },
             'urls': {
@@ -57,9 +88,10 @@ module.exports = class btctradeua extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'markets': {
                 'BCH/UAH': { 'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': true },
-                'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': { 'price': 1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}, 'type': 'spot', 'spot': true },
+                'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': { 'price': 0.1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}, 'type': 'spot', 'spot': true },
                 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': true },
                 'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': true },
                 'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': true },
@@ -94,14 +126,19 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name btctradeua#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns response from exchange
+         */
         return await this.privatePostAuth (params);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+    parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'accounts');
+        const balances = this.safeValue (response, 'accounts', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -110,10 +147,32 @@ module.exports = class btctradeua extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name btctradeua#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -138,13 +197,14 @@ module.exports = class btctradeua extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'currency_trade');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
-        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
-        const ticker = this.safeValue (response, 'trades');
+    parseTicker (ticker, market = undefined) {
+        //
+        // [
+        //     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        //     [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        // ],
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const result = {
             'symbol': symbol,
@@ -174,28 +234,57 @@ module.exports = class btctradeua extends Exchange {
             for (let i = start; i < ticker.length; i++) {
                 const candle = ticker[i];
                 if (result['open'] === undefined) {
-                    result['open'] = this.safeNumber (candle, 1);
+                    result['open'] = this.safeString (candle, 1);
                 }
-                const high = this.safeNumber (candle, 2);
-                if ((result['high'] === undefined) || ((high !== undefined) && (result['high'] < high))) {
+                const high = this.safeString (candle, 2);
+                if ((result['high'] === undefined) || ((high !== undefined) && Precise.stringLt (result['high'], high))) {
                     result['high'] = high;
                 }
-                const low = this.safeNumber (candle, 3);
-                if ((result['low'] === undefined) || ((low !== undefined) && (result['low'] > low))) {
+                const low = this.safeString (candle, 3);
+                if ((result['low'] === undefined) || ((low !== undefined) && Precise.stringLt (result['low'], low))) {
                     result['low'] = low;
                 }
-                const baseVolume = this.safeNumber (candle, 5);
+                const baseVolume = this.safeString (candle, 5);
                 if (result['baseVolume'] === undefined) {
                     result['baseVolume'] = baseVolume;
                 } else {
-                    result['baseVolume'] = this.sum (result['baseVolume'], baseVolume);
+                    result['baseVolume'] = Precise.stringAdd (result['baseVolume'], baseVolume);
                 }
             }
             const last = tickerLength - 1;
-            result['last'] = this.safeNumber (ticker[last], 4);
+            result['last'] = this.safeString (ticker[last], 4);
             result['close'] = result['last'];
         }
-        return result;
+        return this.safeTicker (result, market);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
+        const ticker = this.safeValue (response, 'trades');
+        //
+        // {
+        //     "status": true,
+        //     "volume_trade": "0.495703",
+        //     "trades": [
+        //         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        //         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        //     ],
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     convertMonthNameToString (cyrillic) {
@@ -275,31 +364,35 @@ module.exports = class btctradeua extends Exchange {
         const side = this.safeString (trade, 'type');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amnt_trade');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -319,8 +412,20 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (type === 'market') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
+            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -335,6 +440,15 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by btctradeua cancelOrder ()
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'id': id,
         };
@@ -348,7 +462,7 @@ module.exports = class btctradeua extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amnt_trade');
         const remaining = this.safeString (order, 'amnt_trade');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'timestamp': timestamp, // until they fix their timestamp
@@ -374,6 +488,16 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name btctradeua#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the btctradeua api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }

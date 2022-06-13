@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\NetworkError;
-use \ccxt\Precise;
 
 class cdax extends Exchange {
 
@@ -29,18 +28,30 @@ class cdax extends Exchange {
             'hostname' => 'cdax.io',
             'pro' => false,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -53,6 +64,8 @@ class cdax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -170,6 +183,7 @@ class cdax extends Exchange {
                     'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
                     'contract is restricted of closing positions on API.  Please contact customer service' => '\\ccxt\\OnMaintenance',
@@ -221,7 +235,6 @@ class cdax extends Exchange {
                 'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarketsMethod' => 'publicGetCommonSymbols',
                 'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
@@ -246,6 +259,11 @@ class cdax extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = yield $this->publicGetCommonTimestamp ($params);
         return $this->safe_integer($response, 'data');
     }
@@ -272,39 +290,45 @@ class cdax extends Exchange {
         );
         $response = yield $this->publicGetCommonExchange (array_merge($request, $params));
         //
-        //     { status =>   "ok",
-        //         data => {                                  symbol => "aidocbtc",
-        //                              'buy-limit-must-less-than' =>  1.1,
-        //                          'sell-limit-must-greater-than' =>  0.9,
-        //                         'limit-order-must-greater-than' =>  1,
-        //                            'limit-order-must-less-than' =>  5000000,
-        //                    'market-buy-order-must-greater-than' =>  0.0001,
-        //                       'market-buy-order-must-less-than' =>  100,
-        //                   'market-sell-order-must-greater-than' =>  1,
-        //                      'market-sell-order-must-less-than' =>  500000,
-        //                       'circuit-break-when-greater-than' =>  10000,
-        //                          'circuit-break-when-less-than' =>  10,
-        //                 'market-sell-order-rate-must-less-than' =>  0.1,
-        //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
+        //    {
+        //        status =>   "ok",
+        //        data => {
+        //            'symbol' => "aidocbtc",
+        //            'buy-limit-must-less-than' =>  1.1,
+        //            'sell-limit-must-greater-than' =>  0.9,
+        //            'limit-order-must-greater-than' =>  1,
+        //            'limit-order-must-less-than' =>  5000000,
+        //            'market-buy-order-must-greater-than' =>  0.0001,
+        //            'market-buy-order-must-less-than' =>  100,
+        //            'market-sell-order-must-greater-than' =>  1,
+        //            'market-sell-order-must-less-than' =>  500000,
+        //            'circuit-break-when-greater-than' =>  10000,
+        //            'circuit-break-when-less-than' =>  10,
+        //            'market-sell-order-rate-must-less-than' =>  0.1,
+        //            'market-buy-order-rate-must-less-than' =>  0.1
+        //        }
+        //    }
         //
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits($limits, $symbol = null, $params = array ()) {
         //
-        //   {                                  $symbol => "aidocbtc",
-        //                  'buy-limit-must-less-than' =>  1.1,
-        //              'sell-limit-must-greater-than' =>  0.9,
-        //             'limit-order-must-greater-than' =>  1,
-        //                'limit-order-must-less-than' =>  5000000,
+        //    {
+        //        'symbol' => "aidocbtc",
+        //        'buy-limit-must-less-than' =>  1.1,
+        //        'sell-limit-must-greater-than' =>  0.9,
+        //        'limit-order-must-greater-than' =>  1,
+        //        'limit-order-must-less-than' =>  5000000,
         //        'market-buy-order-must-greater-than' =>  0.0001,
-        //           'market-buy-order-must-less-than' =>  100,
-        //       'market-sell-order-must-greater-than' =>  1,
-        //          'market-sell-order-must-less-than' =>  500000,
-        //           'circuit-break-when-greater-than' =>  10000,
-        //              'circuit-break-when-less-than' =>  10,
-        //     'market-sell-order-rate-must-less-than' =>  0.1,
-        //      'market-buy-order-rate-must-less-than' =>  0.1        }
+        //        'market-buy-order-must-less-than' =>  100,
+        //        'market-sell-order-must-greater-than' =>  1,
+        //        'market-sell-order-must-less-than' =>  500000,
+        //        'circuit-break-when-greater-than' =>  10000,
+        //        'circuit-break-when-less-than' =>  10,
+        //        'market-sell-order-rate-must-less-than' =>  0.1,
+        //        'market-buy-order-rate-must-less-than' =>  0.1
+        //    }
         //
         return array(
             'info' => $limits,
@@ -322,63 +346,102 @@ class cdax extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $method = $this->options['fetchMarketsMethod'];
-        $response = yield $this->$method ($params);
-        $markets = $this->safe_value($response, 'data');
+        /**
+         * retrieves data on all $markets for cdax
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
+        $response = yield $this->publicGetCommonSymbols ($params);
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            array(
+        //                "base-currency" => "ckb",
+        //                "quote-currency" => "usdt",
+        //                "price-precision" => 6,
+        //                "amount-precision" => 2,
+        //                "symbol-partition" => "default",
+        //                "symbol" => "ckbusdt",
+        //                "state" => "online",
+        //                "value-precision" => 8,
+        //                "min-order-amt" => 1,
+        //                "max-order-amt" => 140000000,
+        //                "min-order-value" => 5,
+        //                "limit-order-min-order-amt" => 1,
+        //                "limit-order-max-order-amt" => 140000000,
+        //                "limit-order-max-buy-amt" => 140000000,
+        //                "limit-order-max-sell-amt" => 140000000,
+        //                "sell-$market-min-order-amt" => 1,
+        //                "sell-$market-max-order-amt" => 14000000,
+        //                "buy-$market-max-order-value" => 200000,
+        //                "api-trading" => "enabled",
+        //                "tags" => ""
+        //            ),
+        //        )
+        //    }
+        //
+        $markets = $this->safe_value($response, 'data', array());
         $numMarkets = is_array($markets) ? count($markets) : 0;
         if ($numMarkets < 1) {
-            throw new NetworkError($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json($markets));
+            throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
         }
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $baseId = $this->safe_string($market, 'base-currency');
             $quoteId = $this->safe_string($market, 'quote-currency');
-            $id = $baseId . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'amount-precision'),
-                'price' => $this->safe_integer($market, 'price-precision'),
-                'cost' => $this->safe_integer($market, 'value-precision'),
-            );
-            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
-            $maxAmount = $this->safe_number($market, 'max-order-amt');
-            $minCost = $this->safe_number($market, 'min-order-value', 0);
             $state = $this->safe_string($market, 'state');
-            $active = ($state === 'online');
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $baseId . $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
-                'taker' => $taker,
-                'maker' => $maker,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($state === 'online'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => ($base === 'OMG') ? 0 : 0.002,
+                'maker' => ($base === 'OMG') ? 0 : 0.002,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount-precision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price-precision'))),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'value-precision'))),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($market, 'leverage-ratio', 1),
+                        'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
+                    ),
                     'amount' => array(
-                        'min' => $minAmount,
-                        'max' => $maxAmount,
+                        'min' => $this->safe_number($market, 'min-order-amt'),
+                        'max' => $this->safe_number($market, 'max-order-amt'),
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $minCost,
+                        'min' => $this->safe_number($market, 'min-order-value', 0),
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'max' => $this->safe_number($market, 'leverage-ratio', 1),
-                        'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
                     ),
                 ),
                 'info' => $market,
@@ -428,39 +491,38 @@ class cdax extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && count(array_filter(array_keys($ticker['bid']), 'is_string')) == 0) {
-                $bid = $this->safe_number($ticker['bid'], 0);
-                $bidVolume = $this->safe_number($ticker['bid'], 1);
+            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
+                $bid = $this->safe_string($ticker['bid'], 0);
+                $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
-                $bid = $this->safe_number($ticker, 'bid');
-                $bidVolume = $this->safe_value($ticker, 'bidSize');
+                $bid = $this->safe_string($ticker, 'bid');
+                $bidVolume = $this->safe_string($ticker, 'bidSize');
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && count(array_filter(array_keys($ticker['ask']), 'is_string')) == 0) {
-                $ask = $this->safe_number($ticker['ask'], 0);
-                $askVolume = $this->safe_number($ticker['ask'], 1);
+            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
+                $ask = $this->safe_string($ticker['ask'], 0);
+                $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
-                $ask = $this->safe_number($ticker, 'ask');
-                $askVolume = $this->safe_value($ticker, 'askSize');
+                $ask = $this->safe_string($ticker, 'ask');
+                $askVolume = $this->safe_string($ticker, 'askSize');
             }
         }
-        $open = $this->safe_number($ticker, 'open');
-        $close = $this->safe_number($ticker, 'close');
-        $baseVolume = $this->safe_number($ticker, 'amount');
-        $quoteVolume = $this->safe_number($ticker, 'vol');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $open = $this->safe_string($ticker, 'open');
+        $close = $this->safe_string($ticker, 'close');
+        $baseVolume = $this->safe_string($ticker, 'amount');
+        $quoteVolume = $this->safe_string($ticker, 'vol');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
             'askVolume' => $askVolume,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $close,
             'last' => $close,
@@ -475,6 +537,13 @@ class cdax extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -517,6 +586,12 @@ class cdax extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -551,9 +626,15 @@ class cdax extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->marketGetTickers ($params);
-        $tickers = $this->safe_value($response, 'data');
+        $tickers = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -572,34 +653,56 @@ class cdax extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         "amount" => 0.010411000000000000,
-        //         "trade-$id" => 102090736910,
-        //         "ts" => 1583497692182,
-        //         "id" => 10500517034273194594947,
-        //         "price" => 9096.050000000000000000,
-        //         "direction" => "sell"
-        //     }
+        //      {
+        //          "id" => "112522757755423628681413936",
+        //          "ts" => "1638457111917",
+        //          "trade-$id" => "100454385963",
+        //          "amount" => "13.7962",
+        //          "price" => "1.697867",
+        //          "direction" => "buy"
+        //      }
         //
         // fetchMyTrades (private)
         //
-        //     array(
-        //          'symbol' => 'swftcbtc',
-        //          'fee-currency' => 'swftc',
-        //          'filled-fees' => '0',
-        //          'source' => 'spot-api',
-        //          'id' => 83789509854000,
-        //          'type' => 'buy-limit',
-        //          'order-id' => 83711103204909,
-        //          'filled-points' => '0.005826843283532154',
-        //          'fee-deduct-currency' => 'ht',
-        //          'filled-amount' => '45941.53',
-        //          'price' => '0.0000001401',
-        //          'created-at' => 1597933260729,
-        //          'match-id' => 100087455560,
-        //          'role' => 'maker',
-        //          'trade-id' => 100050305348
-        //     ),
+        //      array(
+        //          "symbol" => "adausdt",
+        //          "fee-currency" => "usdt",
+        //          "source" => "spot-api",
+        //          "order-$id" => "423628498050504",
+        //          "created-at" => "1638455779233",
+        //          "role" => "taker",
+        //          "price" => "1.672487",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
+        //          "filled-amount" => "6.8",
+        //          "filled-fees" => "0.0227458232",
+        //          "filled-points" => "0.0",
+        //          "fee-deduct-currency" => "",
+        //          "fee-deduct-state" => "done",
+        //          "id" => "422419583501532",
+        //          "type" => "sell-$market"
+        //      ),
+        //
+        // fetchOrderTrades (private)
+        //
+        //      {
+        //          "symbol" => "adausdt",
+        //          "fee-currency" => "usdt",
+        //          "source" => "spot-api",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
+        //          "role" => "taker",
+        //          "order-$id" => "423628498050504",
+        //          "price" => "1.672487",
+        //          "created-at" => "1638455779233",
+        //          "filled-amount" => "6.8",
+        //          "filled-fees" => "0.0227458232",
+        //          "filled-points" => "0.0",
+        //          "fee-deduct-currency" => "",
+        //          "fee-deduct-state" => "done",
+        //          "id" => "422419583501532",
+        //          "type" => "sell-$market"
+        //      }
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -615,28 +718,25 @@ class cdax extends Exchange {
         $takerOrMaker = $this->safe_string($trade, 'role');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'filled-fees');
+        $feeCostString = $this->safe_string($trade, 'filled-fees');
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
-            if (($feeCost === null) || ($feeCost === 0.0)) {
-                $feeCost = $filledPoints;
+            if (($feeCostString === null) || ($feeCostString === '0.0')) {
+                $feeCostString = $filledPoints;
                 $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
         $id = $this->safe_string($trade, 'id', $tradeId);
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $order,
@@ -646,14 +746,23 @@ class cdax extends Exchange {
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -663,6 +772,14 @@ class cdax extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $market = null;
         $request = array();
@@ -682,6 +799,14 @@ class cdax extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = 1000, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest $trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades $trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -715,7 +840,7 @@ class cdax extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $trades = $this->safe_value($data[$i], 'data', array());
@@ -725,7 +850,7 @@ class cdax extends Exchange {
             }
         }
         $result = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -752,6 +877,15 @@ class cdax extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -779,131 +913,114 @@ class cdax extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetAccountAccounts ($params);
         return $response['data'];
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = yield $this->v2PublicGetReferenceCurrencies ();
+        /**
+         * fetches all available $currencies on an exchange
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} an associative dictionary of $currencies
+         */
+        $request = array(
+            'language' => $this->options['language'],
+        );
+        $response = yield $this->publicGetSettingsCurrencys (array_merge($request, $params));
+        //
         //     {
-        //       "code" => 200,
-        //       "data" => array(
-        //         {
-        //           "currency" => "sxp",
-        //           "assetType" => "1",
-        //           "chains" => array(
+        //         "status":"ok",
+        //         "data":[
         //             {
-        //               "chain" => "sxp",
-        //               "displayName" => "ERC20",
-        //               "baseChain" => "ETH",
-        //               "baseChainProtocol" => "ERC20",
-        //               "isDynamic" => true,
-        //               "numOfConfirmations" => "12",
-        //               "numOfFastConfirmations" => "12",
-        //               "depositStatus" => "allowed",
-        //               "minDepositAmt" => "0.23",
-        //               "withdrawStatus" => "allowed",
-        //               "minWithdrawAmt" => "0.23",
-        //               "withdrawPrecision" => "8",
-        //               "maxWithdrawAmt" => "227000.000000000000000000",
-        //               "withdrawQuotaPerDay" => "227000.000000000000000000",
-        //               "withdrawQuotaPerYear" => null,
-        //               "withdrawQuotaTotal" => null,
-        //               "withdrawFeeType" => "fixed",
-        //               "transactFeeWithdraw" => "11.1653",
-        //               "addrWithTag" => false,
-        //               "addrDepositTag" => false
+        //                 "currency-addr-with-tag":false,
+        //                 "fast-confirms":12,
+        //                 "safe-confirms":12,
+        //                 "currency-type":"eth",
+        //                 "quote-$currency":true,
+        //                 "withdraw-enable-timestamp":1609430400000,
+        //                 "deposit-enable-timestamp":1609430400000,
+        //                 "currency-partition":"all",
+        //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
+        //                 "withdraw-$precision":6,
+        //                 "visible-assets-timestamp":1508839200000,
+        //                 "deposit-min-amount":"1",
+        //                 "withdraw-min-amount":"10",
+        //                 "show-$precision":"8",
+        //                 "tags":"",
+        //                 "weight":23,
+        //                 "full-$name":"Tether USDT",
+        //                 "otc-enable":1,
+        //                 "visible":true,
+        //                 "white-enabled":false,
+        //                 "country-disabled":false,
+        //                 "deposit-enabled":true,
+        //                 "withdraw-enabled":true,
+        //                 "name":"usdt",
+        //                 "state":"online",
+        //                 "display-$name":"USDT",
+        //                 "suspend-withdraw-desc":null,
+        //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-deposit-desc":null,
+        //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+        //                 "suspend-$visible-desc":null
         //             }
-        //           ),
-        //           "instStatus" => "normal"
-        //         }
-        //       )
+        //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $currencies = $this->safe_value($response, 'data', array());
         $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $currencyId = $this->safe_string($entry, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            $instStatus = $this->safe_string($entry, 'instStatus');
-            $currencyActive = $instStatus === 'normal';
-            $fee = null;
-            $precision = null;
-            $minWithdraw = null;
-            $maxWithdraw = null;
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $baseChainProtocol = $this->safe_string($chain, 'baseChainProtocol');
-                $huobiToken = 'h' . $currencyId;
-                if ($baseChainProtocol === null) {
-                    if ($huobiToken === $networkId) {
-                        $baseChainProtocol = 'ERC20';
-                    } else {
-                        $baseChainProtocol = $this->safe_string($chain, 'displayName');
-                    }
-                }
-                $network = $this->safe_network($baseChainProtocol);
-                $minWithdraw = $this->safe_number($chain, 'minWithdrawAmt');
-                $maxWithdraw = $this->safe_number($chain, 'maxWithdrawAmt');
-                $withdraw = $this->safe_string($chain, 'withdrawStatus');
-                $deposit = $this->safe_string($chain, 'depositStatus');
-                $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
-                $precision = $this->safe_integer($chain, 'withdrawPrecision');
-                $fee = $this->safe_number($chain, 'transactFeeWithdraw');
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
-                        ),
-                    ),
-                    'active' => $active,
-                    'fee' => $fee,
-                    'precision' => $precision,
-                );
-            }
-            $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $this->safe_value($currency, 'name');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdraw-precision')));
+            $code = $this->safe_currency_code($id);
+            $depositEnabled = $this->safe_value($currency, 'deposit-enabled');
+            $withdrawEnabled = $this->safe_value($currency, 'withdraw-enabled');
+            $countryDisabled = $this->safe_value($currency, 'country-disabled');
+            $visible = $this->safe_value($currency, 'visible', false);
+            $state = $this->safe_string($currency, 'state');
+            $active = $visible && $depositEnabled && $withdrawEnabled && ($state === 'online') && !$countryDisabled;
+            $name = $this->safe_string($currency, 'display-name');
             $result[$code] = array(
-                'info' => $entry,
+                'id' => $id,
                 'code' => $code,
-                'id' => $currencyId,
-                'active' => $currencyActive,
-                'fee' => ($networkLength <= 1) ? $fee : null,
-                'name' => null,
+                'type' => 'crypto',
+                // 'payin' => $currency['deposit-enabled'],
+                // 'payout' => $currency['withdraw-enabled'],
+                // 'transfer' => null,
+                'name' => $name,
+                'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
+                'fee' => null, // todo need to fetch from fee endpoint
+                'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => null,
+                        'min' => $precision,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'deposit-min-amount'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => ($networkLength <= 1) ? $minWithdraw : null,
-                        'max' => ($networkLength <= 1) ? $maxWithdraw : null,
+                        'min' => $this->safe_number($currency, 'withdraw-min-amount'),
+                        'max' => null,
                     ),
                 ),
-                'precision' => ($networkLength <= 1) ? $precision : null,
-                'networks' => $networks,
+                'info' => $currency,
             );
         }
         return $result;
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        yield $this->load_accounts();
-        $method = $this->options['fetchBalanceMethod'];
-        $request = array(
-            'id' => $this->accounts[0]['id'],
-        );
-        $response = yield $this->$method (array_merge($request, $params));
+    public function parse_balance($response) {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -924,7 +1041,23 @@ class cdax extends Exchange {
             }
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        yield $this->load_markets();
+        yield $this->load_accounts();
+        $method = $this->options['fetchBalanceMethod'];
+        $request = array(
+            'id' => $this->accounts[0]['id'],
+        );
+        $response = yield $this->$method (array_merge($request, $params));
+        return $this->parse_balance($response);
     }
 
     public function fetch_orders_by_states($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -960,6 +1093,12 @@ class cdax extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol not used by cdax fetchOrder
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -970,10 +1109,26 @@ class cdax extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return yield $this->fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
         return yield $this->$method ($symbol, $since, $limit, $params);
     }
@@ -986,6 +1141,14 @@ class cdax extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return yield $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
@@ -1056,30 +1219,30 @@ class cdax extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {                  $id =>  13997833014,
-        //                    $symbol => "ethbtc",
+        //                    symbol => "ethbtc",
         //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
+        //                    amount => "0.045000000000000000",
+        //                     price => "0.034014000000000000",
         //              'created-at' =>  1545836976871,
         //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
+        //            'field-amount' => "0.045000000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //              'field-fees' => "0.000003061260000000", // they have fixed it for filled-fees
         //             'finished-at' =>  1545837948214,
         //                    source => "spot-api",
         //                     state => "filled",
         //             'canceled-at' =>  0                      }
         //
         //     {                  $id =>  20395337822,
-        //                    $symbol => "ethbtc",
+        //                    symbol => "ethbtc",
         //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
+        //                    amount => "0.001000000000000000",
+        //                     price => "0.0",
         //              'created-at' =>  1545831584023,
         //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
+        //            'field-amount' => "0.029100000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //              'field-fees' => "0.000058200000000000", // they have fixed it for filled-fees
         //             'finished-at' =>  1545831584181,
         //                    source => "spot-api",
         //                     state => "filled",
@@ -1088,52 +1251,51 @@ class cdax extends Exchange {
         $id = $this->safe_string($order, 'id');
         $side = null;
         $type = null;
-        $status = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
-            $orderType = explode('-', $order['type']);
-            $side = $orderType[0];
-            $type = $orderType[1];
-            $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $orderType = $this->safe_string($order, 'type');
+        if ($orderType !== null) {
+            $parts = explode('-', $orderType);
+            $side = $this->safe_string($parts, 0);
+            $type = $this->safe_string($parts, 1);
         }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
-        $amount = $this->safe_string($order, 'amount');
-        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $price = $this->safe_string($order, 'price');
-        $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $feeCost = $this->safe_number_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
+        $filledString = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
+        $priceString = $this->safe_string($order, 'price');
+        $costString = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
+        $amountString = $this->safe_string($order, 'amount');
+        if ($orderType === 'buy-market') {
+            $amountString = null;
+        }
+        $feeCostString = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         $fee = null;
-        if ($feeCost !== null) {
-            $feeCurrency = null;
-            if ($market !== null) {
-                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-            }
+        if ($feeCostString !== null) {
+            $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
         }
-        return $this->safe_order2(array(
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
             'stopPrice' => null,
             'average' => null,
-            'cost' => $cost,
-            'amount' => $amount,
-            'filled' => $filled,
+            'cost' => $costString,
+            'amount' => $amountString,
+            'filled' => $filledString,
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
@@ -1142,6 +1304,16 @@ class cdax extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         yield $this->load_accounts();
         $market = $this->market($symbol);
@@ -1208,6 +1380,13 @@ class cdax extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by cdax cancelOrder ()
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $response = yield $this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id ));
         //
         //     {
@@ -1222,6 +1401,13 @@ class cdax extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol not used by cdax cancelOrders ()
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $clientOrderIds = $this->safe_value_2($params, 'clientOrderIds', 'client-order-ids');
         $params = $this->omit($params, array( 'clientOrderIds', 'client-order-ids' ));
@@ -1268,6 +1454,12 @@ class cdax extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
@@ -1295,8 +1487,8 @@ class cdax extends Exchange {
         return $response;
     }
 
-    public function currency_to_precision($currency, $fee) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
+    public function currency_to_precision($code, $fee, $networkCode = null) {
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
     }
 
     public function safe_network($networkId) {
@@ -1320,9 +1512,6 @@ class cdax extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'addressTag');
-        if ($tag === '') {
-            $tag = null;
-        }
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -1342,6 +1531,14 @@ class cdax extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
@@ -1366,6 +1563,14 @@ class cdax extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
@@ -1438,14 +1643,21 @@ class cdax extends Exchange {
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
+        $address = $this->safe_string($transaction, 'address');
+        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
@@ -1484,6 +1696,15 @@ class cdax extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the cdax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);
@@ -1509,20 +1730,16 @@ class cdax extends Exchange {
             $params = $this->omit($params, 'network');
         }
         $response = yield $this->privatePostDwWithdrawApiCreate (array_merge($request, $params));
-        $id = $this->safe_string($response, 'data');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         if ($api === 'market') {
             $url .= $api;
-        } else if (($api === 'public') || ($api === 'private')) {
+        } elseif (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
-        } else if (($api === 'v2Public') || ($api === 'v2Private')) {
+        } elseif (($api === 'v2Public') || ($api === 'v2Private')) {
             $url .= 'v2';
         }
         $url .= '/' . $this->implode_params($path, $params);

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -17,19 +18,56 @@ module.exports = class coinfalcon extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradinFee': false,
+                'fetchTradingFees': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
@@ -81,44 +119,88 @@ module.exports = class coinfalcon extends Exchange {
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchMarkets
+         * @description retrieves data on all markets for coinfalcon
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
-        const markets = this.safeValue (response, 'data');
+        //
+        //    {
+        //        "data": [
+        //            {
+        //                "name": "ETH-BTC",
+        //                "precision": 6,
+        //                "min_volume": "0.00000001",
+        //                "min_price": "0.000001",
+        //                "volume": "0.015713",
+        //                "last_price": "0.069322",
+        //                "highest_bid": "0.063892",
+        //                "lowest_ask": "0.071437",
+        //                "change_in_24h": "2.85",
+        //                "size_precision": 8,
+        //                "price_precision": 6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const markets = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const [ baseId, quoteId ] = market['name'].split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'size_precision'),
-                'price': this.safeInteger (market, 'price_precision'),
-            };
             result.push ({
                 'id': market['name'],
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'size_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.safeNumber (market, 'minPrice'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.safeNumber (market, 'minVolume'),
                         'max': undefined,
                     },
                     'cost': {
@@ -133,44 +215,94 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "name":"ETH-BTC",
+        //         "precision":6,
+        //         "min_volume":"0.00000001",
+        //         "min_price":"0.000001",
+        //         "volume":"0.000452",
+        //         "last_price":"0.079059",
+        //         "highest_bid":"0.073472",
+        //         "lowest_ask":"0.079059",
+        //         "change_in_24h":"8.9",
+        //         "size_precision":8,
+        //         "price_precision":6
+        //     }
+        //
         const marketId = this.safeString (ticker, 'name');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const timestamp = this.milliseconds ();
-        const last = this.safeNumber (ticker, 'last_price');
-        return {
-            'symbol': symbol,
+        const last = this.safeString (ticker, 'last_price');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
+            'bid': this.safeString (ticker, 'highest_bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString (ticker, 'lowest_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'change_in_24h'),
+            'change': this.safeString (ticker, 'change_in_24h'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
-        const tickers = await this.fetchTickers (params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const response = await this.publicGetMarkets (params);
-        const tickers = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "name":"ETH-BTC",
+        //                 "precision":6,
+        //                 "min_volume":"0.00000001",
+        //                 "min_price":"0.000001",
+        //                 "volume":"0.000452",
+        //                 "last_price":"0.079059",
+        //                 "highest_bid":"0.073472",
+        //                 "lowest_ask":"0.079059",
+        //                 "change_in_24h":"8.9",
+        //                 "size_precision":8,
+        //                 "price_precision":6
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i]);
@@ -181,6 +313,15 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
@@ -192,26 +333,49 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //          "price":"4050.06","size":"0.0044",
+        //          "market_name":"ETH-USDT",
+        //          "side":"sell",
+        //          "created_at":"2021-12-07T17:47:36.811000Z"
+        //      }
+        //
+        // fetchMyTrades (private)
+        //
+        //      {
+        //              "id": "0718d520-c796-4061-a16b-915cd13f20c6",
+        //              "price": "0.00000358",
+        //              "size": "50.0",
+        //              "market_name": "DOGE-BTC",
+        //              "order_id": "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //              "side": "buy",
+        //              "fee': "0.00000036",
+        //              "fee_currency_code": "btc",
+        //              "liquidity": "T",
+        //              "created_at": "2021-12-08T18:26:33.840000Z"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const symbol = market['symbol'];
         const tradeId = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = this.safeString (trade, 'fee_currency_code');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeCurrencyCode (feeCurrencyCode),
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -221,14 +385,24 @@ module.exports = class coinfalcon extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -244,11 +418,39 @@ module.exports = class coinfalcon extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetUserTrades (this.extend (request, params));
+        //
+        //      {
+        //          "data": [
+        //              {
+        //                  "id": "0718d520-c796-4061-a16b-915cd13f20c6",
+        //                  "price": "0.00000358",
+        //                  "size": "50.0",
+        //                  "market_name": "DOGE-BTC",
+        //                  "order_id": "ff2616d8-58d4-40fd-87ae-937c73eb6f1c",
+        //                  "side": "buy",
+        //                  "fee': "0.00000036",
+        //                  "fee_currency_code": "btc",
+        //                  "liquidity": "T",
+        //                  "created_at": "2021-12-08T18:26:33.840000Z"
+        //              },
+        //          ]
+        //      }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -258,15 +460,65 @@ module.exports = class coinfalcon extends Exchange {
             request['since'] = this.iso8601 (since);
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        //
+        //      {
+        //          "data":[
+        //              {
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              },
+        //          ]
+        //      }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
-        const response = await this.privateGetUserAccounts (params);
+        const response = await this.privateGetUserFees (params);
+        //
+        //    {
+        //        data: {
+        //            maker_fee: '0.0',
+        //            taker_fee: '0.2',
+        //            btc_volume_30d: '0.0'
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const makerString = this.safeString (data, 'maker_fee');
+        const takerString = this.safeString (data, 'taker_fee');
+        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
+    }
+
+    parseBalance (response) {
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');
@@ -277,7 +529,66 @@ module.exports = class coinfalcon extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetUserAccounts (params);
+        return this.parseBalance (response);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
+        //         "tag":"0"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const tag = this.safeString (depositAddress, 'tag');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.safeCurrency (code);
+        const request = {
+            'currency': this.safeStringLower (currency, 'id'),
+        };
+        const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         data: {
+        //             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
+        //             tag:null
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
     }
 
     parseOrderStatus (status) {
@@ -312,9 +623,9 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'size_filled');
+        const priceString = this.safeString (order, 'price');
+        const amountString = this.safeString (order, 'size');
+        const filledString = this.safeString (order, 'size_filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
@@ -323,7 +634,7 @@ module.exports = class coinfalcon extends Exchange {
         }
         const side = this.safeString (order, 'order_type');
         const postOnly = this.safeValue (order, 'post_only');
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
             'datetime': this.iso8601 (timestamp),
@@ -334,11 +645,11 @@ module.exports = class coinfalcon extends Exchange {
             'timeInForce': undefined,
             'postOnly': postOnly,
             'side': side,
-            'price': price,
+            'price': priceString,
             'stopPrice': undefined,
             'cost': undefined,
-            'amount': amount,
-            'filled': filled,
+            'amount': amountString,
+            'filled': filledString,
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
@@ -349,6 +660,18 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // price/size must be string
@@ -368,6 +691,15 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -379,6 +711,14 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -389,6 +729,16 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -407,6 +757,16 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // currency: 'xrp', // optional: currency code in lowercase
@@ -418,7 +778,7 @@ module.exports = class coinfalcon extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'].toLowerCase ();
+            request['currency'] = this.safeStringLower (currency, 'id');
         }
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
@@ -444,6 +804,16 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // currency: 'xrp', // optional: currency code in lowercase
@@ -455,7 +825,7 @@ module.exports = class coinfalcon extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency'] = currency['id'].toLowerCase ();
+            request['currency'] = this.safeStringLower (currency, 'id');
         }
         if (since !== undefined) {
             request['since_time'] = this.iso8601 (since);
@@ -482,12 +852,23 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinfalcon#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the coinfalcon api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toLowerCase (),
+            'currency': this.safeStingLower (currency, 'id'),
             'address': address,
             'amount': amount,
             // 'tag': 'string', // withdraw tag/memo
@@ -577,8 +958,13 @@ module.exports = class coinfalcon extends Exchange {
             'txid': txid,
             'timestamp': undefined,
             'datetime': undefined,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

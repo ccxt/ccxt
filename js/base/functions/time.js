@@ -23,6 +23,11 @@ const uuidv1 = () => {
 const setTimeout_original = setTimeout
 const setTimeout_safe = (done, ms, setTimeout = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
 
+    // avoid MAX_INT issue https://stackoverflow.com/questions/60474110
+    if (ms >= 2147483647) {
+        throw new Exception('setTimeout() function was called with unrealistic value of ' + ms.toString ())
+    }
+    
     // The built-in setTimeout function can fire its callback earlier than specified, so we
     // need to ensure that it does not happen: sleep recursively until `targetTime` is reached...
 

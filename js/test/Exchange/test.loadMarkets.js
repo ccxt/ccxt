@@ -2,38 +2,35 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
-    , testMarket = require ('./test.market.js')
+const testMarket = require ('./test.market.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange) => {
+
+    const method = 'loadMarkets'
 
     const skippedExchanges = [
         'bitforex',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping loadMarkets...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.loadMarkets) {
+    if (exchange.has[method]) {
 
-        // log ('loading markets...')
-
-        const method = 'loadMarkets'
         const markets = await exchange[method] ()
-        Object.values (markets).forEach ((market) => testMarket (exchange, market, method))
+        const values = Object.values (markets)
+        for (let i = 0; i < values.length; i++) {
+            const market = values[i]
+            testMarket (exchange, market, method)
+        }
         return markets
 
     } else {
 
-        log ('loading markets not supported')
+        console.log (method + '() is not supported')
     }
 }
-

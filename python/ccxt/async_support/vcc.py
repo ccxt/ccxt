@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -30,28 +31,66 @@ class vcc(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'editOrder': None,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': None,
                 'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '60000',
@@ -121,6 +160,7 @@ class vcc(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -143,6 +183,11 @@ class vcc(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for vcc
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetExchangeInfo(params)
         #
         #     {
@@ -176,7 +221,7 @@ class vcc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        markets = self.safe_value(data, 'symbols')
+        markets = self.safe_value(data, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
             market = self.safe_value(markets, i)
@@ -186,29 +231,45 @@ class vcc(Exchange):
             quoteId = self.safe_string(market, 'currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            active = self.safe_value(market, 'active')
             precision = self.safe_value(market, 'precision', {})
             limits = self.safe_value(market, 'limits', {})
             amountLimits = self.safe_value(limits, 'amount', {})
             priceLimits = self.safe_value(limits, 'price', {})
             costLimits = self.safe_value(limits, 'cost', {})
             entry = {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settledId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(precision, 'price'),
-                    'amount': self.safe_integer(precision, 'amount'),
-                    'cost': self.safe_integer(precision, 'cost'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(precision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(precision, 'price'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(precision, 'cost'))),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(amountLimits, 'min'),
                         'max': None,
@@ -222,11 +283,17 @@ class vcc(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             result.append(entry)
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetAssets(params)
         #
         #     {
@@ -249,22 +316,26 @@ class vcc(Exchange):
         #     }
         #
         result = {}
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         ids = list(data.keys())
         for i in range(0, len(ids)):
             id = self.safe_string_lower(ids, i)
             currency = self.safe_value(data, ids[i])
             code = self.safe_currency_code(id)
-            canDeposit = self.safe_value(currency, 'can_deposit')
-            canWithdraw = self.safe_value(currency, 'can_withdraw')
+            canDeposit = self.safe_integer(currency, 'can_deposit')
+            canWithdraw = self.safe_integer(currency, 'can_withdraw')
             active = (canDeposit and canWithdraw)
+            depositEnabled = (canDeposit == 1)
+            withdrawEnabled = (canWithdraw == 1)
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
-                'precision': self.safe_integer(currency, 'decimal'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal'))),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_number(currency, 'min_withdraw'),
@@ -275,6 +346,12 @@ class vcc(Exchange):
         return result
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -293,21 +370,8 @@ class vcc(Exchange):
             'taker': self.safe_number(response, 'takeLiquidityRate'),
         }
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalance(params)
-        #
-        #     {
-        #         "message":null,
-        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
-        #         "data":{
-        #             "vnd":{"balance":0,"available_balance":0},
-        #             "btc":{"balance":0,"available_balance":0},
-        #             "eth":{"balance":0,"available_balance":0},
-        #         },
-        #     }
-        #
-        data = self.safe_value(response, 'data')
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'data', {})
         result = {
             'info': response,
             'timestamp': None,
@@ -322,7 +386,28 @@ class vcc(Exchange):
             account['free'] = self.safe_string(balance, 'available_balance')
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetBalance(params)
+        #
+        #     {
+        #         "message":null,
+        #         "dataVersion":"7168e6c99e90f60673070944d987988eef7d91fa",
+        #         "data":{
+        #             "vnd":{"balance":0,"available_balance":0},
+        #             "btc":{"balance":0,"available_balance":0},
+        #             "eth":{"balance":0,"available_balance":0},
+        #         },
+        #     }
+        #
+        return self.parse_balance(response)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -347,6 +432,15 @@ class vcc(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -376,6 +470,13 @@ class vcc(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -385,7 +486,7 @@ class vcc(Exchange):
         }
         if limit is not None:
             if (limit != 0) and (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500):
-                raise BadRequest(self.id + ' fetchOrderBook limit must be 0, 5, 10, 20, 50, 100, 500 if specified')
+                raise BadRequest(self.id + ' fetchOrderBook() limit must be 0, 5, 10, 20, 50, 100, 500 if specified')
             request['depth'] = limit
         response = await self.publicGetOrderbookMarketPair(self.extend(request, params))
         #
@@ -426,23 +527,22 @@ class vcc(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        open = self.safe_number(ticker, 'open_price')
-        last = self.safe_number(ticker, 'last_price')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
+        open = self.safe_string(ticker, 'open_price')
+        last = self.safe_string(ticker, 'last_price')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -456,6 +556,12 @@ class vcc(Exchange):
         }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetTicker(params)
         #
@@ -478,7 +584,7 @@ class vcc(Exchange):
         #     }
         #
         result = {}
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -555,6 +661,14 @@ class vcc(Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -585,6 +699,14 @@ class vcc(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'type': type,  # 'deposit', 'withdraw'
@@ -657,10 +779,26 @@ class vcc(Exchange):
         return self.parse_transactions(data, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {'type': 'deposit'}
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {'type': 'withdraw'}
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
@@ -719,13 +857,15 @@ class vcc(Exchange):
                 'cost': feeCost,
                 'currency': code,
             }
-        type = amount > 'deposit' if 0 else 'withdrawal'
+        type = 'deposit' if (amount > 0) else 'withdrawal'
+        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -760,6 +900,16 @@ class vcc(Exchange):
         return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['cost'], self.precisionMode, self.paddingMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -841,6 +991,13 @@ class vcc(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by vcc cancelOrder()
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': id,
@@ -849,6 +1006,12 @@ class vcc(Exchange):
         return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         type = self.safe_string(params, 'type')
         method = 'privatePutOrdersCancelAll' if (type is None) else 'privatePutOrdersCancelByType'
         request = {}
@@ -963,7 +1126,7 @@ class vcc(Exchange):
         if updated != created:
             lastTradeTimestamp = updated
         stopPrice = self.safe_number(order, 'stopPrice')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'clientOrderId': id,
             'timestamp': created,
@@ -988,6 +1151,12 @@ class vcc(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by vcc fetchOrder
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': id,
@@ -1091,12 +1260,36 @@ class vcc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.fetch_orders_with_method('privateGetOrdersOpen', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {
             # 'page': 1,
@@ -1154,6 +1347,12 @@ class vcc(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the vcc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {

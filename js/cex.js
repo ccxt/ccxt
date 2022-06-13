@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -16,26 +17,64 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false, // has but not through api
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDeposits': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchTransactions': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
+                'fetchWithdrawalWhitelist': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -116,6 +155,7 @@ module.exports = class cex extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -127,6 +167,8 @@ module.exports = class cex extends Exchange {
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
+                    'Invalid Symbols Pair': BadSymbol,
+                    'Wrong currency pair': BadSymbol, // {"error":"There was an error while placing your order: Wrong currency pair.","safe":true}
                 },
             },
             'options': {
@@ -162,6 +204,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.fetchCurrenciesFromCache (params);
         this.options['currencies'] = {
             'timestamp': this.milliseconds (),
@@ -235,14 +284,15 @@ module.exports = class cex extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precision');
             const active = true;
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': id,
                 'active': active,
-                'precision': precision,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -261,6 +311,13 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchMarkets
+         * @description retrieves data on all markets for cex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const currenciesResponse = await this.fetchCurrenciesFromCache (params);
         const currenciesData = this.safeValue (currenciesResponse, 'data', {});
         const currencies = this.safeValue (currenciesData, 'symbols', []);
@@ -301,40 +358,54 @@ module.exports = class cex extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'symbol1');
             const quoteId = this.safeString (market, 'symbol2');
-            const id = baseId + '/' + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
             const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
-            let pricePrecision = this.safeInteger (quoteCurrency, 'precision', 8);
+            let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
                 if ((pair['symbol1'] === baseId) && (pair['symbol2'] === quoteId)) {
                     // we might need to account for `priceScale` here
-                    pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
+                    pricePrecisionString = this.safeString (pair, 'pricePrecision', pricePrecisionString);
                 }
             }
-            const baseCcyPrecision = this.safeInteger (baseCurrency, 'precision', 8);
-            const baseCcyScale = this.safeInteger (baseCurrency, 'scale', 0);
-            const amountPrecision = baseCcyPrecision - baseCcyScale;
-            const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            };
+            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision', '8');
+            const baseCurrencyScale = this.safeString (baseCurrency, 'scale', '0');
+            const amountPrecisionString = Precise.stringSub (baseCurrencyPrecision, baseCurrencyScale);
             result.push ({
-                'id': id,
-                'info': market,
-                'symbol': symbol,
+                'id': baseId + '/' + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': undefined,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minLotSize'),
                         'max': this.safeNumber (market, 'maxLotSize'),
@@ -348,14 +419,13 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+    parseBalance (response) {
         const result = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
@@ -370,10 +440,32 @@ module.exports = class cex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),
@@ -408,6 +500,17 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (since === undefined) {
@@ -442,17 +545,14 @@ module.exports = class cex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const volume = this.safeNumber (ticker, 'volume');
-        const high = this.safeNumber (ticker, 'high');
-        const low = this.safeNumber (ticker, 'low');
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber (ticker, 'last');
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        return {
+        const volume = this.safeString (ticker, 'volume');
+        const high = this.safeString (ticker, 'high');
+        const low = this.safeString (ticker, 'low');
+        const bid = this.safeString (ticker, 'bid');
+        const ask = this.safeString (ticker, 'ask');
+        const last = this.safeString (ticker, 'last');
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -473,28 +573,45 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const currencies = Object.keys (this.currencies);
         const request = {
             'currencies': currencies.join ('/'),
         };
         const response = await this.publicGetTickersCurrencies (this.extend (request, params));
-        const tickers = response['data'];
+        const tickers = this.safeValue (response, 'data', []);
         const result = {};
         for (let t = 0; t < tickers.length; t++) {
             const ticker = tickers[t];
-            const symbol = ticker['pair'].replace (':', '/');
-            const market = this.markets[symbol];
+            const marketId = this.safeString (ticker, 'pair');
+            const market = this.safeMarket (marketId, undefined, ':');
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -505,37 +622,52 @@ module.exports = class cex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "type": "sell",
+        //          "date": "1638401878",
+        //          "amount": "0.401000",
+        //          "price": "249",
+        //          "tid": "11922"
+        //      }
+        //
         const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -545,7 +677,61 @@ module.exports = class cex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name cex#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostGetMyfee (params);
+        //
+        //      {
+        //          e: 'get_myfee',
+        //          ok: 'ok',
+        //          data: {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //            ..
+        //          }
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = this.safeValue (data, market['id'], {});
+            const makerString = this.safeString (fee, 'buyMaker');
+            const takerString = this.safeString (fee, 'buy');
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+            };
+        }
+        return result;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
             if (this.options['createMarketBuyOrderRequiresPrice']) {
@@ -611,6 +797,15 @@ module.exports = class cex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by cex cancelOrder ()
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -876,6 +1071,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = 'privatePostOpenOrders';
@@ -893,6 +1098,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
@@ -905,6 +1120,14 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by cex fetchOrder
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id.toString (),
@@ -1015,6 +1238,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1250,9 +1483,17 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         if (code === 'XRP' || code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported (this.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);

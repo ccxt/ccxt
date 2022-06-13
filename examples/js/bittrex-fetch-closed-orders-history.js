@@ -4,7 +4,6 @@ const ccxt = require ('../../ccxt')
     , log = require ('ololog').noLocate
     , asTable = require ('as-table')
     , exchange = new ccxt.bittrex ({
-        'enableRateLimit': true,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_API_SECRET',
     })

@@ -31,25 +31,62 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -164,6 +201,7 @@ class probit(Exchange):
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'AZU': 'Azultec',
                 'BCC': 'BCC',
                 'BDP': 'BidiPass',
                 'BIRD': 'Birdchain',
@@ -171,20 +209,31 @@ class probit(Exchange):
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
+                'CLR': 'Color Platform',
+                'CTK': 'Cryptyk',
+                'CTT': 'Castweet',
                 'DIP': 'Dipper',
+                'DKT': 'DAKOTA',
+                'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
                 'GDT': 'Gorilla Diamond',
+                'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'HUSL': 'The Hustle App',
+                'LAND': 'Landbox',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PXP': 'PIXSHOP COIN',
+                'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
                 'TCT': 'Top Coin Token',
+                'TOR': 'Torex',
                 'TPAY': 'Tetra Pay',
                 'UNI': 'UNICORN Token',
                 'UNISWAP': 'UNI',
@@ -192,6 +241,11 @@ class probit(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for probit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetMarket(params)
         #
         #     {
@@ -226,37 +280,51 @@ class probit(Exchange):
             quoteId = self.safe_string(market, 'quote_currency_id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
-            active = not closed
             amountPrecision = self.safe_string(market, 'quantity_precision')
             costPrecision = self.safe_string(market, 'cost_precision')
             amountTickSize = self.parse_precision(amountPrecision)
             costTickSize = self.parse_precision(costPrecision)
-            precision = {
-                'amount': self.parse_number(amountTickSize),
-                'price': self.safe_number(market, 'price_increment'),
-                'cost': self.parse_number(costTickSize),
-            }
             takerFeeRate = self.safe_string(market, 'taker_fee_rate')
             taker = Precise.string_div(takerFeeRate, '100')
             makerFeeRate = self.safe_string(market, 'maker_fee_rate')
             maker = Precise.string_div(makerFeeRate, '100')
             result.append({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': not closed,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': self.parse_number(taker),
                 'maker': self.parse_number(maker),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(amountTickSize),
+                    'price': self.safe_number(market, 'price_increment'),
+                    'cost': self.parse_number(costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
                         'max': self.safe_number(market, 'max_quantity'),
@@ -270,10 +338,16 @@ class probit(Exchange):
                         'max': self.safe_number(market, 'max_cost'),
                     },
                 },
+                'info': market,
             })
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencyWithPlatform(params)
         #
         #     {
@@ -331,7 +405,7 @@ class probit(Exchange):
         #         ]
         #     }
         #
-        currencies = self.safe_value(response, 'data')
+        currencies = self.safe_value(response, 'data', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -342,10 +416,11 @@ class probit(Exchange):
             platforms = self.safe_value(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
             platform = self.safe_value(platformsByPriority, 0, {})
-            precision = self.safe_integer(platform, 'precision')
             depositSuspended = self.safe_value(platform, 'deposit_suspended')
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
-            active = not (depositSuspended and withdrawalSuspended)
+            deposit = not depositSuspended
+            withdraw = not withdrawalSuspended
+            active = deposit and withdraw
             withdrawalFees = self.safe_value(platform, 'withdrawal_fee', {})
             fees = []
             # sometimes the withdrawal fee is an empty object
@@ -365,12 +440,14 @@ class probit(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(platform, 'min_deposit_amount'),
@@ -384,7 +461,29 @@ class probit(Exchange):
             }
         return result
 
+    def parse_balance(self, response):
+        result = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency_id')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'total')
+            account['free'] = self.safe_string(balance, 'available')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetBalance(params)
         #
@@ -398,23 +497,16 @@ class probit(Exchange):
         #         ]
         #     }
         #
-        result = {
-            'info': response,
-            'timestamp': None,
-            'datetime': None,
-        }
-        data = self.safe_value(response, 'data')
-        for i in range(0, len(data)):
-            balance = data[i]
-            currencyId = self.safe_string(balance, 'currency_id')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(balance, 'total')
-            account['free'] = self.safe_string(balance, 'available')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -435,6 +527,12 @@ class probit(Exchange):
         return self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         request = {}
         if symbols is not None:
@@ -461,6 +559,12 @@ class probit(Exchange):
         return self.parse_tickers(data, symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -505,22 +609,21 @@ class probit(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
-        close = self.safe_number(ticker, 'last')
-        change = self.safe_number(ticker, 'change')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        close = self.safe_string(ticker, 'last')
+        change = self.safe_string(ticker, 'change')
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': close,
             'last': close,
@@ -534,6 +637,14 @@ class probit(Exchange):
         }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         market = None
         request = {
@@ -572,6 +683,14 @@ class probit(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -650,20 +769,17 @@ class probit(Exchange):
         side = self.safe_string(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = self.safe_string(trade, 'order_id')
-        feeCost = self.safe_number(trade, 'fee_amount')
+        feeCostString = self.safe_string(trade, 'fee_amount')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency_id')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -673,13 +789,18 @@ class probit(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #     {"data":"2020-04-12T18:54:25.390Z"}
@@ -718,6 +839,15 @@ class probit(Exchange):
             return self.iso8601(timestamp * 1000)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         interval = self.timeframes[timeframe]
@@ -793,6 +923,14 @@ class probit(Exchange):
         ]
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         since = self.parse8601(since)
         request = {}
@@ -805,6 +943,14 @@ class probit(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {
             'start_time': self.iso8601(0),
@@ -824,6 +970,12 @@ class probit(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -888,10 +1040,8 @@ class probit(Exchange):
         if type == 'market':
             price = None
         clientOrderId = self.safe_string(order, 'client_order_id')
-        if clientOrderId == '':
-            clientOrderId = None
         timeInForce = self.safe_string_upper(order, 'time_in_force')
-        return self.safe_order2({
+        return self.safe_order({
             'id': id,
             'info': order,
             'clientOrderId': clientOrderId,
@@ -918,6 +1068,16 @@ class probit(Exchange):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['cost'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeInForce')
@@ -987,6 +1147,13 @@ class probit(Exchange):
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -1014,6 +1181,12 @@ class probit(Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1034,10 +1207,16 @@ class probit(Exchange):
         data = self.safe_value(response, 'data', [])
         firstAddress = self.safe_value(data, 0)
         if firstAddress is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response')
+            raise InvalidAddress(self.id + ' fetchDepositAddress() returned an empty response')
         return self.parse_deposit_address(firstAddress, currency)
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         request = {}
         if codes:
@@ -1051,6 +1230,15 @@ class probit(Exchange):
         return self.parse_deposit_addresses(data)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and
@@ -1105,6 +1293,7 @@ class probit(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
@@ -1116,6 +1305,7 @@ class probit(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
             'info': transaction,
         }
@@ -1176,6 +1366,11 @@ class probit(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns: response from exchange
+        """
         self.check_required_credentials()
         request = {
             'grant_type': 'client_credentials',  # the only supported value

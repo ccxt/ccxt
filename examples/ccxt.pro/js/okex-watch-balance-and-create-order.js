@@ -4,7 +4,6 @@ console.log ('Node.js:', process.version)
 console.log ('CCXT Pro v' + ccxtpro.version)
 
 const exchange = new ccxtpro.okex ({
-    'enableRateLimit': true,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASWORD'

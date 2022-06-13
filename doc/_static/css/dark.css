@@ -32,6 +32,12 @@ html[data-theme='dark'] .wy-nav-content-wrap {
 	background-color: var(--dark-outer) !important;
 }
 
+html[data-theme='dark'] ul > .toctree-l1.current > a {
+    background: var(--dark-body)!important;
+    border-color: var(--dark-hover)!important;
+    color: var(--dark-text);
+}
+
 html[data-theme='dark'] ul > .toctree-l1.current > ul > .toctree-l2 {
    background: var(--dark-hover) !important;
 }
@@ -73,13 +79,13 @@ html[data-theme='dark'] .theme-switcher {
     border-radius: 50%;
     position: relative;
     border: none;
-    background-color: #fcfcfc;
-    font-size: 15px;
+    background-color: inherit;
+    font-size: 20px;
     color: #404040;
     transition: all 0.3s ease-in-out;
     display: inline-block;
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    height: 25px;
     cursor: pointer;
 }
 

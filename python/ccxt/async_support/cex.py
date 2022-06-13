@@ -4,17 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -23,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -35,26 +30,64 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,  # has but not through api
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDeposits': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransactions': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'fetchWithdrawalWhitelist': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
@@ -135,6 +168,7 @@ class cex(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -146,6 +180,8 @@ class cex(Exchange):
                     'Invalid API key': AuthenticationError,
                     'There was an error while placing your order': InvalidOrder,
                     'Sorry, too many clients already': DDoSProtection,
+                    'Invalid Symbols Pair': BadSymbol,
+                    'Wrong currency pair': BadSymbol,  # {"error":"There was an error while placing your order: Wrong currency pair.","safe":true}
                 },
             },
             'options': {
@@ -178,6 +214,11 @@ class cex(Exchange):
         return self.safe_value(self.options['fetchCurrencies'], 'response')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.fetch_currencies_from_cache(params)
         self.options['currencies'] = {
             'timestamp': self.milliseconds(),
@@ -251,14 +292,15 @@ class cex(Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'code')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'precision')
             active = True
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': id,
                 'active': active,
-                'precision': precision,
+                'deposit': None,
+                'withdraw': None,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -275,6 +317,11 @@ class cex(Exchange):
         return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for cex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         currenciesResponse = await self.fetch_currencies_from_cache(params)
         currenciesData = self.safe_value(currenciesResponse, 'data', {})
         currencies = self.safe_value(currenciesData, 'symbols', [])
@@ -315,38 +362,52 @@ class cex(Exchange):
             market = markets[i]
             baseId = self.safe_string(market, 'symbol1')
             quoteId = self.safe_string(market, 'symbol2')
-            id = baseId + '/' + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
-            pricePrecision = self.safe_integer(quoteCurrency, 'precision', 8)
+            pricePrecisionString = self.safe_string(quoteCurrency, 'precision', '8')
             for j in range(0, len(pairs)):
                 pair = pairs[j]
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
-                    pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
-            baseCcyPrecision = self.safe_integer(baseCurrency, 'precision', 8)
-            baseCcyScale = self.safe_integer(baseCurrency, 'scale', 0)
-            amountPrecision = baseCcyPrecision - baseCcyScale
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            }
+                    pricePrecisionString = self.safe_string(pair, 'pricePrecision', pricePrecisionString)
+            baseCurrencyPrecision = self.safe_string(baseCurrency, 'precision', '8')
+            baseCurrencyScale = self.safe_string(baseCurrency, 'scale', '0')
+            amountPrecisionString = Precise.string_sub(baseCurrencyPrecision, baseCurrencyScale)
             result.append({
-                'id': id,
-                'info': market,
-                'symbol': symbol,
+                'id': baseId + '/' + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minLotSize'),
                         'max': self.safe_number(market, 'maxLotSize'),
@@ -360,12 +421,11 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostBalance(params)
+    def parse_balance(self, response):
         result = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
@@ -379,9 +439,26 @@ class cex(Exchange):
             account['used'] = self.safe_string(balance, 'orders', '0')
             code = self.safe_currency_code(currencyId)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -413,6 +490,15 @@ class cex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         if since is None:
@@ -442,16 +528,14 @@ class cex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        volume = self.safe_number(ticker, 'volume')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number(ticker, 'last')
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        return {
+        volume = self.safe_string(ticker, 'volume')
+        high = self.safe_string(ticker, 'high')
+        low = self.safe_string(ticker, 'low')
+        bid = self.safe_string(ticker, 'bid')
+        ask = self.safe_string(ticker, 'ask')
+        last = self.safe_string(ticker, 'last')
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -472,25 +556,38 @@ class cex(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         currencies = list(self.currencies.keys())
         request = {
             'currencies': '/'.join(currencies),
         }
         response = await self.publicGetTickersCurrencies(self.extend(request, params))
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data', [])
         result = {}
         for t in range(0, len(tickers)):
             ticker = tickers[t]
-            symbol = ticker['pair'].replace(':', '/')
-            market = self.markets[symbol]
+            marketId = self.safe_string(ticker, 'pair')
+            market = self.safe_market(marketId, None, ':')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -500,35 +597,49 @@ class cex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "type": "sell",
+        #          "date": "1638401878",
+        #          "amount": "0.401000",
+        #          "price": "249",
+        #          "tid": "11922"
+        #      }
+        #
         timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -537,7 +648,55 @@ class cex(Exchange):
         response = await self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.privatePostGetMyfee(params)
+        #
+        #      {
+        #          e: 'get_myfee',
+        #          ok: 'ok',
+        #          data: {
+        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #            ..
+        #          }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(data, market['id'], {})
+            makerString = self.safe_string(fee, 'buyMaker')
+            takerString = self.safe_string(fee, 'buy')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+            }
+        return result
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # for market buy it requires the amount of quote currency to spend
         if (type == 'market') and (side == 'buy'):
             if self.options['createMarketBuyOrderRequiresPrice']:
@@ -597,6 +756,13 @@ class cex(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by cex cancelOrder()
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -607,7 +773,7 @@ class cex(Exchange):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
-        if isinstance(timestamp, basestring) and timestamp.find('T') >= 0:
+        if isinstance(timestamp, str) and timestamp.find('T') >= 0:
             # ISO8601 string
             timestamp = self.parse8601(timestamp)
         else:
@@ -845,6 +1011,14 @@ class cex(Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {}
         method = 'privatePostOpenOrders'
@@ -859,6 +1033,14 @@ class cex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
@@ -869,6 +1051,12 @@ class cex(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by cex fetchOrder
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': str(id),
@@ -978,6 +1166,14 @@ class cex(Exchange):
         return self.parse_order(data)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1205,9 +1401,15 @@ class cex(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         if code == 'XRP' or code == 'XLM':
             # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
+            raise NotSupported(self.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
         await self.load_markets()
         currency = self.currency(code)
         request = {

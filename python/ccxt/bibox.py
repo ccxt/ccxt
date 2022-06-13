@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,6 +19,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -31,18 +31,29 @@ class bibox(Exchange):
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
             'version': 'v1',
+            # 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms(166.6666...)
+            'rateLimit': 166.667,
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
+                'createStopLimitOrder': False,  # True for contract
+                'createStopMarketOrder': False,  # True for contract
+                'createStopOrder': False,  # True for contract
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -52,8 +63,10 @@ class bibox(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
-                'publicAPI': None,
                 'withdraw': True,
             },
             'timeframes': {
@@ -81,38 +94,38 @@ class bibox(Exchange):
             },
             'api': {
                 'public': {
-                    'post': [
+                    'post': {
                         # TODO: rework for full endpoint/cmd paths here
-                        'mdata',
-                    ],
-                    'get': [
-                        'cquery',
-                        'mdata',
-                        'cdata',
-                        'orderpending',
-                    ],
+                        'mdata': 1,
+                    },
+                    'get': {
+                        'cquery': 1,
+                        'mdata': 1,
+                        'cdata': 1,
+                        'orderpending': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'cquery',
-                        'ctrade',
-                        'user',
-                        'orderpending',
-                        'transfer',
-                    ],
+                    'post': {
+                        'cquery': 1,
+                        'ctrade': 1,
+                        'user': 1,
+                        'orderpending': 1,
+                        'transfer': 1,
+                    },
                 },
                 'v2private': {
-                    'post': [
-                        'assets/transfer/spot',
-                    ],
+                    'post': {
+                        'assets/transfer/spot': 1,
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0.0008'),
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,
@@ -121,6 +134,7 @@ class bibox(Exchange):
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2011': AccountSuspended,  # Account is locked
                 '2015': AuthenticationError,  # Google authenticator is wrong
@@ -149,20 +163,23 @@ class bibox(Exchange):
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
-                'GTC': 'Game.com',
+                'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network',  # conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
-            },
-            'options': {
-                'fetchCurrencies': 'fetchCurrenciesPrivate',  # or 'fetchCurrenciesPrivate' with apiKey and secret
             },
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bibox
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         request = {
             'cmd': 'pairList',
         }
@@ -184,7 +201,7 @@ class bibox(Exchange):
         #         "ver":"1.1"
         #     }
         #
-        markets = self.safe_value(response, 'result')
+        markets = self.safe_value(response, 'result', [])
         request2 = {
             'cmd': 'tradeLimit',
         }
@@ -227,32 +244,48 @@ class bibox(Exchange):
             spot = True
             areaId = self.safe_integer(market, 'area_id')
             if areaId == 16:
-                type = None
-                spot = False
-            precision = {
-                'amount': self.safe_number(market, 'amount_scale'),
-                'price': self.safe_number(market, 'decimal'),
-            }
+                # TODO: update to v3 api
+                continue
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
-                'active': True,
-                'info': market,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal'))),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -260,38 +293,35 @@ class bibox(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            baseId = self.safe_string(ticker, 'coin_symbol')
-            quoteId = self.safe_string(ticker, 'currency_symbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-        last = self.safe_number(ticker, 'last')
-        change = self.safe_number(ticker, 'change')
-        baseVolume = self.safe_number_2(ticker, 'vol', 'vol24H')
+        marketId = None
+        baseId = self.safe_string(ticker, 'coin_symbol')
+        quoteId = self.safe_string(ticker, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
+        last = self.safe_string(ticker, 'last')
+        change = self.safe_string(ticker, 'change')
+        baseVolume = self.safe_string_2(ticker, 'vol', 'vol24H')
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
-            percentage = self.parse_number(percentage)
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': self.safe_string(ticker, 'buy_amount'),
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': self.safe_string(ticker, 'sell_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -301,11 +331,17 @@ class bibox(Exchange):
             'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
-            'quoteVolume': self.safe_number(ticker, 'amount'),
+            'quoteVolume': self.safe_string(ticker, 'amount'),
             'info': ticker,
         }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -316,6 +352,13 @@ class bibox(Exchange):
         return self.parse_ticker(response['result'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         request = {
             'cmd': 'marketAll',
         }
@@ -328,34 +371,23 @@ class bibox(Exchange):
         timestamp = self.safe_integer_2(trade, 'time', 'createdAt')
         side = self.safe_integer_2(trade, 'side', 'order_side')
         side = 'buy' if (side == 1) else 'sell'
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'pair')
-            if marketId is None:
-                baseId = self.safe_string(trade, 'coin_symbol')
-                quoteId = self.safe_string(trade, 'currency_symbol')
-                if (baseId is not None) and (quoteId is not None):
-                    marketId = baseId + '_' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        fee = None
-        feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = self.safe_string(trade, 'fee_symbol')
-        if feeCurrency is not None:
-            if feeCurrency in self.currencies_by_id:
-                feeCurrency = self.currencies_by_id[feeCurrency]['code']
-            else:
-                feeCurrency = self.safe_currency_code(feeCurrency)
-        feeRate = None  # todo: deduce from market if market is defined
+        marketId = self.safe_string(trade, 'pair')
+        if marketId is None:
+            baseId = self.safe_string(trade, 'coin_symbol')
+            quoteId = self.safe_string(trade, 'currency_symbol')
+            if (baseId is not None) and (quoteId is not None):
+                marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
+        fee = None
+        feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_symbol')
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': Precise.string_neg(feeCostString),
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'currency': feeCurrencyCode,
             }
         id = self.safe_string(trade, 'id')
         return self.safe_trade({
@@ -364,7 +396,7 @@ class bibox(Exchange):
             'order': None,  # Bibox does not have it(documented) yet
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'takerOrMaker': None,
             'side': side,
@@ -375,6 +407,14 @@ class bibox(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -387,6 +427,13 @@ class bibox(Exchange):
         return self.parse_trades(response['result'], market, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -419,6 +466,15 @@ class bibox(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -443,8 +499,15 @@ class bibox(Exchange):
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_currencies(self, params={}):
-        method = self.safe_string(self.options, 'fetchCurrencies', 'fetchCurrenciesPublic')
-        return getattr(self, method)(params)
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        if self.check_required_credentials(False):
+            return self.fetch_currencies_private(params)
+        else:
+            return self.fetch_currencies_public(params)
 
     def fetch_currencies_public(self, params={}):
         request = {
@@ -471,14 +534,14 @@ class bibox(Exchange):
         #         "cmd":"currencies"
         #     }
         #
-        currencies = self.safe_value(response, 'result')
+        currencies = self.safe_value(response, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             name = self.safe_string(currency, 'name')  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'valid_decimals')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'valid_decimals')))
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)
@@ -488,11 +551,13 @@ class bibox(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': None,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
+                        'min': precision,
                         'max': None,
                     },
                     'withdraw': {
@@ -504,7 +569,7 @@ class bibox(Exchange):
         return result
 
     def fetch_currencies_private(self, params={}):
-        if not self.apiKey or not self.secret:
+        if not self.check_required_credentials(False):
             raise AuthenticationError(self.id + " fetchCurrencies is an authenticated endpoint, therefore it requires 'apiKey' and 'secret' credentials. If you don't need currency details, set exchange.has['fetchCurrencies'] = False before calling its methods.")
         request = {
             'cmd': 'transfer/coinList',
@@ -564,14 +629,14 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        currencies = self.safe_value(firstResult, 'result')
+        currencies = self.safe_value(firstResult, 'result', [])
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = 8
+            precision = self.parse_number('0.00000001')
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)
@@ -585,18 +650,39 @@ class bibox(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }
         return result
 
+    def parse_balance(self, response):
+        outerResult = self.safe_value(response, 'result')
+        firstResult = self.safe_value(outerResult, 0, {})
+        innerResult = self.safe_value(firstResult, 'result')
+        result = {'info': response}
+        assetsList = self.safe_value(innerResult, 'assets_list', [])
+        for i in range(0, len(assetsList)):
+            balance = assetsList[i]
+            currencyId = self.safe_string(balance, 'coin_symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'balance')
+            account['used'] = self.safe_string(balance, 'freeze')
+            result[code] = account
+        return self.safe_balance(result)
+
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         type = self.safe_string(params, 'type', 'assets')
         params = self.omit(params, 'type')
@@ -626,22 +712,17 @@ class bibox(Exchange):
         #         ]
         #     }
         #
-        outerResult = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResult, 0, {})
-        innerResult = self.safe_value(firstResult, 'result')
-        result = {'info': response}
-        assetsList = self.safe_value(innerResult, 'assets_list', [])
-        for i in range(0, len(assetsList)):
-            balance = assetsList[i]
-            currencyId = self.safe_string(balance, 'coin_symbol')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'freeze')
-            result[code] = account
-        return self.parse_balance(result)
+        return self.parse_balance(response)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if limit is None:
             limit = 100
@@ -697,6 +778,14 @@ class bibox(Exchange):
         return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if limit is None:
             limit = 100
@@ -776,7 +865,14 @@ class bibox(Exchange):
         #         'status': 3
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "result": 228,  # withdrawal id
+        #         "cmd":"transfer/transferOut"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'result')
         address = self.safe_string(transaction, 'to_address')
         currencyId = self.safe_string(transaction, 'coin_symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -799,8 +895,13 @@ class bibox(Exchange):
             'txid': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -823,6 +924,16 @@ class bibox(Exchange):
         return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         orderType = 2 if (type == 'limit') else 1
@@ -860,6 +971,13 @@ class bibox(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bibox cancelOrder()
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'cmd': 'orderpending/cancelTrade',
             'body': self.extend({
@@ -883,6 +1001,12 @@ class bibox(Exchange):
         return firstResult
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by bibox fetchOrder
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'cmd': 'orderpending/order',
@@ -925,17 +1049,12 @@ class bibox(Exchange):
         return self.parse_order(order)
 
     def parse_order(self, order, market=None):
-        symbol = None
-        if market is None:
-            marketId = None
-            baseId = self.safe_string(order, 'coin_symbol')
-            quoteId = self.safe_string(order, 'currency_symbol')
-            if (baseId is not None) and (quoteId is not None):
-                marketId = baseId + '_' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = None
+        baseId = self.safe_string(order, 'coin_symbol')
+        quoteId = self.safe_string(order, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'order_type')
         type = 'market' if (rawType == '1') else 'limit'
         timestamp = self.safe_integer(order, 'createdAt')
@@ -948,21 +1067,21 @@ class bibox(Exchange):
         side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
-        feeCost = self.safe_number(order, 'fee')
+        feeCost = self.safe_string(order, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': None,
             }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -992,6 +1111,14 @@ class bibox(Exchange):
         return self.safe_string(statuses, status, status)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         pair = None
@@ -1047,6 +1174,14 @@ class bibox(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
@@ -1099,6 +1234,14 @@ class bibox(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         self.load_markets()
@@ -1151,6 +1294,12 @@ class bibox(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1197,6 +1346,15 @@ class bibox(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1230,13 +1388,15 @@ class bibox(Exchange):
         #
         outerResults = self.safe_value(response, 'result')
         firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(firstResult, currency)
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         # by default it will try load withdrawal fees of all currencies(with separate requests)
         # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()

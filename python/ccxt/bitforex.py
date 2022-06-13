@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -19,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitforex(Exchange):
@@ -31,9 +25,20 @@ class bitforex(Exchange):
             'rateLimit': 500,  # https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': None,
@@ -45,6 +50,12 @@ class bitforex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': None,
                 'fetchTrades': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1min',
@@ -72,7 +83,9 @@ class bitforex(Exchange):
                     'get': {
                         'api/v1/market/symbols': 20,
                         'api/v1/market/ticker': 4,
+                        'api/v1/market/ticker-all': 4,
                         'api/v1/market/depth': 4,
+                        'api/v1/market/depth-all': 4,
                         'api/v1/market/trades': 20,
                         'api/v1/market/kline': 20,
                     },
@@ -111,12 +124,15 @@ class bitforex(Exchange):
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
+                'EWT': 'EcoWatt Token',
                 'IQ': 'IQ.Cash',
                 'MIR': 'MIR COIN',
                 'NOIA': 'METANOIA',
                 'TON': 'To The Moon',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
+                '1000': OrderNotFound,  # {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
                 '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
@@ -131,7 +147,25 @@ class bitforex(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitforex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetApiV1MarketSymbols(params)
+        #
+        #    {
+        #        "data": [
+        #            {
+        #                "amountPrecision":4,
+        #                "minOrderAmount":3.0E-4,
+        #                "pricePrecision":2,
+        #                "symbol":"coin-usdt-btc"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -142,38 +176,52 @@ class bitforex(Exchange):
             quoteId = symbolParts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = True
-            precision = {
-                'amount': self.safe_integer(market, 'amountPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minOrderAmount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDateTime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderAmount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -198,9 +246,7 @@ class bitforex(Exchange):
         #          "tid":"1131019639"
         #      }
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         timestamp = self.safe_integer(trade, 'time')
         id = self.safe_string(trade, 'tid')
         orderId = None
@@ -213,7 +259,7 @@ class bitforex(Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'price': priceString,
@@ -225,6 +271,14 @@ class bitforex(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -251,9 +305,7 @@ class bitforex(Exchange):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostApiV1FundAllAccount(params)
+    def parse_balance(self, response):
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
@@ -265,39 +317,85 @@ class bitforex(Exchange):
             account['free'] = self.safe_string(balance, 'active')
             account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        self.load_markets()
+        response = self.privatePostApiV1FundAllAccount(params)
+        return self.parse_balance(response)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "buy":7.04E-7,
+        #         "date":1643371198598,
+        #         "high":7.48E-7,
+        #         "last":7.28E-7,
+        #         "low":7.10E-7,
+        #         "sell":7.54E-7,
+        #         "vol":9877287.2874
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'date')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': self.safe_string(ticker, 'last'),
+            'last': self.safe_string(ticker, 'last'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'vol'),
+            'quoteVolume': None,
+            'info': ticker,
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.markets[symbol]
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetApiV1MarketTicker(self.extend(request, params))
-        data = response['data']
-        timestamp = self.safe_integer(data, 'date')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(data, 'high'),
-            'low': self.safe_number(data, 'low'),
-            'bid': self.safe_number(data, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(data, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': self.safe_number(data, 'last'),
-            'last': self.safe_number(data, 'last'),
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_number(data, 'vol'),
-            'quoteVolume': None,
-            'info': response,
-        }
+        response = self.publicGetApiV1MarketTickerAll(self.extend(request, params))
+        ticker = self.safe_value(response, 'data')
+        #
+        #     {
+        #         "data":{
+        #             "buy":37082.83,
+        #             "date":1643388686660,
+        #             "high":37487.83,
+        #             "last":37086.79,
+        #             "low":35544.44,
+        #             "sell":37090.52,
+        #             "vol":690.9776
+        #         },
+        #         "success":true,
+        #         "time":1643388686660
+        #     }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -321,6 +419,15 @@ class bitforex(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -345,6 +452,13 @@ class bitforex(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         marketId = self.market_id(symbol)
         request = {
@@ -352,7 +466,7 @@ class bitforex(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = self.publicGetApiV1MarketDepth(self.extend(request, params))
+        response = self.publicGetApiV1MarketDepthAll(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
@@ -394,7 +508,7 @@ class bitforex(Exchange):
             'cost': self.safe_number(order, 'tradeFee'),
             'currency': feeCurrency,
         }
-        return self.safe_order2({
+        return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -419,6 +533,12 @@ class bitforex(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -430,6 +550,14 @@ class bitforex(Exchange):
         return order
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -440,6 +568,14 @@ class bitforex(Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -450,6 +586,16 @@ class bitforex(Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         sideId = None
         if side == 'buy':
@@ -470,6 +616,13 @@ class bitforex(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'orderId': id,
@@ -503,7 +656,7 @@ class bitforex(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if not isinstance(body, basestring):
+        if not isinstance(body, str):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             feedback = self.id + ' ' + body

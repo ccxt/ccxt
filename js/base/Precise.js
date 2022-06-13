@@ -230,6 +230,13 @@ class Precise {
         return (new Precise (string1)).equals (new Precise (string2))
     }
 
+    static stringEq (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).equals (new Precise (string2))
+    }
+
     static stringMin (string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined

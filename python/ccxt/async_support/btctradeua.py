@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -18,15 +19,45 @@ class btctradeua(Exchange):
             'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
             },
             'urls': {
@@ -59,9 +90,10 @@ class btctradeua(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'markets': {
                 'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}, 'type': 'spot', 'spot': True},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 0.1}, 'limits': {'amount': {'min': 0.0000000001}}, 'type': 'spot', 'spot': True},
                 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
                 'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
@@ -95,13 +127,16 @@ class btctradeua(Exchange):
         })
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns: response from exchange
+        """
         return await self.privatePostAuth(params)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostBalance(params)
+    def parse_balance(self, response):
         result = {'info': response}
-        balances = self.safe_value(response, 'accounts')
+        balances = self.safe_value(response, 'accounts', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -109,9 +144,26 @@ class btctradeua(Exchange):
             account = self.account()
             account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostBalance(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -131,13 +183,14 @@ class btctradeua(Exchange):
                 orderbook['asks'] = asks['list']
         return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'symbol': self.market_id(symbol),
-        }
-        response = await self.publicGetJapanStatHighSymbol(self.extend(request, params))
-        ticker = self.safe_value(response, 'trades')
+    def parse_ticker(self, ticker, market=None):
+        #
+        # [
+        #     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        #     [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        # ],
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         result = {
             'symbol': symbol,
@@ -167,22 +220,48 @@ class btctradeua(Exchange):
             for i in range(start, len(ticker)):
                 candle = ticker[i]
                 if result['open'] is None:
-                    result['open'] = self.safe_number(candle, 1)
-                high = self.safe_number(candle, 2)
-                if (result['high'] is None) or ((high is not None) and (result['high'] < high)):
+                    result['open'] = self.safe_string(candle, 1)
+                high = self.safe_string(candle, 2)
+                if (result['high'] is None) or ((high is not None) and Precise.string_lt(result['high'], high)):
                     result['high'] = high
-                low = self.safe_number(candle, 3)
-                if (result['low'] is None) or ((low is not None) and (result['low'] > low)):
+                low = self.safe_string(candle, 3)
+                if (result['low'] is None) or ((low is not None) and Precise.string_lt(result['low'], low)):
                     result['low'] = low
-                baseVolume = self.safe_number(candle, 5)
+                baseVolume = self.safe_string(candle, 5)
                 if result['baseVolume'] is None:
                     result['baseVolume'] = baseVolume
                 else:
-                    result['baseVolume'] = self.sum(result['baseVolume'], baseVolume)
+                    result['baseVolume'] = Precise.string_add(result['baseVolume'], baseVolume)
             last = tickerLength - 1
-            result['last'] = self.safe_number(ticker[last], 4)
+            result['last'] = self.safe_string(ticker[last], 4)
             result['close'] = result['last']
-        return result
+        return self.safe_ticker(result, market)
+
+    async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetJapanStatHighSymbol(self.extend(request, params))
+        ticker = self.safe_value(response, 'trades')
+        #
+        # {
+        #     "status": True,
+        #     "volume_trade": "0.495703",
+        #     "trades": [
+        #         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        #         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        #     ],
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def convert_month_name_to_string(self, cyrillic):
         months = {
@@ -251,29 +330,32 @@ class btctradeua(Exchange):
         side = self.safe_string(trade, 'type')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amnt_trade')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -290,8 +372,18 @@ class btctradeua(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'Id'
@@ -304,6 +396,13 @@ class btctradeua(Exchange):
         return getattr(self, method)(self.extend(request, params))
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by btctradeua cancelOrder()
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'id': id,
         }
@@ -316,7 +415,7 @@ class btctradeua(Exchange):
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amnt_trade')
         remaining = self.safe_string(order, 'amnt_trade')
-        return self.safe_order2({
+        return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': None,
             'timestamp': timestamp,  # until they fix their timestamp
@@ -341,6 +440,14 @@ class btctradeua(Exchange):
         }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()

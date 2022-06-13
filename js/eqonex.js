@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -16,11 +17,24 @@ module.exports = class eqonex extends Exchange {
             'countries': [ 'US', 'SG' ], // United States, Singapore
             'rateLimit': 10,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -34,7 +48,9 @@ module.exports = class eqonex extends Exchange {
                 'fetchOrders': true,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -46,6 +62,7 @@ module.exports = class eqonex extends Exchange {
                 '6h': 5,
                 '1d': 6,
                 '7d': 7,
+                '1w': 7,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -105,6 +122,7 @@ module.exports = class eqonex extends Exchange {
                 'secret': true,
                 'uid': true,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'symbol not found': BadSymbol,
@@ -114,42 +132,63 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchMarkets
+         * @description retrieves data on all markets for eqonex
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const request = {
             'verbose': true,
         };
         const response = await this.publicGetGetInstrumentPairs (this.extend (request, params));
         //
-        //     {
-        //         "instrumentPairs":[
-        //             {
-        //                 "instrumentId":52,
-        //                 "symbol":"BTC/USDC",
-        //                 "quoteId":1,
-        //                 "baseId":3,
-        //                 "price_scale":2,
-        //                 "quantity_scale":6,
-        //                 "securityStatus":1,
-        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //                 "currency":"BTC",
-        //                 "contAmtCurr":"USDC",
-        //                 "settlCurrency":"USDC",
-        //                 "commCurrency":"USDC",
-        //                 "cfiCode":"XXXXXX",
-        //                 "securityExchange":"XXXX",
-        //                 "instrumentPricePrecision":2,
-        //                 "minPriceIncrement":1.0,
-        //                 "minPriceIncrementAmount":1.0,
-        //                 "roundLot":1,
-        //                 "minTradeVol":0.001000,
-        //                 "maxTradeVol":0.000000
-        //                 // contracts onlye
-        //                 "qtyType":0,
-        //                 "contractMultiplier":1.0,
-        //                 "issueDate":1598608087000
-        //             },
-        //         ]
-        //     }
+        //    {
+        //        "instrumentPairs": [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
         const instrumentPairs = this.safeValue (response, 'instrumentPairs', []);
         const markets = [];
@@ -162,65 +201,119 @@ module.exports = class eqonex extends Exchange {
 
     parseMarket (market) {
         //
-        //     {
-        //         "instrumentId":52,
-        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "quoteId":1,
-        //         "baseId":3,
-        //         "price_scale":2,
-        //         "quantity_scale":6,
-        //         "securityStatus":1,
-        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //         "currency":"BTC",
-        //         "contAmtCurr":"USDC",
-        //         "settlCurrency":"USDC",
-        //         "commCurrency":"USDC",
-        //         "cfiCode":"XXXXXX",
-        //         "securityExchange":"XXXX",
-        //         "instrumentPricePrecision":2,
-        //         "minPriceIncrement":1.0,
-        //         "minPriceIncrementAmount":1.0,
-        //         "roundLot":1,
-        //         "minTradeVol":0.001000,
-        //         "maxTradeVol":0.000000
-        //         // contracts onlye
-        //         "qtyType":0,
-        //         "contractMultiplier":1.0,
-        //         "issueDate":1598608087000
-        //     }
+        //    {
+        //        "instrumentPairs": [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        const id = this.safeString (market, 'instrumentId');
-        const uppercaseId = this.safeString (market, 'symbol');
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
-        const type = swap ? 'swap' : 'spot';
+        const future = (assetType === 'DATED_FUTURE');
+        const contract = swap || future;
+        const id = this.safeString (market, 'instrumentId');
         const baseId = this.safeString (market, 'currency');
         const quoteId = this.safeString (market, 'contAmtCurr');
+        const settleId = contract ? this.safeString (market, 'settlCurrency') : undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = swap ? uppercaseId : (base + '/' + quote);
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        const uppercaseId = this.safeString (market, 'symbol');
+        let type = 'spot';
+        let linear = undefined;
+        let inverse = undefined;
+        const expiry = this.safeNumber (market, 'contractExpireTime');
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            linear = (quote === settle);
+            inverse = !linear;
+            if (swap) {
+                type = 'swap';
+            } else if (future) {
+                symbol = symbol + '-' + this.yymmdd (expiry);
+                type = 'future';
+            } else {
+                symbol = uppercaseId;
+                type = assetType;
+            }
+        }
         const status = this.safeInteger (market, 'securityStatus');
-        const active = (status === 1);
-        const precision = {
-            'amount': this.safeInteger (market, 'quantity_scale'),
-            'price': this.safeInteger (market, 'price_scale'),
-        };
         return {
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
+            'margin': false,
             'swap': swap,
-            'active': active,
-            'precision': precision,
+            'future': future,
+            'option': false,
+            'active': (status === 1),
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_scale'))),
+            },
             'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
                 'amount': {
                     'min': this.safeNumber (market, 'minTradeVol'),
                     'max': undefined,
@@ -239,6 +332,13 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         const response = await this.publicGetGetInstruments (params);
         //
         //     {
@@ -282,9 +382,6 @@ module.exports = class eqonex extends Exchange {
         const id = this.safeString (currency, 0);
         const uppercaseId = this.safeString (currency, 1);
         const code = this.safeCurrencyCode (uppercaseId);
-        const priceScale = this.safeInteger (currency, 2);
-        const amountScale = this.safeInteger (currency, 3);
-        const precision = Math.max (priceScale, amountScale);
         const name = this.safeString (currency, 6);
         const status = this.safeInteger (currency, 4);
         const active = (status === 1);
@@ -295,9 +392,11 @@ module.exports = class eqonex extends Exchange {
             'uppercaseId': uppercaseId,
             'code': code,
             'name': name,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 3))),
             'fee': fee,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -312,6 +411,17 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -364,7 +474,7 @@ module.exports = class eqonex extends Exchange {
         const low = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 3), market['precision']['price']));
         const close = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 4), market['precision']['price']));
         const volume = this.parseNumber (this.convertFromScale (this.safeString (ohlcv, 5), market['precision']['amount']));
-        return [timestamp, open, high, low, close, volume];
+        return [ timestamp, open, high, low, close, volume ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
@@ -401,6 +511,15 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -431,6 +550,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -497,7 +626,7 @@ module.exports = class eqonex extends Exchange {
         let priceString = undefined;
         let amountString = undefined;
         let fee = undefined;
-        let symbol = undefined;
+        let marketId = undefined;
         if (Array.isArray (trade)) {
             id = this.safeString (trade, 3);
             priceString = this.convertFromScale (this.safeString (trade, 0), market['precision']['price']);
@@ -512,48 +641,72 @@ module.exports = class eqonex extends Exchange {
         } else {
             id = this.safeString (trade, 'execId');
             timestamp = this.safeInteger (trade, 'time');
-            const marketId = this.safeString (trade, 'symbol');
-            symbol = this.safeSymbol (marketId, market);
+            marketId = this.safeString (trade, 'symbol');
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
             priceString = this.safeString (trade, 'lastPx');
             amountString = this.safeString (trade, 'qty');
-            let feeCost = this.safeNumber (trade, 'commission');
-            if (feeCost !== undefined) {
-                feeCost = -feeCost;
+            let feeCostString = this.safeString (trade, 'commission');
+            if (feeCostString !== undefined) {
+                feeCostString = Precise.stringNeg (feeCostString);
                 const feeCurrencyId = this.safeString (trade, 'commCurrency');
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 };
             }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        return {
+        market = this.safeMarket (marketId, market);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
+        }, market);
+    }
+
+    parseBalance (response) {
+        const positions = this.safeValue (response, 'positions', []);
+        const result = {
+            'info': response,
         };
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const assetType = this.safeString (position, 'assetType');
+            if (assetType === 'ASSET') {
+                const currencyId = this.safeString (position, 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                const quantityString = this.safeString (position, 'quantity');
+                const availableQuantityString = this.safeString (position, 'availableQuantity');
+                const scale = this.safeInteger (position, 'quantity_scale');
+                const account = this.account ();
+                account['free'] = this.convertFromScale (availableQuantityString, scale);
+                account['total'] = this.convertFromScale (quantityString, scale);
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostGetPositions (params);
         //     {
@@ -578,29 +731,22 @@ module.exports = class eqonex extends Exchange {
         //             },
         //         ]
         //     }
-        const positions = this.safeValue (response, 'positions', []);
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            const assetType = this.safeString (position, 'assetType');
-            if (assetType === 'ASSET') {
-                const currencyId = this.safeString (position, 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                const quantityString = this.safeString (position, 'quantity');
-                const availableQuantityString = this.safeString (position, 'availableQuantity');
-                const scale = this.safeInteger (position, 'quantity_scale');
-                const account = this.account ();
-                account['free'] = this.convertFromScale (availableQuantityString, scale);
-                account['total'] = this.convertFromScale (quantityString, scale);
-                result[code] = account;
-            }
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 1 : 2;
@@ -681,6 +827,15 @@ module.exports = class eqonex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -778,6 +933,14 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol not used by eqonex fetchOrder
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': parseInt (id),
@@ -825,6 +988,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'ordStatus': '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
@@ -832,6 +1005,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'ordStatus': '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         };
@@ -839,6 +1022,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -907,6 +1100,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'account': 123, // for institutional users
@@ -958,6 +1161,14 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1000,6 +1211,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1032,6 +1253,16 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1123,6 +1354,7 @@ module.exports = class eqonex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1148,6 +1380,17 @@ module.exports = class eqonex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name eqonex#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1184,24 +1427,85 @@ module.exports = class eqonex extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
-        // getExchangeInfo
+        /**
+         * @method
+         * @name eqonex#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the eqonex api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
         const response = await this.publicGetGetExchangeInfo (params);
-        const tradingFees = this.safeValue (response, 'spotFees', []);
-        const taker = {};
-        const maker = {};
-        for (let i = 0; i < tradingFees.length; i++) {
-            const tradingFee = tradingFees[i];
-            if (this.safeString (tradingFee, 'tier') !== undefined) {
-                taker[tradingFee['tier']] = this.safeNumber (tradingFee, 'taker');
-                maker[tradingFee['tier']] = this.safeNumber (tradingFee, 'maker');
-            }
+        //
+        //     {
+        //         tradingLimits: [],
+        //         withdrawLimits: [{ All: '0.0', Type: 'percent' }],
+        //         futuresFees: [
+        //             { tier: '0', maker: '0.000300', taker: '0.000500' },
+        //             { tier: '1', maker: '0.000200', taker: '0.000400' },
+        //             { tier: '2', maker: '0.000180', taker: '0.000400' },
+        //         ],
+        //         spotFees: [
+        //             { tier: '0', maker: '0.000900', taker: '0.001500', volume: '0' },
+        //             { tier: '1', maker: '0.000600', taker: '0.001250', volume: '200000' },
+        //             { tier: '2', maker: '0.000540', taker: '0.001200', volume: '2500000' },
+        //         ],
+        //         referrals: { earning: '0.30', discount: '0.05', duration: '180' }
+        //     }
+        //
+        const spotFees = this.safeValue (response, 'spotFees', []);
+        const firstSpotFee = this.safeValue (spotFees, 0, {});
+        const spotMakerFee = this.safeNumber (firstSpotFee, 'maker');
+        const spotTakerFee = this.safeNumber (firstSpotFee, 'taker');
+        const futureFees = this.safeValue (response, 'futuresFees', []);
+        const firstFutureFee = this.safeValue (futureFees, 0, {});
+        const futureMakerFee = this.safeNumber (firstFutureFee, 'maker');
+        const futureTakerFee = this.safeNumber (firstFutureFee, 'taker');
+        const spotTakerTiers = [];
+        const spotMakerTiers = [];
+        const result = {};
+        for (let i = 0; i < spotFees.length; i++) {
+            const spotFee = spotFees[i];
+            const volume = this.safeNumber (spotFee, 'volume');
+            spotTakerTiers.push ([ volume, this.safeNumber (spotFee, 'taker') ]);
+            spotMakerTiers.push ([ volume, this.safeNumber (spotFee, 'maker') ]);
         }
-        return {
-            'info': tradingFees,
-            'tierBased': true,
-            'maker': maker,
-            'taker': taker,
+        const spotTiers = {
+            'taker': spotTakerTiers,
+            'maker': spotMakerTiers,
         };
+        const futureTakerTiers = [];
+        const futureMakerTiers = [];
+        for (let i = 0; i < futureFees.length; i++) {
+            const futureFee = futureFees[i];
+            futureTakerTiers.push ([ undefined, this.safeNumber (futureFee, 'taker') ]);
+            futureMakerTiers.push ([ undefined, this.safeNumber (futureFee, 'maker') ]);
+        }
+        const futureTiers = {
+            'taker': futureTakerTiers,
+            'maker': futureMakerTiers,
+        };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (this.safeValue (market, 'spot')) {
+                fee['maker'] = spotMakerFee;
+                fee['taker'] = spotTakerFee;
+                fee['tiers'] = spotTiers;
+            } else if (this.safeValue (market, 'contract')) {
+                fee['maker'] = futureMakerFee;
+                fee['taker'] = futureTakerFee;
+                fee['tiers'] = futureTiers;
+            }
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -1321,16 +1625,17 @@ module.exports = class eqonex extends Exchange {
         let fee = undefined;
         const currencyId = this.safeInteger (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+        let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');
         const feeScale = this.safeInteger (order, 'fee_scale');
         if (feeCost !== undefined) {
             feeCost = Precise.stringNeg (feeCost);
-            feeCost = this.parseNumber (this.convertFromScale (feeCost, feeScale));
+            feeCostString = this.convertFromScale (feeCost, feeScale);
         }
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrencyCode,
-                'cost': feeCost,
+                'cost': feeCostString,
                 'rate': undefined,
             };
         }
@@ -1340,7 +1645,7 @@ module.exports = class eqonex extends Exchange {
         }
         const stopPriceScale = this.safeInteger (order, 'stopPx_scale', 0);
         const stopPrice = this.parseNumber (this.convertFromScale (this.safeString (order, 'stopPx'), stopPriceScale));
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1434,7 +1739,8 @@ module.exports = class eqonex extends Exchange {
         return this.parse8601 (date + ' ' + partTwo);
     }
 
-    convertFromScale (number, scale) {
+    convertFromScale (number, scaleInTicksize) {
+        const scale = this.getScale (scaleInTicksize);
         if ((number === undefined) || (scale === undefined)) {
             return undefined;
         }
