@@ -1119,11 +1119,13 @@ class Transpiler {
             methodNames
         } = this.transpileMethodsToAllLanguages (className, methods)
         // altogether in PHP, async PHP, Python sync and async
+        const sync = false
+        const async = true
         return {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
             className,
             baseClass,
         }
