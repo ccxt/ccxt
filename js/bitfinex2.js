@@ -347,10 +347,12 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const amountKey = isPublic ? 2 : 4;
         const marketId = market['id'];
         let type = this.safeString (trade, 7);
-        if (type.indexOf ('LIMIT') > -1) {
-            type = 'limit';
-        } else if (type.indexOf ('MARKET') > -1) {
-            type = 'market';
+        if (type !== undefined) {
+            if (type.indexOf ('LIMIT') > -1) {
+                type = 'limit';
+            } else if (type.indexOf ('MARKET') > -1) {
+                type = 'market';
+            }
         }
         const id = this.safeString (trade, 0);
         const orderId = this.safeString (trade, 4);
@@ -365,7 +367,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const symbol = this.safeSymbol (marketId, market);
         const feeValue = this.safeString (trade, 9);
         let fee = undefined;
-        if (feeValue !== 'null') {
+        if (feeValue !== 'null' && fee !== undefined) {
             const currencyId = this.safeString (trade, 10);
             const code = this.safeCurrencyCode (currencyId);
             fee = {
@@ -374,7 +376,10 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             };
         }
         const maker = this.safeInteger (trade, 8);
-        const takerOrMaker = (maker === -1) ? 'taker' : 'maker';
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = (maker === -1) ? 'taker' : 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
