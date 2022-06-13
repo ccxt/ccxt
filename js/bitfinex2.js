@@ -220,11 +220,14 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCache (limit);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const array = this.myTrades;
         array.append (trade);
         this.myTrades = array;
+        // generic subscription
+        client.resolve (array, name);
+        // specific subscription
         client.resolve (array, messageHash);
     }
 
@@ -341,11 +344,12 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         const tradesLength = trade.length;
         const isPublic = (tradesLength === 4) ? true : false;
-        market = this.safeMarket (undefined, market);
+        let marketId = (!isPublic) ? this.safeString (trade, 1) : undefined;
+        market = this.safeMarket (marketId, market);
         const createdKey = isPublic ? 1 : 2;
         const priceKey = isPublic ? 3 : 5;
         const amountKey = isPublic ? 2 : 4;
-        const marketId = market['id'];
+        marketId = market['id'];
         let type = this.safeString (trade, 7);
         if (type !== undefined) {
             if (type.indexOf ('LIMIT') > -1) {
@@ -354,8 +358,8 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 type = 'market';
             }
         }
+        const orderId = (!isPublic) ? this.safeString (trade, 3) : undefined;
         const id = this.safeString (trade, 0);
-        const orderId = this.safeString (trade, 4);
         const timestamp = this.safeInteger (trade, createdKey);
         const price = this.safeString (trade, priceKey);
         let amount = this.safeFloat (trade, amountKey);
