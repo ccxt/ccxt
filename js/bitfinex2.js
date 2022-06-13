@@ -214,9 +214,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         const name = 'usertrade';
         const data = this.safeValue (message, 2);
-        const trade = this.parseWsTrade (data);
+        const trade = this.parseWsTrade (data, false);
         const symbol = trade['symbol'];
-        const market = this.safeMarket (symbol);
+        const market = this.market (symbol);
         const messageHash = name + ':' + market['id'];
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -273,6 +273,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             stored = new ArrayCache (tradesLimit);
             this.trades[symbol] = stored;
         }
+        const isPublicTrade = true;
         if (Array.isArray (message)) {
             const messageLength = message.length;
             let trades = undefined;
@@ -284,7 +285,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 trades = [ this.safeValue (message, 2, []) ];
             }
             for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade (trades[i], market);
+                const parsed = this.parseWsTrade (trades[i], isPublicTrade, market);
                 stored.append (parsed);
             }
         } else {
@@ -292,14 +293,14 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             if (second !== 'tu') {
                 return;
             }
-            const trade = this.parseWsTrade (message, market);
+            const trade = this.parseWsTrade (message, isPublicTrade, market);
             stored.append (trade);
         }
         client.resolve (stored, messageHash);
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, isPublic = false, market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -342,8 +343,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //       1655110144596
         //    ]
         //
-        const tradesLength = trade.length;
-        const isPublic = (tradesLength === 4) ? true : false;
         let marketId = (!isPublic) ? this.safeString (trade, 1) : undefined;
         market = this.safeMarket (marketId, market);
         const createdKey = isPublic ? 1 : 2;
