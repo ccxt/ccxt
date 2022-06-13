@@ -24,7 +24,9 @@ module.exports = class whitebit extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
@@ -37,6 +39,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1546,32 +1550,218 @@ module.exports = class whitebit extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // withdraw
-        //
-        //     []
+        //     {
+        //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //         "uniqueId": null,                                                                             // unique Id of deposit
+        //         "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //         "currency": "Bitcoin",                                                                        // deposit currency
+        //         "ticker": "BTC",                                                                              // deposit currency ticker
+        //         "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //         "amount": "0.0006",                                                                           // amount of deposit
+        //         "description": "",                                                                            // deposit description
+        //         "memo": "",                                                                                   // deposit memo
+        //         "fee": "0",                                                                                   // deposit fee
+        //         "status": 15,                                                                                 // transactions status
+        //         "network": null,                                                                              // if currency is multinetwork
+        //         "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //         "details": {
+        //             "partial": {                                                                              // details about partially successful withdrawals
+        //                 "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                 "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                 "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                 "normalizeTransaction": ""                                                            // deposit id
+        //             }
+        //         },
+        //         "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //             "actual": 1,                                                                              // current block confirmations
+        //             "required": 2                                                                             // required block confirmation for successful deposit
+        //         }
+        //     }
         //
         currency = this.safeCurrency (undefined, currency);
+        const address = this.safeString (transaction, 'address');
+        const timestamp = this.safeTimestamp (transaction, 'createdAt');
+        const currencyId = this.safeString (transaction, 'ticker');
+        const status = this.safeString (transaction, 'status');
+        const method = this.safeString (transaction, 'method');
         return {
-            'id': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
-            'currency': currency['code'],
-            'status': undefined,
+            'id': this.safeString (transaction, 'uniqueId'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.safeString (transaction, 'network'),
+            'addressFrom': (method === '1') ? address : undefined,
+            'address': address,
+            'addressTo': (method === '2') ? address : undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'type': (method === '1') ? 'deposit' : 'withdrawal',
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
+            'comment': this.safeString (transaction, 'description'),
+            'fee': {
+                'cost': this.safeNumber (transaction, 'fee'),
+                'currency': this.safeCurrencyCode (currencyId, currency),
+            },
             'info': transaction,
         };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'ok',
+            '4': 'canceled',
+            '5': 'pending',
+            '6': 'pending',
+            '7': 'ok',
+            '9': 'canceled',
+            '10': 'pending',
+            '11': 'pending',
+            '12': 'pending',
+            '13': 'pending',
+            '14': 'pending',
+            '15': 'pending',
+            '16': 'pending',
+            '17': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {str} id deposit id
+         * @param {str|undefined} code not used by whitebit fetchDeposit ()
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'transactionMethod': 1,
+            'uniqueId': id,
+            'limit': 1,
+            'offset': 0,
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ticker'] = currency['id'];
+        }
+        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
+        //
+        //     {
+        //         "limit": 100,
+        //         "offset": 0,
+        //         "records": [
+        //             {
+        //                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId": null,                                                                             // unique Id of deposit
+        //                 "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //                 "currency": "Bitcoin",                                                                        // deposit currency
+        //                 "ticker": "BTC",                                                                              // deposit currency ticker
+        //                 "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount": "0.0006",                                                                           // amount of deposit
+        //                 "description": "",                                                                            // deposit description
+        //                 "memo": "",                                                                                   // deposit memo
+        //                 "fee": "0",                                                                                   // deposit fee
+        //                 "status": 15,                                                                                 // transactions status
+        //                 "network": null,                                                                              // if currency is multinetwork
+        //                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details": {
+        //                     "partial": {                                                                              // details about partially successful withdrawals
+        //                         "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                         "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction": ""                                                            // deposit id
+        //                     }
+        //                 },
+        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //                     "actual": 1,                                                                              // current block confirmations
+        //                     "required": 2                                                                             // required block confirmation for successful deposit
+        //                 }
+        //             },
+        //             {...},
+        //         ],
+        //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //     }
+        //
+        const records = this.safeValue (response, 'records', []);
+        const first = this.safeValue (records, 0, {});
+        return this.parseTransaction (first, currency);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {
+            'transactionMethod': 1,
+            'limit': 100,
+            'offset': 0,
+        };
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ticker'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
+        //
+        //     {
+        //         "limit": 100,
+        //         "offset": 0,
+        //         "records": [
+        //             {
+        //                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId": null,                                                                             // unique Id of deposit
+        //                 "createdAt": 1593437922,                                                                      // timestamp of deposit
+        //                 "currency": "Bitcoin",                                                                        // deposit currency
+        //                 "ticker": "BTC",                                                                              // deposit currency ticker
+        //                 "method": 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount": "0.0006",                                                                           // amount of deposit
+        //                 "description": "",                                                                            // deposit description
+        //                 "memo": "",                                                                                   // deposit memo
+        //                 "fee": "0",                                                                                   // deposit fee
+        //                 "status": 15,                                                                                 // transactions status
+        //                 "network": null,                                                                              // if currency is multinetwork
+        //                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details": {
+        //                     "partial": {                                                                              // details about partially successful withdrawals
+        //                         "requestAmount": "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount": "39000",                                                           // processed withdrawal amount
+        //                         "processedFee": "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction": ""                                                            // deposit id
+        //                     }
+        //                 },
+        //                 "confirmations": {                                                                            // if transaction status == 15 you can see this object
+        //                     "actual": 1,                                                                              // current block confirmations
+        //                     "required": 2                                                                             // required block confirmation for successful deposit
+        //                 }
+        //             },
+        //             {...},
+        //         ],
+        //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //     }
+        //
+        const records = this.safeValue (response, 'records', []);
+        return this.parseTransactions (records, currency, since, limit);
     }
 
     isFiat (currency) {
