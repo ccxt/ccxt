@@ -665,8 +665,78 @@ class whitebit(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.v4PrivatePostTradeAccountExecutedHistory(self.extend(request, params))
+        #
+        # when no symbol is provided
+        #
+        #   {
+        #       "USDC_USDT":[
+        #          {
+        #             "id":"1343815269",
+        #             "clientOrderId":"",
+        #             "time":"1641051917.532965",
+        #             "side":"sell",
+        #             "role":"2",
+        #             "amount":"9.986",
+        #             "price":"0.9995",
+        #             "deal":"9.981007",
+        #             "fee":"0.009981007",
+        #             "orderId":"58166729555"
+        #          },
+        #       ]
+        #   }
+        #
+        # when a symbol is provided
+        #
+        #     [
+        #         {
+        #             'id': 1343815269,
+        #             'clientOrderId': '',
+        #             'time': 1641051917.532965,
+        #             'side': 'sell',
+        #             'role': 2,
+        #             'amount': '9.986',
+        #             'price': '0.9995',
+        #             'deal': '9.981007',
+        #             'fee': '0.009981007',
+        #             'orderId': 58166729555,
+        #         },
+        #     ]
+        #
+        if isinstance(response, list):
+            return self.parse_trades(response, market, since, limit)
+        else:
+            results = []
+            keys = list(response.keys())
+            for i in range(0, len(keys)):
+                marketId = keys[i]
+                market = self.safe_market(marketId, None, '_')
+                rawTrades = self.safe_value(response, marketId, [])
+                parsed = self.parse_trades(rawTrades, market, since, limit)
+                results = self.array_concat(results, parsed)
+            results = self.sort_by_2(results, 'timestamp', 'id')
+            tail = (since is None)
+            return self.filter_by_since_limit(results, since, limit, 'timestamp', tail)
+
     def parse_trade(self, trade, market=None):
+        #
         # fetchTradesV4
+        #
         #     {
         #       "tradeID": 158056419,
         #       "price": "9186.13",
@@ -674,7 +744,7 @@ class whitebit(Exchange):
         #       "base_volume": "9186.13",
         #       "trade_timestamp": 1594391747,
         #       "type": "sell"
-        #     },
+        #     }
         #
         # orderTrades(v4Private)
         #
@@ -690,14 +760,30 @@ class whitebit(Exchange):
         #         "deal": "0.00419198"  # amount in money
         #     }
         #
+        # fetchMyTrades
+        #
+        #      {
+        #          'id': 1343815269,
+        #          'clientOrderId': '',
+        #          'time': 1641051917.532965,
+        #          'side': 'sell',
+        #          'role': 2,
+        #          'amount': '9.986',
+        #          'price': '0.9995',
+        #          'deal': '9.981007',
+        #          'fee': '0.009981007',
+        #          'orderId': 58166729555,
+        #      }
+        #
+        market = self.safe_market(None, market)
         timestamp = self.safe_timestamp_2(trade, 'time', 'trade_timestamp')
-        orderId = self.safe_string(trade, 'dealOrderId')
+        orderId = self.safe_string_2(trade, 'dealOrderId', 'orderId')
         cost = self.safe_string(trade, 'deal')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'amount', 'base_volume')
         id = self.safe_string_2(trade, 'id', 'tradeID')
-        side = self.safe_string(trade, 'type')
-        symbol = self.safe_symbol(None, market)
+        side = self.safe_string_2(trade, 'type', 'side')
+        symbol = market['symbol']
         role = self.safe_integer(trade, 'role')
         takerOrMaker = None
         if role is not None:
@@ -705,11 +791,9 @@ class whitebit(Exchange):
         fee = None
         feeCost = self.safe_string(trade, 'fee')
         if feeCost is not None:
-            safeMarket = self.safe_market(None, market)
-            quote = safeMarket['quote']
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             }
         return self.safe_trade({
             'info': trade,

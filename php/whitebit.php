@@ -672,16 +672,90 @@ class whitebit extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
-        // fetchTradesV4
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
+        $this->load_markets();
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->v4PrivatePostTradeAccountExecutedHistory (array_merge($request, $params));
+        //
+        // when no $symbol is provided
+        //
+        //   {
+        //       "USDC_USDT":array(
+        //          array(
+        //             "id":"1343815269",
+        //             "clientOrderId":"",
+        //             "time":"1641051917.532965",
+        //             "side":"sell",
+        //             "role":"2",
+        //             "amount":"9.986",
+        //             "price":"0.9995",
+        //             "deal":"9.981007",
+        //             "fee":"0.009981007",
+        //             "orderId":"58166729555"
+        //          ),
+        //       )
+        //   }
+        //
+        // when a $symbol is provided
+        //
         //     array(
+        //         array(
+        //             'id' => 1343815269,
+        //             'clientOrderId' => '',
+        //             'time' => 1641051917.532965,
+        //             'side' => 'sell',
+        //             'role' => 2,
+        //             'amount' => '9.986',
+        //             'price' => '0.9995',
+        //             'deal' => '9.981007',
+        //             'fee' => '0.009981007',
+        //             'orderId' => 58166729555,
+        //         ),
+        //     )
+        //
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            return $this->parse_trades($response, $market, $since, $limit);
+        } else {
+            $results = array();
+            $keys = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $marketId = $keys[$i];
+                $market = $this->safe_market($marketId, null, '_');
+                $rawTrades = $this->safe_value($response, $marketId, array());
+                $parsed = $this->parse_trades($rawTrades, $market, $since, $limit);
+                $results = $this->array_concat($results, $parsed);
+            }
+            $results = $this->sort_by_2($results, 'timestamp', 'id');
+            $tail = ($since === null);
+            return $this->filter_by_since_limit($results, $since, $limit, 'timestamp', $tail);
+        }
+    }
+
+    public function parse_trade($trade, $market = null) {
+        //
+        // fetchTradesV4
+        //
+        //     {
         //       "tradeID" => 158056419,
         //       "price" => "9186.13",
         //       "quote_volume" => "0.0021",
         //       "base_volume" => "9186.13",
         //       "trade_timestamp" => 1594391747,
         //       "type" => "sell"
-        //     ),
+        //     }
         //
         // orderTrades (v4Private)
         //
@@ -697,14 +771,30 @@ class whitebit extends Exchange {
         //         "deal" => "0.00419198" // $amount in money
         //     }
         //
+        // fetchMyTrades
+        //
+        //      {
+        //          'id' => 1343815269,
+        //          'clientOrderId' => '',
+        //          'time' => 1641051917.532965,
+        //          'side' => 'sell',
+        //          'role' => 2,
+        //          'amount' => '9.986',
+        //          'price' => '0.9995',
+        //          'deal' => '9.981007',
+        //          'fee' => '0.009981007',
+        //          'orderId' => 58166729555,
+        //      }
+        //
+        $market = $this->safe_market(null, $market);
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'trade_timestamp');
-        $orderId = $this->safe_string($trade, 'dealOrderId');
+        $orderId = $this->safe_string_2($trade, 'dealOrderId', 'orderId');
         $cost = $this->safe_string($trade, 'deal');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string_2($trade, 'amount', 'base_volume');
         $id = $this->safe_string_2($trade, 'id', 'tradeID');
-        $side = $this->safe_string($trade, 'type');
-        $symbol = $this->safe_symbol(null, $market);
+        $side = $this->safe_string_2($trade, 'type', 'side');
+        $symbol = $market['symbol'];
         $role = $this->safe_integer($trade, 'role');
         $takerOrMaker = null;
         if ($role !== null) {
@@ -713,11 +803,9 @@ class whitebit extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($trade, 'fee');
         if ($feeCost !== null) {
-            $safeMarket = $this->safe_market(null, $market);
-            $quote = $safeMarket['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $quote,
+                'currency' => $market['quote'],
             );
         }
         return $this->safe_trade(array(
