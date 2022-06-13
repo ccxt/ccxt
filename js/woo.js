@@ -179,7 +179,7 @@ module.exports = class woo extends Exchange {
             },
             'options': {
                 'fetchDepositAddress': {
-                    'no-network': [ 'BTC', 'ETH' ],
+                    'no-network': [ 'BTC', 'ETH', 'SOL', 'ATOM' ],
                 },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks-ids-for-fetch-deposits': {
