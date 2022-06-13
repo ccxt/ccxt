@@ -8,7 +8,9 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
+use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
 
 class whitebit extends Exchange {
@@ -61,6 +63,7 @@ class whitebit extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'setLeverage' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -158,6 +161,7 @@ class whitebit extends Exchange {
                     ),
                     'private' => array(
                         'post' => array(
+                            'collateral-account/leverage',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1372,6 +1376,30 @@ class whitebit extends Exchange {
             'network' => null,
             'info' => $response,
         );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a market
+         * @param {float} $leverage the rate of $leverage
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} response from the exchange
+         */
+        $this->load_markets();
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' setLeverage() does not allow to set per symbol');
+        }
+        if (($leverage < 1) || ($leverage > 20)) {
+            throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 20');
+        }
+        $request = array(
+            'leverage' => $leverage,
+        );
+        return $this->v4PrivatePostCollateralAccountLeverage (array_merge($request, $params));
+        //     {
+        //         "leverage" => 5
+        //     }
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

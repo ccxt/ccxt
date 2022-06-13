@@ -14,6 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -70,6 +71,7 @@ class whitebit(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
+                'setLeverage': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -167,6 +169,7 @@ class whitebit(Exchange):
                     },
                     'private': {
                         'post': [
+                            'collateral-account/leverage',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1313,6 +1316,27 @@ class whitebit(Exchange):
             'network': None,
             'info': response,
         }
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: response from the exchange
+        """
+        self.load_markets()
+        if symbol is not None:
+            raise NotSupported(self.id + ' setLeverage() does not allow to set per symbol')
+        if (leverage < 1) or (leverage > 20):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 20')
+        request = {
+            'leverage': leverage,
+        }
+        return self.v4PrivatePostCollateralAccountLeverage(self.extend(request, params))
+        #     {
+        #         "leverage": 5
+        #     }
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
