@@ -755,47 +755,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //        ]
         //    ]
         //
-        // market order
-        //
-        // [
-        //     0,
-        //     'oc',
-        //     [
-        //       97084883506,
-        //       null,
-        //       1655110144596,
-        //       'tLTCUST',
-        //       1655110144596,
-        //       1655110144598,
-        //       0,
-        //       0.1,
-        //       'EXCHANGE MARKET',
-        //       null,
-        //       null,
-        //       null,
-        //       0,
-        //       'EXECUTED @ 42.821(0.1)',
-        //       null,
-        //       null,
-        //       42.799,
-        //       42.821,
-        //       0,
-        //       0,
-        //       null,
-        //       null,
-        //       null,
-        //       0,
-        //       0,
-        //       null,
-        //       null,
-        //       null,
-        //       'BFX',
-        //       null,
-        //       null,
-        //       {}
-        //     ]
-        // ]
-        //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);
         if (this.orders === undefined) {
@@ -847,7 +806,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //       1655110144596, // created timestamp
         //       1655110144598, // updated timestamp
         //       0, // amount
-        //       0.1, // amount_orig
+        //       0.1, // amount_orig negative if sell order
         //       'EXCHANGE MARKET', // type
         //       null,
         //       null,
@@ -878,13 +837,13 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
         market = this.safeMarket (symbol);
-        let remaining = this.safeNumber (order, 6);
+        let amount = this.safeNumber (order, 7);
         let side = 'buy';
-        if (remaining < 0) {
-            remaining = Math.abs (remaining);
+        if (amount < 0) {
+            amount = Math.abs (amount);
             side = 'sell';
         }
-        const amount = this.safeString (order, 7);
+        const remaining = this.safeString (order, 6);
         let type = this.safeString (order, 8);
         if (type.indexOf ('LIMIT') > -1) {
             type = 'limit';
