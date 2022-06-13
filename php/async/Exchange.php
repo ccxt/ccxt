@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.87.8';
+$version = '1.87.9';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.87.8';
+    const VERSION = '1.87.9';
 
     public static $loop;
     public static $kernel;
@@ -234,6 +234,36 @@ class Exchange extends \ccxt\Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_balance($balance) {
+        $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
+        $codes = is_array($balances) ? array_keys($balances) : array();
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $total = $this->safe_string($balance[$code], 'total');
+            $free = $this->safe_string($balance[$code], 'free');
+            $used = $this->safe_string($balance[$code], 'used');
+            if ($total === null) {
+                $total = Precise::string_add($free, $used);
+            }
+            if ($free === null) {
+                $free = Precise::string_sub($total, $used);
+            }
+            if ($used === null) {
+                $used = Precise::string_sub($total, $free);
+            }
+            $balance[$code]['free'] = $this->parse_number($free);
+            $balance[$code]['used'] = $this->parse_number($used);
+            $balance[$code]['total'] = $this->parse_number($total);
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
+        }
+        return $balance;
+    }
 
     public function safe_order($order, $market = null) {
         // parses numbers as strings
