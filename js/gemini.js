@@ -1367,12 +1367,11 @@ module.exports = class gemini extends Exchange {
                 'Content-Type': 'text/plain',
                 'X-GEMINI-APIKEY': apiKey,
                 'X-GEMINI-SIGNATURE': signature,
+                'X-GEMINI-PAYLOAD': this.decode (payload),
             };
             if (apiKey.indexOf ('account') < 0) { // OAuth 2.0 Flow
                 const authorizationKey = 'Bearer ' + this.token;
                 headers['Authorization'] = authorizationKey;
-            } else { // Original flow with account key
-                headers['X-GEMINI-PAYLOAD'] = this.decode (payload);
             }
         } else {
             if (Object.keys (query).length) {
