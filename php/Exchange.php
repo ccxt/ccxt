@@ -276,7 +276,6 @@ class Exchange {
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
         'onJsonResponse' => 'on_json_response',
-        'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',
         'fetchCurrencies' => 'fetch_currencies',
@@ -292,6 +291,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
         'safeOrder' => 'safe_order',
         'parseOrders' => 'parse_orders',
@@ -2484,6 +2484,75 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function set_markets($markets, $currencies = null) {
+        $values = array();
+        $marketValues = $this->to_array($markets);
+        for ($i = 0; $i < count($marketValues); $i++) {
+            $market = $this->deep_extend($this->safe_market(), array(
+                'precision' => $this->precision,
+                'limits' => $this->limits,
+            ), $this->fees['trading'], $marketValues[$i]);
+            $values[] = $market;
+        }
+        $this->markets = $this->index_by($values, 'symbol');
+        $this->markets_by_id = $this->index_by($markets, 'id');
+        $marketsSortedBySymbol = $this->keysort ($this->markets);
+        $marketsSortedById = $this->keysort ($this->markets_by_id);
+        $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
+        $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
+        if ($currencies !== null) {
+            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+        } else {
+            $baseCurrencies = array();
+            $quoteCurrencies = array();
+            for ($i = 0; $i < count($values); $i++) {
+                $market = $values[$i];
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $marketPrecision = $this->safe_value($market, 'precision', array());
+                if (is_array($market) && array_key_exists('base', $market)) {
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
+                    $currency = array(
+                        'id' => $this->safe_string_2($market, 'baseId', 'base'),
+                        'numericId' => $this->safe_string($market, 'baseNumericId'),
+                        'code' => $this->safe_string($market, 'base'),
+                        'precision' => $currencyPrecision,
+                    );
+                    $baseCurrencies[] = $currency;
+                }
+                if (is_array($market) && array_key_exists('quote', $market)) {
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currency = array(
+                        'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
+                        'numericId' => $this->safe_string($market, 'quoteNumericId'),
+                        'code' => $this->safe_string($market, 'quote'),
+                        'precision' => $currencyPrecision,
+                    );
+                    $quoteCurrencies[] = $currency;
+                }
+            }
+            $baseCurrencies = $this->sort_by($baseCurrencies, 'code');
+            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code');
+            $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
+            $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
+            $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
+            $groupedCurrencies = $this->group_by($allCurrencies, 'code');
+            $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
+            $currencies = array();
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = $codes[$i];
+                var_dump ($code);
+                // $currencies = is_array($groupedCurrencies).map (($code) ? array_keys($groupedCurrencies).map (($code) : array() =>
+                // $groupedCurrencies[$code].reduce ((previous, current) =>
+                //     ((previous.precision > current.precision) ? previous : current), $groupedCurrencies[$code][0]));
+            }
+            $sortedCurrencies = $this->sort_by(flatten ($currencies), 'code');
+            $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
+        }
+        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
+        $this->codes = is_array($this->currencies).sort () ? array_keys($this->currencies).sort () : array();
+        return $this->markets;
+    }
+
     public function safe_balance($balance) {
         $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
         $codes = is_array($balances) ? array_keys($balances) : array();
@@ -3441,6 +3510,50 @@ class Exchange {
     }
 
     public function safe_market($marketId, $market = null, $delimiter = null) {
+        $result = array(
+            'id' => $marketId,
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+            'baseId' => null,
+            'quoteId' => null,
+            'active' => null,
+            'type' => null,
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'margin' => false,
+            'contract' => false,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'optionType' => null,
+            'strike' => null,
+            'settle' => null,
+            'settleId' => null,
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $market = $this->markets_by_id[$marketId];
@@ -3448,42 +3561,21 @@ class Exchange {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = is_array($parts) ? count($parts) : 0;
                 if ($partsLength === 2) {
-                    $baseId = $this->safe_string($parts, 0);
-                    $quoteId = $this->safe_string($parts, 1);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $symbol,
-                        'base' => $base,
-                        'quote' => $quote,
-                        'baseId' => $baseId,
-                        'quoteId' => $quoteId,
-                    );
+                    $result['baseId'] = $this->safe_string($parts, 0);
+                    $result['quoteId'] = $this->safe_string($parts, 1);
+                    $result['base'] = $this->safe_currency_code($result['baseId']);
+                    $result['quote'] = $this->safe_currency_code($result['quoteId']);
+                    $result['symbol'] = $result['base'] . '/' . $result['quote'];
+                    return $result;
                 } else {
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $marketId,
-                        'base' => null,
-                        'quote' => null,
-                        'baseId' => null,
-                        'quoteId' => null,
-                    );
+                    return $result;
                 }
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return array(
-            'id' => $marketId,
-            'symbol' => $marketId,
-            'base' => null,
-            'quote' => null,
-            'baseId' => null,
-            'quoteId' => null,
-        );
+        return $result;
     }
 
     public function check_required_credentials($error = true) {
