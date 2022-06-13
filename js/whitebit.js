@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -58,6 +58,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -155,6 +156,7 @@ module.exports = class whitebit extends Exchange {
                     },
                     'private': {
                         'post': [
+                            'collateral-account/leverage',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -1407,6 +1409,32 @@ module.exports = class whitebit extends Exchange {
             'network': undefined,
             'info': response,
         };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} response from the exchange
+         */
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' setLeverage() does not allow to set per symbol');
+        }
+        if ((leverage < 1) || (leverage > 20)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+        }
+        const request = {
+            'leverage': leverage,
+        };
+        return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
+        //     {
+        //         "leverage": 5
+        //     }
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
