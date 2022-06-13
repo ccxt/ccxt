@@ -172,6 +172,20 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'usertrade';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += ':' + market['id'];
+        }
+        const trades = await this.subscribePrivate (messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
     async watchTicker (symbol, params = {}) {
         return await this.subscribe ('ticker', symbol, params);
     }
@@ -597,6 +611,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
 
     handleOrders (client, message, subscription) {
         //
+        // limit order
         //    [
         //        0,
         //        "on", // ou or oc
@@ -634,6 +649,47 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //           null,
         //        ]
         //    ]
+        //
+        // market order
+        //
+        // [
+        //     0,
+        //     'oc',
+        //     [
+        //       97084883506,
+        //       null,
+        //       1655110144596,
+        //       'tLTCUST',
+        //       1655110144596,
+        //       1655110144598,
+        //       0,
+        //       0.1,
+        //       'EXCHANGE MARKET',
+        //       null,
+        //       null,
+        //       null,
+        //       0,
+        //       'EXECUTED @ 42.821(0.1)',
+        //       null,
+        //       null,
+        //       42.799,
+        //       42.821,
+        //       0,
+        //       0,
+        //       null,
+        //       null,
+        //       null,
+        //       0,
+        //       0,
+        //       null,
+        //       null,
+        //       null,
+        //       'BFX',
+        //       null,
+        //       null,
+        //       {}
+        //     ]
+        // ]
         //
         const data = this.safeValue (message, 2, []);
         const messageType = this.safeString (message, 1);
@@ -770,6 +826,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'oc': this.handleOrders,
                 'wu': this.handleBalance,
                 'ws': this.handleBalance,
+                'tu': this.handleMyTrade,
+                'te': this.handleMyTrade,
+
             };
             const method = this.safeValue2 (methods, channel, name);
             if (method === undefined) {
