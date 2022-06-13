@@ -1617,50 +1617,6 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def safe_ledger_entry(self, entry, currency=None):
-        currency = self.safe_currency(None, currency)
-        direction = self.safe_string(entry, 'direction')
-        before = self.safe_string(entry, 'before')
-        after = self.safe_string(entry, 'after')
-        amount = self.safe_string(entry, 'amount')
-        fee = self.safe_string(entry, 'fee')
-        if amount is not None and fee is not None:
-            if before is None and after is not None:
-                amountAndFee = Precise.string_add(amount, fee)
-                before = Precise.string_sub(after, amountAndFee)
-            elif before is not None and after is None:
-                amountAndFee = Precise.string_add(amount, fee)
-                after = Precise.string_add(before, amountAndFee)
-        if before is not None and after is not None:
-            if direction is None:
-                if Precise.string_gt(before, after):
-                    direction = 'out'
-                if Precise.string_gt(after, before):
-                    direction = 'in'
-            if amount is None and fee is not None:
-                betweenAfterBefore = Precise.string_sub(after, before)
-                amount = Precise.string_sub(betweenAfterBefore, fee)
-            if amount is not None and fee is None:
-                betweenAfterBefore = Precise.string_sub(after, before)
-                fee = Precise.string_sub(betweenAfterBefore, amount)
-        return self.extend({
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'direction': None,
-            'account': None,
-            'referenceId': None,
-            'referenceAccount': None,
-            'type': None,
-            'currency': currency['code'],
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': None,
-            'fee': fee,
-            'info': None,
-        }, entry)
-
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=False):
         array = self.to_array(array)
         if value is not None:
