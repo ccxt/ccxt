@@ -765,7 +765,7 @@ module.exports = class wavesexchange extends Exchange {
         let symbol = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             const marketId = baseId + '/' + quoteId;
-            market = this.safeMarket (marketId);
+            market = this.safeMarket (marketId, market, '/');
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
