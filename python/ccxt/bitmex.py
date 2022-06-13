@@ -1567,7 +1567,7 @@ class bitmex(Exchange):
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'orderQty')
-        filled = self.safe_string(order, 'cumQty', 0.0)
+        filled = self.safe_string(order, 'cumQty')
         average = self.safe_string(order, 'avgPx')
         id = self.safe_string(order, 'orderID')
         type = self.safe_string_lower(order, 'ordType')
@@ -1576,7 +1576,9 @@ class bitmex(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_number(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
-        postOnly = (execInst == 'ParticipateDoNotInitiate')
+        postOnly = None
+        if execInst is not None:
+            postOnly = (execInst == 'ParticipateDoNotInitiate')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1747,7 +1749,18 @@ class bitmex(Exchange):
         :param dict params: extra parameters specific to the bitmex api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        return self.cancel_order(ids, symbol, params)
+        # return self.cancel_order(ids, symbol, params)
+        self.load_markets()
+        # https://github.com/ccxt/ccxt/issues/6507
+        clientOrderId = self.safe_value_2(params, 'clOrdID', 'clientOrderId')
+        request = {}
+        if clientOrderId is None:
+            request['orderID'] = ids
+        else:
+            request['clOrdID'] = clientOrderId
+            params = self.omit(params, ['clOrdID', 'clientOrderId'])
+        response = self.privateDeleteOrder(self.extend(request, params))
+        return self.parse_orders(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
         """
