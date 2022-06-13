@@ -281,7 +281,6 @@ class Exchange {
         'loadMarkets' => 'load_markets',
         'fetchCurrencies' => 'fetch_currencies',
         'fetchMarkets' => 'fetch_markets',
-        'safeBalance' => 'safe_balance',
         'filterBySinceLimit' => 'filter_by_since_limit',
         'filterByValueSinceLimit' => 'filter_by_value_since_limit',
         'checkRequiredDependencies' => 'check_required_dependencies',
@@ -293,6 +292,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeBalance' => 'safe_balance',
         'safeOrder' => 'safe_order',
         'parseOrders' => 'parse_orders',
         'calculateFee' => 'calculate_fee',
@@ -1931,39 +1931,6 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function safe_balance($balance) {
-        $currencies = $this->omit($balance, array('info', 'timestamp', 'datetime', 'free', 'used', 'total'));
-
-        $balance['free'] = array();
-        $balance['used'] = array();
-        $balance['total'] = array();
-
-        foreach ($currencies as $code => $value) {
-            if (!isset($value['total'])) {
-                if (isset($value['free']) && isset($value['used'])) {
-                    $balance[$code]['total'] = Precise::string_add($value['free'], $value['used']);
-                }
-            }
-            if (!isset($value['used'])) {
-                if (isset($value['total']) && isset($value['free'])) {
-                    $balance[$code]['used'] = Precise::string_sub($value['total'], $value['free']);
-                }
-            }
-            if (!isset($value['free'])) {
-                if (isset($value['total']) && isset($value['used'])) {
-                    $balance[$code]['free'] = Precise::string_sub($value['total'], $value['used']);
-                }
-            }
-            $balance[$code]['free'] = $this->parse_number($balance[$code]['free']);
-            $balance[$code]['used'] = $this->parse_number($balance[$code]['used']);
-            $balance[$code]['total'] = $this->parse_number($balance[$code]['total']);
-            $balance['free'][$code] = $balance[$code]['free'];
-            $balance['used'][$code] = $balance[$code]['used'];
-            $balance['total'][$code] = $balance[$code]['total'];
-        }
-        return $balance;
-    }
-
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
         $result = array();
         $since_is_set = isset($since);
@@ -2569,6 +2536,36 @@ class Exchange {
     }
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_balance($balance) {
+        $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
+        $codes = is_array($balances) ? array_keys($balances) : array();
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $total = $this->safe_string($balance[$code], 'total');
+            $free = $this->safe_string($balance[$code], 'free');
+            $used = $this->safe_string($balance[$code], 'used');
+            if ($total === null) {
+                $total = Precise::string_add($free, $used);
+            }
+            if ($free === null) {
+                $free = Precise::string_sub($total, $used);
+            }
+            if ($used === null) {
+                $used = Precise::string_sub($total, $free);
+            }
+            $balance[$code]['free'] = $this->parse_number($free);
+            $balance[$code]['used'] = $this->parse_number($used);
+            $balance[$code]['total'] = $this->parse_number($total);
+            $balance['free'][$code] = $balance[$code]['free'];
+            $balance['used'][$code] = $balance[$code]['used'];
+            $balance['total'][$code] = $balance[$code]['total'];
+        }
+        return $balance;
+    }
 
     public function safe_order($order, $market = null) {
         // parses numbers as strings

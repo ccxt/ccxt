@@ -729,38 +729,6 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    safeBalance (balance) {
-        const codes = Object.keys (this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]));
-        balance['free'] = {}
-        balance['used'] = {}
-        balance['total'] = {}
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i]
-            if (balance[code].total === undefined) {
-                if (balance[code].free !== undefined && balance[code].used !== undefined) {
-                    balance[code].total = Precise.stringAdd (balance[code].free, balance[code].used)
-                }
-            }
-            if (balance[code].free === undefined) {
-                if (balance[code].total !== undefined && balance[code].used !== undefined) {
-                    balance[code].free = Precise.stringSub (balance[code].total, balance[code].used)
-                }
-            }
-            if (balance[code].used === undefined) {
-                if (balance[code].total !== undefined && balance[code].free !== undefined) {
-                    balance[code].used = Precise.stringSub (balance[code].total, balance[code].free)
-                }
-            }
-            balance[code].free = this.parseNumber (balance[code].free)
-            balance[code].used = this.parseNumber (balance[code].used)
-            balance[code].total = this.parseNumber (balance[code].total)
-            balance.free[code] = balance[code].free
-            balance.used[code] = balance[code].used
-            balance.total[code] = balance[code].total
-        }
-        return balance
-    }
-
     filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
@@ -899,6 +867,36 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeBalance (balance) {
+        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
+        const codes = Object.keys (balances);
+        balance['free'] = {};
+        balance['used'] = {};
+        balance['total'] = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            let total = this.safeString (balance[code], 'total');
+            let free = this.safeString (balance[code], 'free');
+            let used = this.safeString (balance[code], 'used');
+            if (total === undefined) {
+                total = Precise.stringAdd (free, used);
+            }
+            if (free === undefined) {
+                free = Precise.stringSub (total, used);
+            }
+            if (used === undefined) {
+                used = Precise.stringSub (total, free);
+            }
+            balance[code]['free'] = this.parseNumber (free);
+            balance[code]['used'] = this.parseNumber (used);
+            balance[code]['total'] = this.parseNumber (total);
+            balance['free'][code] = balance[code]['free'];
+            balance['used'][code] = balance[code]['used'];
+            balance['total'][code] = balance[code]['total'];
+        }
+        return balance;
+    }
 
     safeOrder (order, market = undefined) {
         // parses numbers as strings

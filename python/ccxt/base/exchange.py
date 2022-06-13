@@ -1553,29 +1553,6 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetch_order_trades() is not supported yet')
 
-    def safe_balance(self, balance):
-        currencies = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']).keys()
-        balance['free'] = {}
-        balance['used'] = {}
-        balance['total'] = {}
-        for currency in currencies:
-            if balance[currency].get('total') is None:
-                if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['total'] = Precise.string_add(balance[currency]['free'], balance[currency]['used'])
-            if balance[currency].get('free') is None:
-                if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['free'] = Precise.string_sub(balance[currency]['total'], balance[currency]['used'])
-            if balance[currency].get('used') is None:
-                if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    balance[currency]['used'] = Precise.string_sub(balance[currency]['total'], balance[currency]['free'])
-            balance[currency]['free'] = self.parse_number(balance[currency]['free'])
-            balance[currency]['used'] = self.parse_number(balance[currency]['used'])
-            balance[currency]['total'] = self.parse_number(balance[currency]['total'])
-            balance['free'][currency] = balance[currency]['free']
-            balance['used'][currency] = balance[currency]['used']
-            balance['total'][currency] = balance[currency]['total']
-        return balance
-
     def build_ohlcvc(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []
@@ -1877,6 +1854,31 @@ class Exchange(object):
             raise ErrorClass(self.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body)
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_balance(self, balance):
+        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
+        codes = list(balances.keys())
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+        for i in range(0, len(codes)):
+            code = codes[i]
+            total = self.safe_string(balance[code], 'total')
+            free = self.safe_string(balance[code], 'free')
+            used = self.safe_string(balance[code], 'used')
+            if total is None:
+                total = Precise.string_add(free, used)
+            if free is None:
+                free = Precise.string_sub(total, used)
+            if used is None:
+                used = Precise.string_sub(total, free)
+            balance[code]['free'] = self.parse_number(free)
+            balance[code]['used'] = self.parse_number(used)
+            balance[code]['total'] = self.parse_number(total)
+            balance['free'][code] = balance[code]['free']
+            balance['used'][code] = balance[code]['used']
+            balance['total'][code] = balance[code]['total']
+        return balance
 
     def safe_order(self, order, market=None):
         # parses numbers as strings
