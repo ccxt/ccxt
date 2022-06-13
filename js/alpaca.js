@@ -32,15 +32,21 @@ module.exports = class alpaca extends Exchange {
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
+                'createOrder': true,
+                'fetchBalance': 'emulated',
                 'fetchMarkets': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': 'emulated',
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'fetchOrderBook': 'emulated',
-                'fetchBalance': 'emulated',
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
             },
             'api': {
                 'public': {
@@ -275,12 +281,12 @@ module.exports = class alpaca extends Exchange {
         //     "bs": 0.36
         // }
         const quote = this.safeValue (response, 'xbbo', {});
-        const shallow_bid = [this.safeNumber (quote, 'bp'), this.safeNumber (quote, 'bs')];
-        const shallow_ask = [this.safeNumber (quote, 'ap'), this.safeNumber (quote, 'as')];
+        const shallow_bid = [ this.safeNumber (quote, 'bp'), this.safeNumber (quote, 'bs') ];
+        const shallow_ask = [ this.safeNumber (quote, 'ap'), this.safeNumber (quote, 'as') ];
         const timestamp = this.milliseconds (); // parseDate (this.safeString (quote, 't'));
         const orderbook = {
-            'bids': [shallow_bid],
-            'asks': [shallow_ask],
+            'bids': [ shallow_bid ],
+            'asks': [ shallow_ask ],
         };
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
