@@ -685,8 +685,84 @@ module.exports = class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.v4PrivatePostTradeAccountExecutedHistory (this.extend (request, params));
+        //
+        // when no symbol is provided
+        //
+        //   {
+        //       "USDC_USDT":[
+        //          {
+        //             "id":"1343815269",
+        //             "clientOrderId":"",
+        //             "time":"1641051917.532965",
+        //             "side":"sell",
+        //             "role":"2",
+        //             "amount":"9.986",
+        //             "price":"0.9995",
+        //             "deal":"9.981007",
+        //             "fee":"0.009981007",
+        //             "orderId":"58166729555"
+        //          },
+        //       ]
+        //   }
+        //
+        // when a symbol is provided
+        //
+        //     [
+        //         {
+        //             'id': 1343815269,
+        //             'clientOrderId': '',
+        //             'time': 1641051917.532965,
+        //             'side': 'sell',
+        //             'role': 2,
+        //             'amount': '9.986',
+        //             'price': '0.9995',
+        //             'deal': '9.981007',
+        //             'fee': '0.009981007',
+        //             'orderId': 58166729555,
+        //         },
+        //     ]
+        //
+        if (Array.isArray (response)) {
+            return this.parseTrades (response, market, since, limit);
+        } else {
+            let results = [];
+            const keys = Object.keys (response);
+            for (let i = 0; i < keys.length; i++) {
+                const marketId = keys[i];
+                const market = this.safeMarket (marketId, undefined, '_');
+                const rawTrades = this.safeValue (response, marketId, []);
+                const parsed = this.parseTrades (rawTrades, market, since, limit);
+                results = this.arrayConcat (results, parsed);
+            }
+            results = this.sortBy2 (results, 'timestamp', 'id');
+            const tail = (since === undefined);
+            return this.filterBySinceLimit (results, since, limit, 'timestamp', tail);
+        }
+    }
+
     parseTrade (trade, market = undefined) {
+        //
         // fetchTradesV4
+        //
         //     {
         //       "tradeID": 158056419,
         //       "price": "9186.13",
@@ -694,7 +770,7 @@ module.exports = class whitebit extends Exchange {
         //       "base_volume": "9186.13",
         //       "trade_timestamp": 1594391747,
         //       "type": "sell"
-        //     },
+        //     }
         //
         // orderTrades (v4Private)
         //
@@ -710,14 +786,30 @@ module.exports = class whitebit extends Exchange {
         //         "deal": "0.00419198" // amount in money
         //     }
         //
+        // fetchMyTrades
+        //
+        //      {
+        //          'id': 1343815269,
+        //          'clientOrderId': '',
+        //          'time': 1641051917.532965,
+        //          'side': 'sell',
+        //          'role': 2,
+        //          'amount': '9.986',
+        //          'price': '0.9995',
+        //          'deal': '9.981007',
+        //          'fee': '0.009981007',
+        //          'orderId': 58166729555,
+        //      }
+        //
+        market = this.safeMarket (undefined, market);
         const timestamp = this.safeTimestamp2 (trade, 'time', 'trade_timestamp');
-        const orderId = this.safeString (trade, 'dealOrderId');
+        const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'amount', 'base_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
-        const side = this.safeString (trade, 'type');
-        const symbol = this.safeSymbol (undefined, market);
+        const side = this.safeString2 (trade, 'type', 'side');
+        const symbol = market['symbol'];
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -726,11 +818,9 @@ module.exports = class whitebit extends Exchange {
         let fee = undefined;
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
-            const safeMarket = this.safeMarket (undefined, market);
-            const quote = safeMarket['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': quote,
+                'currency': market['quote'],
             };
         }
         return this.safeTrade ({
