@@ -765,15 +765,7 @@ module.exports = class wavesexchange extends Exchange {
         let symbol = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             const marketId = baseId + '/' + quoteId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
+            market = this.safeMarket (marketId, market, '/');
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
@@ -849,6 +841,44 @@ module.exports = class wavesexchange extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0, {});
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetPairs (params);
+        //
+        //     {
+        //         "__type":"list",
+        //         "data":[
+        //             {
+        //                 "__type":"pair",
+        //                 "data":{
+        //                     "firstPrice":0.00012512,
+        //                     "lastPrice":0.00012441,
+        //                     "low":0.00012167,
+        //                     "high":0.00012768,
+        //                     "weightedAveragePrice":0.000124710697407246,
+        //                     "volume":209554.26356614,
+        //                     "quoteVolume":26.1336583539951,
+        //                     "volumeWaves":209554.26356614,
+        //                     "txsCount":6655
+        //                 },
+        //                 "amountAsset":"WAVES",
+        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
