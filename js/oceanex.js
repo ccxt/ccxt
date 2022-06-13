@@ -1144,7 +1144,7 @@ module.exports = class oceanex extends Exchange {
         } else if (type === 'contract' && access === 'private') {
             this.checkRequiredCredentials ();
             headers['X-API-KEY'] = this.apiKey;
-            headers['Authorization'] = this.bearer;
+            headers['Authorization'] = this.token;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
