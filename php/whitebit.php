@@ -29,7 +29,9 @@ class whitebit extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
                 'createDepositAddress' => null,
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
@@ -42,7 +44,9 @@ class whitebit extends Exchange {
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -1507,32 +1511,214 @@ class whitebit extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        // withdraw
-        //
-        //     array()
+        //     {
+        //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
+        //         "uniqueId" => null,                                                                             // unique Id of deposit
+        //         "createdAt" => 1593437922,                                                                      // $timestamp of deposit
+        //         "currency" => "Bitcoin",                                                                        // deposit $currency
+        //         "ticker" => "BTC",                                                                              // deposit $currency ticker
+        //         "method" => 1,                                                                                  // called $method 1 - deposit, 2 - withdraw
+        //         "amount" => "0.0006",                                                                           // amount of deposit
+        //         "description" => "",                                                                            // deposit description
+        //         "memo" => "",                                                                                   // deposit memo
+        //         "fee" => "0",                                                                                   // deposit fee
+        //         "status" => 15,                                                                                 // transactions $status
+        //         "network" => null,                                                                              // if $currency is multinetwork
+        //         "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit $transaction hash
+        //         "details" => {
+        //             "partial" => array(                                                                              // details about partially successful withdrawals
+        //                 "requestAmount" => "50000",                                                             // requested withdrawal amount
+        //                 "processedAmount" => "39000",                                                           // processed withdrawal amount
+        //                 "processedFee" => "273",                                                                // fee for processed withdrawal amount
+        //                 "normalizeTransaction" => ""                                                            // deposit id
+        //             }
+        //         ),
+        //         "confirmations" => {                                                                            // if $transaction $status == 15 you can see this object
+        //             "actual" => 1,                                                                              // current block confirmations
+        //             "required" => 2                                                                             // required block confirmation for successful deposit
+        //         }
+        //     }
         //
         $currency = $this->safe_currency(null, $currency);
+        $address = $this->safe_string($transaction, 'address');
+        $timestamp = $this->safe_timestamp($transaction, 'createdAt');
+        $currencyId = $this->safe_string($transaction, 'ticker');
+        $status = $this->safe_string($transaction, 'status');
+        $method = $this->safe_string($transaction, 'method');
         return array(
-            'id' => null,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'network' => null,
-            'addressFrom' => null,
-            'address' => null,
-            'addressTo' => null,
-            'amount' => null,
-            'type' => null,
-            'currency' => $currency['code'],
-            'status' => null,
+            'id' => $this->safe_string($transaction, 'uniqueId'),
+            'txid' => $this->safe_string($transaction, 'transactionHash'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => $this->safe_string($transaction, 'network'),
+            'addressFrom' => ($method === '1') ? $address : null,
+            'address' => $address,
+            'addressTo' => ($method === '2') ? $address : null,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => ($method === '1') ? 'deposit' : 'withdrawal',
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
-            'comment' => null,
-            'fee' => null,
+            'comment' => $this->safe_string($transaction, 'description'),
+            'fee' => array(
+                'cost' => $this->safe_number($transaction, 'fee'),
+                'currency' => $this->safe_currency_code($currencyId, $currency),
+            ),
             'info' => $transaction,
         );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            '1' => 'pending',
+            '2' => 'pending',
+            '3' => 'ok',
+            '4' => 'canceled',
+            '5' => 'pending',
+            '6' => 'pending',
+            '7' => 'ok',
+            '9' => 'canceled',
+            '10' => 'pending',
+            '11' => 'pending',
+            '12' => 'pending',
+            '13' => 'pending',
+            '14' => 'pending',
+            '15' => 'pending',
+            '16' => 'pending',
+            '17' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @param {str} $id deposit $id
+         * @param {str|null} $code not used by whitebit fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'transactionMethod' => 1,
+            'uniqueId' => $id,
+            'limit' => 1,
+            'offset' => 0,
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ticker'] = $currency['id'];
+        }
+        $response = $this->v4PrivatePostMainAccountHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "limit" => 100,
+        //         "offset" => 0,
+        //         "records" => array(
+        //             {
+        //                 "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId" => null,                                                                             // unique Id of deposit
+        //                 "createdAt" => 1593437922,                                                                      // timestamp of deposit
+        //                 "currency" => "Bitcoin",                                                                        // deposit $currency
+        //                 "ticker" => "BTC",                                                                              // deposit $currency ticker
+        //                 "method" => 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount" => "0.0006",                                                                           // amount of deposit
+        //                 "description" => "",                                                                            // deposit description
+        //                 "memo" => "",                                                                                   // deposit memo
+        //                 "fee" => "0",                                                                                   // deposit fee
+        //                 "status" => 15,                                                                                 // transactions status
+        //                 "network" => null,                                                                              // if $currency is multinetwork
+        //                 "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details" => {
+        //                     "partial" => array(                                                                              // details about partially successful withdrawals
+        //                         "requestAmount" => "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount" => "39000",                                                           // processed withdrawal amount
+        //                         "processedFee" => "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction" => ""                                                            // deposit $id
+        //                     }
+        //                 ),
+        //                 "confirmations" => array(                                                                            // if transaction status == 15 you can see this object
+        //                     "actual" => 1,                                                                              // current block confirmations
+        //                     "required" => 2                                                                             // required block confirmation for successful deposit
+        //                 }
+        //             ),
+        //             array(...),
+        //         ),
+        //         "total" => 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //     }
+        //
+        $records = $this->safe_value($response, 'records', array());
+        $first = $this->safe_value($records, 0, array());
+        return $this->parse_transaction($first, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the whitebit api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array(
+            'transactionMethod' => 1,
+            'limit' => 100,
+            'offset' => 0,
+        );
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ticker'] = $currency['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->v4PrivatePostMainAccountHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "limit" => 100,
+        //         "offset" => 0,
+        //         "records" => array(
+        //             {
+        //                 "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
+        //                 "uniqueId" => null,                                                                             // unique Id of deposit
+        //                 "createdAt" => 1593437922,                                                                      // timestamp of deposit
+        //                 "currency" => "Bitcoin",                                                                        // deposit $currency
+        //                 "ticker" => "BTC",                                                                              // deposit $currency ticker
+        //                 "method" => 1,                                                                                  // called method 1 - deposit, 2 - withdraw
+        //                 "amount" => "0.0006",                                                                           // amount of deposit
+        //                 "description" => "",                                                                            // deposit description
+        //                 "memo" => "",                                                                                   // deposit memo
+        //                 "fee" => "0",                                                                                   // deposit fee
+        //                 "status" => 15,                                                                                 // transactions status
+        //                 "network" => null,                                                                              // if $currency is multinetwork
+        //                 "transactionHash" => "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        // deposit transaction hash
+        //                 "details" => {
+        //                     "partial" => array(                                                                              // details about partially successful withdrawals
+        //                         "requestAmount" => "50000",                                                             // requested withdrawal amount
+        //                         "processedAmount" => "39000",                                                           // processed withdrawal amount
+        //                         "processedFee" => "273",                                                                // fee for processed withdrawal amount
+        //                         "normalizeTransaction" => ""                                                            // deposit id
+        //                     }
+        //                 ),
+        //                 "confirmations" => array(                                                                            // if transaction status == 15 you can see this object
+        //                     "actual" => 1,                                                                              // current block confirmations
+        //                     "required" => 2                                                                             // required block confirmation for successful deposit
+        //                 }
+        //             ),
+        //             array(...),
+        //         ),
+        //         "total" => 300                                                                                             // total number of  transactions, use this for calculating ‘$limit’ and ‘offset'
+        //     }
+        //
+        $records = $this->safe_value($response, 'records', array());
+        return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
     public function is_fiat($currency) {

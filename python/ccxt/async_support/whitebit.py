@@ -37,7 +37,9 @@ class whitebit(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
+                'cancelOrders': False,
                 'createDepositAddress': None,
                 'createLimitOrder': None,
                 'createMarketOrder': None,
@@ -50,7 +52,9 @@ class whitebit(Exchange):
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -1433,32 +1437,208 @@ class whitebit(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # withdraw
-        #
-        #     []
+        #     {
+        #         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              # deposit address
+        #         "uniqueId": null,                                                                             # unique Id of deposit
+        #         "createdAt": 1593437922,                                                                      # timestamp of deposit
+        #         "currency": "Bitcoin",                                                                        # deposit currency
+        #         "ticker": "BTC",                                                                              # deposit currency ticker
+        #         "method": 1,                                                                                  # called method 1 - deposit, 2 - withdraw
+        #         "amount": "0.0006",                                                                           # amount of deposit
+        #         "description": "",                                                                            # deposit description
+        #         "memo": "",                                                                                   # deposit memo
+        #         "fee": "0",                                                                                   # deposit fee
+        #         "status": 15,                                                                                 # transactions status
+        #         "network": null,                                                                              # if currency is multinetwork
+        #         "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        # deposit transaction hash
+        #         "details": {
+        #             "partial": {                                                                             # details about partially successful withdrawals
+        #                 "requestAmount": "50000",                                                             # requested withdrawal amount
+        #                 "processedAmount": "39000",                                                           # processed withdrawal amount
+        #                 "processedFee": "273",                                                                # fee for processed withdrawal amount
+        #                 "normalizeTransaction": ""                                                            # deposit id
+        #             }
+        #         },
+        #         "confirmations": {                                                                           # if transaction status == 15 you can see self object
+        #             "actual": 1,                                                                              # current block confirmations
+        #             "required": 2                                                                             # required block confirmation for successful deposit
+        #         }
+        #     }
         #
         currency = self.safe_currency(None, currency)
+        address = self.safe_string(transaction, 'address')
+        timestamp = self.safe_timestamp(transaction, 'createdAt')
+        currencyId = self.safe_string(transaction, 'ticker')
+        status = self.safe_string(transaction, 'status')
+        method = self.safe_string(transaction, 'method')
         return {
-            'id': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'network': None,
-            'addressFrom': None,
-            'address': None,
-            'addressTo': None,
-            'amount': None,
-            'type': None,
-            'currency': currency['code'],
-            'status': None,
+            'id': self.safe_string(transaction, 'uniqueId'),
+            'txid': self.safe_string(transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': self.safe_string(transaction, 'network'),
+            'addressFrom': address if (method == '1') else None,
+            'address': address,
+            'addressTo': address if (method == '2') else None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'type': 'deposit' if (method == '1') else 'withdrawal',
+            'currency': self.safe_currency_code(currencyId, currency),
+            'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
-            'comment': None,
-            'fee': None,
+            'comment': self.safe_string(transaction, 'description'),
+            'fee': {
+                'cost': self.safe_number(transaction, 'fee'),
+                'currency': self.safe_currency_code(currencyId, currency),
+            },
             'info': transaction,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'ok',
+            '4': 'canceled',
+            '5': 'pending',
+            '6': 'pending',
+            '7': 'ok',
+            '9': 'canceled',
+            '10': 'pending',
+            '11': 'pending',
+            '12': 'pending',
+            '13': 'pending',
+            '14': 'pending',
+            '15': 'pending',
+            '16': 'pending',
+            '17': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    async def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by whitebit fetchDeposit()
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {
+            'transactionMethod': 1,
+            'uniqueId': id,
+            'limit': 1,
+            'offset': 0,
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['ticker'] = currency['id']
+        response = await self.v4PrivatePostMainAccountHistory(self.extend(request, params))
+        #
+        #     {
+        #         "limit": 100,
+        #         "offset": 0,
+        #         "records": [
+        #             {
+        #                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              # deposit address
+        #                 "uniqueId": null,                                                                             # unique Id of deposit
+        #                 "createdAt": 1593437922,                                                                      # timestamp of deposit
+        #                 "currency": "Bitcoin",                                                                        # deposit currency
+        #                 "ticker": "BTC",                                                                              # deposit currency ticker
+        #                 "method": 1,                                                                                  # called method 1 - deposit, 2 - withdraw
+        #                 "amount": "0.0006",                                                                           # amount of deposit
+        #                 "description": "",                                                                            # deposit description
+        #                 "memo": "",                                                                                   # deposit memo
+        #                 "fee": "0",                                                                                   # deposit fee
+        #                 "status": 15,                                                                                 # transactions status
+        #                 "network": null,                                                                              # if currency is multinetwork
+        #                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        # deposit transaction hash
+        #                 "details": {
+        #                     "partial": {                                                                             # details about partially successful withdrawals
+        #                         "requestAmount": "50000",                                                             # requested withdrawal amount
+        #                         "processedAmount": "39000",                                                           # processed withdrawal amount
+        #                         "processedFee": "273",                                                                # fee for processed withdrawal amount
+        #                         "normalizeTransaction": ""                                                            # deposit id
+        #                     }
+        #                 },
+        #                 "confirmations": {                                                                           # if transaction status == 15 you can see self object
+        #                     "actual": 1,                                                                              # current block confirmations
+        #                     "required": 2                                                                             # required block confirmation for successful deposit
+        #                 }
+        #             },
+        #             {...},
+        #         ],
+        #         "total": 300                                                                                             # total number of  transactions, use self for calculating ‘limit’ and ‘offset'
+        #     }
+        #
+        records = self.safe_value(response, 'records', [])
+        first = self.safe_value(records, 0, {})
+        return self.parse_transaction(first, currency)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {
+            'transactionMethod': 1,
+            'limit': 100,
+            'offset': 0,
+        }
+        if code is not None:
+            currency = self.currency(code)
+            request['ticker'] = currency['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.v4PrivatePostMainAccountHistory(self.extend(request, params))
+        #
+        #     {
+        #         "limit": 100,
+        #         "offset": 0,
+        #         "records": [
+        #             {
+        #                 "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              # deposit address
+        #                 "uniqueId": null,                                                                             # unique Id of deposit
+        #                 "createdAt": 1593437922,                                                                      # timestamp of deposit
+        #                 "currency": "Bitcoin",                                                                        # deposit currency
+        #                 "ticker": "BTC",                                                                              # deposit currency ticker
+        #                 "method": 1,                                                                                  # called method 1 - deposit, 2 - withdraw
+        #                 "amount": "0.0006",                                                                           # amount of deposit
+        #                 "description": "",                                                                            # deposit description
+        #                 "memo": "",                                                                                   # deposit memo
+        #                 "fee": "0",                                                                                   # deposit fee
+        #                 "status": 15,                                                                                 # transactions status
+        #                 "network": null,                                                                              # if currency is multinetwork
+        #                 "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",        # deposit transaction hash
+        #                 "details": {
+        #                     "partial": {                                                                             # details about partially successful withdrawals
+        #                         "requestAmount": "50000",                                                             # requested withdrawal amount
+        #                         "processedAmount": "39000",                                                           # processed withdrawal amount
+        #                         "processedFee": "273",                                                                # fee for processed withdrawal amount
+        #                         "normalizeTransaction": ""                                                            # deposit id
+        #                     }
+        #                 },
+        #                 "confirmations": {                                                                           # if transaction status == 15 you can see self object
+        #                     "actual": 1,                                                                              # current block confirmations
+        #                     "required": 2                                                                             # required block confirmation for successful deposit
+        #                 }
+        #             },
+        #             {...},
+        #         ],
+        #         "total": 300                                                                                             # total number of  transactions, use self for calculating ‘limit’ and ‘offset'
+        #     }
+        #
+        records = self.safe_value(response, 'records', [])
+        return self.parse_transactions(records, currency, since, limit)
 
     def is_fiat(self, currency):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
