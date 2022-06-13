@@ -29,6 +29,7 @@ module.exports = class woo extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': false,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': false,
                 'createMarketOrder': false,
@@ -42,7 +43,9 @@ module.exports = class woo extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDeposit': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -71,8 +74,10 @@ module.exports = class woo extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchTransfers': true,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -146,6 +151,7 @@ module.exports = class woo extends Exchange {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'client/leverage': 120,
                         },
                         'delete': {
                             'order': 1,
@@ -173,7 +179,41 @@ module.exports = class woo extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'networks-ids-for-fetch-deposits': {
+                    'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAXC',
+                    'BEP2': 'BNB',
+                    'BEP20': 'BSC',
+                    'BTC': undefined,
+                    'BSV': 'BCHSV',
+                    'EOS': 'EOS',
+                    'ERC20': undefined,
+                    'HRC20': 'HECO',
+                    'POLYGON': 'MATIC',
+                    'ONT': 'ONT',
+                    'SPL': 'SOL',
+                    'TERRA': 'TERRA',
+                    'TRC20': 'TRON',
+                },
                 'network-aliases': {
+                    'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAXC',
+                    'BNB': 'BEP2',
+                    'BSC': 'BEP20',
+                    'BTC': 'BTC',
+                    'BCHSV': 'BSV',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'HECO': 'HRC20',
+                    'MATIC': 'POLYGON',
+                    'ONT': 'ONT',
+                    'SOL': 'SPL',
+                    'TERRA': 'TERRA',
+                    'TRON': 'TRC20',
+                },
+                'network-aliases-by-Value': {
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
                     'AVAXC': 'AVAXC',
@@ -222,7 +262,7 @@ module.exports = class woo extends Exchange {
                 ],
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
-                    // 'USDT': 'TRC20',
+                    'USDT': 'TRC20',
                     // 'BTC': 'BTC',
                 },
                 'transfer': {
@@ -654,7 +694,7 @@ module.exports = class woo extends Exchange {
                     const networkEntry = networks[j];
                     const networkId = this.safeString (networkEntry, 'protocol');
                     const networkIdManualMatched = this.safeString (this.options['network-aliases-for-tokens'], networkId, networkId);
-                    const networkCode = this.safeString2 (this.options['network-aliases-for-protocol'], chainNameId, chainNameId, networkIdManualMatched);
+                    const networkCode = this.safeString (this.options['network-aliases-for-protocol'], networkId, networkIdManualMatched);
                     const depositEnabled = this.safeInteger (networkEntry, 'allow_deposit', 0);
                     const withdrawEnabled = this.safeInteger (networkEntry, 'allow_withdraw', 0);
                     resultingNetworks[networkCode] = {
@@ -1345,39 +1385,59 @@ module.exports = class woo extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {str} code unified currency code
          * @param {dict} params extra parameters specific to the woo api endpoint
+         * @param {str|undefined} params.network network to use for the address if multiple networks are available for the currency
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeValue (params, 'network', networkCodeDefault);
-        params = this.omit (params, 'network');
-        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
-        const networkId = this.getKeyByValue (networkAliases, networkCode);
-        const codeForExchange = networkId + '_' + currency['code'];
+        let codeId = ''; 
+        const networksKeys = Object.keys (currency.networks);
+        const networksLength = Object.keys (networksKeys);
+        if (networksLength > 1) {
+            const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
+            const networkCode = this.safeValue (params, 'network', networkCodeDefault);
+            params = this.omit (params, 'network');
+            const networks = this.safeValue (this.options, 'networks-ids-for-fetch-deposits', {});
+            const networkId = this.safeString (networks, networkCode);
+            if (networkId !== undefined) {
+                codeId = networkId + '_';
+            }
+        }
+        codeId += currency['id'];
         const request = {
-            'token': codeForExchange,
+            'token': codeId,
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchDepositAddress', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'v1PrivateGetAssetDeposit',
         });
         const response = await this[method] (this.extend (request, query));
-        // {
-        //     success: true,
-        //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
-        //     extra: ''
-        // }
-        const tag = this.safeString (response, 'extra');
-        const address = this.safeString (response, 'address');
-        this.checkAddress (address);
+        //
+        //    {
+        //        success: true,
+        //        address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
+        //        extra: ''
+        //    }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        success: true,
+        //        address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
+        //        extra: '1696954518'
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': networkCode,
-            'info': response,
+            'info': this.safeString (depositAddress, 'address'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': this.safeString (depositAddress, 'extra'),
+            'network': undefined,
         };
     }
 
@@ -1637,6 +1697,29 @@ module.exports = class woo extends Exchange {
             transfer['toAccount'] = toAccount;
         }
         return transfer;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol. Woo does not support this parameter and ignores it
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} response from the exchange
+         */
+        await this.loadMarkets ();
+        const request = {
+            'leverage': leverage,
+        };
+        const response = await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "success":true
+        //    }
+        //
+        return response;
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
