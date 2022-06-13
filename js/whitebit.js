@@ -1426,7 +1426,7 @@ module.exports = class whitebit extends Exchange {
             throw new NotSupported (this.id + ' setLeverage() does not allow to set per symbol');
         }
         if ((leverage < 1) || (leverage > 20)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
+            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 20');
         }
         const request = {
             'leverage': leverage,
