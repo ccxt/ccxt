@@ -34,13 +34,13 @@ module.exports = class alpaca extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
-                'fetchBalance': 'emulated',
+                'fetchBalance': true,
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -127,6 +127,7 @@ module.exports = class alpaca extends Exchange {
             'tradeable': true,
         };
         const assets = await this.privateGetAssets (this.extend (request, params));
+        //
         // {
         //     "id": "904837e3-3b76-47ec-b432-046db621571b",
         //     "class": "us_equity",
@@ -139,11 +140,11 @@ module.exports = class alpaca extends Exchange {
         //     "easy_to_borrow": true,
         //     "fractionable": true
         //   }
+        //
         const markets = [];
         for (let i = 0; i < assets.length; i++) {
             const asset = assets[i];
             const id = this.safeString (asset, 'symbol');
-            // will need to change if base or quote currency ticker` length changes
             const base = id.slice (0, 3).toUpperCase ();
             const quote = id.slice (3, 6).toUpperCase ();
             const symbol = base + '/' + quote;
@@ -249,8 +250,6 @@ module.exports = class alpaca extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        // Alpaca does not support level 2 depth orderbook
-        // We emulate fetchOrderbook with single BBO
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
@@ -277,7 +276,7 @@ module.exports = class alpaca extends Exchange {
         const quote = this.safeValue (response, 'xbbo', {});
         const shallow_bid = [ this.safeNumber (quote, 'bp'), this.safeNumber (quote, 'bs') ];
         const shallow_ask = [ this.safeNumber (quote, 'ap'), this.safeNumber (quote, 'as') ];
-        const timestamp = this.milliseconds (); // parseDate (this.safeString (quote, 't'));
+        const timestamp = this.milliseconds ();
         const orderbook = {
             'bids': [ shallow_bid ],
             'asks': [ shallow_ask ],
@@ -404,53 +403,56 @@ module.exports = class alpaca extends Exchange {
         const random_id = parts.join ('');
         request['client_order_id'] = this.implodeParams (clientOrderId, { 'id': random_id });
         const order = await this.privatePostOrders (this.extend (request, params));
-        // {
-        // "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
-        // "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        // "created_at": "2021-03-16T18:38:01.942282Z",
-        // "updated_at": "2021-03-16T18:38:01.942282Z",
-        // "submitted_at": "2021-03-16T18:38:01.937734Z",
-        // "filled_at": null,
-        // "expired_at": null,
-        // "canceled_at": null,
-        // "failed_at": null,
-        // "replaced_at": null,
-        // "replaced_by": null,
-        // "replaces": null,
-        // "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        // "symbol": "AAPL",
-        // "asset_class": "us_equity",
-        // "notional": "500",
-        // "qty": null,
-        // "filled_qty": "0",
-        // "filled_avg_price": null,
-        // "order_class": "",
-        // "order_type": "market",
-        // "type": "market",
-        // "side": "buy",
-        // "time_in_force": "day",
-        // "limit_price": null,
-        // "stop_price": null,
-        // "status": "accepted",
-        // "extended_hours": false,
-        // "legs": null,
-        // "trail_percent": null,
-        // "trail_price": null,
-        // "hwm": null
-        // }
+        //
+        //   {
+        //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
+        //      "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+        //      "created_at": "2021-03-16T18:38:01.942282Z",
+        //      "updated_at": "2021-03-16T18:38:01.942282Z",
+        //      "submitted_at": "2021-03-16T18:38:01.937734Z",
+        //      "filled_at": null,
+        //      "expired_at": null,
+        //      "canceled_at": null,
+        //      "failed_at": null,
+        //      "replaced_at": null,
+        //      "replaced_by": null,
+        //      "replaces": null,
+        //      "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+        //      "symbol": "AAPL",
+        //      "asset_class": "us_equity",
+        //      "notional": "500",
+        //      "qty": null,
+        //      "filled_qty": "0",
+        //      "filled_avg_price": null,
+        //      "order_class": "",
+        //      "order_type": "market",
+        //      "type": "market",
+        //      "side": "buy",
+        //      "time_in_force": "day",
+        //      "limit_price": null,
+        //      "stop_price": null,
+        //      "status": "accepted",
+        //      "extended_hours": false,
+        //      "legs": null,
+        //      "trail_percent": null,
+        //      "trail_price": null,
+        //      "hwm": null
+        //   }
+        //
         return this.parseOrder (order, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        // cancelling order by symbol not yet supported
         const request = {
             'order_id': id,
         };
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        //
         // {
         //     "code": 40410000,
         //     "message": "order is not found."
         // }
+        //
         return this.safeValue (response, 'message', {});
     }
 
