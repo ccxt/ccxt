@@ -8,7 +8,7 @@ const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class hollaex extends ccxt.hollaex {
+module.exports = class whitebit extends ccxt.whitebit {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -18,25 +18,16 @@ module.exports = class hollaex extends ccxt.hollaex {
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.hollaex.com/stream',
-                },
-                'test': {
-                    'ws': 'wss://api.sandbox.hollaex.com/stream',
+                    'ws': 'wss://api.whitebit.com/ws',
                 },
             },
             'options': {
-                'watchBalance': {
-                    // 'api-expires': undefined,
-                },
-                'watchOrders': {
-                    // 'api-expires': undefined,
-                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -100,6 +91,61 @@ module.exports = class hollaex extends ccxt.hollaex {
         }
         const messageHash = channel + ':' + marketId;
         client.resolve (orderbook, messageHash);
+    }
+
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const marketId = market['id'];
+        const reqParams = [ marketId ];
+        const method = 'market_subscribe';
+        const messageHash = 'ticker:' + symbol;
+        return await this.watchPublic (messageHash, method, reqParams, params);
+    }
+
+    handleTicker (client, message) {
+        //
+        //   {
+        //       method: 'market_update',
+        //       params: [
+        //         'BTC_USDT',
+        //         {
+        //           close: '22293.86',
+        //           deal: '1986990019.96552952',
+        //           high: '24360.7',
+        //           last: '22293.86',
+        //           low: '20851.44',
+        //           open: '24076.12',
+        //           period: 86400,
+        //           volume: '87016.995668'
+        //         }
+        //       ],
+        //       id: null
+        //   }
+        //
+        const tickers = this.safeValue (message, 'params', []);
+        const marketId = this.safeString (tickers, 0);
+        const market = this.safeMarket (marketId, undefined);
+        const symbol = market['symbol'];
+        const rawTicker = this.safeValue (tickers, 1, {});
+        const messageHash = 'ticker' + ':' + symbol;
+        const ticker = this.parseTicker (rawTicker, market);
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, messageHash);
+        //     client.resolve (ticker, messageHash);
+        // const tickersKeys = Object.keys (tickers);
+        // for (let i = 0; i < tickersKeys.length; i++) {
+        //     const marketId = tickersKeys[i];
+        //     const data = tickers[marketId];
+        //     const market = this.safeMarket (marketId, undefined);
+        //     const symbol = market['symbol'];
+        //     const messageHash = 'ticker' + ':' + symbol;
+        //     const ticker = this.parseTicker (data, market);
+        //     this.tickers[symbol] = ticker;
+        //     client.resolve (ticker, messageHash);
+        // }
+        return message;
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -374,11 +420,13 @@ module.exports = class hollaex extends ccxt.hollaex {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
+    async watchPublic (messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
+        const id = this.nonce ();
         const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
+            'id': id,
+            'method': method,
+            'params': reqParams,
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
@@ -434,89 +482,6 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     handleMessage (client, message) {
         //
-        // pong
-        //
-        //     { message: 'pong' }
-        //
-        // trade
-        //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
-        //
-        // orderbook
-        //
-        //     {
-        //         topic: 'orderbook',
-        //         action: 'partial',
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             bids: [
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             asks: [
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             timestamp: '2022-04-11T10:37:01.227Z'
-        //         },
-        //         time: 1649673421
-        //     }
-        //
-        // order
-        //
-        //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
-        //     }
-        //
-        // balance
-        //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         }
-        //     }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
@@ -527,13 +492,14 @@ module.exports = class hollaex extends ccxt.hollaex {
             return;
         }
         const methods = {
+            'market_update': this.handleTicker,
             'trade': this.handleTrades,
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeValue (message, 'method');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
@@ -541,8 +507,11 @@ module.exports = class hollaex extends ccxt.hollaex {
     }
 
     ping (client) {
-        // hollaex does not support built-in ws protocol-level ping-pong
-        return { 'op': 'ping' };
+        return {
+            'id': 0,
+            'method': 'ping',
+            'params': [],
+        };
     }
 
     handlePong (client, message) {
