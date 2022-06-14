@@ -400,44 +400,44 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
         if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured')
+            throw new Error (this.id + '.rateLimit property is not configured');
         }
         this.tokenBucket = this.extend ({
             delay: 0.001,
             capacity: 1,
             cost: 1,
             maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
-        }, this.tokenBucket)
-        this.throttle = throttle (this.tokenBucket)
+            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
+        }, this.tokenBucket);
+        this.throttle = throttle (this.tokenBucket);
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
             // fetchImplementation cannot be called on this. in browsers:
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
-            const fetchImplementation = this.fetchImplementation
-            const params = { method, headers, body, timeout: this.timeout }
+            const fetchImplementation = this.fetchImplementation;
+            const params = { method, headers, body, timeout: this.timeout };
             if (this.agent) {
-                params['agent'] = this.agent
+                params['agent'] = this.agent;
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
-                params['agent'] = this.httpAgent
+                params['agent'] = this.httpAgent;
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-                params['agent'] = this.httpsAgent
+                params['agent'] = this.httpsAgent;
             }
             const promise =
                 fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch ((e) => {
                         if (isNode) {
-                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
+                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '));
                         }
-                        throw e // rethrow all unknown errors
+                        throw e; // rethrow all unknown errors
                     })
-                    .then ((response) => this.handleRestResponse (response, url, method, headers, body))
+                    .then ((response) => this.handleRestResponse (response, url, method, headers, body));
             return timeout (this.timeout, promise).catch ((e) => {
                 if (e instanceof TimedOut) {
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
                 }
-                throw e
+                throw e;
             })
-        }
+        };
     }
 
     setSandboxMode (enabled) {
