@@ -1004,11 +1004,11 @@ module.exports = class lbank2 extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '-1': 'cancelled', // cancelled
+            '-1': 'canceled', // canceled
             '0': 'open', // not traded
             '1': 'open', // partial deal
             '2': 'closed', // complete deal
-            '3': 'closed', // filled partially and cancelled
+            '3': 'closed', // filled partially and canceled
             '4': 'closed', // disposal processing
         };
         return this.safeString (statuses, status, status);
@@ -1309,7 +1309,7 @@ module.exports = class lbank2 extends Exchange {
          * @param {dict} params extra parameters specific to the lbank2 api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
-        // default query is for cancelled and completely filled orders
+        // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -1323,7 +1323,7 @@ module.exports = class lbank2 extends Exchange {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
-            // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
+            // 'status'  -1: Canceled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and canceled, 4: Cancellation is being processed
         };
         const response = await this.privatePostSupplementOrdersInfoHistory (this.extend (request, params));
         //
@@ -1665,7 +1665,7 @@ module.exports = class lbank2 extends Exchange {
             '1': 'pending',
             '2': 'ok',
             '3': 'failed',
-            '4': 'cancelled',
+            '4': 'canceled',
             '5': 'transfer',   // Transfer
         };
         return this.safeString (statuses, status, status);
@@ -1674,7 +1674,7 @@ module.exports = class lbank2 extends Exchange {
     parseWithdrawalStatus (status) {
         const statuses = {
             '1': 'pending',
-            '2': 'cancelled',
+            '2': 'canceled',
             '3': 'failed',
             '4': 'ok',
         };
@@ -2098,7 +2098,7 @@ module.exports = class lbank2 extends Exchange {
                 '10102': 'Too little to withdraw',
                 '10103': 'Exceed daily limitation of withdraw',
                 '10104': 'Cancel was rejected',
-                '10105': 'Request has been cancelled',
+                '10105': 'Request has been canceled',
                 '10106': 'None trade time',
                 '10107': 'Start price exception',
                 '10108': 'can not create order',
@@ -2136,7 +2136,7 @@ module.exports = class lbank2 extends Exchange {
                 '10023': InvalidOrder, // 'Market Order is not supported yet',
                 '10024': PermissionDenied, // 'User cannot trade on this pair',
                 '10025': InvalidOrder, // 'Order has been filled',
-                '10026': InvalidOrder, // 'Order has been cancelled',
+                '10026': InvalidOrder, // 'Order has been canceled',
                 '10027': InvalidOrder, // 'Order is cancelling',
                 '10028': BadRequest, // 'Wrong query time',
                 '10029': BadRequest, // 'from is not in the query time',
@@ -2149,7 +2149,7 @@ module.exports = class lbank2 extends Exchange {
                 '10102': InsufficientFunds, // 'Too little to withdraw',
                 '10103': ExchangeError, // 'Exceed daily limitation of withdraw',
                 '10104': ExchangeError, // 'Cancel was rejected',
-                '10105': ExchangeError, // 'Request has been cancelled',
+                '10105': ExchangeError, // 'Request has been canceled',
                 '10106': BadRequest, // 'None trade time',
                 '10107': BadRequest, // 'Start price exception',
                 '10108': ExchangeError, // 'can not create order',
