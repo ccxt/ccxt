@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ module.exports = class whitebit extends ccxt.whitebit {
                 'ws': true,
                 'watchBalance': true,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
@@ -28,6 +28,17 @@ module.exports = class whitebit extends ccxt.whitebit {
                 },
             },
             'options': {
+                'timeframes': {
+                    '1m': '60',
+                    '5m': '300',
+                    '15m': '900',
+                    '30m': '1800',
+                    '1h': '3600',
+                    '4h': '14400',
+                    '8h': '28800',
+                    '1d': '86400',
+                    '1w': '604800',
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -41,6 +52,73 @@ module.exports = class whitebit extends ccxt.whitebit {
                 },
             },
         });
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const method = 'candles_subscribe';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const interval = this.safeInteger (timeframes, timeframe);
+        const marketId = market['id'];
+        const messageHash = 'candles:' + interval + ':' + symbol;
+        const reqParams = [ marketId ];
+        // start and end are mandatory
+        const now = this.milliseconds ();
+        const end = this.safeInteger (params, 'end', now);
+        params = this.omit (params, 'end');
+        if (since === undefined) {
+            since = now - (86400 * 1000); // 24 hours
+        }
+        // reqParams.push (since);
+        // reqParams.push (end);
+        reqParams.push (interval);
+        const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        // {
+        //     method: 'candles_update',
+        //     params: [
+        //       [
+        //         1655204760,
+        //         '22374.15',
+        //         '22351.34',
+        //         '22374.27',
+        //         '22342.52',
+        //         '30.213426',
+        //         '675499.29718947',
+        //         'BTC_USDT'
+        //       ]
+        //     ],
+        //     id: null
+        // }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 'data', {});
+        const interval = this.safeString (data, 'interval');
+        const messageHash = 'kline' + ':' + interval + ':' + symbol;
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe (interval, timeframes);
+        const parsed = this.parseWsOHLCV (data, market);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        stored.append (parsed);
+        client.resolve (stored, messageHash);
+        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -133,18 +211,6 @@ module.exports = class whitebit extends ccxt.whitebit {
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
         client.resolve (ticker, messageHash);
-        //     client.resolve (ticker, messageHash);
-        // const tickersKeys = Object.keys (tickers);
-        // for (let i = 0; i < tickersKeys.length; i++) {
-        //     const marketId = tickersKeys[i];
-        //     const data = tickers[marketId];
-        //     const market = this.safeMarket (marketId, undefined);
-        //     const symbol = market['symbol'];
-        //     const messageHash = 'ticker' + ':' + symbol;
-        //     const ticker = this.parseTicker (data, market);
-        //     this.tickers[symbol] = ticker;
-        //     client.resolve (ticker, messageHash);
-        // }
         return message;
     }
 
@@ -152,8 +218,13 @@ module.exports = class whitebit extends ccxt.whitebit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade' + ':' + market['id'];
-        const trades = await this.watchPublic (messageHash, params);
+        const messageHash = 'trade' + ':' + symbol;
+        const method = 'trades_request';
+        const reqParams = [ market['id'] ];
+        if (limit !== undefined) {
+            reqParams.push (limit);
+        }
+        const trades = await this.watchPublic (messageHash, method, reqParams, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
