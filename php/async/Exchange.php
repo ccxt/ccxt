@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.87.20';
+$version = '1.87.21';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.87.20';
+    const VERSION = '1.87.21';
 
     public static $loop;
     public static $kernel;
@@ -301,7 +301,7 @@ class Exchange extends \ccxt\Exchange {
             if ($isArray) {
                 $tradesLength = is_array($trades) ? count($trades) : 0;
             }
-            if ($isArray && $tradesLength) {
+            if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
                 if ($order['symbol'] === null) {
                     $order['symbol'] = $trades[0]['symbol'];
