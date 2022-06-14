@@ -11,6 +11,7 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
+use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 
 class bybit extends Exchange {
@@ -2640,10 +2641,10 @@ class bybit extends Exchange {
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
-         * fetches information on an order made by the user
-         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the $order was made in
          * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
         $market = null;
@@ -2656,7 +2657,7 @@ class bybit extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for ' . $type . ' markets');
         }
         if ($type === 'spot') {
-            // only spot markets have a dedicated endpoint for fetching a order
+            // only spot markets have a dedicated endpoint for fetching a $order
             $request = array(
                 'orderId' => $id,
             );
@@ -2679,12 +2680,16 @@ class bybit extends Exchange {
             $params[$orderKey] = $id;
         }
         if ($isUsdcSettled || $market['future'] || $market['inverse']) {
-            throw NotSupported ($this->id . 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
+            throw new NotSupported($this->id . ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by $id
             $orders = $this->fetch_orders($symbol, null, null, $params);
-            return $this->safe_value($orders, 0);
+            $order = $this->safe_value($orders, 0);
+            if ($order === null) {
+                throw new OrderNotFound($this->id . ' fetchOrder() $order ' . $id . ' not found');
+            }
+            return $order;
         }
     }
 
