@@ -61,7 +61,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
@@ -102,7 +102,7 @@ module.exports = class lbank2 extends Exchange {
                         'usdToCny': 2.5,
                         'withdrawConfigs': 2.5,
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5, // down
+                        'ticker/24hr': 2.5,
                         'ticker': 2.5,
                         'depth': 2.5,
                         'incrDepth': 2.5,
@@ -336,7 +336,7 @@ module.exports = class lbank2 extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeInteger (market, 'minTranQua'),
+                        'min': this.safeFloat (market, 'minTranQua'),
                         'max': undefined,
                     },
                     'price': {
@@ -412,7 +412,7 @@ module.exports = class lbank2 extends Exchange {
             'symbol': market['id'],
         };
         // preferred ticker/24h endpoint is down
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -436,6 +436,30 @@ module.exports = class lbank2 extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
         return this.parseTicker (first, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the lbank api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'symbol': 'all',
+        };
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseTicker (data[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
