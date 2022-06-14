@@ -1207,7 +1207,7 @@ module.exports = class Exchange {
         const parseFee = this.safeValue (trade, 'fee') === undefined;
         const parseFees = this.safeValue (trade, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
-        const fees = this.safeValue (trade, 'fees', []);
+        const fees = [];
         if (shouldParseFees) {
             const tradeFees = this.safeValue (trade, 'fees');
             if (tradeFees !== undefined) {
