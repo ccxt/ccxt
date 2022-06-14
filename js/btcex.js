@@ -23,13 +23,14 @@ module.exports = class btcex extends Exchange {
                 'secret': true,
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www': 'https://www.btcex.com/',
                 'api': 'https://api.btcex.com',
                 'doc': 'https://docs.btcex.com/',
                 'fees': 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral': {
-                    'url': '',
+                    'url': 'https://www.btcex.com/en-us/register?i=48biatg1',
+                    'discount': 0.1,
                 },
             },
             'has': {
