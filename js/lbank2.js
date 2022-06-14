@@ -336,7 +336,7 @@ module.exports = class lbank2 extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeFloat (market, 'minTranQua'),
+                        'min': this.safeNumber (market, 'minTranQua'),
                         'max': undefined,
                     },
                     'price': {
@@ -411,7 +411,6 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        // preferred ticker/24h endpoint is down
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         //
         //      {
@@ -441,7 +440,7 @@ module.exports = class lbank2 extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
-         * @name lbank#fetchTickers
+         * @name lbank2#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {dict} params extra parameters specific to the lbank api endpoint
@@ -453,13 +452,7 @@ module.exports = class lbank2 extends Exchange {
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseTicker (data[i]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
-        }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1008,7 +1001,7 @@ module.exports = class lbank2 extends Exchange {
             '0': 'open', // not traded
             '1': 'open', // partial deal
             '2': 'closed', // complete deal
-            '3': 'closed', // filled partially and canceled
+            '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
         return this.safeString (statuses, status, status);
@@ -1323,7 +1316,7 @@ module.exports = class lbank2 extends Exchange {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
-            // 'status'  -1: Canceled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and canceled, 4: Cancellation is being processed
+            // 'status'  -1: Cancelled, 0: Unfilled, 1: Partially filled, 2: Completely filled, 3: Partially filled and cancelled, 4: Cancellation is being processed
         };
         const response = await this.privatePostSupplementOrdersInfoHistory (this.extend (request, params));
         //
@@ -1660,25 +1653,23 @@ module.exports = class lbank2 extends Exchange {
         };
     }
 
-    parseDepositStatus (status) {
+    parseTransactionStatus (status, type) {
         const statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
-            '4': 'canceled',
-            '5': 'transfer',   // Transfer
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+                '4': 'canceled',
+                '5': 'transfer',
+            },
+            'withdrawal': {
+                '1': 'pending',
+                '2': 'canceled',
+                '3': 'failed',
+                '4': 'ok',
+            },
         };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseWithdrawalStatus (status) {
-        const statuses = {
-            '1': 'pending',
-            '2': 'canceled',
-            '3': 'failed',
-            '4': 'ok',
-        };
-        return this.safeString (statuses, status, status);
+        return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1734,13 +1725,7 @@ module.exports = class lbank2 extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const currencyId = this.safeString2 (transaction, 'coin', 'coid');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const statusId = this.safeString (transaction, 'status');
-        let status = undefined;
-        if (type === 'deposit') {
-            status = this.parseDepositStatus (statusId);
-        } else {
-            status = this.parseWithdrawalStatus (statusId);
-        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
         let fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
@@ -2098,7 +2083,7 @@ module.exports = class lbank2 extends Exchange {
                 '10102': 'Too little to withdraw',
                 '10103': 'Exceed daily limitation of withdraw',
                 '10104': 'Cancel was rejected',
-                '10105': 'Request has been canceled',
+                '10105': 'Request has been cancelled',
                 '10106': 'None trade time',
                 '10107': 'Start price exception',
                 '10108': 'can not create order',
@@ -2136,7 +2121,7 @@ module.exports = class lbank2 extends Exchange {
                 '10023': InvalidOrder, // 'Market Order is not supported yet',
                 '10024': PermissionDenied, // 'User cannot trade on this pair',
                 '10025': InvalidOrder, // 'Order has been filled',
-                '10026': InvalidOrder, // 'Order has been canceled',
+                '10026': InvalidOrder, // 'Order has been cancelled',
                 '10027': InvalidOrder, // 'Order is cancelling',
                 '10028': BadRequest, // 'Wrong query time',
                 '10029': BadRequest, // 'from is not in the query time',
@@ -2149,7 +2134,7 @@ module.exports = class lbank2 extends Exchange {
                 '10102': InsufficientFunds, // 'Too little to withdraw',
                 '10103': ExchangeError, // 'Exceed daily limitation of withdraw',
                 '10104': ExchangeError, // 'Cancel was rejected',
-                '10105': ExchangeError, // 'Request has been canceled',
+                '10105': ExchangeError, // 'Request has been cancelled',
                 '10106': BadRequest, // 'None trade time',
                 '10107': BadRequest, // 'Start price exception',
                 '10108': ExchangeError, // 'can not create order',
