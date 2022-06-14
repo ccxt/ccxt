@@ -291,6 +291,7 @@ module.exports = class alpaca extends Exchange {
         const total = {};
         const currencies = {};
         const accountResponse = await this.privateGetAccount ();
+        //
         // {
         //     "account_blocked": false,
         //     "account_number": "010203ABCD",
@@ -319,6 +320,7 @@ module.exports = class alpaca extends Exchange {
         //     "trading_blocked": false,
         //     "transfers_blocked": false
         // }
+        //
         const accountCurrency = this.safeString (accountResponse, 'currency');
         const accountCurrencyFree = this.safeString (accountResponse, 'cash');
         free[accountCurrency] = accountCurrencyFree;
@@ -533,7 +535,7 @@ module.exports = class alpaca extends Exchange {
         } else if (alpacaStatus === 'expired') {
             status = 'expired';
         }
-        return this.safeOrder2 ({
+        return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
             'timestamp': this.milliseconds (),
@@ -565,7 +567,7 @@ module.exports = class alpaca extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.milliseconds (); // parseDate (this.safeString (quote, 't'));
+        const timestamp = this.milliseconds ();
         const alpacaSide = this.safeString (trade, 'tks');
         let side = undefined;
         if (alpacaSide === 'B') {
@@ -578,7 +580,7 @@ module.exports = class alpaca extends Exchange {
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'i'),
             'timestamp': timestamp,
@@ -596,17 +598,29 @@ module.exports = class alpaca extends Exchange {
                 'currency': undefined,
                 'rate': undefined,
             },
-        };
+        }, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //   {
+        //       "t":"2022-06-14T13:05:22.642Z",
+        //       "ax":"CBSE",
+        //       "ap":"22163.42",
+        //       "as":"0.10021214",
+        //       "bx":"CBSE",
+        //       "bp":"22160.03",
+        //       "bs":"0.03923939"
+        //   }
+        //
         const symbol = market['symbol'];
-        const timestamp = this.milliseconds (); // parseDate (this.safeString (quote, 't'));
+        const datetime = this.safeString (ticker, 't');
+        const timestamp = this.parse8601 (datetime);
         return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'high': undefined,
             'low': undefined,
             'bid': this.safeNumber (ticker, 'bp'),
