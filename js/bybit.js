@@ -2696,12 +2696,16 @@ module.exports = class bybit extends Exchange {
             params[orderKey] = id;
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
-            throw NotSupported (this.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
+            throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
             const orders = await this.fetchOrders (symbol, undefined, undefined, params);
-            return this.safeValue (orders, 0);
+            const order = this.safeValue (orders, 0);
+            if (order === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+            }
+            return order;
         }
     }
 
