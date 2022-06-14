@@ -1867,7 +1867,11 @@ class Exchange(object):
                 'order': order['id'],
             })
             self.number = oldNumber
-            if isinstance(trades, list) and len(trades):
+            tradesLength = 0
+            isArray = isinstance(trades, list)
+            if isArray:
+                tradesLength = len(trades)
+            if isArray and tradesLength:
                 # move properties that are defined in trades up into the order
                 if order['symbol'] is None:
                     order['symbol'] = trades[0]['symbol']
