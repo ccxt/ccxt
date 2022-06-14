@@ -4962,7 +4962,7 @@ Returns
     'withdraw': {
         'BTC': 0.00001,
         'ETH': 0.001,
-        'USDT': 0.0003,
+        'LTC': 0.0003,
     },
     'deposit': {
         'BTC': 0,
