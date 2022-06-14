@@ -73,7 +73,7 @@ class lbank2(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
@@ -114,7 +114,7 @@ class lbank2(Exchange):
                         'usdToCny': 2.5,
                         'withdrawConfigs': 2.5,
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5,  # down
+                        'ticker/24hr': 2.5,
                         'ticker': 2.5,
                         'depth': 2.5,
                         'incrDepth': 2.5,
@@ -343,7 +343,7 @@ class lbank2(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_integer(market, 'minTranQua'),
+                        'min': self.safe_number(market, 'minTranQua'),
                         'max': None,
                     },
                     'price': {
@@ -413,8 +413,7 @@ class lbank2(Exchange):
         request = {
             'symbol': market['id'],
         }
-        # preferred ticker/24h endpoint is down
-        response = await self.publicGetTicker(self.extend(request, params))
+        response = await self.publicGetTicker24hr(self.extend(request, params))
         #
         #      {
         #          "result":"true",
@@ -438,6 +437,21 @@ class lbank2(Exchange):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the lbank api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'symbol': 'all',
+        }
+        response = await self.publicGetTicker24hr(self.extend(request, params))
+        data = self.safe_value(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -925,11 +939,11 @@ class lbank2(Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            '-1': 'cancelled',  # cancelled
+            '-1': 'canceled',  # canceled
             '0': 'open',  # not traded
             '1': 'open',  # partial deal
             '2': 'closed',  # complete deal
-            '3': 'closed',  # filled partially and cancelled
+            '3': 'canceled',  # filled partially and cancelled
             '4': 'closed',  # disposal processing
         }
         return self.safe_string(statuses, status, status)
@@ -1205,7 +1219,7 @@ class lbank2(Exchange):
         :param dict params: extra parameters specific to the lbank2 api endpoint
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
-        # default query is for cancelled and completely filled orders
+        # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1525,24 +1539,23 @@ class lbank2(Exchange):
             'id': self.safe_string(result, 'withdrawId'),
         }
 
-    def parse_deposit_status(self, status):
+    def parse_transaction_status(self, status, type):
         statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
-            '4': 'cancelled',
-            '5': 'transfer',   # Transfer
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+                '4': 'canceled',
+                '5': 'transfer',
+            },
+            'withdrawal': {
+                '1': 'pending',
+                '2': 'canceled',
+                '3': 'failed',
+                '4': 'ok',
+            },
         }
-        return self.safe_string(statuses, status, status)
-
-    def parse_withdrawal_status(self, status):
-        statuses = {
-            '1': 'pending',
-            '2': 'cancelled',
-            '3': 'failed',
-            '4': 'ok',
-        }
-        return self.safe_string(statuses, status, status)
+        return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -1595,12 +1608,7 @@ class lbank2(Exchange):
         amount = self.safe_number(transaction, 'amount')
         currencyId = self.safe_string_2(transaction, 'coin', 'coid')
         code = self.safe_currency_code(currencyId, currency)
-        statusId = self.safe_string(transaction, 'status')
-        status = None
-        if type == 'deposit':
-            status = self.parse_deposit_status(statusId)
-        else:
-            status = self.parse_withdrawal_status(statusId)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'), type)
         fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
