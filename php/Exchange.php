@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.87.20';
+$version = '1.87.22';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.87.20';
+    const VERSION = '1.87.22';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2574,7 +2574,12 @@ class Exchange {
                 'order' => $order['id'],
             ));
             $this->number = $oldNumber;
-            if (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)) && strlen($trades)) {
+            $tradesLength = 0;
+            $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
+            if ($isArray) {
+                $tradesLength = is_array($trades) ? count($trades) : 0;
+            }
+            if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in $trades up into the $order
                 if ($order['symbol'] === null) {
                     $order['symbol'] = $trades[0]['symbol'];

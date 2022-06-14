@@ -156,6 +156,7 @@ class zonda extends Exchange {
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
+                        'trading/stop/offer',
                         'trading/config/{symbol}',
                         'trading/history/transactions',
                         'balances/BITBAY/history',
@@ -165,6 +166,7 @@ class zonda extends Exchange {
                     ),
                     'post' => array(
                         'trading/offer/{symbol}',
+                        'trading/stop/offer/{symbol}',
                         'trading/config/{symbol}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
@@ -172,6 +174,7 @@ class zonda extends Exchange {
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
                     ),
                     'put' => array(
                         'balances/BITBAY/balance/{id}',
@@ -273,6 +276,7 @@ class zonda extends Exchange {
                 'UNDER_MAINTENANCE' => '\\ccxt\\OnMaintenance',
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
                 'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
+                'INVALID_STOP_RATE' => '\\ccxt\\InvalidOrder',
             ),
             'commonCurrencies' => array(
                 'GGC' => 'Global Game Coin',
@@ -1208,15 +1212,33 @@ class zonda extends Exchange {
         $amount = floatval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'symbol' => $tradingSymbol,
-            'offerType' => $side,
+            'offerType' => strtoupper($side),
             'amount' => $amount,
-            'mode' => $type,
         );
-        if ($type === 'limit') {
-            $request['rate'] = $price;
-            $price = floatval($this->price_to_precision($symbol, $price));
+        $stopLossPrice = $this->safe_value_2($params, 'stopPrice', 'stopLossPrice');
+        $isStopLossPrice = $stopLossPrice !== null;
+        $isLimitOrder = $type === 'limit';
+        $isMarketOrder = $type === 'market';
+        $isStopLimit = ($type === 'stop-limit') || ($isLimitOrder && $isStopLossPrice);
+        $isStopMarket = $type === 'stop-market' || ($isMarketOrder && $isStopLossPrice);
+        $isStopOrder = $isStopLimit || $isStopMarket;
+        $method = $isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
+        if ($isLimitOrder || $isStopLimit) {
+            $request['rate'] = $this->price_to_precision($symbol, $price);
+            $request['mode'] = $isStopLimit ? 'stop-limit' : 'limit';
+        } elseif ($isMarketOrder || $isStopMarket) {
+            $request['mode'] = $isStopMarket ? 'stop-market' : 'market';
+        } else {
+            throw new ExchangeError($this->id . ' createOrder() invalid type');
         }
-        $response = yield $this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params));
+        if ($isStopOrder) {
+            if (!$isStopLossPrice) {
+                throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
+            }
+            $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice' ));
+        $response = yield $this->$method (array_merge($request, $params));
         //
         // unfilled (open order)
         //
@@ -1227,7 +1249,7 @@ class zonda extends Exchange {
         //         $transactions => array(), // can deduce order info from here
         //     }
         //
-        // $filled (closed order)
+        // filled (closed order)
         //
         //     {
         //         "status" => "Ok",
@@ -1249,7 +1271,7 @@ class zonda extends Exchange {
         //         )
         //     }
         //
-        // partially-$filled (open order)
+        // partially-filled (open order)
         //
         //     {
         //         "status" => "Ok",
@@ -1271,35 +1293,15 @@ class zonda extends Exchange {
         //         )
         //     }
         //
-        $timestamp = $this->milliseconds(); // the real $timestamp is missing in the $response
-        $id = $this->safe_string($response, 'offerId');
+        $id = $this->safe_string_2($response, 'offerId', 'stopOfferId');
         $completed = $this->safe_value($response, 'completed', false);
         $status = $completed ? 'closed' : 'open';
-        $filled = 0;
-        $cost = null;
         $transactions = $this->safe_value($response, 'transactions');
-        $trades = null;
-        if ($transactions !== null) {
-            $trades = $this->parse_trades($transactions, $market, null, null, array(
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'symbol' => $symbol,
-                'side' => $side,
-                'type' => $type,
-                'orderId' => $id,
-            ));
-            $cost = 0;
-            for ($i = 0; $i < count($trades); $i++) {
-                $filled = $this->sum($filled, $trades[$i]['amount']);
-                $cost = $this->sum($cost, $trades[$i]['cost']);
-            }
-        }
-        $remaining = $amount - $filled;
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -1307,14 +1309,14 @@ class zonda extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'cost' => null,
+            'filled' => null,
+            'remaining' => null,
             'average' => null,
             'fee' => null,
-            'trades' => $trades,
+            'trades' => $transactions,
             'clientOrderId' => null,
-        );
+        ));
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

@@ -935,7 +935,12 @@ module.exports = class Exchange {
                 'order': order['id'],
             });
             this.number = oldNumber;
-            if (Array.isArray (trades) && trades.length) {
+            let tradesLength = 0;
+            const isArray = Array.isArray (trades);
+            if (isArray) {
+                tradesLength = trades.length;
+            }
+            if (isArray && (tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
                 if (order['symbol'] === undefined) {
                     order['symbol'] = trades[0]['symbol'];
