@@ -276,7 +276,6 @@ class Exchange {
         'handleRestResponse' => 'handle_rest_response',
         'onRestResponse' => 'on_rest_response',
         'onJsonResponse' => 'on_json_response',
-        'setMarkets' => 'set_markets',
         'loadMarketsHelper' => 'load_markets_helper',
         'loadMarkets' => 'load_markets',
         'fetchCurrencies' => 'fetch_currencies',
@@ -292,6 +291,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
         'safeOrder' => 'safe_order',
         'parseOrders' => 'parse_orders',
@@ -1827,91 +1827,6 @@ class Exchange {
         return isset($json_response) ? $json_response : $result;
     }
 
-    public function set_markets($markets, $currencies = null) {
-        $values = is_array($markets) ? array_values($markets) : array();
-        for ($i = 0; $i < count($values); $i++) {
-            $values[$i] = array_replace_recursive(
-                array(
-                    'id' => null,
-                    'symbol' => null,
-                    'base' => null,
-                    'quote' => null,
-                    'baseId' => null,
-                    'quoteId' => null,
-                    'active' => null,
-                    'type' => null,
-                    'linear' => null,
-                    'inverse' => null,
-                    'spot' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'margin' => false,
-                    'contract' => false,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'optionType' => null,
-                    'strike' => null,
-                    'settle' => null,
-                    'settleId' => null,
-                    'precision' => $this->precision,
-                    'limits' => $this->limits,
-                    'info' => null,
-
-                ),
-                $this->fees['trading'],
-                $values[$i]
-            );
-        }
-        $this->markets = static::index_by($values, 'symbol');
-        $this->markets_by_id = static::index_by($values, 'id');
-        $this->symbols = array_keys($this->markets);
-        sort($this->symbols);
-        $this->ids = array_keys($this->markets_by_id);
-        sort($this->ids);
-        if ($currencies) {
-            $this->currencies = array_replace_recursive($this->currencies, $currencies);
-        } else {
-            $base_currencies = array_map(function ($market) {
-                return array(
-                    'id' => isset($market['baseId']) ? $market['baseId'] : $market['base'],
-                    'numericId' => array_key_exists('baseNumericId', $market) ? $market['baseNumericId'] : null,
-                    'code' => $market['base'],
-                    'precision' => array_key_exists('precision', $market) ? (
-                        array_key_exists('base', $market['precision']) ? $market['precision']['base'] : (
-                            array_key_exists('amount', $market['precision']) ? $market['precision']['amount'] : null
-                        )) : 8,
-                );
-            }, array_filter($values, function ($market) {
-                return array_key_exists('base', $market);
-            }));
-            $quote_currencies = array_map(function ($market) {
-                return array(
-                    'id' => isset($market['quoteId']) ? $market['quoteId'] : $market['quote'],
-                    'numericId' => array_key_exists('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
-                    'code' => $market['quote'],
-                    'precision' => array_key_exists('precision', $market) ? (
-                        array_key_exists('quote', $market['precision']) ? $market['precision']['quote'] : (
-                            array_key_exists('price', $market['precision']) ? $market['precision']['price'] : null
-                        )) : 8,
-                );
-            }, array_filter($values, function ($market) {
-                return array_key_exists('quote', $market);
-            }));
-            $base_currencies = static::sort_by($base_currencies, 'code');
-            $quote_currencies = static::sort_by($quote_currencies, 'code');
-            $this->base_currencies = static::index_by($base_currencies, 'code');
-            $this->quote_currencies = static::index_by($quote_currencies, 'code');
-            $currencies = array_merge($this->base_currencies, $this->quote_currencies);
-            $this->currencies = array_replace_recursive($this->currencies, $currencies);
-        }
-        $this->currencies_by_id = static::index_by(array_values($this->currencies), 'id');
-        $this->codes = array_keys($this->currencies);
-        sort($this->codes);
-        return $this->markets;
-    }
-
     public function load_markets($reload = false, $params = array()) {
         if (!$reload && $this->markets) {
             if (!$this->markets_by_id) {
@@ -2482,7 +2397,121 @@ class Exchange {
         }
     }
 
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########        ########################        ########################
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########                        ########                        ########
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ########        ########        ########                        ########
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ################        ########################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########        ########        ################        ################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+    // ########################################################################
+
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function set_markets($markets, $currencies = null) {
+        $values = array();
+        $marketValues = $this->to_array($markets);
+        for ($i = 0; $i < count($marketValues); $i++) {
+            $market = $this->deep_extend($this->safe_market(), array(
+                'precision' => $this->precision,
+                'limits' => $this->limits,
+            ), $this->fees['trading'], $marketValues[$i]);
+            $values[] = $market;
+        }
+        $this->markets = $this->index_by($values, 'symbol');
+        $this->markets_by_id = $this->index_by($markets, 'id');
+        $marketsSortedBySymbol = $this->keysort ($this->markets);
+        $marketsSortedById = $this->keysort ($this->markets_by_id);
+        $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
+        $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
+        if ($currencies !== null) {
+            $this->currencies = $this->deep_extend($this->currencies, $currencies);
+        } else {
+            $baseCurrencies = array();
+            $quoteCurrencies = array();
+            for ($i = 0; $i < count($values); $i++) {
+                $market = $values[$i];
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $marketPrecision = $this->safe_value($market, 'precision', array());
+                if (is_array($market) && array_key_exists('base', $market)) {
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
+                    $currency = array(
+                        'id' => $this->safe_string_2($market, 'baseId', 'base'),
+                        'numericId' => $this->safe_string($market, 'baseNumericId'),
+                        'code' => $this->safe_string($market, 'base'),
+                        'precision' => $currencyPrecision,
+                    );
+                    $baseCurrencies[] = $currency;
+                }
+                if (is_array($market) && array_key_exists('quote', $market)) {
+                    $currencyPrecision = $this->safe_value_2($marketPrecision, 'quote', 'amount', $defaultCurrencyPrecision);
+                    $currency = array(
+                        'id' => $this->safe_string_2($market, 'quoteId', 'quote'),
+                        'numericId' => $this->safe_string($market, 'quoteNumericId'),
+                        'code' => $this->safe_string($market, 'quote'),
+                        'precision' => $currencyPrecision,
+                    );
+                    $quoteCurrencies[] = $currency;
+                }
+            }
+            $baseCurrencies = $this->sort_by($baseCurrencies, 'code');
+            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code');
+            $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
+            $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
+            $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
+            $groupedCurrencies = $this->group_by($allCurrencies, 'code');
+            $codes = is_array($groupedCurrencies) ? array_keys($groupedCurrencies) : array();
+            $resultingCurrencies = array();
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = $codes[$i];
+                $groupedCurrenciesCode = $this->safe_value($groupedCurrencies, $code, array());
+                $highestPrecisionCurrency = $this->safe_value($groupedCurrenciesCode, 0);
+                for ($j = 1; $j < count($groupedCurrenciesCode); $j++) {
+                    $currentCurrency = $groupedCurrenciesCode[$j];
+                    if ($this->precisionMode === TICK_SIZE) {
+                        $highestPrecisionCurrency = ($currentCurrency['precision'] < $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
+                    } else {
+                        $highestPrecisionCurrency = ($currentCurrency['precision'] > $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
+                    }
+                }
+                $resultingCurrencies[] = $highestPrecisionCurrency;
+            }
+            $sortedCurrencies = $this->sort_by($resultingCurrencies, 'code');
+            $this->currencies = $this->deep_extend($this->currencies, $this->index_by($sortedCurrencies, 'code'));
+        }
+        $this->currencies_by_id = $this->index_by($this->currencies, 'id');
+        $currenciesSortedByCode = $this->keysort ($this->currencies);
+        $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
+        return $this->markets;
+    }
 
     public function safe_balance($balance) {
         $balances = $this->omit ($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
@@ -3264,7 +3293,7 @@ class Exchange {
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
     }
 
@@ -3277,7 +3306,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
@@ -3290,7 +3319,7 @@ class Exchange {
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;
-        $tail = $since === null;
+        $tail = ($since === null);
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit, $tail);
     }
 
@@ -3445,7 +3474,51 @@ class Exchange {
         );
     }
 
-    public function safe_market($marketId, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+        $result = array(
+            'id' => $marketId,
+            'symbol' => $marketId,
+            'base' => null,
+            'quote' => null,
+            'baseId' => null,
+            'quoteId' => null,
+            'active' => null,
+            'type' => null,
+            'linear' => null,
+            'inverse' => null,
+            'spot' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'margin' => false,
+            'contract' => false,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'optionType' => null,
+            'strike' => null,
+            'settle' => null,
+            'settleId' => null,
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => null,
+        );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $market = $this->markets_by_id[$marketId];
@@ -3453,42 +3526,21 @@ class Exchange {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = is_array($parts) ? count($parts) : 0;
                 if ($partsLength === 2) {
-                    $baseId = $this->safe_string($parts, 0);
-                    $quoteId = $this->safe_string($parts, 1);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $symbol,
-                        'base' => $base,
-                        'quote' => $quote,
-                        'baseId' => $baseId,
-                        'quoteId' => $quoteId,
-                    );
+                    $result['baseId'] = $this->safe_string($parts, 0);
+                    $result['quoteId'] = $this->safe_string($parts, 1);
+                    $result['base'] = $this->safe_currency_code($result['baseId']);
+                    $result['quote'] = $this->safe_currency_code($result['quoteId']);
+                    $result['symbol'] = $result['base'] . '/' . $result['quote'];
+                    return $result;
                 } else {
-                    return array(
-                        'id' => $marketId,
-                        'symbol' => $marketId,
-                        'base' => null,
-                        'quote' => null,
-                        'baseId' => null,
-                        'quoteId' => null,
-                    );
+                    return $result;
                 }
             }
         }
         if ($market !== null) {
             return $market;
         }
-        return array(
-            'id' => $marketId,
-            'symbol' => $marketId,
-            'base' => null,
-            'quote' => null,
-            'baseId' => null,
-            'quoteId' => null,
-        );
+        return $result;
     }
 
     public function check_required_credentials($error = true) {

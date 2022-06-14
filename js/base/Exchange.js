@@ -8,8 +8,6 @@ const functions = require ('./functions');
 const {
     isNode
     , clone
-    , flatten
-    , unique
     , unCamelCase
     , throttle
     , timeout
@@ -31,7 +29,7 @@ const { // eslint-disable-line object-curly-newline
     , RateLimitExceeded
     , ArgumentsRequired } = require ('./errors')
 
-const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE } = functions.precisionConstants
 
 const BN = require ('../static_dependencies/BN/bn')
 const Precise = require ('./Precise')
@@ -394,7 +392,7 @@ module.exports = class Exchange {
             throw new InvalidAddress (this.id + ' address is undefined')
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
+        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
         }
         return address
@@ -613,75 +611,6 @@ module.exports = class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    setMarkets (markets, currencies = undefined) {
-        const values = Object.values (markets).map ((market) => this.deepExtend ({
-            'id': undefined,
-            'symbol': undefined,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-            'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': false,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': this.precision,
-            'limits': this.limits,
-            'info': undefined,
-        }, this.fees['trading'], market))
-        this.markets = this.indexBy (values, 'symbol')
-        this.markets_by_id = this.indexBy (markets, 'id')
-        this.symbols = Object.keys (this.markets).sort ()
-        this.ids = Object.keys (this.markets_by_id).sort ()
-        if (currencies) {
-            this.currencies = this.deepExtend (this.currencies, currencies)
-        } else {
-            let baseCurrencies =
-                values.filter ((market) => 'base' in market)
-                    .map ((market) => ({
-                        id: market.baseId || market.base,
-                        numericId: (market.baseNumericId !== undefined) ? market.baseNumericId : undefined,
-                        code: market.base,
-                        precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
-                    }))
-            let quoteCurrencies =
-                values.filter ((market) => 'quote' in market)
-                    .map ((market) => ({
-                        id: market.quoteId || market.quote,
-                        numericId: (market.quoteNumericId !== undefined) ? market.quoteNumericId : undefined,
-                        code: market.quote,
-                        precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
-                    }))
-            baseCurrencies = this.sortBy (baseCurrencies, 'code')
-            quoteCurrencies = this.sortBy (quoteCurrencies, 'code')
-            this.baseCurrencies = this.indexBy (baseCurrencies, 'code')
-            this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code')
-            const allCurrencies = baseCurrencies.concat (quoteCurrencies)
-            const groupedCurrencies = this.groupBy (allCurrencies, 'code')
-            const currencies = Object.keys (groupedCurrencies).map ((code) =>
-                groupedCurrencies[code].reduce ((previous, current) => // eslint-disable-line implicit-arrow-linebreak
-                    ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0])) // eslint-disable-line implicit-arrow-linebreak
-            const sortedCurrencies = this.sortBy (flatten (currencies), 'code')
-            this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'))
-        }
-        this.currencies_by_id = this.indexBy (this.currencies, 'id')
-        this.codes = Object.keys (this.currencies).sort ()
-        return this.markets
-    }
-
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
@@ -867,6 +796,83 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    setMarkets (markets, currencies = undefined) {
+        const values = [];
+        const marketValues = this.toArray (markets);
+        for (let i = 0; i < marketValues.length; i++) {
+            const market = this.deepExtend (this.safeMarket (), {
+                'precision': this.precision,
+                'limits': this.limits,
+            }, this.fees['trading'], marketValues[i]);
+            values.push (market);
+        }
+        this.markets = this.indexBy (values, 'symbol');
+        this.markets_by_id = this.indexBy (markets, 'id');
+        const marketsSortedBySymbol = this.keysort (this.markets);
+        const marketsSortedById = this.keysort (this.markets_by_id);
+        this.symbols = Object.keys (marketsSortedBySymbol);
+        this.ids = Object.keys (marketsSortedById);
+        if (currencies !== undefined) {
+            this.currencies = this.deepExtend (this.currencies, currencies);
+        } else {
+            let baseCurrencies = [];
+            let quoteCurrencies = [];
+            for (let i = 0; i < values.length; i++) {
+                const market = values[i];
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('0.00000001');
+                const marketPrecision = this.safeValue (market, 'precision', {});
+                if ('base' in market) {
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
+                    const currency = {
+                        'id': this.safeString2 (market, 'baseId', 'base'),
+                        'numericId': this.safeString (market, 'baseNumericId'),
+                        'code': this.safeString (market, 'base'),
+                        'precision': currencyPrecision,
+                    };
+                    baseCurrencies.push (currency);
+                }
+                if ('quote' in market) {
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currency = {
+                        'id': this.safeString2 (market, 'quoteId', 'quote'),
+                        'numericId': this.safeString (market, 'quoteNumericId'),
+                        'code': this.safeString (market, 'quote'),
+                        'precision': currencyPrecision,
+                    };
+                    quoteCurrencies.push (currency);
+                }
+            }
+            baseCurrencies = this.sortBy (baseCurrencies, 'code');
+            quoteCurrencies = this.sortBy (quoteCurrencies, 'code');
+            this.baseCurrencies = this.indexBy (baseCurrencies, 'code');
+            this.quoteCurrencies = this.indexBy (quoteCurrencies, 'code');
+            const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
+            const groupedCurrencies = this.groupBy (allCurrencies, 'code');
+            const codes = Object.keys (groupedCurrencies);
+            const resultingCurrencies = [];
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                const groupedCurrenciesCode = this.safeValue (groupedCurrencies, code, []);
+                let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
+                for (let j = 1; j < groupedCurrenciesCode.length; j++) {
+                    const currentCurrency = groupedCurrenciesCode[j];
+                    if (this.precisionMode === TICK_SIZE) {
+                        highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    } else {
+                        highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    }
+                }
+                resultingCurrencies.push (highestPrecisionCurrency);
+            }
+            const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
+            this.currencies = this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code'));
+        }
+        this.currencies_by_id = this.indexBy (this.currencies, 'id');
+        const currenciesSortedByCode = this.keysort (this.currencies);
+        this.codes = Object.keys (currenciesSortedByCode);
+        return this.markets;
+    }
 
     safeBalance (balance) {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
@@ -1648,7 +1654,7 @@ module.exports = class Exchange {
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        const tail = since === undefined;
+        const tail = (since === undefined);
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
     }
 
@@ -1661,7 +1667,7 @@ module.exports = class Exchange {
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = since === undefined;
+        const tail = (since === undefined);
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
@@ -1674,7 +1680,7 @@ module.exports = class Exchange {
         }
         result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        const tail = since === undefined;
+        const tail = (since === undefined);
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
@@ -1829,7 +1835,51 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+        const result = {
+            'id': marketId,
+            'symbol': marketId,
+            'base': undefined,
+            'quote': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+            'active': undefined,
+            'type': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'spot': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'margin': false,
+            'contract': false,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': undefined,
+            'strike': undefined,
+            'settle': undefined,
+            'settleId': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': undefined,
+        };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 market = this.markets_by_id[marketId];
@@ -1837,42 +1887,21 @@ module.exports = class Exchange {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
                 if (partsLength === 2) {
-                    const baseId = this.safeString (parts, 0);
-                    const quoteId = this.safeString (parts, 1);
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
-                    return {
-                        'id': marketId,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                    };
+                    result['baseId'] = this.safeString (parts, 0);
+                    result['quoteId'] = this.safeString (parts, 1);
+                    result['base'] = this.safeCurrencyCode (result['baseId']);
+                    result['quote'] = this.safeCurrencyCode (result['quoteId']);
+                    result['symbol'] = result['base'] + '/' + result['quote'];
+                    return result;
                 } else {
-                    return {
-                        'id': marketId,
-                        'symbol': marketId,
-                        'base': undefined,
-                        'quote': undefined,
-                        'baseId': undefined,
-                        'quoteId': undefined,
-                    };
+                    return result;
                 }
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return {
-            'id': marketId,
-            'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-        };
+        return result;
     }
 
     checkRequiredCredentials (error = true) {
