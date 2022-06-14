@@ -1229,7 +1229,7 @@ class bitpanda extends Exchange {
         if ($isFiat) {
             $payoutAccountId = $this->safe_string($params, 'payout_account_id');
             if ($payoutAccountId === null) {
-                throw ArgumentsRequired ($this->id . ' withdraw() requires a payout_account_id param for fiat ' . $code . ' withdrawals');
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a payout_account_id param for fiat ' . $code . ' withdrawals');
             }
         } else {
             $recipient = array( 'address' => $address );
