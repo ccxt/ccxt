@@ -1388,9 +1388,11 @@ module.exports = class zonda extends Exchange {
         //     }
         //
         const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'address': this.safeString (depositAddress, 'address'),
+            'address': address,
             'tag': this.safeString (depositAddress, 'tag'),
             'network': undefined,
             'info': depositAddress,
@@ -1456,7 +1458,7 @@ module.exports = class zonda extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositAddresses (data, codes, undefined, params);
+        return this.parseDepositAddresses (data, codes);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
