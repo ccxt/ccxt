@@ -563,45 +563,49 @@ module.exports = class alpaca extends Exchange {
         //        "source":null
         //    }
         //
-        let symbol = this.safeString (order, 'symbol', '');
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const alpacaStatus = this.safeString (order, 'status');
-        let status = 'open';
-        if (alpacaStatus === 'filled') {
-            status = 'closed';
-        } else if (alpacaStatus === 'canceled') {
-            status = 'canceled';
-        } else if (alpacaStatus === 'expired') {
-            status = 'expired';
-        }
+        const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'comission');
         const fee = {
             'cost': feeValue,
             'currency': 'USD',
         };
+        const datetime = this.safeString (order, 'submitted_at');
+        const timestamp = this.parse8601 (datetime);
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': this.milliseconds (),
-            'datetime': this.safeString (order, 'submitted_at'),
+            'timestamp': timestamp,
+            'datetime': datetime,
             'lastTradeTimeStamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': this.safeString (order, 'order_type'),
             'timeInForce': this.safeString (order, 'time_in_force'),
+            'postOnly': undefined,
             'side': this.safeString (order, 'side'),
             'price': this.safeNumber (order, 'limit_price'),
+            'stopPrice': this.safeNumber (order, 'stop_price'),
+            'cost': undefined,
             'average': this.safeNumber (order, 'filled_avg_price'),
             'amount': this.safeNumber (order, 'qty'),
             'filled': this.safeNumber (order, 'filled_qty'),
             'remaining': undefined,
-            'cost': undefined,
             'trades': undefined,
             'fee': fee,
             'info': order,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'activated': 'open',
+            'filled': 'closed',
+        };
+        return this.safeString (statuses, status);
     }
 
     parseTrade (trade, market = undefined) {
