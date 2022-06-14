@@ -1257,7 +1257,7 @@ module.exports = class bitpanda extends Exchange {
         if (isFiat) {
             const payoutAccountId = this.safeString (params, 'payout_account_id');
             if (payoutAccountId === undefined) {
-                throw ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
             }
         } else {
             const recipient = { 'address': address };
