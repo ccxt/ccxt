@@ -168,6 +168,7 @@ class zonda(Exchange):
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
+                        'trading/stop/offer',
                         'trading/config/{symbol}',
                         'trading/history/transactions',
                         'balances/BITBAY/history',
@@ -177,6 +178,7 @@ class zonda(Exchange):
                     ],
                     'post': [
                         'trading/offer/{symbol}',
+                        'trading/stop/offer/{symbol}',
                         'trading/config/{symbol}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
@@ -184,6 +186,7 @@ class zonda(Exchange):
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
                     ],
                     'put': [
                         'balances/BITBAY/balance/{id}',
@@ -285,6 +288,7 @@ class zonda(Exchange):
                 'UNDER_MAINTENANCE': OnMaintenance,
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+                'INVALID_STOP_RATE': InvalidOrder,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -1185,14 +1189,30 @@ class zonda(Exchange):
         amount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': tradingSymbol,
-            'offerType': side,
+            'offerType': side.upper(),
             'amount': amount,
-            'mode': type,
         }
-        if type == 'limit':
-            request['rate'] = price
-            price = float(self.price_to_precision(symbol, price))
-        response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        stopLossPrice = self.safe_value_2(params, 'stopPrice', 'stopLossPrice')
+        isStopLossPrice = stopLossPrice is not None
+        isLimitOrder = type == 'limit'
+        isMarketOrder = type == 'market'
+        isStopLimit = (type == 'stop-limit') or (isLimitOrder and isStopLossPrice)
+        isStopMarket = type == 'stop-market' or (isMarketOrder and isStopLossPrice)
+        isStopOrder = isStopLimit or isStopMarket
+        method = 'v1_01PrivatePostTradingStopOfferSymbol' if isStopOrder else 'v1_01PrivatePostTradingOfferSymbol'
+        if isLimitOrder or isStopLimit:
+            request['rate'] = self.price_to_precision(symbol, price)
+            request['mode'] = 'stop-limit' if isStopLimit else 'limit'
+        elif isMarketOrder or isStopMarket:
+            request['mode'] = 'stop-market' if isStopMarket else 'market'
+        else:
+            raise ExchangeError(self.id + ' createOrder() invalid type')
+        if isStopOrder:
+            if not isStopLossPrice:
+                raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders')
+            request['stopRate'] = self.price_to_precision(symbol, stopLossPrice)
+        params = self.omit(params, ['stopPrice', 'stopLossPrice'])
+        response = getattr(self, method)(self.extend(request, params))
         #
         # unfilled(open order)
         #
@@ -1247,33 +1267,15 @@ class zonda(Exchange):
         #         ]
         #     }
         #
-        timestamp = self.milliseconds()  # the real timestamp is missing in the response
-        id = self.safe_string(response, 'offerId')
+        id = self.safe_string_2(response, 'offerId', 'stopOfferId')
         completed = self.safe_value(response, 'completed', False)
         status = 'closed' if completed else 'open'
-        filled = 0
-        cost = None
         transactions = self.safe_value(response, 'transactions')
-        trades = None
-        if transactions is not None:
-            trades = self.parse_trades(transactions, market, None, None, {
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'symbol': symbol,
-                'side': side,
-                'type': type,
-                'orderId': id,
-            })
-            cost = 0
-            for i in range(0, len(trades)):
-                filled = self.sum(filled, trades[i]['amount'])
-                cost = self.sum(cost, trades[i]['cost'])
-        remaining = amount - filled
-        return {
+        return self.safe_order({
             'id': id,
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
@@ -1281,14 +1283,14 @@ class zonda(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': None,
+            'filled': None,
+            'remaining': None,
             'average': None,
             'fee': None,
-            'trades': trades,
+            'trades': transactions,
             'clientOrderId': None,
-        }
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         """
