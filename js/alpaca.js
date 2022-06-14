@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, RateLimitExceeded, PermissionDenied, BadSymbol } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------xs
 
 module.exports = class alpaca extends Exchange {
@@ -150,35 +149,48 @@ module.exports = class alpaca extends Exchange {
             const symbol = base + '/' + quote;
             const baseId = base.toLowerCase ();
             const quoteId = quote.toLowerCase ();
-            const active = true;
-            const taker = 0;
-            const maker = 0;
-            const percentage = false;
-            const tierBased = false;
-            const feeSide = undefined;
-            const precision = {
-                'price': undefined,
-                'amount': undefined,
-                'cost': undefined,
-            };
             markets.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'tierBased': percentage,
-                'percentage': tierBased,
-                'feeSide': feeSide,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'precision': precision,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
@@ -459,7 +471,6 @@ module.exports = class alpaca extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        // fetching order by symbol not yet supported
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -499,8 +510,8 @@ module.exports = class alpaca extends Exchange {
         //     "trail_price": null,
         //     "hwm": null
         // }
-        const _id = this.safeString (order, 'symbol');
-        const market = this.safeString (this.markets_by_id, _id);
+        const marketId = this.safeString (order, 'symbol');
+        const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
     }
 
@@ -508,11 +519,11 @@ module.exports = class alpaca extends Exchange {
         // symbol, since, and limit filtering done by base class
         await this.loadMarkets ();
         // returns open orders by default
-        const _orders = await this.privateGetOrders (params);
+        const orders = await this.privateGetOrders (params);
         // add symbols to orders to handle parseOrders
         const ordersWithSymbols = [];
-        for (let i = 0; i < _orders.length; i++) {
-            let order = _orders[i];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
             const market = this.safeString (this.markets_by_id, 'symbol');
             const symbol = this.safeString (market, 'symbol');
             order = this.extend (order, { 'symbol': symbol });
@@ -553,21 +564,28 @@ module.exports = class alpaca extends Exchange {
             'remaining': undefined,
             'cost': undefined,
             'trades': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'fee': undefined,
             'info': order,
         }, market);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        //   {
+        //       "t":"2022-06-14T05:00:00.027869Z",
+        //       "x":"CBSE",
+        //       "p":"21942.15",
+        //       "s":"0.0001",
+        //       "tks":"S",
+        //       "i":"355681339"
+        //   }
+        //
         let symbol = this.safeString (trade, 'symbol', '');
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.milliseconds ();
+        const datetime = this.safeString (trade, 't');
+        const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');
         let side = undefined;
         if (alpacaSide === 'B') {
@@ -579,12 +597,11 @@ module.exports = class alpaca extends Exchange {
         const amountString = this.safeString (trade, 's');
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'i'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
@@ -592,12 +609,8 @@ module.exports = class alpaca extends Exchange {
             'takerOrMaker': 'taker',
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'fee': {
-                'cost': undefined,
-                'currency': undefined,
-                'rate': undefined,
-            },
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
@@ -676,7 +689,7 @@ module.exports = class alpaca extends Exchange {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            throw new ExchangeError (feedback);
         }
     }
 };
