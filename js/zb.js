@@ -1823,6 +1823,8 @@ module.exports = class zb extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const stop = this.safeValue (params, 'stop');
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1841,12 +1843,10 @@ module.exports = class zb extends Exchange {
             // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
             // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (stop || stopPrice) {
+        if (stop || stopPrice || stopLossPrice || takeProfitPrice) {
             method = 'contractV2PrivatePostTradeOrderAlgo';
             const orderType = this.safeInteger (params, 'orderType');
             const priceType = this.safeInteger (params, 'priceType');
-            const bizType = this.safeInteger (params, 'bizType');
-            const algoPrice = this.safeNumber (params, 'algoPrice');
             request['symbol'] = market['id'];
             if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
@@ -1865,13 +1865,22 @@ module.exports = class zb extends Exchange {
             }
             if (type === 'trigger' || orderType === 1) {
                 request['orderType'] = 1;
-            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || bizType) {
+                request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
+            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || stopLossPrice || takeProfitPrice) {
+                if (priceType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a priceType parameter for stopLoss and takeProfit orders');
+                }
+                request['priceType'] = priceType; // 1: mark price, 2: last price
                 request['orderType'] = 2;
-                request['priceType'] = priceType;
-                request['bizType'] = bizType;
+                if (stopLossPrice) {
+                    request['bizType'] = 2;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else if (takeProfitPrice) {
+                    request['bizType'] = 1;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
             }
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['algoPrice'] = this.priceToPrecision (symbol, algoPrice);
+            request['algoPrice'] = this.priceToPrecision (symbol, price);
         } else {
             if (price) {
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -1921,7 +1930,7 @@ module.exports = class zb extends Exchange {
                 }
             }
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend' ]);
+        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
         let response = await this[method] (this.extend (request, query));
         //
         // Spot
@@ -1951,7 +1960,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if ((swap) && (!stop) && (stopPrice === undefined)) {
+        if ((swap) && (!stop) && (stopPrice === undefined) && (stopLossPrice === undefined) && (takeProfitPrice === undefined)) {
             response = this.safeValue (response, 'data');
             response['timeInForce'] = timeInForce;
             const tradeType = this.safeString (response, 'tradeType');
