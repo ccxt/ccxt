@@ -155,6 +155,7 @@ module.exports = class zonda extends Exchange {
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
+                        'trading/stop/offer',
                         'trading/config/{symbol}',
                         'trading/history/transactions',
                         'balances/BITBAY/history',
@@ -164,6 +165,7 @@ module.exports = class zonda extends Exchange {
                     ],
                     'post': [
                         'trading/offer/{symbol}',
+                        'trading/stop/offer/{symbol}',
                         'trading/config/{symbol}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
@@ -171,6 +173,7 @@ module.exports = class zonda extends Exchange {
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
                     ],
                     'put': [
                         'balances/BITBAY/balance/{id}',
@@ -272,6 +275,7 @@ module.exports = class zonda extends Exchange {
                 'UNDER_MAINTENANCE': OnMaintenance,
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+                'INVALID_STOP_RATE': InvalidOrder,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -1229,15 +1233,33 @@ module.exports = class zonda extends Exchange {
         amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': tradingSymbol,
-            'offerType': side,
+            'offerType': side.toUpperCase (),
             'amount': amount,
-            'mode': type,
         };
-        if (type === 'limit') {
-            request['rate'] = price;
-            price = parseFloat (this.priceToPrecision (symbol, price));
+        const stopLossPrice = this.safeValue2 (params, 'stopPrice', 'stopLossPrice');
+        const isStopLossPrice = stopLossPrice !== undefined;
+        const isLimitOrder = type === 'limit';
+        const isMarketOrder = type === 'market';
+        const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
+        const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
+        const isStopOrder = isStopLimit || isStopMarket;
+        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
+        if (isLimitOrder || isStopLimit) {
+            request['rate'] = this.priceToPrecision (symbol, price);
+            request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
+        } else if (isMarketOrder || isStopMarket) {
+            request['mode'] = isStopMarket ? 'stop-market' : 'market';
+        } else {
+            throw new ExchangeError (this.id + ' createOrder() invalid type');
         }
-        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        if (isStopOrder) {
+            if (!isStopLossPrice) {
+                throw new ExchangeError (this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
+            }
+            request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
+        }
+        params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         // unfilled (open order)
         //
@@ -1292,35 +1314,15 @@ module.exports = class zonda extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.milliseconds (); // the real timestamp is missing in the response
-        const id = this.safeString (response, 'offerId');
+        const id = this.safeString2 (response, 'offerId', 'stopOfferId');
         const completed = this.safeValue (response, 'completed', false);
         const status = completed ? 'closed' : 'open';
-        let filled = 0;
-        let cost = undefined;
         const transactions = this.safeValue (response, 'transactions');
-        let trades = undefined;
-        if (transactions !== undefined) {
-            trades = this.parseTrades (transactions, market, undefined, undefined, {
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': symbol,
-                'side': side,
-                'type': type,
-                'orderId': id,
-            });
-            cost = 0;
-            for (let i = 0; i < trades.length; i++) {
-                filled = this.sum (filled, trades[i]['amount']);
-                cost = this.sum (cost, trades[i]['cost']);
-            }
-        }
-        const remaining = amount - filled;
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -1328,14 +1330,14 @@ module.exports = class zonda extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': undefined,
+            'filled': undefined,
+            'remaining': undefined,
             'average': undefined,
             'fee': undefined,
-            'trades': trades,
+            'trades': transactions,
             'clientOrderId': undefined,
-        };
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
