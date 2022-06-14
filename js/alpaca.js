@@ -404,32 +404,44 @@ module.exports = class alpaca extends Exchange {
             'symbol': id,
             'qty': amount,
             'side': side,
-            'type': type, // market, limit, stop, stop_limit and trailling stop
+            'type': type, // market, limit, stop, stop_limit and trailling_stop
         };
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trail_price' ]);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const trailPrice = this.safeString2 (params, 'trailPrice', 'trail_price');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stop_loss');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'take_profit');
-        if (type === 'trailling_stop' || triggerPrice !== undefined) {
+        if (type === 'trailling_stop' || trailPrice !== undefined) {
+            request['type'] = 'trailing_stop';
             request['trail_price'] = triggerPrice;
+        } else if (triggerPrice !== undefined) {
+            let newType = 'stop'; // stop market
+            if (type.indexOf ('limit') >= 0) {
+                newType = 'stop_limit';
+            }
+            request['stop_price'] = triggerPrice;
+            request['type'] = newType;
         }
-        if (type === 'limit' || type === 'stop_limit') {
+        if (type.indexOf ('limit') >= 0) {
             request['limit_price'] = price;
         }
         if (stopLossPrice !== undefined) {
-            request['stop_loss'] = stopLossPrice;
+            request['stop_loss'] = { 'limit_price': stopLossPrice };
         }
         if (takeProfitPrice !== undefined) {
-            request['take_profit'] = takeProfitPrice;
+            request['take_profit'] = { 'limit_price': takeProfitPrice };
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
         request['time_in_force'] = timeInForce;
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'trigger_price', 'trail_price', 'stopLossPrice', 'stop_loss', 'takeProfitPrice', 'take_profit', 'stopPrice' ]);
-        const clientOrderId = this.safeString (this.options, 'clientOrderId');
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'trigger_price', 'trail_price', 'stopLossPrice', 'stop_loss', 'takeProfitPrice', 'take_profit', 'stopPrice', 'trailPrice', 'trail_price', 'stop_price' ]);
+        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
         const random_id = parts.join ('');
-        request['client_order_id'] = this.implodeParams (clientOrderId, { 'id': random_id });
+        const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id', defaultClientId);
+        request['client_order_id'] = clientOrderId;
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         const order = await this.privatePostOrders (this.extend (request, params));
         //
         //   {
@@ -564,6 +576,11 @@ module.exports = class alpaca extends Exchange {
         } else if (alpacaStatus === 'expired') {
             status = 'expired';
         }
+        const feeValue = this.safeString (order, 'comission');
+        const fee = {
+            'cost': feeValue,
+            'currency': 'USD',
+        };
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -582,7 +599,7 @@ module.exports = class alpaca extends Exchange {
             'remaining': undefined,
             'cost': undefined,
             'trades': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': order,
         }, market);
     }
