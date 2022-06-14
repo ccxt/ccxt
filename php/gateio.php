@@ -322,7 +322,7 @@ class gateio extends \ccxt\async\gateio {
     public function handle_delta($bookside, $delta) {
         $price = null;
         $amount = null;
-        if (gettype($delta) === 'array' && count(array_filter(array_keys($delta), 'is_string')) == 0) {
+        if (gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta))) {
             // spot
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
@@ -374,7 +374,7 @@ class gateio extends \ccxt\async\gateio {
         //
         $channel = $this->safe_string($message, 'channel');
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $result = array( $result );
         }
         for ($i = 0; $i < count($result); $i++) {
@@ -427,7 +427,7 @@ class gateio extends \ccxt\async\gateio {
         //
         $channel = $this->safe_string($message, 'channel');
         $result = $this->safe_value($message, 'result');
-        if (gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) != 0) {
+        if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
             $result = array( $result );
         }
         $parsedTrades = $this->parse_trades($result);
@@ -492,7 +492,7 @@ class gateio extends \ccxt\async\gateio {
         //
         $channel = $this->safe_string($message, 'channel');
         $result = $this->safe_value($message, 'result');
-        $isArray = gettype($result) === 'array' && count(array_filter(array_keys($result), 'is_string')) == 0;
+        $isArray = gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result));
         if (!$isArray) {
             $result = [$result];
         }
