@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -154,6 +155,7 @@ module.exports = class cex extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -282,7 +284,6 @@ module.exports = class cex extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precision');
             const active = true;
             result[code] = {
                 'id': id,
@@ -291,7 +292,7 @@ module.exports = class cex extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -361,16 +362,17 @@ module.exports = class cex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
             const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
-            let pricePrecision = this.safeInteger (quoteCurrency, 'precision', 8);
+            let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
                 if ((pair['symbol1'] === baseId) && (pair['symbol2'] === quoteId)) {
                     // we might need to account for `priceScale` here
-                    pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
+                    pricePrecisionString = this.safeString (pair, 'pricePrecision', pricePrecisionString);
                 }
             }
-            const baseCcyPrecision = this.safeString (baseCurrency, 'precision', '8');
-            const baseCcyScale = this.safeString (baseCurrency, 'scale', '0');
+            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision', '8');
+            const baseCurrencyScale = this.safeString (baseCurrency, 'scale', '0');
+            const amountPrecisionString = Precise.stringSub (baseCurrencyPrecision, baseCurrencyScale);
             result.push ({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -396,8 +398,8 @@ module.exports = class cex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (Precise.stringSub (baseCcyPrecision, baseCcyScale)),
-                    'price': pricePrecision,
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {

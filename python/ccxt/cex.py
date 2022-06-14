@@ -17,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -167,6 +168,7 @@ class cex(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -290,7 +292,6 @@ class cex(Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'code')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'precision')
             active = True
             result[code] = {
                 'id': id,
@@ -299,7 +300,7 @@ class cex(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -365,14 +366,15 @@ class cex(Exchange):
             quote = self.safe_currency_code(quoteId)
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
-            pricePrecision = self.safe_integer(quoteCurrency, 'precision', 8)
+            pricePrecisionString = self.safe_string(quoteCurrency, 'precision', '8')
             for j in range(0, len(pairs)):
                 pair = pairs[j]
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
-                    pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
-            baseCcyPrecision = self.safe_string(baseCurrency, 'precision', '8')
-            baseCcyScale = self.safe_string(baseCurrency, 'scale', '0')
+                    pricePrecisionString = self.safe_string(pair, 'pricePrecision', pricePrecisionString)
+            baseCurrencyPrecision = self.safe_string(baseCurrency, 'precision', '8')
+            baseCurrencyScale = self.safe_string(baseCurrency, 'scale', '0')
+            amountPrecisionString = Precise.string_sub(baseCurrencyPrecision, baseCurrencyScale)
             result.append({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -398,8 +400,8 @@ class cex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(Precise.string_sub(baseCcyPrecision, baseCcyScale)),
-                    'price': pricePrecision,
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {

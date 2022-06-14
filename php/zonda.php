@@ -24,7 +24,10 @@ class zonda extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -33,6 +36,10 @@ class zonda extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchDeposit' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
+                'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -41,23 +48,36 @@ class zonda extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => false,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => false,
+                'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchWithdrawal' => false,
+                'fetchWithdrawals' => null,
                 'reduceMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => true,
@@ -132,6 +152,7 @@ class zonda extends Exchange {
                 ),
                 'v1_01Private' => array(
                     'get' => array(
+                        'api_payments/deposits/crypto/addresses',
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
@@ -610,6 +631,33 @@ class zonda extends Exchange {
         //
         $stats = $this->safe_value($response, 'stats');
         return $this->parse_ticker($stats, $market);
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->v1_01PublicGetTradingStats ($params);
+        //
+        //     {
+        //         status => 'Ok',
+        //         $items => {
+        //             'DAI-PLN' => {
+        //                 m => 'DAI-PLN',
+        //                 h => '4.41',
+        //                 l => '4.37',
+        //                 v => '8.71068087',
+        //                 r24h => '4.36'
+        //             }
+        //         }
+        //     }
+        //
+        $items = $this->safe_value($response, 'items');
+        return $this->parse_tickers($items, $symbols);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1306,6 +1354,86 @@ class zonda extends Exchange {
             'PLN' => true,
         );
         return $this->safe_value($fiatCurrencies, $currency, false);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //     {
+        //         "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //         "currency" => "BTC",
+        //         "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //         "balanceEngine" => "BITBAY",
+        //         "tag" => null
+        //     }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $address,
+            'tag' => $this->safe_string($depositAddress, 'tag'),
+            'network' => null,
+            'info' => $depositAddress,
+        );
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @param {str|null} $params->walletId Wallet id to filter deposit adresses.
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "data" => [{
+        //                 "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency" => "BTC",
+        //                 "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine" => "BITBAY",
+        //                 "tag" => null
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $first = $this->safe_value($data, 0);
+        return $this->parse_deposit_address($first, $currency);
+    }
+
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
+         * @param {dict} $params extra parameters specific to the zonda api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         */
+        $this->load_markets();
+        $response = $this->v1_01PrivateGetApiPaymentsDepositsCryptoAddresses ($params);
+        //
+        //     {
+        //         "status" => "Ok",
+        //         "data" => [{
+        //                 "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency" => "BTC",
+        //                 "balanceId" => "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine" => "BITBAY",
+        //                 "tag" => null
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_addresses($data, $codes);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

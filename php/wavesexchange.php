@@ -765,15 +765,7 @@ class wavesexchange extends Exchange {
         $symbol = null;
         if (($baseId !== null) && ($quoteId !== null)) {
             $marketId = $baseId . '/' . $quoteId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
+            $market = $this->safe_market($marketId, $market, '/');
             $symbol = $market['symbol'];
         }
         $data = $this->safe_value($ticker, 'data', array());
@@ -847,6 +839,42 @@ class wavesexchange extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 0, array());
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetPairs ($params);
+        //
+        //     {
+        //         "__type":"list",
+        //         "data":array(
+        //             {
+        //                 "__type":"pair",
+        //                 "data":array(
+        //                     "firstPrice":0.00012512,
+        //                     "lastPrice":0.00012441,
+        //                     "low":0.00012167,
+        //                     "high":0.00012768,
+        //                     "weightedAveragePrice":0.000124710697407246,
+        //                     "volume":209554.26356614,
+        //                     "quoteVolume":26.1336583539951,
+        //                     "volumeWaves":209554.26356614,
+        //                     "txsCount":6655
+        //                 ),
+        //                 "amountAsset":"WAVES",
+        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1857,13 +1885,16 @@ class wavesexchange extends Exchange {
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $this->load_markets();
-        $market = $this->market($symbol);
         $address = $this->get_waves_address();
         $request = array(
             'sender' => $address,
-            'amountAsset' => $market['baseId'],
-            'priceAsset' => $market['quoteId'],
         );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['amountAsset'] = $market['baseId'];
+            $request['priceAsset'] = $market['quoteId'];
+        }
         $response = $this->publicGetTransactionsExchange ($request);
         $data = $this->safe_value($response, 'data');
         //
