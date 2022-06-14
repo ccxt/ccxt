@@ -90,7 +90,7 @@ module.exports = class alpaca extends Exchange {
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
-                    'FTX',
+                    'FTX', // FTXUS
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
@@ -99,6 +99,7 @@ module.exports = class alpaca extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'request body format is invalid': InvalidOrder, // {"code":40010000,"message":"request body format is invalid"}
                     'buying power or shares is not sufficient.': InsufficientFunds,
                     'order is not found': OrderNotFound,
                     'failed to cancel order': InvalidOrder,
@@ -403,14 +404,27 @@ module.exports = class alpaca extends Exchange {
             'symbol': id,
             'qty': amount,
             'side': side,
-            'type': type,
+            'type': type, // market, limit, stop, stop_limit and trailling stop
         };
-        if (type === 'limit') {
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'trail_price' ]);
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stop_loss');
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'take_profit');
+        if (type === 'trailling_stop' || triggerPrice !== undefined) {
+            request['trail_price'] = triggerPrice;
+        }
+        if (type === 'limit' || type === 'stop_limit') {
             request['limit_price'] = price;
         }
-        if (!('timeInForce' in params)) {
-            request['time_in_force'] = this.safeString (this.options, 'defaultTimeInForce');
+        if (stopLossPrice !== undefined) {
+            request['stop_loss'] = stopLossPrice;
         }
+        if (takeProfitPrice !== undefined) {
+            request['take_profit'] = takeProfitPrice;
+        }
+        const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
+        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
+        request['time_in_force'] = timeInForce;
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'trigger_price', 'trail_price', 'stopLossPrice', 'stop_loss', 'takeProfitPrice', 'take_profit', 'stopPrice' ]);
         const clientOrderId = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -476,40 +490,6 @@ module.exports = class alpaca extends Exchange {
             'order_id': id,
         };
         const order = await this.privateGetOrdersOrderId (this.extend (request, params));
-        // {
-        //     "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
-        //     "client_order_id": "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        //     "created_at": "2021-03-16T18:38:01.942282Z",
-        //     "updated_at": "2021-03-16T18:38:01.942282Z",
-        //     "submitted_at": "2021-03-16T18:38:01.937734Z",
-        //     "filled_at": null,
-        //     "expired_at": null,
-        //     "canceled_at": null,
-        //     "failed_at": null,
-        //     "replaced_at": null,
-        //     "replaced_by": null,
-        //     "replaces": null,
-        //     "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        //     "symbol": "AAPL",
-        //     "asset_class": "us_equity",
-        //     "notional": "500",
-        //     "qty": null,
-        //     "filled_qty": "0",
-        //     "filled_avg_price": null,
-        //     "order_class": "",
-        //     "order_type": "market",
-        //     "type": "market",
-        //     "side": "buy",
-        //     "time_in_force": "day",
-        //     "limit_price": null,
-        //     "stop_price": null,
-        //     "status": "accepted",
-        //     "extended_hours": false,
-        //     "legs": null,
-        //     "trail_percent": null,
-        //     "trail_price": null,
-        //     "hwm": null
-        // }
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
@@ -533,6 +513,44 @@ module.exports = class alpaca extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //    {
+        //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
+        //        "client_order_id":"ccxt_1c6ceab0b5e84727b2f1c0394ba17560",
+        //        "created_at":"2022-06-14T13:59:30.224037068Z",
+        //        "updated_at":"2022-06-14T13:59:30.224037068Z",
+        //        "submitted_at":"2022-06-14T13:59:30.221856828Z",
+        //        "filled_at":null,
+        //        "expired_at":null,
+        //        "canceled_at":null,
+        //        "failed_at":null,
+        //        "replaced_at":null,
+        //        "replaced_by":null,
+        //        "replaces":null,
+        //        "asset_id":"64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //        "symbol":"BTCUSD",
+        //        "asset_class":"crypto",
+        //        "notional":null,
+        //        "qty":"0.01",
+        //        "filled_qty":"0",
+        //        "filled_avg_price":null,
+        //        "order_class":"",
+        //        "order_type":"limit",
+        //        "type":"limit",
+        //        "side":"buy",
+        //        "time_in_force":"day",
+        //        "limit_price":"14000",
+        //        "stop_price":null,
+        //        "status":"accepted",
+        //        "extended_hours":false,
+        //        "legs":null,
+        //        "trail_percent":null,
+        //        "trail_price":null,
+        //        "hwm":null,
+        //        "commission":"0.42",
+        //        "source":null
+        //    }
+        //
         let symbol = this.safeString (order, 'symbol', '');
         if (market !== undefined) {
             symbol = market['symbol'];
