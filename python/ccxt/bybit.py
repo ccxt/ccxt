@@ -2584,12 +2584,15 @@ class bybit(Exchange):
                 orderKey = 'orderId' if isUsdcSettled else 'order_id'
             params[orderKey] = id
         if isUsdcSettled or market['future'] or market['inverse']:
-            raise NotSupported(self.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
+            raise NotSupported(self.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
         else:
             # only linear swap markets allow using all purpose
             # fetchOrders endpoint filtering by id
             orders = self.fetch_orders(symbol, None, None, params)
-            return self.safe_value(orders, 0)
+            order = self.safe_value(orders, 0)
+            if order is None:
+                raise OrderNotFound(self.id + ' fetchOrder() order ' + id + ' not found')
+            return order
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
