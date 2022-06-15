@@ -1144,18 +1144,7 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     getClassDeclarationMatches (contents) {
-        const re1 = '^module\.exports';
-        const re2 = '\s*=\s*'; // = with or without 1 whitespace on each side
-        const re3 = 'class';
-        const re4 = '\s+'; // 1+ white space
-        const re5 = '([\S]+)'; // 1+ any character except whitespace, creates 1 capture group of the whole match
-        const re6 = '(?:\s+extends\s+([\S]+))?'; // extends surrounded by 1+ whitespace on each side, followed by a capture group of 1+ non-whitespaces, optional
-        const re7 = '\s+{'; // 1+ white space bracket
-        // const re8 = '(\/\*\*.*?\*\/)?'; // optional docstring, creates 1 capture group of whole match
-        const re9 = '([\s\S]+?)'; // any characters between the opening { and the closing }, creates 1 capture group of the whole match
-        const re10 = '^};*'; // last line of js class
-        const re = new RegExp(`${re1}${re2}${re3}${re4}${re5}${re6}${re7}${re9}${re10}`, 'm');
-        return contents.match (re);
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
