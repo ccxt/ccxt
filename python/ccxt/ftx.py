@@ -1570,12 +1570,10 @@ class ftx(Exchange):
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfit = False
-        isStopLoss = False
+        isTakeProfit = type == 'takeProfit'
+        isStopLoss = type == 'stop'
         isTriggerPrice = False
         if triggerPrice is not None:
-            isTakeProfit = type == 'takeProfit'
-            isStopLoss = type == 'stop'
             isTriggerPrice = not isTakeProfit and not isStopLoss
         elif takeProfitPrice is not None:
             isTakeProfit = True
@@ -1588,6 +1586,11 @@ class ftx(Exchange):
         isStopOrder = isTakeProfit or isStopLoss or isTriggerPrice
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isStopOrder:
+            if triggerPrice is None:
+                if isTakeProfit:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a takeProfitPrice param for a takeProfit order')
+                elif isStopLoss:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a stopLossPrice param for a stop order')
             method = 'privatePostConditionalOrders'
             request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
             if (type == 'limit') and (price is None):

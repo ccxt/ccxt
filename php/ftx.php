@@ -1614,12 +1614,10 @@ class ftx extends Exchange {
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfit = false;
-        $isStopLoss = false;
+        $isTakeProfit = $type === 'takeProfit';
+        $isStopLoss = $type === 'stop';
         $isTriggerPrice = false;
         if ($triggerPrice !== null) {
-            $isTakeProfit = $type === 'takeProfit';
-            $isStopLoss = $type === 'stop';
             $isTriggerPrice = !$isTakeProfit && !$isStopLoss;
         } elseif ($takeProfitPrice !== null) {
             $isTakeProfit = true;
@@ -1634,6 +1632,13 @@ class ftx extends Exchange {
         $isStopOrder = $isTakeProfit || $isStopLoss || $isTriggerPrice;
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($isStopOrder) {
+            if ($triggerPrice === null) {
+                if ($isTakeProfit) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $takeProfitPrice param for a takeProfit order');
+                } elseif ($isStopLoss) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $stopLossPrice param for a stop order');
+                }
+            }
             $method = 'privatePostConditionalOrders';
             $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
             if (($type === 'limit') && ($price === null)) {
