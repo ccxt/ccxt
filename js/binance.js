@@ -2290,7 +2290,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the binance api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {int|undefined} params.till timestamp in ms of the latest candle to fetch
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2300,8 +2300,8 @@ module.exports = class binance extends Exchange {
         const defaultLimit = 500;
         const maxLimit = 1500;
         const price = this.safeString (params, 'price');
-        const till = this.safeInteger (params, 'till');
-        params = this.omit (params, [ 'price', 'till' ]);
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'interval': this.timeframes[timeframe],
@@ -2319,8 +2319,8 @@ module.exports = class binance extends Exchange {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            if (till !== undefined) {
-                request['endTime'] = till;
+            if (until !== undefined) {
+                request['endTime'] = until;
             } else if (market['inverse']) {
                 if (since > 0) {
                     const duration = this.parseTimeframe (timeframe);
@@ -2330,8 +2330,8 @@ module.exports = class binance extends Exchange {
                 }
             }
         }
-        if (till !== undefined) {
-            request['endTime'] = till;
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
