@@ -1190,7 +1190,7 @@ module.exports = class wavesexchange extends Exchange {
             return undefined;
         }
         const precise = new Precise (amount);
-        precise.decimals = precise.decimals + scale;
+        precise.decimals = this.sum (precise.decimals, scale);
         precise.reduce ();
         return precise.toString ();
     }
@@ -1211,7 +1211,7 @@ module.exports = class wavesexchange extends Exchange {
     priceFromPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const scale = wavesPrecision - market['precision']['amount'] + market['precision']['price'];
+        const scale = wavesPrecision - this.sum (market['precision']['amount'], market['precision']['price']);
         return this.fromPrecision (price, scale);
     }
 
