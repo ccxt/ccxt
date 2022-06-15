@@ -39,7 +39,16 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /this\.[a-zA-Z0-9]+ \(/g, trimmedUnCamelCase ],
+            [ /\.safeFloat2\s/g, '.safe_float_2'],
+            [ /\.safeInteger2\s/g, '.safe_integer_2'],
+            [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
+            [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
+            [ /\.safeString2\s/g, '.safe_string_2'],
+            [ /\.safeNumber2\s/g, '.safe_number_2'],
+            [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
+            [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
+            [ /\.safeValue2\s/g, '.safe_value_2'],
+            [ /this\.[a-zA-Z0-9]+ \(/g, this.trimmedUnCamelCase ],
         ]
     }
 

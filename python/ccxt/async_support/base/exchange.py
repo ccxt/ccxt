@@ -791,7 +791,7 @@ class Exchange(BaseExchange):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         await self.load_markets()
-        trades = await self.fetchTrades(symbol, since, limit, params)
+        trades = await self.fetch_trades(symbol, since, limit, params)
         ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
         for i in range(0, len(ohlcvc)):
@@ -1000,7 +1000,7 @@ class Exchange(BaseExchange):
         for i in range(0, len(trades)):
             trade = self.extend(self.parse_trade(trades[i], market), params)
             result.append(trade)
-        result = self.sort_by_2(result, 'timestamp', 'id')
+        result = self.sort_by2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
         tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
@@ -1100,12 +1100,12 @@ class Exchange(BaseExchange):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         await self.load_markets()
-        trades = await self.fetchTrades(symbol, since, limit, params)
+        trades = await self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcvc(trades, timeframe, since, limit)
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
+        return self.parse_ohlc_vs(result, market, timeframe, since, limit)
 
     async def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
         return await self.edit_limit_order(id, symbol, 'buy', amount, price, params)
@@ -1117,7 +1117,7 @@ class Exchange(BaseExchange):
         return await self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
-        await self.cancelOrder(id, symbol)
+        await self.cancel_order(id, symbol)
         return await self.create_order(symbol, type, side, amount, price, params)
 
     async def fetch_permissions(self, params={}):
@@ -1243,7 +1243,7 @@ class Exchange(BaseExchange):
 
     async def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            time = await self.fetchTime(params)
+            time = await self.fetch_time(params)
             self.status = self.extend(self.status, {
                 'updated': time,
             })
@@ -1356,7 +1356,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     async def cancel_unified_order(self, order, params={}):
-        return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
@@ -1381,7 +1381,7 @@ class Exchange(BaseExchange):
 
     async def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
-            depositAddresses = await self.fetchDepositAddresses([code], params)
+            depositAddresses = await self.fetch_deposit_addresses([code], params)
             depositAddress = self.safe_value(depositAddresses, code)
             if depositAddress is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
@@ -1494,7 +1494,7 @@ class Exchange(BaseExchange):
         return '1e' + Precise.string_neg(precision)
 
     async def load_time_difference(self, params={}):
-        serverTime = await self.fetchTime(params)
+        serverTime = await self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -1682,7 +1682,7 @@ class Exchange(BaseExchange):
             market = await self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-            rates = await self.fetchFundingRates([symbol], params)
+            rates = await self.fetch_funding_rates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
                 raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
