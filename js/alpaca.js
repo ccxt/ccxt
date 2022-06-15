@@ -393,6 +393,22 @@ module.exports = class alpaca extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the alpaca api endpoint
+         * @param {float} params.triggerPrice The price at which a trigger order is triggered at
+         * @param {float} params.trailPrice Threshould that adjusts the stopPrice
+         * @param {float} params.stopLossPrice The price at which a stop loss order is triggered at
+         * @param {float} params.takeProfitPrice The price at which a take profit order is triggered at
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
@@ -406,7 +422,7 @@ module.exports = class alpaca extends Exchange {
         const trailPrice = this.safeString2 (params, 'trailPrice', 'trail_price');
         const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stop_loss');
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'take_profit');
-        if (type === 'trailling_stop' || trailPrice !== undefined) {
+        if (type === 'trailing_stop' || trailPrice !== undefined) {
             request['type'] = 'trailing_stop';
             request['trail_price'] = this.priceToPrecision (symbol, trailPrice);
         } else if (triggerPrice !== undefined) {
