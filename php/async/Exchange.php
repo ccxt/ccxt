@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.87.43';
+$version = '1.87.48';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.87.43';
+    const VERSION = '1.87.48';
 
     public static $loop;
     public static $kernel;
@@ -1834,12 +1834,44 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_tickers($tickers, $symbols = null, $params = array ()) {
-        $result = array();
-        $tickers = $this->to_array($tickers);
-        for ($i = 0; $i < count($tickers); $i++) {
-            $result[] = array_merge($this->parse_ticker($tickers[$i]), $params);
+        //
+        // the value of $tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1' => array( ... ),
+        //         'marketId2' => array( ... ),
+        //         'marketId3' => array( ... ),
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     array(
+        //         array( 'market' => 'marketId1', ... ),
+        //         array( 'market' => 'marketId2', ... ),
+        //         array( 'market' => 'marketId3', ... ),
+        //         ...
+        //     )
+        //
+        $results = array();
+        if (gettype($tickers) === 'array' && array_keys($tickers) === array_keys(array_keys($tickers))) {
+            for ($i = 0; $i < count($tickers); $i++) {
+                $ticker = array_merge($this->parse_ticker($tickers[$i]), $params);
+                $results[] = $ticker;
+            }
+        } else {
+            $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $ticker = array_merge($this->parse_ticker($tickers[$marketId], $market), $params);
+                $results[] = $ticker;
+            }
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        $symbols = $this->market_symbols($symbols);
+        return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {

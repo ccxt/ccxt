@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.87.43'
+const version = '1.87.48'
 
 Exchange.ccxtVersion = version
 
@@ -110,6 +110,7 @@ const exchanges = {
     'fmfwio':                  require ('./js/fmfwio.js'),
     'ftx':                     require ('./js/ftx.js'),
     'ftxus':                   require ('./js/ftxus.js'),
+    'gate':                    require ('./js/gate.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
