@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.68'
+__version__ = '1.1.69'
 
 # -----------------------------------------------------------------------------
 
@@ -78,6 +78,7 @@ from ccxt.async_support.bl3p import bl3p                                  # noqa
 from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
+from ccxt.async_support.btcex import btcex                                # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
@@ -162,6 +163,7 @@ from ccxtpro.coinflex import coinflex                                     # noqa
 from ccxtpro.currencycom import currencycom                               # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.ftxus import ftxus                                           # noqa: F401
+from ccxtpro.gate import gate                                             # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
 from ccxtpro.hollaex import hollaex                                       # noqa: F401

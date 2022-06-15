@@ -115,7 +115,8 @@ declare module 'ccxt.pro' {
     export class currencycom extends Exchange {}
     export class ftx extends Exchange {}
     export class ftxus extends ftx {}
-    export class gateio extends Exchange {}
+    export class gate extends Exchange {}
+    export class gateio extends gate {}
     export class hitbtc extends Exchange {}
     export class hollaex extends Exchange {}
     export class huobi extends Exchange {}
