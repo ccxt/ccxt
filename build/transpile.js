@@ -717,7 +717,7 @@ class Transpiler {
                 ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)        ]
     }
 
-    createPythonClass (className, baseClass, body, methods, async = false, docstring = undefined) {
+    createPythonClass (className, baseClass, body, methods, async = false, docstring = '') {
 
         let bodyAsString = body.join ("\n")
         docstring = docstring.replace ('/**', '"""');
@@ -748,7 +748,9 @@ class Transpiler {
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
-        header.push (docstring);
+        if (docstring) {
+            header.push (docstring);
+        }
 
         const footer = [
             '', // footer (last empty line)
@@ -882,9 +884,12 @@ class Transpiler {
         ]
     }
 
-    createPHPClass (className, baseClass, body, methods, async = false) {
+    createPHPClass (className, baseClass, body, methods, async = false, docstring = '') {
 
         let bodyAsString = body.join ("\n")
+        docstring = docstring.replace (/\s+\* @class/, '');
+        docstring = docstring.replace (/\s+\* @name .*/, '');
+        docstring = docstring.replace (/@description /, '');
 
         let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
 
@@ -940,6 +945,9 @@ class Transpiler {
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
+        if (docstring) {
+            header.push (docstring);
+        }
 
         const footer = [
             "}\n",
@@ -1172,8 +1180,8 @@ class Transpiler {
         return {
             python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync, docstring),
             python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async, docstring),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync, docstring),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async, docstring),
             className,
             baseClass,
         }
