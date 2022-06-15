@@ -2873,14 +2873,13 @@ module.exports = class gate extends Exchange {
         const market = this.market (symbol);
         const contract = market['contract'];
         const trigger = this.safeValue (params, 'trigger');
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isTriggerOrder || isStopLossOrder || isTakeProfitOrder;
-        if (this.sum (isStopLossOrder, isTakeProfitOrder, isTriggerOrder) > 1) {
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopLossOrder && isTakeProfitOrder) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
         let methodTail = 'Orders';
@@ -3002,12 +3001,11 @@ module.exports = class gate extends Exchange {
                 if (trigger === undefined) {
                     let rule = undefined;
                     let triggerOrderPrice = undefined;
-                    if (isStopLossOrder || isTriggerOrder) {
+                    if (isStopLossOrder) {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (side === 'buy') ? 1 : 2;
-                        const selectedPrice = isStopLossOrder ? stopLossPrice : triggerPrice;
-                        triggerOrderPrice = this.priceToPrecision (symbol, selectedPrice);
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
                     } else if (isTakeProfitOrder) {
                         rule = (side === 'buy') ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
@@ -3047,12 +3045,11 @@ module.exports = class gate extends Exchange {
                     const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
                     let rule = undefined;
                     let triggerOrderPrice = undefined;
-                    if (isStopLossOrder || isTriggerOrder) {
+                    if (isStopLossOrder) {
                         // we let trigger orders be aliases for stopLoss orders because
                         // gateio doesn't accept conventional trigger orders for spot markets
                         rule = (side === 'buy') ? '>=' : '<=';
-                        const selectedPrice = isStopLossOrder ? stopLossPrice : triggerPrice;
-                        triggerOrderPrice = this.priceToPrecision (symbol, selectedPrice);
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
                     } else if (isTakeProfitOrder) {
                         rule = (side === 'buy') ? '<=' : '>=';
                         triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
