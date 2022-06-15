@@ -4743,16 +4743,16 @@ Returns
 Fees are often grouped into two categories:
 
 - Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
-- Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+- Transaction fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
 ```Javascript
 fetchFees (params = {})
-fetchTradingFee (params = {})
+fetchTradingFee (symbol, params = {})
 fetchTradingFees (params = {})
-fetchFundingFee (params = {})
-fetchFundingFees (params = {})
+fetchTransactionFee (code, params = {})
+fetchTransactionFees (codes  = undefined, params = {})
 ```
 
 The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
@@ -4761,7 +4761,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-`fetchFees` will automatically call both `fetchFundingFees` and `fetchTradingFees` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
+`fetchFees` will automatically call both `fetchTradingFees` and `fetchTransactionFees` to get all the fee information. You can call `fetchTradingFees` or `fetchTransactionFees` for more precise control over what endpoint on the exchange is requested.
 
 ### Fee Structure
 
@@ -4911,39 +4911,40 @@ Returns
 }
 ```
 
-### Funding Fees
+### Transaction Fees
 
-Funding fees are properties of currencies (account balance).
+Transaction fees are properties of currencies (account balance).
 
-Accessing funding fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
+Accessing transaction fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
 
 ```Javascript
 exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 ```
 
-#### Funding Fee Schedule
+#### Transaction Fee Schedule
 
-Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified methods
+Some exchanges have an endpoint for fetching the transaction fee schedule, this is mapped to the unified methods
 
-- `fetchFundingFee ()` for a single funding fee schedule
-- `fetchFundingFees ()` for all funding fee schedules
+- `fetchTransactionFee ()` for a single transaction fee schedule
+- `fetchTransactionFees ()` for all transaction fee schedules
 
 ```Javascript
-fetchFundingFee (code, params = {})
+fetchTransactionFee (code, params = {})
 ```
 
 Parameters
 
 - **code** (String) *required* Unified CCXT currency code, required (e.g. `"USDT"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"type": "deposit"}`)
+- **params.network** (String) Specify unified CCXT network (e.g. `{"network": "TRC20"}`)
 
 Returns
 
-- A [funding fee structure](#funding-fee-structure)
+- A [transaction fee structure](#transaction-fee-structure)
 
 ```Javascript
-fetchFundingFees (params = {})
+fetchTransactionFees (codes = undefined, params = {})
 ```
 
 Parameters
@@ -4952,9 +4953,9 @@ Parameters
 
 Returns
 
-- An array of [funding fee structures](#funding-fee-structure)
+- An array of [transaction fee structures](#transaction-fee-structure)
 
-##### Funding Fee Structure
+##### Transaction Fee Structure
 
 ```JavaScript
 {
