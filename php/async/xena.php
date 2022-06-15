@@ -336,7 +336,7 @@ class xena extends Exchange {
             }
             $inverse = $this->safe_value($market, 'inverse', false);
             $contract = $swap || $future;
-            $pricePrecision = $this->safe_integer_2($market, 'tickSize', 'pricePrecision');
+            $pricePrecision = $this->safe_string_2($market, 'tickSize', 'pricePrecision');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -363,7 +363,7 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('0')),
+                    'amount' => $this->parse_number('1'),
                     'price' => $this->parse_number($this->parse_precision($pricePrecision)),
                 ),
                 'limits' => array(

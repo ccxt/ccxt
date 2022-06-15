@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
@@ -441,7 +440,6 @@ class crex24(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            withdrawalPrecision = self.safe_integer(currency, 'withdrawalPrecision')
             precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawalPrecision')))
             address = self.safe_value(currency, 'BaseAddress')
             deposit = self.safe_value(currency, 'depositsAllowed')
@@ -465,7 +463,7 @@ class crex24(Exchange):
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': math.pow(10, withdrawalPrecision),
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),

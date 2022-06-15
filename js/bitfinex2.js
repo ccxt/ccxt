@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -277,6 +278,7 @@ module.exports = class bitfinex2 extends Exchange {
                     'withdraw': {},
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
                 'precision': 'R0', // P0, P1, P2, P3, P4, R0
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
@@ -389,6 +391,30 @@ module.exports = class bitfinex2 extends Exchange {
 
     getCurrencyId (code) {
         return 'f' + code;
+    }
+
+    getCurrencyName (code) {
+        // temporary fix for transpiler recognition, even though this is in parent class
+        if (code in this.options['currencyNames']) {
+            return this.options['currencyNames'][code];
+        }
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
+    }
+
+    amountToPrecision (symbol, amount) {
+        // https://docs.bitfinex.com/docs/introduction#amount-precision
+        // The amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    priceToPrecision (symbol, price) {
+        price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return this.decimalToPrecision (price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchStatus (params = {}) {
@@ -514,7 +540,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': this.safeInteger (market, 'price_precision'),
+                    'price': parseInt ('5'),
                 },
                 'limits': {
                     'leverage': {
@@ -1517,14 +1543,15 @@ module.exports = class bitfinex2 extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
-        amount = (side === 'buy') ? amount : -amount;
+        let amountString = this.amountToPrecision (symbol, amount);
+        amountString = (side === 'buy') ? amountString : Precise.stringNeg (amount);
         const request = {
             // 'gid': 0123456789, // int32,  optional group id for the order
             // 'cid': 0123456789, // int32 client order id
             'type': orderType,
             'symbol': market['id'],
             // 'price': this.numberToString (price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': amountString,
             // 'flags': 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
             // 'lev': 10, // leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
             // 'price_trailing': this.numberToString (priceTrailing),

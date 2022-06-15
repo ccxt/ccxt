@@ -261,8 +261,8 @@ class coinex extends Exchange {
                 ),
             ),
             'precision' => array(
-                'amount' => 8,
-                'price' => 8,
+                'amount' => $this->parse_number('0.00000001'),
+                'price' => $this->parse_number('0.00000001'),
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -965,6 +965,7 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
@@ -2575,17 +2576,12 @@ class coinex extends Exchange {
          * @param {dict} $params extra parameters specific to the coinex api endpoint
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
-        $swap = $market['swap'];
+        $market = null;
         if ($limit === null) {
             $limit = 100;
         }
         $request = array(
-            'market' => $market['id'], // SPOT and SWAP
             'limit' => $limit, // SPOT and SWAP
             'offset' => 0, // SWAP, means query from a certain record
             // 'page' => 1, // SPOT
@@ -2593,6 +2589,16 @@ class coinex extends Exchange {
             // 'start_time' => $since, // SWAP
             // 'end_time' => 1524228297, // SWAP
         );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        if ($type !== 'spot' && $symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument for non-spot markets');
+        }
+        $swap = ($type === 'swap');
         $method = null;
         if ($swap) {
             $method = 'perpetualPublicGetMarketUserDeals';
@@ -2709,7 +2715,7 @@ class coinex extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $symbol = null;
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = is_array($symbols) ? count($symbols) : 0;
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
@@ -3882,7 +3888,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);
@@ -3937,7 +3943,7 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) != 0) {
+        if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_value($data, 'data', array());
         }
         return $this->parse_transactions($data, $currency, $since, $limit);

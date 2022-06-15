@@ -315,13 +315,6 @@ class woo(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            minQuote = self.safe_number(market, 'quote_min')
-            maxQuote = self.safe_number(market, 'quote_max')
-            minBase = self.safe_number(market, 'base_min')
-            maxBase = self.safe_number(market, 'base_max')
-            priceScale = self.safe_number(market, 'quote_tick')
-            quantityScale = self.safe_number(market, 'base_tick')
-            minCost = self.safe_number(market, 'min_notional')
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -347,8 +340,8 @@ class woo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': quantityScale,
-                    'price': priceScale,
+                    'amount': self.safe_number(market, 'base_tick'),
+                    'price': self.safe_number(market, 'quote_tick'),
                 },
                 'limits': {
                     'leverage': {
@@ -356,15 +349,15 @@ class woo(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': minBase,
-                        'max': maxBase,
+                        'min': self.safe_number(market, 'base_min'),
+                        'max': self.safe_number(market, 'base_max'),
                     },
                     'price': {
-                        'min': minQuote,
-                        'max': maxQuote,
+                        'min': self.safe_number(market, 'quote_min'),
+                        'max': self.safe_number(market, 'quote_max'),
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': self.safe_number(market, 'min_notional'),
                         'max': None,
                     },
                 },

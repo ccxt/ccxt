@@ -115,9 +115,9 @@ class coinone extends Exchange {
                 ),
             ),
             'precision' => array(
-                'price' => 0.0001,
-                'amount' => 0.0001,
-                'cost' => 0.00000001,
+                'price' => $this->parse_number('0.0001'),
+                'amount' => $this->parse_number('0.0001'),
+                'cost' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(

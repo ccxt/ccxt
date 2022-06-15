@@ -2302,7 +2302,7 @@ class gateio extends Exchange {
         //          "l" => "40783.94"         // Lowest price
         //     }
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),   // unix timestamp in seconds
                 $this->safe_number($ohlcv, 5),      // open price
@@ -2543,7 +2543,8 @@ class gateio extends Exchange {
         //         "order_id" => "125924049993",
         //         "fee" => "0.00301420496",
         //         "fee_currency" => "USDT",
-        //         "point_fee" => "0","gt_fee":"0"
+        //         "point_fee" => "1.1",
+        //         "gt_fee":"2.2"
         //     }
         //
         // perpetual swap rest
@@ -2581,20 +2582,28 @@ class gateio extends Exchange {
         $amountString = Precise::string_abs($amountString);
         $side = $this->safe_string_2($trade, 'side', 'type', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
+        $feeAmount = $this->safe_string($trade, 'fee');
         $gtFee = $this->safe_string($trade, 'gt_fee');
-        $feeCurrency = null;
-        $feeCostString = null;
-        if ($gtFee === '0') {
-            $feeCurrency = $this->safe_string($trade, 'fee_currency');
-            $feeCostString = $this->safe_string($trade, 'fee');
-        } else {
-            $feeCurrency = 'GT';
-            $feeCostString = $gtFee;
+        $pointFee = $this->safe_string($trade, 'point_fee');
+        $fees = array();
+        if ($feeAmount && $feeAmount !== '0') {
+            $fees[] = array(
+                'cost' => $feeAmount,
+                'currency' => $this->safe_string($trade, 'fee_currency'),
+            );
         }
-        $fee = array(
-            'cost' => $feeCostString,
-            'currency' => $feeCurrency,
-        );
+        if ($gtFee && $gtFee !== '0') {
+            $fees[] = array(
+                'cost' => $gtFee,
+                'currency' => 'GT',
+            );
+        }
+        if ($pointFee && $pointFee !== '0') {
+            $fees[] = array(
+                'cost' => $pointFee,
+                'currency' => 'POINT',
+            );
+        }
         $takerOrMaker = $this->safe_string($trade, 'role');
         return $this->safe_trade(array(
             'info' => $trade,
@@ -2609,7 +2618,8 @@ class gateio extends Exchange {
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => null,
-            'fee' => $fee,
+            'fee' => null,
+            'fees' => $fees,
         ), $market);
     }
 

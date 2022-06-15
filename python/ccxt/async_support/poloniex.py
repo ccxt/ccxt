@@ -155,11 +155,11 @@ class poloniex(Exchange):
                 },
                 'price': {
                     'min': 0.00000001,
-                    'max': 1000000000,
+                    'max': None,
                 },
                 'cost': {
-                    'min': 0.00000000,
-                    'max': 1000000000,
+                    'min': None,
+                    'max': None,
                 },
             },
             'commonCurrencies': {

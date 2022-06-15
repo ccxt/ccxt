@@ -271,7 +271,7 @@ class hitbtc extends Exchange {
     }
 
     public function fee_to_precision($symbol, $fee) {
-        return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
+        return $this->decimal_to_precision($fee, TRUNCATE, 0.00000001, TICK_SIZE);
     }
 
     public function fetch_markets($params = array ()) {
@@ -464,8 +464,8 @@ class hitbtc extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $decimals = $this->safe_integer($currency, 'precisionTransfer', 8);
-            $precision = 1 / pow(10, $decimals);
+            $precision = $this->safe_string($currency, 'precisionTransfer', '8');
+            $decimals = $this->parse_number($precision);
             $code = $this->safe_currency_code($id);
             $payin = $this->safe_value($currency, 'payinEnabled');
             $payout = $this->safe_value($currency, 'payoutEnabled');
@@ -494,15 +494,15 @@ class hitbtc extends Exchange {
                 'deposit' => $payin,
                 'withdraw' => $payout,
                 'fee' => $this->safe_number($currency, 'payoutFee'), // todo => redesign
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($precision)),
                 'limits' => array(
                     'amount' => array(
                         'min' => 1 / pow(10, $decimals),
-                        'max' => pow(10, $decimals),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -1251,7 +1251,7 @@ class hitbtc extends Exchange {
         $request = array(
             // 'symbol' => 'BTC/USD', // optional
             // 'sort' =>   'DESC', // or 'ASC'
-            // 'by' =>     'timestamp', // or 'id' String timestamp by default, or id
+            // 'by' =>     'timestamp', // or 'id' 'strval' timestamp by default, or id
             // 'from' =>   'Datetime or Number', // ISO 8601
             // 'till' =>   'Datetime or Number',
             // 'limit' =>  100,

@@ -303,7 +303,7 @@ class digifinex(Exchange):
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': self.parse_number(self.parse_precision('8')),  # todo fix hardcoded value
+                    'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
                     'limits': {
                         'amount': {
                             'min': None,

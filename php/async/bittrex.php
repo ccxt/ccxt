@@ -345,7 +345,7 @@ class bittrex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('8')),
+                    'amount' => $this->parse_number('0.00000001'),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision', '8'))),
                 ),
                 'limits' => array(
@@ -467,7 +467,7 @@ class bittrex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
-            $precision = $this->parse_number($this->parse_precision('8')); // default $precision, todo => fix "magic constants"
+            $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
             $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
             $isActive = $this->safe_string($currency, 'status');
             $result[$code] = array(

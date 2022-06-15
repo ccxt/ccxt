@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.86.80'
+__version__ = '1.87.33'
 
 # -----------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.decimal_to_precision import TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
 
@@ -228,13 +228,6 @@ class Exchange(BaseExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def fetch_l2_order_book(self, symbol, limit=None, params={}):
-        orderbook = await self.fetch_order_book(symbol, limit, params)
-        return self.extend(orderbook, {
-            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
-            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
-        })
-
     async def perform_order_book_request(self, market, limit=None, params={}):
         raise NotSupported(self.id + ' performOrderBookRequest() is not supported yet')
 
@@ -247,28 +240,702 @@ class Exchange(BaseExchange):
     async def fetchOHLCVC(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        ohlcvs = await self.fetch_ohlcvc(symbol, timeframe, since, limit, params)
-        return [ohlcv[0:-1] for ohlcv in ohlcvs]
-
-    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
-
     async def fetch_full_tickers(self, symbols=None, params={}):
         return await self.fetch_tickers(symbols, params)
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########        ########################        ########################
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########                        ########                        ########
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ########        ########        ########                        ########
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ################        ########################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########        ########        ################        ################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+    # ########################################################################
+
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def set_markets(self, markets, currencies=None):
+        values = []
+        marketValues = self.to_array(markets)
+        for i in range(0, len(marketValues)):
+            market = self.deep_extend(self.safe_market(), {
+                'precision': self.precision,
+                'limits': self.limits,
+            }, self.fees['trading'], marketValues[i])
+            values.append(market)
+        self.markets = self.index_by(values, 'symbol')
+        self.markets_by_id = self.index_by(markets, 'id')
+        marketsSortedBySymbol = self.keysort(self.markets)
+        marketsSortedById = self.keysort(self.markets_by_id)
+        self.symbols = list(marketsSortedBySymbol.keys())
+        self.ids = list(marketsSortedById.keys())
+        if currencies is not None:
+            self.currencies = self.deep_extend(self.currencies, currencies)
+        else:
+            baseCurrencies = []
+            quoteCurrencies = []
+            for i in range(0, len(values)):
+                market = values[i]
+                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('0.00000001')
+                marketPrecision = self.safe_value(market, 'precision', {})
+                if 'base' in market:
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
+                    currency = {
+                        'id': self.safe_string_2(market, 'baseId', 'base'),
+                        'numericId': self.safe_string(market, 'baseNumericId'),
+                        'code': self.safe_string(market, 'base'),
+                        'precision': currencyPrecision,
+                    }
+                    baseCurrencies.append(currency)
+                if 'quote' in market:
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currency = {
+                        'id': self.safe_string_2(market, 'quoteId', 'quote'),
+                        'numericId': self.safe_string(market, 'quoteNumericId'),
+                        'code': self.safe_string(market, 'quote'),
+                        'precision': currencyPrecision,
+                    }
+                    quoteCurrencies.append(currency)
+            baseCurrencies = self.sort_by(baseCurrencies, 'code')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            self.baseCurrencies = self.index_by(baseCurrencies, 'code')
+            self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
+            allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
+            groupedCurrencies = self.group_by(allCurrencies, 'code')
+            codes = list(groupedCurrencies.keys())
+            resultingCurrencies = []
+            for i in range(0, len(codes)):
+                code = codes[i]
+                groupedCurrenciesCode = self.safe_value(groupedCurrencies, code, [])
+                highestPrecisionCurrency = self.safe_value(groupedCurrenciesCode, 0)
+                for j in range(1, len(groupedCurrenciesCode)):
+                    currentCurrency = groupedCurrenciesCode[j]
+                    if self.precisionMode == TICK_SIZE:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] < highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                    else:
+                        highestPrecisionCurrency = currentCurrency if (currentCurrency['precision'] > highestPrecisionCurrency['precision']) else highestPrecisionCurrency
+                resultingCurrencies.append(highestPrecisionCurrency)
+            sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
+            self.currencies = self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code'))
+        self.currencies_by_id = self.index_by(self.currencies, 'id')
+        currenciesSortedByCode = self.keysort(self.currencies)
+        self.codes = list(currenciesSortedByCode.keys())
+        return self.markets
+
+    def safe_balance(self, balance):
+        balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
+        codes = list(balances.keys())
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+        for i in range(0, len(codes)):
+            code = codes[i]
+            total = self.safe_string(balance[code], 'total')
+            free = self.safe_string(balance[code], 'free')
+            used = self.safe_string(balance[code], 'used')
+            if total is None:
+                total = Precise.string_add(free, used)
+            if free is None:
+                free = Precise.string_sub(total, used)
+            if used is None:
+                used = Precise.string_sub(total, free)
+            balance[code]['free'] = self.parse_number(free)
+            balance[code]['used'] = self.parse_number(used)
+            balance[code]['total'] = self.parse_number(total)
+            balance['free'][code] = balance[code]['free']
+            balance['used'][code] = balance[code]['used']
+            balance['total'][code] = balance[code]['total']
+        return balance
+
+    def safe_order(self, order, market=None):
+        # parses numbers as strings
+        # it is important pass the trades as unparsed rawTrades
+        amount = self.omit_zero(self.safe_string(order, 'amount'))
+        remaining = self.safe_string(order, 'remaining')
+        filled = self.safe_string(order, 'filled')
+        cost = self.safe_string(order, 'cost')
+        average = self.omit_zero(self.safe_string(order, 'average'))
+        price = self.omit_zero(self.safe_string(order, 'price'))
+        lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        parseFilled = (filled is None)
+        parseCost = (cost is None)
+        parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
+        fee = self.safe_value(order, 'fee')
+        parseFee = (fee is None)
+        parseFees = self.safe_value(order, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = self.safe_value(order, 'fees', [])
+        trades = []
+        if parseFilled or parseCost or shouldParseFees:
+            rawTrades = self.safe_value(order, 'trades', trades)
+            oldNumber = self.number
+            # we parse trades as strings here!
+            self.number = str
+            trades = self.parse_trades(rawTrades, market, None, None, {
+                'symbol': order['symbol'],
+                'side': order['side'],
+                'type': order['type'],
+                'order': order['id'],
+            })
+            self.number = oldNumber
+            tradesLength = 0
+            isArray = isinstance(trades, list)
+            if isArray:
+                tradesLength = len(trades)
+            if isArray and (tradesLength > 0):
+                # move properties that are defined in trades up into the order
+                if order['symbol'] is None:
+                    order['symbol'] = trades[0]['symbol']
+                if order['side'] is None:
+                    order['side'] = trades[0]['side']
+                if order['type'] is None:
+                    order['type'] = trades[0]['type']
+                if order['id'] is None:
+                    order['id'] = trades[0]['order']
+                if parseFilled:
+                    filled = '0'
+                if parseCost:
+                    cost = '0'
+                for i in range(0, len(trades)):
+                    trade = trades[i]
+                    tradeAmount = self.safe_string(trade, 'amount')
+                    if parseFilled and (tradeAmount is not None):
+                        filled = Precise.string_add(filled, tradeAmount)
+                    tradeCost = self.safe_string(trade, 'cost')
+                    if parseCost and (tradeCost is not None):
+                        cost = Precise.string_add(cost, tradeCost)
+                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
+                        if lastTradeTimeTimestamp is None:
+                            lastTradeTimeTimestamp = tradeTimestamp
+                        else:
+                            lastTradeTimeTimestamp = max(lastTradeTimeTimestamp, tradeTimestamp)
+                    if shouldParseFees:
+                        tradeFees = self.safe_value(trade, 'fees')
+                        if tradeFees is not None:
+                            for j in range(0, len(tradeFees)):
+                                tradeFee = tradeFees[j]
+                                fees.append(self.extend({}, tradeFee))
+                        else:
+                            tradeFee = self.safe_value(trade, 'fee')
+                            if tradeFee is not None:
+                                fees.append(self.extend({}, tradeFee))
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
+                if 'rate' in reducedFees[i]:
+                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
+            if not parseFee and (reducedLength == 0):
+                fee['cost'] = self.safe_number(fee, 'cost')
+                if 'rate' in fee:
+                    fee['rate'] = self.safe_number(fee, 'rate')
+                reducedFees.append(fee)
+            if parseFees:
+                order['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                order['fee'] = reducedFees[0]
+        if amount is None:
+            # ensure amount = filled + remaining
+            if filled is not None and remaining is not None:
+                amount = Precise.string_add(filled, remaining)
+            elif self.safe_string(order, 'status') == 'closed':
+                amount = filled
+        if filled is None:
+            if amount is not None and remaining is not None:
+                filled = Precise.string_sub(amount, remaining)
+        if remaining is None:
+            if amount is not None and filled is not None:
+                remaining = Precise.string_sub(amount, filled)
+        # ensure that the average field is calculated correctly
+        if average is None:
+            if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
+                average = Precise.string_div(cost, filled)
+        # also ensure the cost field is calculated correctly
+        costPriceExists = (average is not None) or (price is not None)
+        if parseCost and (filled is not None) and costPriceExists:
+            multiplyPrice = None
+            if average is None:
+                multiplyPrice = price
+            else:
+                multiplyPrice = average
+            # contract trading
+            contractSize = self.safe_string(market, 'contractSize')
+            if contractSize is not None:
+                inverse = self.safe_value(market, 'inverse', False)
+                if inverse:
+                    multiplyPrice = Precise.string_div('1', multiplyPrice)
+                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
+            cost = Precise.string_mul(multiplyPrice, filled)
+        # support for market orders
+        orderType = self.safe_value(order, 'type')
+        emptyPrice = (price is None) or Precise.string_equals(price, '0')
+        if emptyPrice and (orderType == 'market'):
+            price = average
+        # we have trades with string values at self point so we will mutate them
+        for i in range(0, len(trades)):
+            entry = trades[i]
+            entry['amount'] = self.safe_number(entry, 'amount')
+            entry['price'] = self.safe_number(entry, 'price')
+            entry['cost'] = self.safe_number(entry, 'cost')
+            fee = self.safe_value(entry, 'fee', {})
+            fee['cost'] = self.safe_number(fee, 'cost')
+            if 'rate' in fee:
+                fee['rate'] = self.safe_number(fee, 'rate')
+            entry['fee'] = fee
+        # timeInForceHandling
+        timeInForce = self.safe_string(order, 'timeInForce')
+        if timeInForce is None:
+            if self.safe_string(order, 'type') == 'market':
+                timeInForce = 'IOC'
+            # allow postOnly override
+            if self.safe_value(order, 'postOnly', False):
+                timeInForce = 'PO'
+        return self.extend(order, {
+            'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'price': self.parse_number(price),
+            'amount': self.parse_number(amount),
+            'cost': self.parse_number(cost),
+            'average': self.parse_number(average),
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(remaining),
+            'timeInForce': timeInForce,
+            'trades': trades,
+        })
+
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
+        #
+        # the value of orders is either a dict or a list
+        #
+        # dict
+        #
+        #     {
+        #         'id1': {...},
+        #         'id2': {...},
+        #         'id3': {...},
+        #         ...
+        #     }
+        #
+        # list
+        #
+        #     [
+        #         {'id': 'id1', ...},
+        #         {'id': 'id2', ...},
+        #         {'id': 'id3', ...},
+        #         ...
+        #     ]
+        #
+        results = []
+        if isinstance(orders, list):
+            for i in range(0, len(orders)):
+                order = self.extend(self.parse_order(orders[i], market), params)
+                results.append(order)
+        else:
+            ids = list(orders.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                order = self.extend(self.parse_order(self.extend({'id': id}, orders[id]), market), params)
+                results.append(order)
+        results = self.sort_by(results, 'timestamp')
+        symbol = market['symbol'] if (market is not None) else None
+        tail = since is None
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        feeSide = self.safe_string(market, 'feeSide', 'quote')
+        key = 'quote'
+        cost = None
+        if feeSide == 'quote':
+            # the fee is always in quote currency
+            cost = amount * price
+        elif feeSide == 'base':
+            # the fee is always in base currency
+            cost = amount
+        elif feeSide == 'get':
+            # the fee is always in the currency you get
+            cost = amount
+            if side == 'sell':
+                cost *= price
+            else:
+                key = 'base'
+        elif feeSide == 'give':
+            # the fee is always in the currency you give
+            cost = amount
+            if side == 'buy':
+                cost *= price
+            else:
+                key = 'base'
+        rate = market[takerOrMaker]
+        if cost is not None:
+            cost *= rate
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': cost,
+        }
+
+    def safe_trade(self, trade, market=None):
+        amount = self.safe_string(trade, 'amount')
+        price = self.safe_string(trade, 'price')
+        cost = self.safe_string(trade, 'cost')
+        if cost is None:
+            # contract trading
+            contractSize = self.safe_string(market, 'contractSize')
+            multiplyPrice = price
+            if contractSize is not None:
+                inverse = self.safe_value(market, 'inverse', False)
+                if inverse:
+                    multiplyPrice = Precise.string_div('1', price)
+                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
+            cost = Precise.string_mul(multiplyPrice, amount)
+        parseFee = self.safe_value(trade, 'fee') is None
+        parseFees = self.safe_value(trade, 'fees') is None
+        shouldParseFees = parseFee or parseFees
+        fees = []
+        if shouldParseFees:
+            tradeFees = self.safe_value(trade, 'fees')
+            if tradeFees is not None:
+                for j in range(0, len(tradeFees)):
+                    tradeFee = tradeFees[j]
+                    fees.append(self.extend({}, tradeFee))
+            else:
+                tradeFee = self.safe_value(trade, 'fee')
+                if tradeFee is not None:
+                    fees.append(self.extend({}, tradeFee))
+        fee = self.safe_value(trade, 'fee')
+        if shouldParseFees:
+            reducedFees = self.reduce_fees_by_currency(fees, True) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
+                if 'rate' in reducedFees[i]:
+                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
+            if not parseFee and (reducedLength == 0):
+                fee['cost'] = self.safe_number(fee, 'cost')
+                if 'rate' in fee:
+                    fee['rate'] = self.safe_number(fee, 'rate')
+                reducedFees.append(fee)
+            if parseFees:
+                trade['fees'] = reducedFees
+            if parseFee and (reducedLength == 1):
+                trade['fee'] = reducedFees[0]
+            tradeFee = self.safe_value(trade, 'fee')
+            if tradeFee is not None:
+                tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
+                if 'rate' in tradeFee:
+                    tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
+                trade['fee'] = tradeFee
+        trade['amount'] = self.parse_number(amount)
+        trade['price'] = self.parse_number(price)
+        trade['cost'] = self.parse_number(cost)
+        return trade
+
+    def reduce_fees_by_currency(self, fees, string=False):
+        #
+        # self function takes a list of fee structures having the following format
+        #
+        #     string = True
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': '0.1'},
+        #         {'currency': 'BTC', 'cost': '0.2'  },
+        #         {'currency': 'BTC', 'cost': '0.2', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.4', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
+        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #     ]
+        #
+        #     string = False
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': 0.1},
+        #         {'currency': 'BTC', 'cost': 0.2},
+        #         {'currency': 'BTC', 'cost': 0.2, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.4, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
+        #         {'currency': 'USDT', 'cost': 12.3456},
+        #     ]
+        #
+        # and returns a reduced fee list, where fees are summed per currency and rate(if any)
+        #
+        #     string = True
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': '0.3'  },
+        #         {'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123'},
+        #         {'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456'},
+        #         {'currency': 'USDT', 'cost': '12.3456'},
+        #     ]
+        #
+        #     string  = False
+        #
+        #     [
+        #         {'currency': 'BTC', 'cost': 0.3  },
+        #         {'currency': 'BTC', 'cost': 0.6, 'rate': 0.00123},
+        #         {'currency': 'BTC', 'cost': 0.5, 'rate': 0.00456},
+        #         {'currency': 'USDT', 'cost': 12.3456},
+        #     ]
+        #
+        reduced = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            feeCurrencyCode = self.safe_string(fee, 'currency')
+            if feeCurrencyCode is not None:
+                rate = self.safe_string(fee, 'rate')
+                cost = self.safe_value(fee, 'cost')
+                if not (feeCurrencyCode in reduced):
+                    reduced[feeCurrencyCode] = {}
+                rateKey = '' if (rate is None) else rate
+                if rateKey in reduced[feeCurrencyCode]:
+                    if string:
+                        reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                    else:
+                        reduced[feeCurrencyCode][rateKey]['cost'] = self.sum(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                else:
+                    reduced[feeCurrencyCode][rateKey] = {
+                        'currency': feeCurrencyCode,
+                        'cost': cost if string else self.parse_number(cost),
+                    }
+                    if rate is not None:
+                        reduced[feeCurrencyCode][rateKey]['rate'] = rate if string else self.parse_number(rate)
+        result = []
+        feeValues = list(reduced.values())
+        for i in range(0, len(feeValues)):
+            reducedFeeValues = list(feeValues[i].values())
+            result = self.array_concat(result, reducedFeeValues)
+        return result
+
+    def safe_ticker(self, ticker, market=None):
+        open = self.safe_value(ticker, 'open')
+        close = self.safe_value(ticker, 'close')
+        last = self.safe_value(ticker, 'last')
+        change = self.safe_value(ticker, 'change')
+        percentage = self.safe_value(ticker, 'percentage')
+        average = self.safe_value(ticker, 'average')
+        vwap = self.safe_value(ticker, 'vwap')
+        baseVolume = self.safe_value(ticker, 'baseVolume')
+        quoteVolume = self.safe_value(ticker, 'quoteVolume')
+        if vwap is None:
+            vwap = Precise.string_div(quoteVolume, baseVolume)
+        if (last is not None) and (close is None):
+            close = last
+        elif (last is None) and (close is not None):
+            last = close
+        if (last is not None) and (open is not None):
+            if change is None:
+                change = Precise.string_sub(last, open)
+            if average is None:
+                average = Precise.string_div(Precise.string_add(last, open), '2')
+        if (percentage is None) and (change is not None) and (open is not None) and Precise.string_gt(open, '0'):
+            percentage = Precise.string_mul(Precise.string_div(change, open), '100')
+        if (change is None) and (percentage is not None) and (open is not None):
+            change = Precise.string_div(Precise.string_mul(percentage, open), '100')
+        if (open is None) and (last is not None) and (change is not None):
+            open = Precise.string_sub(last, change)
+        # timestamp and symbol operations don't belong in safeTicker
+        # they should be done in the derived classes
+        return self.extend(ticker, {
+            'bid': self.safe_number(ticker, 'bid'),
+            'bidVolume': self.safe_number(ticker, 'bidVolume'),
+            'ask': self.safe_number(ticker, 'ask'),
+            'askVolume': self.safe_number(ticker, 'askVolume'),
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'open': self.parse_number(open),
+            'close': self.parse_number(close),
+            'last': self.parse_number(last),
+            'change': self.parse_number(change),
+            'percentage': self.parse_number(percentage),
+            'average': self.parse_number(average),
+            'vwap': self.parse_number(vwap),
+            'baseVolume': self.parse_number(baseVolume),
+            'quoteVolume': self.parse_number(quoteVolume),
+            'previousClose': self.safe_number(ticker, 'previousClose'),
+        })
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if not self.has['fetchTrades']:
+            raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
+        await self.load_markets()
+        trades = await self.fetchTrades(symbol, since, limit, params)
+        ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
+        result = []
+        for i in range(0, len(ohlcvc)):
+            result.append([
+                self.safe_integer(ohlcvc[i], 0),
+                self.safe_number(ohlcvc[i], 1),
+                self.safe_number(ohlcvc[i], 2),
+                self.safe_number(ohlcvc[i], 3),
+                self.safe_number(ohlcvc[i], 4),
+                self.safe_number(ohlcvc[i], 5),
+            ])
+        return result
+
+    def convert_trading_view_to_ohlcv(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+        result = []
+        timestamps = self.safe_value(ohlcvs, timestamp, [])
+        opens = self.safe_value(ohlcvs, open, [])
+        highs = self.safe_value(ohlcvs, high, [])
+        lows = self.safe_value(ohlcvs, low, [])
+        closes = self.safe_value(ohlcvs, close, [])
+        volumes = self.safe_value(ohlcvs, volume, [])
+        for i in range(0, len(timestamps)):
+            result.append([
+                self.safe_integer(timestamps, i) if ms else self.safe_timestamp(timestamps, i),
+                self.safe_value(opens, i),
+                self.safe_value(highs, i),
+                self.safe_value(lows, i),
+                self.safe_value(closes, i),
+                self.safe_value(volumes, i),
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs, timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
+        result = {}
+        result[timestamp] = []
+        result[open] = []
+        result[high] = []
+        result[low] = []
+        result[close] = []
+        result[volume] = []
+        for i in range(0, len(ohlcvs)):
+            ts = ohlcvs[i][0] if ms else int(ohlcvs[i][0] / 1000)
+            result[timestamp].append(ts)
+            result[open].append(ohlcvs[i][1])
+            result[high].append(ohlcvs[i][2])
+            result[low].append(ohlcvs[i][3])
+            result[close].append(ohlcvs[i][4])
+            result[volume].append(ohlcvs[i][5])
+        return result
+
+    def market_ids(self, symbols):
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.market_id(symbols[i]))
+        return result
+
+    def market_symbols(self, symbols):
+        if symbols is None:
+            return symbols
+        result = []
+        for i in range(0, len(symbols)):
+            result.append(self.symbol(symbols[i]))
+        return result
+
+    def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
+        bidasks = self.to_array(bidasks)
+        result = []
+        for i in range(0, len(bidasks)):
+            result.append(self.parse_bid_ask(bidasks[i], priceKey, amountKey))
+        return result
+
+    async def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = await self.fetch_order_book(symbol, limit, params)
+        return self.extend(orderbook, {
+            'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
+            'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
+        })
+
+    def filter_by_symbol(self, objects, symbol=None):
+        if symbol is None:
+            return objects
+        result = []
+        for i in range(0, len(objects)):
+            objectSymbol = self.safe_string(objects[i], 'symbol')
+            if objectSymbol == symbol:
+                result.append(objects[i])
+        return result
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        if isinstance(ohlcv, list):
+            return [
+                self.safe_integer(ohlcv, 0),  # timestamp
+                self.safe_number(ohlcv, 1),  # open
+                self.safe_number(ohlcv, 2),  # high
+                self.safe_number(ohlcv, 3),  # low
+                self.safe_number(ohlcv, 4),  # close
+                self.safe_number(ohlcv, 5),  # volume
+            ]
+        return ohlcv
+
+    def get_network(self, network, code):
+        network = network.upper()
+        aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        }
+        if network == code:
+            return network
+        elif network in aliases:
+            return aliases[network]
+        else:
+            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
 
     def safe_number_2(self, dictionary, key1, key2, d=None):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
-        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in orderbook) else []
-        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in orderbook) else []
+        bids = self.parse_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey)
+        asks = self.parse_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey)
         return {
             'symbol': symbol,
             'bids': self.sort_by(bids, 0, True),
@@ -335,7 +1002,7 @@ class Exchange(BaseExchange):
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
@@ -346,7 +1013,7 @@ class Exchange(BaseExchange):
             result.append(transaction)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_transfers(self, transfers, currency=None, since=None, limit=None, params={}):
@@ -357,7 +1024,7 @@ class Exchange(BaseExchange):
             result.append(transfer)
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
-        tail = since is None
+        tail = (since is None)
         return self.filter_by_currency_since_limit(result, code, since, limit, tail)
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
@@ -460,8 +1127,8 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safeNumber(bidask, priceKey)
-        amount = self.safeNumber(bidask, amountKey)
+        price = self.safe_number(bidask, priceKey)
+        amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
     def safe_currency(self, currencyId, currency=None):
@@ -477,7 +1144,51 @@ class Exchange(BaseExchange):
             'code': code,
         }
 
-    def safe_market(self, marketId, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None):
+        result = {
+            'id': marketId,
+            'symbol': marketId,
+            'base': None,
+            'quote': None,
+            'baseId': None,
+            'quoteId': None,
+            'active': None,
+            'type': None,
+            'linear': None,
+            'inverse': None,
+            'spot': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'margin': False,
+            'contract': False,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': None,
+            'strike': None,
+            'settle': None,
+            'settleId': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': None,
+        }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 market = self.markets_by_id[marketId]
@@ -485,38 +1196,17 @@ class Exchange(BaseExchange):
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
                 if partsLength == 2:
-                    baseId = self.safe_string(parts, 0)
-                    quoteId = self.safe_string(parts, 1)
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    return {
-                        'id': marketId,
-                        'symbol': symbol,
-                        'base': base,
-                        'quote': quote,
-                        'baseId': baseId,
-                        'quoteId': quoteId,
-                    }
+                    result['baseId'] = self.safe_string(parts, 0)
+                    result['quoteId'] = self.safe_string(parts, 1)
+                    result['base'] = self.safe_currency_code(result['baseId'])
+                    result['quote'] = self.safe_currency_code(result['quoteId'])
+                    result['symbol'] = result['base'] + '/' + result['quote']
+                    return result
                 else:
-                    return {
-                        'id': marketId,
-                        'symbol': marketId,
-                        'base': None,
-                        'quote': None,
-                        'baseId': None,
-                        'quoteId': None,
-                    }
+                    return result
         if market is not None:
             return market
-        return {
-            'id': marketId,
-            'symbol': marketId,
-            'base': None,
-            'quote': None,
-            'baseId': None,
-            'quoteId': None,
-        }
+        return result
 
     def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())

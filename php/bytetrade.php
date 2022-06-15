@@ -530,7 +530,7 @@ class bytetrade extends Exchange {
         //         }
         //     )
         //
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadResponse($this->id . ' fetchTicker() returned an empty response');

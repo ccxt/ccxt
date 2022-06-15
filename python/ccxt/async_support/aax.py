@@ -2170,7 +2170,7 @@ class aax(Exchange):
         await self.load_markets()
         request = {
             # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 90 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
         }
@@ -2212,7 +2212,7 @@ class aax(Exchange):
         await self.load_markets()
         request = {
             # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 30 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
             # Note difference between endTime and startTime must be 90 days or less

@@ -199,7 +199,7 @@ class bithumb extends Exchange {
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
-                if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
+                if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
                     $numElements = is_array($market) ? count($market) : 0;
                     if ($numElements === 0) {
                         $active = false;
@@ -422,7 +422,7 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            $isArray = gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0;
+            $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
             if (!$isArray) {
                 $ticker['date'] = $timestamp;
                 $result[$symbol] = $this->parse_ticker($ticker, $market);

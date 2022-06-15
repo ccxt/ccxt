@@ -2248,7 +2248,7 @@ class aax extends Exchange {
         $this->load_markets();
         $request = array(
             // status Not required -  Deposit status, "1 => pending,2 => confirmed, 3:failed"
-            // $currency => Not required -  String Currency
+            // $currency => Not required -  'strval' Currency
             // $startTime Not required Integer Default => 90 days from current timestamp.
             // endTime Not required Integer Default => present timestamp.
         );
@@ -2293,7 +2293,7 @@ class aax extends Exchange {
         $this->load_markets();
         $request = array(
             // status Not required : "0 => Under Review, 1 => Manual Review, 2 => On Chain, 3 => Review Failed, 4 => On Chain, 5 => Completed, 6 => Failed"
-            // $currency => Not required -  String Currency
+            // $currency => Not required -  'strval' Currency
             // $startTime Not required Integer Default => 30 days from current timestamp.
             // endTime Not required Integer Default => present timestamp.
             // Note difference between endTime and $startTime must be 90 days or less
@@ -2952,7 +2952,7 @@ class aax extends Exchange {
         $request = array();
         if ($symbols !== null) {
             $symbol = null;
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = is_array($symbols) ? count($symbols) : 0;
                 if ($symbolsLength > 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');

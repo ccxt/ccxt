@@ -283,6 +283,7 @@ class bitfinex2 extends Exchange {
                     'withdraw' => array(),
                 ),
             ),
+            'precisionMode' => SIGNIFICANT_DIGITS,
             'options' => array(
                 'precision' => 'R0', // P0, P1, P2, P3, P4, R0
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
@@ -395,6 +396,30 @@ class bitfinex2 extends Exchange {
 
     public function get_currency_id($code) {
         return 'f' . $code;
+    }
+
+    public function get_currency_name($code) {
+        // temporary fix for transpiler recognition, even though this is in parent class
+        if (is_array($this->options['currencyNames']) && array_key_exists($code, $this->options['currencyNames'])) {
+            return $this->options['currencyNames'][$code];
+        }
+        throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
+    }
+
+    public function amount_to_precision($symbol, $amount) {
+        // https://docs.bitfinex.com/docs/introduction#$amount-precision
+        // The $amount field allows up to 8 decimals.
+        // Anything exceeding this will be rounded to the 8th decimal.
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+    }
+
+    public function price_to_precision($symbol, $price) {
+        $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        // https://docs.bitfinex.com/docs/introduction#$price-precision
+        // The precision level of all trading prices is based on significant figures.
+        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
+        // Prices submit with a precision larger than 5 will be cut by the API.
+        return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     public function fetch_status($params = array ()) {
@@ -516,7 +541,7 @@ class bitfinex2 extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => intval('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'price' => intval('5'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1499,14 +1524,15 @@ class bitfinex2 extends Exchange {
         $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ));
-        $amount = ($side === 'buy') ? $amount : -$amount;
+        $amountString = $this->amount_to_precision($symbol, $amount);
+        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amount);
         $request = array(
             // 'gid' => 0123456789, // int32,  optional group id for the $order
             // 'cid' => 0123456789, // int32 client $order id
             'type' => $orderType,
             'symbol' => $market['id'],
             // 'price' => $this->number_to_string($price),
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $amountString,
             // 'flags' => 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
             // 'lev' => 10, // leverage for a derivative $orders, the value should be between 1 and 100 inclusive, optional, 10 by default
             // 'price_trailing' => $this->number_to_string(priceTrailing),
@@ -2436,7 +2462,7 @@ class bitfinex2 extends Exchange {
 
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response !== null) {
-            if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) != 0) {
+            if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $message = $this->safe_string_2($response, 'message', 'error');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

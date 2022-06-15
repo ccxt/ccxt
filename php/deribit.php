@@ -2221,7 +2221,7 @@ class deribit extends Exchange {
         } elseif (gettype($symbols) === 'string') {
             $code = $symbols;
         } else {
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $length = is_array($symbols) ? count($symbols) : 0;
                 if ($length !== 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');

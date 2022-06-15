@@ -739,13 +739,7 @@ class wavesexchange(Exchange):
         symbol = None
         if (baseId is not None) and (quoteId is not None):
             marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
+            market = self.safe_market(marketId, market, '/')
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
         last = self.safe_string(data, 'lastPrice')
@@ -817,6 +811,41 @@ class wavesexchange(Exchange):
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
         return self.parse_ticker(ticker, market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetPairs(params)
+        #
+        #     {
+        #         "__type":"list",
+        #         "data":[
+        #             {
+        #                 "__type":"pair",
+        #                 "data":{
+        #                     "firstPrice":0.00012512,
+        #                     "lastPrice":0.00012441,
+        #                     "low":0.00012167,
+        #                     "high":0.00012768,
+        #                     "weightedAveragePrice":0.000124710697407246,
+        #                     "volume":209554.26356614,
+        #                     "quoteVolume":26.1336583539951,
+        #                     "volumeWaves":209554.26356614,
+        #                     "txsCount":6655
+        #                 },
+        #                 "amountAsset":"WAVES",
+        #                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -1751,13 +1780,15 @@ class wavesexchange(Exchange):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
         address = await self.get_waves_address()
         request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['amountAsset'] = market['baseId']
+            request['priceAsset'] = market['quoteId']
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
         #

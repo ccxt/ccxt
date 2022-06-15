@@ -285,7 +285,6 @@ class liquid extends Exchange {
             $withdrawable = $this->safe_value($currency, 'withdrawable');
             $active = $depositable && $withdrawable;
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'assets_precision')));
-            $assetPrecisionInteger = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -299,7 +298,7 @@ class liquid extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $amountPrecision,
-                        'max' => pow(10, $assetPrecisionInteger),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),

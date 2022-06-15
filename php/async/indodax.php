@@ -957,7 +957,7 @@ class indodax extends Exchange {
         // array( success => 0, $error => "invalid order." )
         // or
         // [array( data, ... ), array( ... ), ... ]
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');

@@ -121,9 +121,9 @@ class coinone(Exchange):
                 },
             },
             'precision': {
-                'price': 0.0001,
-                'amount': 0.0001,
-                'cost': 0.00000001,
+                'price': self.parse_number('0.0001'),
+                'amount': self.parse_number('0.0001'),
+                'cost': self.parse_number('0.00000001'),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

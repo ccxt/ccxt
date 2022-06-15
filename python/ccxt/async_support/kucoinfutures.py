@@ -443,12 +443,8 @@ class kucoinfutures(kucoin):
             if future:
                 symbol = symbol + '-' + self.yymmdd(expiry, '')
                 type = 'future'
-            baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
-            baseMinSize = self.parse_number(baseMinSizeString)
-            quoteMaxSize = self.parse_number(quoteMaxSizeString)
-            quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
             multiplier = self.safe_string(market, 'multiplier')
@@ -488,16 +484,16 @@ class kucoinfutures(kucoin):
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
+                        'min': self.parse_number(baseMinSizeString),
+                        'max': self.safe_number(market, 'baseMaxSize'),
                     },
                     'price': {
                         'min': None,
                         'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
+                        'min': self.safe_number(market, 'quoteMinSize'),
+                        'max': self.parse_number(quoteMaxSizeString),
                     },
                 },
                 'info': market,
@@ -1567,10 +1563,10 @@ class kucoinfutures(kucoin):
         """
         await self.load_markets()
         request = {
-            # orderId(String) [optional] Fills for a specific order(other parameters can be ignored if specified)
-            # symbol(String) [optional] Symbol of the contract
-            # side(String) [optional] buy or sell
-            # type(String) [optional] limit, market, limit_stop or market_stop
+            # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
+            # symbol(str) [optional] Symbol of the contract
+            # side(str) [optional] buy or sell
+            # type(str) [optional] limit, market, limit_stop or market_stop
             # startAt(long) [optional] Start time(milisecond)
             # endAt(long) [optional] End time(milisecond)
         }

@@ -635,7 +635,7 @@ class oceanex extends Exchange {
          * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $ids = $id;
-        if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) != 0) {
+        if (gettype($id) !== 'array' || array_keys($id) !== array_keys(array_keys($id))) {
             $ids = array( $id );
         }
         yield $this->load_markets();
@@ -650,7 +650,7 @@ class oceanex extends Exchange {
         if ($data === null) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
-        if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
+        if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
             return $this->parse_orders($data, $market);
         }
         if ($dataLength === 0) {

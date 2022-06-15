@@ -40,6 +40,7 @@ class Transpiler {
             [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
             [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
             [ /\.safeValue2\s/g, '.safe_value_2'],
+            [ /\.safeNumber\s/g, '.safe_number'],
             [ /\.safeFloat\s/g, '.safe_float'],
             [ /\.safeInteger\s/g, '.safe_integer'],
             [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
@@ -231,6 +232,8 @@ class Transpiler {
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
+            [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
+            [ /\.omitZero\s/g, '.omit_zero'],
         ]
     }
 
@@ -342,6 +345,7 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
             // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
@@ -445,8 +449,8 @@ class Transpiler {
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -549,6 +553,7 @@ class Transpiler {
         // add []-array syntax conversions up to 20 levels deep
         ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
 
+            [ /(\b)String(\b)/g, "$1'strval'$2"],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
@@ -1114,11 +1119,13 @@ class Transpiler {
             methodNames
         } = this.transpileMethodsToAllLanguages (className, methods)
         // altogether in PHP, async PHP, Python sync and async
+        const sync = false
+        const async = true
         return {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
             className,
             baseClass,
         }

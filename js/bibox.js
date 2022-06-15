@@ -660,7 +660,7 @@ module.exports = class bibox extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber (this.parsePrecision ('8'));
+            const precision = this.parseNumber ('0.00000001');
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
             const active = (deposit && withdraw);
@@ -978,7 +978,7 @@ module.exports = class bibox extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bibox api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

@@ -114,9 +114,9 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'precision': {
-                'price': 0.0001,
-                'amount': 0.0001,
-                'cost': 0.00000001,
+                'price': this.parseNumber ('0.0001'),
+                'amount': this.parseNumber ('0.0001'),
+                'cost': this.parseNumber ('0.00000001'),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -499,7 +499,7 @@ module.exports = class coinone extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinone api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

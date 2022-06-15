@@ -257,8 +257,8 @@ module.exports = class coinex extends Exchange {
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
@@ -971,6 +971,7 @@ module.exports = class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
@@ -1693,7 +1694,7 @@ module.exports = class coinex extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2609,17 +2610,12 @@ module.exports = class coinex extends Exchange {
          * @param {dict} params extra parameters specific to the coinex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const swap = market['swap'];
+        let market = undefined;
         if (limit === undefined) {
             limit = 100;
         }
         const request = {
-            'market': market['id'], // SPOT and SWAP
             'limit': limit, // SPOT and SWAP
             'offset': 0, // SWAP, means query from a certain record
             // 'page': 1, // SPOT
@@ -2627,6 +2623,16 @@ module.exports = class coinex extends Exchange {
             // 'start_time': since, // SWAP
             // 'end_time': 1524228297, // SWAP
         };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type !== 'spot' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        }
+        const swap = (type === 'swap');
         let method = undefined;
         if (swap) {
             method = 'perpetualPublicGetMarketUserDeals';

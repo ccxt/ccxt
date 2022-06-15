@@ -2696,12 +2696,16 @@ module.exports = class bybit extends Exchange {
             params[orderKey] = id;
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
-            throw NotSupported (this.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
+            throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
             const orders = await this.fetchOrders (symbol, undefined, undefined, params);
-            return this.safeValue (orders, 0);
+            const order = this.safeValue (orders, 0);
+            if (order === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+            }
+            return order;
         }
     }
 
@@ -2714,7 +2718,7 @@ module.exports = class bybit extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

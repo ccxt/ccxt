@@ -350,7 +350,7 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('8')),
+                    'amount': self.parse_number('0.00000001'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
                 },
                 'limits': {
@@ -464,7 +464,7 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.parse_number(self.parse_precision('8'))  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {

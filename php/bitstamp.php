@@ -286,6 +286,10 @@ class bitstamp extends Exchange {
                         'mana_address/' => 1,
                         'lrc_withdrawal/' => 1,
                         'lrc_address/' => 1,
+                        'ape_withdrawal/' => 1,
+                        'ape_address/' => 1,
+                        'mpl_withdrawal/' => 1,
+                        'mpl_address/' => 1,
                     ),
                 ),
             ),
@@ -1900,7 +1904,7 @@ class bitstamp extends Exchange {
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);
-                    if (gettype($value) === 'array' && count(array_filter(array_keys($value), 'is_string')) == 0) {
+                    if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                         $errors = $this->array_concat($errors, $value);
                     } else {
                         $errors[] = $value;

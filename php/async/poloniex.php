@@ -142,11 +142,11 @@ class poloniex extends Exchange {
                 ),
                 'price' => array(
                     'min' => 0.00000001,
-                    'max' => 1000000000,
+                    'max' => null,
                 ),
                 'cost' => array(
-                    'min' => 0.00000000,
-                    'max' => 1000000000,
+                    'min' => null,
+                    'max' => null,
                 ),
             ),
             'commonCurrencies' => array(
@@ -1013,7 +1013,7 @@ class poloniex extends Exchange {
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
-        if (gettype($resultingTrades) === 'array' && count(array_filter(array_keys($resultingTrades), 'is_string')) != 0) {
+        if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
             $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
         }
         $price = $this->safe_string_2($order, 'price', 'rate');

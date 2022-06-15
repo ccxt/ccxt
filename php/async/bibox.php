@@ -650,7 +650,7 @@ class bibox extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $name = $currency['name']; // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
-            $precision = $this->parse_number($this->parse_precision('8'));
+            $precision = $this->parse_number('0.00000001');
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
             $active = ($deposit && $withdraw);
