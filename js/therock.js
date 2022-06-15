@@ -60,7 +60,9 @@ module.exports = class therock extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -1683,7 +1685,7 @@ module.exports = class therock extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         headers = (headers === undefined) ? {} : headers;
         if (api === 'private') {
