@@ -62,7 +62,7 @@ async function main () {
         // exchange's methods array will always include 'constructor' and 'describe'.
         // so, let's consider an exchange class as separate implementation if it has more than 10 methods
         if (methodsList.length >= 2 + 10) {
-            console.log( ' [_] ' + exName + suffix);
+            console.log( '- ' + exName + suffix);
         }
     }
 }
