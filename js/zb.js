@@ -1914,7 +1914,7 @@ module.exports = class zb extends Exchange {
                 request['extend'] = extendOrderAlgos;
             }
         }
-        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
+        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
         const response = await this[method] (this.extend (request, query));
         //
         // Spot
