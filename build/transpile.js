@@ -717,9 +717,15 @@ class Transpiler {
                 ('from ccxt' + async + '.' + safeString (baseClasses, baseClass, baseClass) + ' import ' + baseClass)        ]
     }
 
-    createPythonClass (className, baseClass, body, methods, async = false) {
+    createPythonClass (className, baseClass, body, methods, async = false, docstring = undefined) {
 
         let bodyAsString = body.join ("\n")
+        docstring = docstring.replace ('/**', '"""');
+        docstring = docstring.replace (' */', '"""');
+        docstring = docstring.replace (/\s+\* @class/, '');
+        docstring = docstring.replace (/\s+\* @name .*/, '');
+        docstring = docstring.replace (/ \* @description /, '');
+        docstring = docstring.replace (/(\s+) \* @see( .*)/, '$1see$2' ); // docstring @see
 
         const {
             imports,
@@ -742,6 +748,7 @@ class Transpiler {
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
+        header.push (docstring);
 
         const footer = [
             '', // footer (last empty line)
@@ -1163,8 +1170,8 @@ class Transpiler {
         const sync = false
         const async = true
         return {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync, docstring),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async, docstring),
             php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
             phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
             className,
