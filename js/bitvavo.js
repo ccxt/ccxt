@@ -267,7 +267,7 @@ module.exports = class bitvavo extends Exchange {
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
-        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], DECIMAL_PLACES);
     }
 
     amountToPrecision (symbol, amount) {
@@ -336,10 +336,6 @@ module.exports = class bitvavo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const baseCurrency = this.safeValue (currenciesById, baseId);
-            let amountPrecision = undefined;
-            if (baseCurrency !== undefined) {
-                amountPrecision = this.safeInteger (baseCurrency, 'decimals', 8);
-            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -365,7 +361,7 @@ module.exports = class bitvavo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': this.safeInteger (baseCurrency, 'decimals', 8),
                     'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
@@ -446,7 +442,6 @@ module.exports = class bitvavo extends Exchange {
             const withdrawal = (withdrawalStatus === 'OK');
             const active = deposit && withdrawal;
             const name = this.safeString (currency, 'name');
-            const precision = this.safeInteger (currency, 'decimals', 8);
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -456,7 +451,7 @@ module.exports = class bitvavo extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdrawal,
                 'fee': this.safeNumber (currency, 'withdrawalFee'),
-                'precision': precision,
+                'precision': this.safeInteger (currency, 'decimals', 8),
                 'limits': {
                     'amount': {
                         'min': undefined,
