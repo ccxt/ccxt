@@ -881,10 +881,10 @@ class bitrue extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {dict} $params extra parameters specific to the bitrue api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $request = array(
@@ -912,19 +912,17 @@ class bitrue extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $ids = is_array($data) ? array_keys($data) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            list($baseId, $quoteId) = explode('_', $id);
-            $marketId = $baseId . $quoteId;
-            $market = $this->safe_market($marketId);
-            $rawTicker = $this->safe_value($data, $id);
-            $ticker = $this->parse_ticker($rawTicker, $market);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
+        // the exchange returns market ids with an underscore from the $tickers endpoint
+        // the market ids do not have an underscore, so it has to be removed
+        // https://github.com/ccxt/ccxt/issues/13856
+        $tickers = array();
+        $marketIds = is_array($data) ? array_keys($data) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $parts = explode('_', $marketIds[$i]);
+            $marketId = implode('', $parts);
+            $tickers[$marketId] = $data[$marketIds[$i]];
         }
-        return $result;
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function parse_trade($trade, $market = null) {
