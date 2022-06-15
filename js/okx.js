@@ -1551,6 +1551,8 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the okx api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1578,6 +1580,11 @@ module.exports = class okx extends Exchange {
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+            params = this.omit (params, 'until');
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
