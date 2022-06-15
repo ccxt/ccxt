@@ -27,12 +27,19 @@ const fs = require ('fs')
 
 class Transpiler {
 
+    trimmedUnCamelCase(word) {
+        // remove JS space between method name and (
+        // example: this.myMethod ( -> this.myMethod() 
+        word = word.replace(' ', '') 
+        return unCamelCase (word)
+    }
+
     getCommonRegexes () {
         return [
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /this\.[a-zA-Z0-9]+\s+ \(/g, unCamelCase ],
+            [ /this\.[a-zA-Z0-9]+ \(/g, trimmedUnCamelCase ],
         ]
     }
 
