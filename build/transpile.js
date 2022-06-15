@@ -314,6 +314,7 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
+            [ /this\.[a-zA-Z0-9]+/g, x => unCamelCase(x) ],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
