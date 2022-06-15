@@ -30,8 +30,9 @@ class Transpiler {
     trimmedUnCamelCase(word) {
         // remove JS space between method name and (
         // example: this.myMethod ( -> this.myMethod() 
-        word = word.replace(' ', '') 
-        return unCamelCase (word)
+        word = word.replace(' ', '')
+        // unCamelCase needs to have an input of plain word, so, remove and re-add the parentheses
+        return unCamelCase (word.replace ('(', '')) + '('
     }
 
     getCommonRegexes () {
@@ -39,8 +40,8 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
-            [ /this\.[a-zA-Z0-9]+ (?!:\()/g, this.trimmedUnCamelCase ],
-            [ /super\.[a-zA-Z0-9]+ (?!:\()/g, this.trimmedUnCamelCase ],
+            [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
+            [ /super\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase ],
         ]
     }
 
