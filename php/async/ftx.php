@@ -921,6 +921,8 @@ class ftx extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {str|null} $params->price "index" for index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
@@ -937,7 +939,8 @@ class ftx extends Exchange {
             'limit' => $limit,
         );
         $price = $this->safe_string($params, 'price');
-        $params = $this->omit($params, 'price');
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'price', 'until' ));
         if ($since !== null) {
             $startTime = intval($since / 1000);
             $request['start_time'] = $startTime;
@@ -948,6 +951,9 @@ class ftx extends Exchange {
                 $wholeDaysInTimeframe = intval($duration / 86400);
                 $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
             }
+        }
+        if ($until !== null) {
+            $request['end_time'] = intval($until / 1000);
         }
         $method = 'publicGetMarketsMarketNameCandles';
         if ($price === 'index') {
