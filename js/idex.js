@@ -30,7 +30,9 @@ module.exports = class idex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -1379,6 +1381,47 @@ module.exports = class idex extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const nonce = this.uuidv1 ();
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': this.walletAddress,
+            },
+        };
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
+        const byteArray = [
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
+        ];
+        if (market !== undefined) {
+            byteArray.push (market['id']);
+            request['parameters']['market'] = market['id'];
+        }
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        request['signature'] = signature;
+        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const canceledOrder = this.safeValue (response, 0);
+        return this.parseOrder (canceledOrder, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
