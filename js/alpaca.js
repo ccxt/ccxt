@@ -3,7 +3,9 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, RateLimitExceeded, PermissionDenied, BadSymbol } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, BadRequest, InsufficientFunds, OrderNotFound, RateLimitExceeded, PermissionDenied, BadSymbol, NotSupported } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+
 //  ---------------------------------------------------------------------------xs
 
 module.exports = class alpaca extends Exchange {
@@ -20,12 +22,12 @@ module.exports = class alpaca extends Exchange {
                 'api': {
                     'public': 'https://api.alpaca.markets/{version}',
                     'private': 'https://api.alpaca.markets/{version}',
-                    'cryptoPrivate': 'https://data.alpaca.markets/{version}',
+                    'crypto': 'https://data.alpaca.markets/{version}',
                 },
                 'test': {
                     'public': 'https://paper-api.alpaca.markets/{version}',
                     'private': 'https://paper-api.alpaca.markets/{version}',
-                    'cryptoPrivate': 'https://data.alpaca.markets/{version}',
+                    'crypto': 'https://data.alpaca.markets/{version}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
@@ -50,6 +52,8 @@ module.exports = class alpaca extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
+                'fetchL1OrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -57,8 +61,6 @@ module.exports = class alpaca extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchL1OrderBook': false,
-                'fetchL2OrderBook': false,
                 'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
@@ -98,24 +100,57 @@ module.exports = class alpaca extends Exchange {
                         'orders/{order_id}',
                     ],
                 },
-                'cryptoPrivate': {
-                    'get': [
-                        'crypto/{symbol}/quotes/latest',
-                        'crypto/{symbol}/trades/latest',
-                        'crypto/{symbol}/xbbo/latest',
-                        'crypto/{symbol}/trades',
-                    ],
+                'crypto': {
+                    'private': {
+                        'get': [
+                            'crypto/{symbol}/quotes/latest',
+                            'crypto/{symbol}/trades/latest',
+                            'crypto/{symbol}/xbbo/latest',
+                            'crypto/{symbol}/trades',
+                        ],
+                    },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.003'),
+                    'taker': this.parseNumber ('0.003'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0028') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.001') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0028') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00125') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.001') ],
+                        ],
+                    },
+                },
             },
             'options': {
                 'versions': {
                     'public': 'v2',
                     'private': 'v2',
-                    'cryptoPrivate': 'v1beta1', // crypto beta
+                    'crypto': 'v1beta1', // crypto beta
                 },
                 'defaultExchange': 'CBSE',
                 'exchanges': [
@@ -155,6 +190,7 @@ module.exports = class alpaca extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'oco orders must be limit orders': InvalidOrder, // {"code":40010001,"message":"oco orders must be limit orders"}
                     'request body format is invalid': InvalidOrder, // {"code":40010000,"message":"request body format is invalid"}
                     'invalid order type for crypto order': InvalidOrder, // {"code":40010001,"message":"invalid order type for crypto order"}
                     'buying power or shares is not sufficient.': InsufficientFunds,
@@ -370,17 +406,19 @@ module.exports = class alpaca extends Exchange {
             params['exchanges'] = this.safeString (this.options, 'defaultExchange');
         }
         const response = await this.cryptoPrivateGetCryptoSymbolXbboLatest (this.extend (request, params));
-        // {
-        //     "symbol": "BTCUSD",
-        //     "xbbo": {
-        //     "t": "2021-11-16T22:16:00.468860416Z",
-        //     "ax": "FTX",
-        //     "ap": 60564,
-        //     "as": 0.36,
-        //     "bx": "FTX",
-        //     "bp": 60555,
-        //     "bs": 0.36
-        // }
+        //
+        //  {
+        //      "symbol": "BTCUSD",
+        //      "xbbo": {
+        //      "t": "2021-11-16T22:16:00.468860416Z",
+        //      "ax": "FTX",
+        //      "ap": 60564,
+        //      "as": 0.36,
+        //      "bx": "FTX",
+        //      "bp": 60555,
+        //      "bs": 0.36
+        //  }
+        //
         const quote = this.safeValue (response, 'xbbo', {});
         const shallow_bid = [ this.safeNumber (quote, 'bp'), this.safeNumber (quote, 'bs') ];
         const shallow_ask = [ this.safeNumber (quote, 'ap'), this.safeNumber (quote, 'as') ];
@@ -398,15 +436,13 @@ module.exports = class alpaca extends Exchange {
          * @name alpaca#createOrder
          * @description create a trade order
          * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
+         * @param {str} type 'market', 'limit' or 'stop_limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the alpaca api endpoint
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {float} params.triggerPrice The price at which a trigger order is triggered at
-         * @param {float} params.trailPrice Threshould that adjusts the stopPrice
-         * @param {float} params.stopLossPrice The price at which a stop loss order is triggered at
-         * @param {float} params.takeProfitPrice The price at which a take profit order is triggered at
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -416,19 +452,15 @@ module.exports = class alpaca extends Exchange {
             'symbol': id,
             'qty': this.amountToPrecision (symbol, amount),
             'side': side,
-            'type': type, // market, limit, stop, stop_limit and trailling_stop
+            'type': type, // market, limit, stop_limit
         };
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
-        const trailPrice = this.safeString2 (params, 'trailPrice', 'trail_price');
-        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stop_loss');
-        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'take_profit');
-        if (type === 'trailing_stop' || trailPrice !== undefined) {
-            request['type'] = 'trailing_stop';
-            request['trail_price'] = this.priceToPrecision (symbol, trailPrice);
-        } else if (triggerPrice !== undefined) {
-            let newType = 'stop'; // stop market
+        if (triggerPrice !== undefined) {
+            let newType = undefined;
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
+            } else {
+                throw new NotSupported (this.id + ' createOrder() does not support stop orders for ' + type + ' orders, only stop_limit orders are supported');
             }
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = newType;
@@ -436,25 +468,10 @@ module.exports = class alpaca extends Exchange {
         if (type.indexOf ('limit') >= 0) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        if (stopLossPrice !== undefined) {
-            request['stop_loss'] = { 'stop_price': this.priceToPrecision (symbol, stopLossPrice) };
-        }
-        if (takeProfitPrice !== undefined) {
-            request['take_profit'] = { 'limit_price': this.priceToPrecision (symbol, takeProfitPrice) };
-        }
-        if (stopLossPrice !== undefined || takeProfitPrice !== undefined) {
-            if (stopLossPrice !== undefined && takeProfitPrice !== undefined) {
-                const orderClass = this.safeString (params, 'order_class', 'bracket'); // or oco
-                params = this.omit (params, 'order_class');
-                request['order_class'] = orderClass;
-            } else {
-                request['order_class'] = 'oto';
-            }
-        }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
         request['time_in_force'] = timeInForce;
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'trigger_price', 'trail_price', 'stopLossPrice', 'stop_loss', 'takeProfitPrice', 'take_profit', 'stopPrice', 'trailPrice', 'trail_price', 'stop_price' ]);
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'stop_price' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -745,7 +762,7 @@ module.exports = class alpaca extends Exchange {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'version': version });
         headers = (headers !== undefined) ? headers : {};
-        if ((api === 'private') || (api === 'cryptoPrivate')) {
+        if ((api === 'private') || (api === 'crypto')) {
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
