@@ -5,13 +5,27 @@ const ccxt = require ('../../ccxt.js')
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
 
+const additionalPopularAfterCertified = [
+    'bitfinex',
+    'bitfinex2',
+    'bitmex',
+    'bybit',
+    'deribit',
+    'kraken',
+    'kucoin',
+    'phemex',
+];
+
 async function main () {
 
     for (const exName of ccxt.exchanges) {
         const exchange = new ccxt[exName];
         let suffix = '';
         if('certified' in exchange && exchange.certified) {
-            suffix = ' ✅ | ✰ | CERTIFIED | [C]';
+            suffix = ' ✅[CERTIFIED]';
+        }
+        if (additionalPopularAfterCertified.includes (exName)) {
+            suffix = ' ✰[POPULAR]';
         }
         const methodsList = Object.getOwnPropertyNames(Object.getPrototypeOf(exchange));
         // exchange's methods array will always include 'constructor' and 'describe'.
