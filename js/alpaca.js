@@ -96,7 +96,7 @@ module.exports = class alpaca extends Exchange {
                 ],
                 'defaultTimeInForce': 'day', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
-                'precision': {
+                'precision': { // api does not provide this information
                     'AAVE/USD': { 'amount': this.parseNumber ('0.01'), 'price': this.parseNumber ('0.01'), 'minAmount': this.parseNumber ('0.01') },
                     'ALGO/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.0001'), 'minAmount': this.parseNumber ('1') },
                     'AVAX/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.0005'), 'minAmount': this.parseNumber ('0.1') },
@@ -172,11 +172,17 @@ module.exports = class alpaca extends Exchange {
         for (let i = 0; i < assets.length; i++) {
             const asset = assets[i];
             const id = this.safeString (asset, 'symbol');
-            const base = id.slice (0, 3).toUpperCase ();
-            const quote = id.slice (3, 6).toUpperCase ();
+            const splitIndex = id.length - 3; // all markets settled with USD but the base might have 3/4/5 chars
+            const base = id.slice (0, splitIndex).toUpperCase ();
+            const quote = id.slice (splitIndex, id.length).toUpperCase ();
             const symbol = base + '/' + quote;
             const baseId = base.toLowerCase ();
             const quoteId = quote.toLowerCase ();
+            const precisions = this.safeValue (this.options, 'precision', {});
+            const precision = this.safeValue (precisions, symbol, {});
+            const amount = this.safeString (precision, 'amount');
+            const price = this.safeString (precision, 'price');
+            const minAmount = this.safeString (precision, 'minAmount');
             markets.push ({
                 'id': id,
                 'symbol': symbol,
@@ -202,8 +208,8 @@ module.exports = class alpaca extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': amount,
+                    'price': price,
                 },
                 'limits': {
                     'leverage': {
@@ -211,7 +217,7 @@ module.exports = class alpaca extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
