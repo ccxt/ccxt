@@ -32,6 +32,7 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
             [ /\.call\s*\(this, /g, '(' ],
+            [ /this\.[a-zA-Z0-9]+\s+ \(/g, unCamelCase ],
         ]
     }
 
@@ -108,7 +109,7 @@ class Transpiler {
         ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
-            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) ],
+            
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
@@ -314,8 +315,6 @@ class Transpiler {
 
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
-
-            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) ],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
@@ -464,7 +463,13 @@ class Transpiler {
             let regex = array[i][0]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
-            text = text.replace (regex, array[i][1])
+            if (typeof array[i][1] === 'function') {
+                text = text.replace (regex, function (matched) {
+                    return array[i][1] (matched)
+                })
+            } else {
+                text = text.replace (regex, array[i][1])
+            }
         }
         return text
     }
@@ -710,7 +715,7 @@ class Transpiler {
     transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
         // transpile JS → Python 3
-        let python3Body = this.regexAll (js, this.getPythonRegexes ())
+        let python3Body = this.regexAll (js, this.getPythonRegexes())
 
         if (removeEmptyLines) {
             python3Body = python3Body.replace (/$\s*$/gm, '')
