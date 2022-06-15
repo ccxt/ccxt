@@ -1120,7 +1120,6 @@ module.exports = class okx extends Exchange {
         const result = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
-        const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const currency = this.safeCurrency (currencyId);
@@ -1188,7 +1187,7 @@ module.exports = class okx extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber ('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': undefined,

@@ -295,7 +295,6 @@ module.exports = class ripio extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const active = this.safeValue (currency, 'enabled', true);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimal_places')));
             result[code] = {
                 'id': id,
                 'code': code,
@@ -305,7 +304,7 @@ module.exports = class ripio extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimal_places'))),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
