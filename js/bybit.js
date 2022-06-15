@@ -2642,6 +2642,8 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'stopLossPrice': this.safeNumber2 (order, 'stop_loss', 'stopLoss'),
+            'takeProfitPrice': this.safeNumber2 (order, 'take_profit', 'takeProfit'),
             'amount': amount,
             'cost': cost,
             'average': average,
