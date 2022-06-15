@@ -96,10 +96,37 @@ module.exports = class alpaca extends Exchange {
                 ],
                 'defaultTimeInForce': 'day', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
+                'precision': {
+                    'AAVE/USD': { 'amount': this.parseNumber ('0.01'), 'price': this.parseNumber ('0.01'), 'minAmount': this.parseNumber ('0.01') },
+                    'ALGO/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.0001'), 'minAmount': this.parseNumber ('1') },
+                    'AVAX/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.0005'), 'minAmount': this.parseNumber ('0.1') },
+                    'BAT/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.01'), 'minAmount': this.parseNumber ('1') },
+                    'BTC/USD': { 'amount': this.parseNumber ('0.0001'), 'price': this.parseNumber ('1'), 'minAmount': this.parseNumber ('0.0001') },
+                    'BCH/USD': { 'amount': this.parseNumber ('0.0001'), 'price': this.parseNumber ('0.025'), 'minAmount': this.parseNumber ('0.001') },
+                    'LINK/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.0005'), 'minAmount': this.parseNumber ('0.1') },
+                    'DAI/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.0001'), 'minAmount': this.parseNumber ('0.1') },
+                    'DOGE/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.0000005'), 'minAmount': this.parseNumber ('1') },
+                    'ETH/USD': { 'amount': this.parseNumber ('0.001'), 'price': this.parseNumber ('0.1'), 'minAmount': this.parseNumber ('0.001') },
+                    'GRT/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.00005'), 'minAmount': this.parseNumber ('1') },
+                    'LTC/USD': { 'amount': this.parseNumber ('0.01'), 'price': this.parseNumber ('0.005'), 'minAmount': this.parseNumber ('0.01') },
+                    'MKR/USD': { 'amount': this.parseNumber ('0.001'), 'price': this.parseNumber ('0.5'), 'minAmount': this.parseNumber ('0.001') },
+                    'MATIC/USD': { 'amount': this.parseNumber ('10'), 'price': this.parseNumber ('0.000001'), 'minAmount': this.parseNumber ('10') },
+                    'NEAR/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.001'), 'minAmount': this.parseNumber ('0.1') },
+                    'PAXG/USD': { 'amount': this.parseNumber ('0.0001'), 'price': this.parseNumber ('0.1'), 'minAmount': this.parseNumber ('0.0001') },
+                    'SHIB/USD': { 'amount': this.parseNumber ('100000'), 'price': this.parseNumber ('0.00000001'), 'minAmount': this.parseNumber ('100000') },
+                    'SOL/USD': { 'amount': this.parseNumber ('0.01'), 'price': this.parseNumber ('0.0025'), 'minAmount': this.parseNumber ('0.01') },
+                    'SUSHI/USD': { 'amount': this.parseNumber ('0.5'), 'price': this.parseNumber ('0.0001'), 'minAmount': this.parseNumber ('0.5') },
+                    'USDT/USD': { 'amount': this.parseNumber ('0.01'), 'price': this.parseNumber ('0.0001'), 'minAmount': this.parseNumber ('0.01') },
+                    'TRX/USD': { 'amount': this.parseNumber ('1'), 'price': this.parseNumber ('0.0000025'), 'minAmount': this.parseNumber ('1') },
+                    'UNI/USD': { 'amount': this.parseNumber ('0.1'), 'price': this.parseNumber ('0.001'), 'minAmount': this.parseNumber ('0.1') },
+                    'WBTC/USD': { 'amount': this.parseNumber ('0.0001'), 'price': this.parseNumber ('1'), 'minAmount': this.parseNumber ('0.0001') },
+                    'YFI/USD': { 'amount': this.parseNumber ('0.001'), 'price': this.parseNumber ('5'), 'minAmount': this.parseNumber ('0.001') },
+                },
             },
             'exceptions': {
                 'exact': {
                     'request body format is invalid': InvalidOrder, // {"code":40010000,"message":"request body format is invalid"}
+                    'invalid order type for crypto order': InvalidOrder, // {"code":40010001,"message":"invalid order type for crypto order"}
                     'buying power or shares is not sufficient.': InsufficientFunds,
                     'order is not found': OrderNotFound,
                     'failed to cancel order': InvalidOrder,
@@ -425,10 +452,19 @@ module.exports = class alpaca extends Exchange {
             request['limit_price'] = price;
         }
         if (stopLossPrice !== undefined) {
-            request['stop_loss'] = { 'limit_price': stopLossPrice };
+            request['stop_loss'] = { 'stop_price': stopLossPrice };
         }
         if (takeProfitPrice !== undefined) {
             request['take_profit'] = { 'limit_price': takeProfitPrice };
+        }
+        if (stopLossPrice !== undefined || takeProfitPrice !== undefined) {
+            if (stopLossPrice !== undefined && takeProfitPrice !== undefined) {
+                const orderClass = this.safeString (params, 'order_class', 'bracket'); // or oco
+                params = this.omit (params, 'order_class');
+                request['order_class'] = orderClass;
+            } else {
+                request['order_class'] = 'oto';
+            }
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
         const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
@@ -602,6 +638,8 @@ module.exports = class alpaca extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'new': 'open',
+            'partially_filled': 'open',
             'activated': 'open',
             'filled': 'closed',
         };
