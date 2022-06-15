@@ -928,6 +928,8 @@ module.exports = class ftx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @param {str|undefined} params.price "index" for index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -944,7 +946,8 @@ module.exports = class ftx extends Exchange {
             'limit': limit,
         };
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'price', 'until' ]);
         if (since !== undefined) {
             const startTime = parseInt (since / 1000);
             request['start_time'] = startTime;
@@ -955,6 +958,9 @@ module.exports = class ftx extends Exchange {
                 const wholeDaysInTimeframe = parseInt (duration / 86400);
                 request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
             }
+        }
+        if (until !== undefined) {
+            request['end_time'] = parseInt (until / 1000);
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
