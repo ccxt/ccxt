@@ -2831,7 +2831,16 @@ class gate extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $contract = $market['contract'];
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $trigger = $this->safe_value($params, 'trigger');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLossOrder = $stopLossPrice !== null;
+        $isTakeProfitOrder = $takeProfitPrice !== null;
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        if ($isStopLossOrder && $isTakeProfitOrder) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
         $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
@@ -2851,7 +2860,7 @@ class gate extends Exchange {
                 throw new ExchangeError($this->id . ' createOrder() does not support $timeInForce "' . $timeInForce . '"');
             }
         }
-        $params = $this->omit($params, array( 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
         if ($postOnly) {
             $tif = 'poc';
         }
@@ -2876,8 +2885,7 @@ class gate extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
         }
         $request = null;
-        $trigger = $this->safe_value($params, 'trigger');
-        if ($stopPrice === null && $trigger === null) {
+        if (!$isStopOrder && ($trigger === null)) {
             if ($contract) {
                 // $contract order
                 $request = array(
@@ -2937,7 +2945,6 @@ class gate extends Exchange {
         } else {
             if ($contract) {
                 // $contract conditional order
-                $rule = ($side === 'buy') ? 1 : 2;
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
@@ -2948,19 +2955,27 @@ class gate extends Exchange {
                         // 'text' => $clientOrderId, // web, api, app
                         // 'reduce_only' => false,
                     ),
-                    'trigger' => array(
-                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
-                        // 'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
-                        'price' => $this->price_to_precision($symbol, $stopPrice), // $price or gap
-                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
-                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    ),
                     'settle' => $market['settleId'],
                 );
-                $expiration = $this->safe_integer($params, 'expiration');
-                if ($expiration !== null) {
-                    $request['trigger']['expiration'] = $expiration;
-                    $params = $this->omit($params, 'expiration');
+                if ($trigger === null) {
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? 1 : 2;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? 2 : 1;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $request['trigger'] = array(
+                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
+                        'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
+                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
+                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    );
                 }
                 if ($reduceOnly !== null) {
                     $request['initial']['reduce_only'] = $reduceOnly;
@@ -2973,26 +2988,37 @@ class gate extends Exchange {
                 $options = $this->safe_value($this->options, 'createOrder', array());
                 $marginMode = null;
                 list($marginMode, $params) = $this->get_margin_mode(true, $params);
-                $defaultExpiration = $this->safe_integer($options, 'expiration');
-                $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
-                $rule = ($side === 'buy') ? '>=' : '<=';
-                $triggerPrice = $this->safe_value($trigger, 'price', $stopPrice);
                 $request = array(
-                    'trigger' => array(
-                        'price' => $this->price_to_precision($symbol, $triggerPrice),
-                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
-                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
-                    ),
                     'put' => array(
                         'type' => $type,
                         'side' => $side,
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        // 'time_in_force' => $tif, // gtc, ioc for taker only
+                        'time_in_force' => 'gtc', // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
                 );
+                if ($trigger === null) {
+                    $defaultExpiration = $this->safe_integer($options, 'expiration');
+                    $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? '>=' : '<=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? '<=' : '>=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $request['trigger'] = array(
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice),
+                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
+                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    );
+                }
                 if ($tif !== null) {
                     $request['put']['time_in_force'] = $tif;
                 }
