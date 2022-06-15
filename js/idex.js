@@ -33,6 +33,7 @@ module.exports = class idex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -46,6 +47,7 @@ module.exports = class idex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -73,6 +75,7 @@ module.exports = class idex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': undefined,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1476,6 +1479,24 @@ module.exports = class idex extends Exchange {
         }
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {str} id deposit id
+         * @param {str|undefined} code not used by idex fetchDeposit ()
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        params = this.extend ({
+            'method': 'privateGetDeposits',
+            'depositId': id,
+        }, params);
+        return this.fetchTransactionsHelper (code, undefined, undefined, params);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1491,6 +1512,38 @@ module.exports = class idex extends Exchange {
             'method': 'privateGetDeposits',
         }, params);
         return this.fetchTransactionsHelper (code, since, limit, params);
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetTime (params);
+        //
+        //    { serverTime: '1655258263236' }
+        //
+        return this.safeNumber (response, 'serverTime');
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code not used by idex.fetchWithdrawal
+         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        params = this.extend ({
+            'method': 'privateGetWithdrawals',
+            'withdrawalId': id,
+        }, params);
+        return this.fetchTransactionsHelper (code, undefined, undefined, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
