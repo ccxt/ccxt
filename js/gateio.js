@@ -2221,6 +2221,8 @@ module.exports = class gateio extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.till timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2255,6 +2257,12 @@ module.exports = class gateio extends Exchange {
             request['to'] = Math.min (toTimestamp, currentTimestamp);
         } else {
             request['limit'] = limit;
+        }
+        let till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            till = parseInt (till / 1000);
+            request['to'] = Math.min (request['to'], till);
+            params = this.omit (params, 'till');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
