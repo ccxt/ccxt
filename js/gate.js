@@ -2249,20 +2249,27 @@ module.exports = class gate extends Exchange {
             }
         }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            till = parseInt (till / 1000);
+            params = this.omit (params, 'till');
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
-            request['to'] = Math.min (toTimestamp, currentTimestamp);
+            const to = Math.min (toTimestamp, currentTimestamp);
+            if (till !== undefined) {
+                request['to'] = Math.min (to, till);
+            } else {
+                request['to'] = to;
+            }
+        } else if (till !== undefined) {
+            request['to'] = till;
+            request['limit'] = limit;
         } else {
             request['limit'] = limit;
-        }
-        let till = this.safeInteger (params, 'till');
-        if (till !== undefined) {
-            till = parseInt (till / 1000);
-            request['to'] = Math.min (request['to'], till);
-            params = this.omit (params, 'till');
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
