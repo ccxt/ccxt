@@ -875,7 +875,7 @@ module.exports = class bytetrade extends Exchange {
         const amountTruncated = this.amountToPrecision (symbol, amount);
         const amountTruncatedPrecise = new Precise (amountTruncated);
         amountTruncatedPrecise.reduce ();
-        amountTruncatedPrecise.decimals -= this.precisionFromString (baseCurrency['precision']);
+        amountTruncatedPrecise.decimals -= this.precisionFromString (this.numberToString (baseCurrency['precision']));
         const amountChain = amountTruncatedPrecise.toString ();
         const amountChainString = this.numberToString (amountChain);
         const quoteId = market['quoteId'];
@@ -883,7 +883,7 @@ module.exports = class bytetrade extends Exchange {
         const priceRounded = this.priceToPrecision (symbol, price);
         const priceRoundedPrecise = new Precise (priceRounded);
         priceRoundedPrecise.reduce ();
-        priceRoundedPrecise.decimals -= this.precisionFromString (quoteCurrency['precision']);
+        priceRoundedPrecise.decimals -= this.precisionFromString (this.numberToString (quoteCurrency['precision']));
         const priceChain = priceRoundedPrecise.toString ();
         const priceChainString = this.numberToString (priceChain);
         const now = this.milliseconds ();
