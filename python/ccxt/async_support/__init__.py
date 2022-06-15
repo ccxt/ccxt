@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.87.45'
+__version__ = '1.87.46'
 
 # -----------------------------------------------------------------------------
 
@@ -120,6 +120,7 @@ from ccxt.async_support.flowbtc import flowbtc                            # noqa
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
 from ccxt.async_support.ftx import ftx                                    # noqa: F401
 from ccxt.async_support.ftxus import ftxus                                # noqa: F401
+from ccxt.async_support.gate import gate                                  # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
@@ -244,6 +245,7 @@ exchanges = [
     'fmfwio',
     'ftx',
     'ftxus',
+    'gate',
     'gateio',
     'gemini',
     'hitbtc',
