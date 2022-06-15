@@ -548,7 +548,6 @@ module.exports = class zb extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const markets = await this.spotV1PublicGetMarkets (params);
         //
         //     {
         //         "zb_qc":{
@@ -559,14 +558,10 @@ module.exports = class zb extends Exchange {
         //         },
         //     }
         //
-        let contracts = undefined;
-        try {
-            // https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
-            // https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
-            contracts = await this.contractV2PublicGetConfigMarketList (params);
-        } catch (e) {
-            contracts = {};
-        }
+        let promises = [ this.spotV1PublicGetMarkets (params), this.contractV2PublicGetConfigMarketList (params) ];
+        promises = await Promise.all (promises);
+        const markets = promises[0];
+        const contracts = promises[1];
         //
         //     {
         //         BTC_USDT: {
@@ -1548,6 +1543,7 @@ module.exports = class zb extends Exchange {
             limit = 1000;
         }
         const request = {
+            'size': limit,
             // 'market': market['id'], // spot only
             // 'symbol': market['id'], // swap only
             // 'type': timeframeValue, // spot only
@@ -1575,9 +1571,6 @@ module.exports = class zb extends Exchange {
             if (since !== undefined) {
                 request['since'] = since;
             }
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1820,9 +1813,20 @@ module.exports = class zb extends Exchange {
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        let reduceOnly = this.safeValue (params, 'reduceOnly');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isTriggerOrder = triggerPrice !== undefined;
+        if (this.sum (isStopLoss, isTakeProfit, isTriggerOrder)) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
+        const isStopOrder = isStopLoss || isTakeProfit || isTriggerOrder;
+        if (isStopOrder && spot) {
+            throw new ExchangeError (this.id + ' createOrder() it is not possible to make a stop order on spot markets');
+        }
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1841,88 +1845,77 @@ module.exports = class zb extends Exchange {
             // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
             // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (stop || stopPrice) {
-            method = 'contractV2PrivatePostTradeOrderAlgo';
-            const orderType = this.safeInteger (params, 'orderType');
-            const priceType = this.safeInteger (params, 'priceType');
-            const bizType = this.safeInteger (params, 'bizType');
-            const algoPrice = this.safeNumber (params, 'algoPrice');
-            request['symbol'] = market['id'];
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (type === 'trigger' || orderType === 1) {
+        if (spot) {
+            const exchangeSpecificParam = this.safeInteger (params, 'orderType', type) === 1;
+            const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
+            request['tradeType'] = (side === 'buy') ? 1 : 0;
+            request['currency'] = market['id'];
+            if (postOnly) {
                 request['orderType'] = 1;
-            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || bizType) {
+            } else if (timeInForce === 'IOC') {
                 request['orderType'] = 2;
-                request['priceType'] = priceType;
-                request['bizType'] = bizType;
             }
-            request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['algoPrice'] = this.priceToPrecision (symbol, algoPrice);
-        } else {
-            if (price) {
+            if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
-            if (spot) {
-                request['tradeType'] = (side === 'buy') ? '1' : '0';
-                request['currency'] = market['id'];
-                if (timeInForce !== undefined) {
-                    if (timeInForce === 'PO') {
-                        request['orderType'] = 1;
-                    } else if (timeInForce === 'IOC') {
-                        request['orderType'] = 2;
-                    } else {
-                        throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
-                    }
+        } else if (swap) {
+            const exchangeSpecificParam = this.safeInteger (params, 'action', type) === 4;
+            const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
+            // the default mode on zb is one way mode
+            // currently ccxt does not support hedge mode natively
+            if (isStopLoss || isTakeProfit) {
+                reduceOnly = true;
+            }
+            if (reduceOnly) {
+                request['side'] = 0;
+            } else {
+                request['side'] = (side === 'buy') ? 5 : 6;
+            }
+            if (isStopOrder) {
+                method = 'contractV2PrivatePostTradeOrderAlgo';
+                if (isStopLoss) {
+                    request['orderType'] = 2;
+                    request['bizType'] = 2;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else if (isTakeProfit) {
+                    request['orderType'] = 2;
+                    request['bizType'] = 1;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                } else if (isTriggerOrder) {
+                    request['orderType'] = 1;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 }
-            } else if (swap) {
-                if (side === 'sell' && reduceOnly) {
-                    request['side'] = 3; // close long
-                } else if (side === 'buy' && reduceOnly) {
-                    request['side'] = 4; // close short
-                } else if (side === 'buy') {
-                    request['side'] = 1; // open long
-                } else if (side === 'sell') {
-                    request['side'] = 2; // open short
-                }
-                if (type === 'limit') {
-                    request['action'] = 1;
-                } else if (timeInForce === 'IOC') {
+                request['algoPrice'] = this.priceToPrecision (symbol, price);
+                request['pricetype'] = 2;
+            } else {
+                if (timeInForce === 'IOC') {
                     request['action'] = 3;
-                } else if (timeInForce === 'PO') {
+                } else if (postOnly) {
                     request['action'] = 4;
                 } else if (timeInForce === 'FOK') {
                     request['action'] = 5;
+                } else if (type === 'limit') {
+                    request['action'] = 1;
                 } else {
                     request['action'] = type;
                 }
-                request['symbol'] = market['id'];
-                const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
-                if (clientOrderId !== undefined) {
-                    request['clientOrderId'] = clientOrderId;
-                }
-                // using extend as const name causes issues in python
-                const extendOrderAlgos = this.safeValue (params, 'extend', undefined); // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-                if (extendOrderAlgos !== undefined) {
-                    request['extend'] = extendOrderAlgos;
-                }
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['symbol'] = market['id'];
+            const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
+            // using extend as const name causes issues in python
+            const extendOrderAlgos = this.safeValue (params, 'extend', undefined); // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            if (extendOrderAlgos !== undefined) {
+                request['extend'] = extendOrderAlgos;
             }
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend' ]);
-        let response = await this[method] (this.extend (request, query));
+        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
+        const response = await this[method] (this.extend (request, query));
         //
         // Spot
         //
@@ -1951,17 +1944,11 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if ((swap) && (!stop) && (stopPrice === undefined)) {
-            response = this.safeValue (response, 'data');
-            response['timeInForce'] = timeInForce;
-            const tradeType = this.safeString (response, 'tradeType');
-            if (tradeType === undefined) {
-                response['type'] = tradeType;
-            }
-            response['total_amount'] = amount;
-            response['price'] = price;
+        let result = response;
+        if (swap && !isStopOrder) {
+            result = this.safeValue (response, 'data');
         }
-        return this.parseOrder (response, market);
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2059,8 +2046,10 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
+        const orderType = this.safeInteger (params, 'orderType');
+        if (orderType !== undefined) {
+            throw new ExchangeError (this.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead');
+        }
         const swap = market['swap'];
         const request = {
             // 'currency': this.marketId (symbol), // only applicable to SPOT
@@ -2081,42 +2070,11 @@ module.exports = class zb extends Exchange {
         request[marketIdField] = this.marketId (symbol);
         const orderIdField = swap ? 'orderId' : 'id';
         request[orderIdField] = id.toString ();
-        let method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetGetOrder',
             'swap': 'contractV2PrivateGetTradeGetOrder',
         });
-        if (stop) {
-            method = 'contractV2PrivateGetTradeGetOrderAlgos';
-            const orderType = this.safeInteger (params, 'orderType');
-            if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an orderType parameter for stop orders');
-            }
-            const side = this.safeInteger (params, 'side');
-            const bizType = this.safeInteger (params, 'bizType');
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (orderType === 1) {
-                request['orderType'] = 1;
-            } else if (orderType === 2 || bizType) {
-                request['orderType'] = 2;
-                request['bizType'] = bizType;
-            }
-        }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
-        let response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // Spot
         //
@@ -2205,23 +2163,11 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if (stop) {
-            const data = this.safeValue (response, 'data', {});
-            response = this.safeValue (data, 'list', []);
-            const result = [];
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const algoId = this.safeString (entry, 'id');
-                if (id === algoId) {
-                    result.push (entry);
-                }
-            }
-            response = result[0];
+        let result = response;
+        if (swap) {
+            result = this.safeValue (response, 'data');
         }
-        if (swap && !stop) {
-            response = this.safeValue (response, 'data', {});
-        }
-        return this.parseOrder (response, market);
+        return this.parseOrder (result, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2240,8 +2186,7 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
+        const orderType = this.safeInteger (params, 'orderType');
         const swap = market['swap'];
         const request = {
             'pageSize': limit, // default pageSize is 50 for spot, 30 for swap
@@ -2275,46 +2220,10 @@ module.exports = class zb extends Exchange {
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
         }
-        if (stop) {
+        if (orderType !== undefined) {
             method = 'contractV2PrivateGetTradeGetOrderAlgos';
-            const orderType = this.safeInteger (params, 'orderType');
-            if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires an orderType parameter for stop orders');
-            }
-            const side = this.safeInteger (params, 'side');
-            const bizType = this.safeInteger (params, 'bizType');
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (orderType === 1) {
-                request['orderType'] = 1;
-            } else if (orderType === 2 || bizType) {
-                request['orderType'] = 2;
-                request['bizType'] = bizType;
-            }
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
-        let response = undefined;
-        try {
-            response = await this[method] (this.extend (request, query));
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                return [];
-            }
-            throw e;
-        }
+        const response = await this[method] (this.extend (request, params));
         // Spot
         //
         //     [
@@ -2414,11 +2323,12 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        let result = response;
         if (swap) {
             const data = this.safeValue (response, 'data', {});
-            response = this.safeValue (data, 'list', []);
+            result = this.safeValue (data, 'list', []);
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
@@ -2597,8 +2507,8 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
+        const swap = market['swap'];
+        const orderType = this.safeInteger (params, 'orderType');
         const request = {
             'pageSize': limit, // SPOT and STOP, default pageSize is 10, doesn't work with other values now
             // 'currency': market['id'], // SPOT
@@ -2616,40 +2526,21 @@ module.exports = class zb extends Exchange {
         request[marketIdField] = market['id'];
         const pageNumField = market['spot'] ? 'pageIndex' : 'pageNum';
         request[pageNumField] = 1;
-        let method = 'spotV1PrivateGetGetFinishedAndPartialOrders';
-        if (stop) {
-            method = 'contractV2PrivateGetTradeGetOrderAlgos';
-            const orderType = this.safeInteger (params, 'orderType');
-            if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an orderType parameter for stop orders');
-            }
-            const side = this.safeInteger (params, 'side');
-            const bizType = this.safeInteger (params, 'bizType');
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (orderType === 1) {
-                request['orderType'] = 1;
-            } else if (orderType === 2 || bizType) {
-                request['orderType'] = 2;
-                request['bizType'] = bizType;
-            }
-            request['status'] = 5;
+        if (swap && (since !== undefined)) {
+            request['startTime'] = since;
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
-        let response = await this[method] (this.extend (request, query));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
+            'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
+        });
+        if (orderType === undefined) {
+            throw new ExchangeError (this.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead');
+        }
+        if (swap) {
+            // a status of 2 would mean canceled and could also be valid
+            request['status'] = 5; // complete
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // Spot
         //
@@ -2710,11 +2601,12 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        if (stop) {
+        let result = response;
+        if (swap) {
             const data = this.safeValue (response, 'data', {});
-            response = this.safeValue (data, 'list', []);
+            result = this.safeValue (data, 'list', []);
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2733,8 +2625,7 @@ module.exports = class zb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
+        const orderType = this.safeInteger (params, 'orderType');
         const swap = market['swap'];
         const request = {
             // 'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
@@ -2765,51 +2656,16 @@ module.exports = class zb extends Exchange {
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         });
-        if (stop) {
+        if (orderType !== undefined) {
             method = 'contractV2PrivateGetTradeGetOrderAlgos';
-            const orderType = this.safeInteger (params, 'orderType');
-            if (orderType === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an orderType parameter for stop orders');
-            }
-            const side = this.safeInteger (params, 'side');
-            const bizType = this.safeInteger (params, 'bizType');
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (orderType === 1) {
-                request['orderType'] = 1;
-            } else if (orderType === 2 || bizType) {
-                request['orderType'] = 2;
-                request['bizType'] = bizType;
-            }
-            request['status'] = 1;
+            // value 3 would mean triggered but still open orders
+            request['status'] = 1; // untriggered
         }
-        const query = this.omit (params, [ 'reduceOnly', 'stop', 'side', 'orderType', 'bizType' ]);
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
         }
-        let response = undefined;
-        try {
-            response = await this[method] (this.extend (request, query));
-        } catch (e) {
-            if (e instanceof OrderNotFound) {
-                return [];
-            }
-            throw e;
-        }
+        const response = await this[method] (this.extend (request, params));
         //
         // Spot
         //
@@ -2908,11 +2764,12 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        let result = undefined;
         if (swap) {
             const data = this.safeValue (response, 'data', {});
-            response = this.safeValue (data, 'list', []);
+            result = this.safeValue (data, 'list', []);
         }
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -3022,7 +2879,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        let orderId = market['swap'] ? this.safeString2 (order, 'orderId', 'data') : this.safeString (order, 'id');
         if (orderId === undefined) {
             orderId = this.safeValue (order, 'id');
         }
@@ -3030,8 +2887,16 @@ module.exports = class zb extends Exchange {
         if (side === undefined) {
             side = undefined;
         } else {
-            if (market['type'] === 'spot') {
+            if (market['spot']) {
                 side = (side === 1) ? 'buy' : 'sell';
+            } else if (market['swap']) {
+                if (side === 0) {
+                    side = undefined;
+                } else if ((side === 1) || (side === 4) || (side === 5)) {
+                    side = 'buy';
+                } else if ((side === 2) || (side === 3) || (side === 6)) {
+                    side = 'sell';
+                }
             }
         }
         let timestamp = this.safeInteger (order, 'trade_date');
@@ -3078,7 +2943,7 @@ module.exports = class zb extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': this.safeString (order, 'triggerPrice'),
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
             'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
@@ -3104,7 +2969,7 @@ module.exports = class zb extends Exchange {
                 '1': 'open',
                 '2': 'canceled',
                 '3': 'open', // stop order triggered
-                '4': 'failed',
+                '4': 'rejected',
                 '5': 'closed',
             };
         }

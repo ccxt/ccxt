@@ -52,6 +52,7 @@ class bitopro(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -62,6 +63,7 @@ class bitopro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -925,7 +927,7 @@ class bitopro(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitopro api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
