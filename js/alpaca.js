@@ -43,7 +43,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchMarkets': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': 'emulated',
+                'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
             },
@@ -279,6 +279,7 @@ module.exports = class alpaca extends Exchange {
             request['limit'] = parseInt (limit);
         }
         const response = await this.cryptoPrivateGetCryptoSymbolTrades (this.extend (request, params));
+        //
         // {
         //     "symbol": "BTCUSD",
         //     "trades": [
@@ -291,11 +292,25 @@ module.exports = class alpaca extends Exchange {
         //          "i": 237168320
         //          },
         // }
+        //
         const trades = this.safeValue (response, 'trades', {});
         return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        return await this.fetchL1OrderBook (symbol, limit, params);
+    }
+
+    async fetchL1OrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
@@ -330,112 +345,13 @@ module.exports = class alpaca extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const free = {};
-        const used = {};
-        const total = {};
-        const currencies = {};
-        const accountResponse = await this.privateGetAccount ();
-        //
-        // {
-        //     "account_blocked": false,
-        //     "account_number": "010203ABCD",
-        //     "buying_power": "262113.632",
-        //     "cash": "-23140.2",
-        //     "created_at": "2019-06-12T22:47:07.99658Z",
-        //     "currency": "USD",
-        //     "daytrade_count": 0,
-        //     "daytrading_buying_power": "262113.632",
-        //     "equity": "103820.56",
-        //     "id": "e6fe16f3-64a4-4921-8928-cadf02f92f98",
-        //     "initial_margin": "63480.38",
-        //     "last_equity": "103529.24",
-        //     "last_maintenance_margin": "38000.832",
-        //     "long_market_value": "126960.76",
-        //     "maintenance_margin": "38088.228",
-        //     "multiplier": "4",
-        //     "pattern_day_trader": false,
-        //     "portfolio_value": "103820.56",
-        //     "regt_buying_power": "80680.36",
-        //     "short_market_value": "0",
-        //     "shorting_enabled": true,
-        //     "sma": "0",
-        //     "status": "ACTIVE",
-        //     "trade_suspended_by_user": false,
-        //     "trading_blocked": false,
-        //     "transfers_blocked": false
-        // }
-        //
-        const accountCurrency = this.safeString (accountResponse, 'currency');
-        const accountCurrencyFree = this.safeString (accountResponse, 'cash');
-        free[accountCurrency] = accountCurrencyFree;
-        used[accountCurrency] = 0;
-        total[accountCurrency] = accountCurrencyFree;
-        currencies[accountCurrency] = { 'free': accountCurrencyFree, 'used': 0, 'total': accountCurrencyFree };
-        // initialize currencies
-        const symbols = this.symbols;
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            const base = this.safeString (market, 'base');
-            free[base] = 0;
-            used[base] = 0;
-            total[base] = 0;
-            currencies[base] = { 'free': 0, 'used': 0, 'total': 0 };
-        }
-        // fill in existing positions
-        const positions = await this.privateGetPositions ();
-        // [
-        //     {
-        //         "asset_id": "ef145fe0-95cd-453a-8609-db7200ff0279",
-        //         "symbol": "BTCUSD",
-        //         "exchange": "crypto",
-        //         "asset_class": "crypto",
-        //         "asset_marginable": false,
-        //         "qty": "0.0167",
-        //         "avg_entry_price": "59506.1",
-        //         "side": "long",
-        //         "market_value": "988.423067",
-        //         "cost_basis": "993.75187",
-        //         "unrealized_pl": "-5.328803",
-        //         "unrealized_plpc": "-0.0053623073936958",
-        //         "unrealized_intraday_pl": "-5.328803",
-        //         "unrealized_intraday_plpc": "-0.0053623073936958",
-        //         "current_price": "59187.01",
-        //         "lastday_price": "59440.5",
-        //         "change_today": "-0.004264600735189"
-        //     }
-        // ]
-        for (let i = 0; i < positions.length; i++) {
-            const position = positions[i];
-            if (this.safeString (position, 'asset_class') === 'crypto') {
-                const id = this.safeString (position, 'symbol');
-                const market = this.markets_by_id[id];
-                const base = this.safeString (market, 'base');
-                const amount = this.safeNumber (position, 'qty');
-                free[base] = amount;
-                used[base] = 0;
-                total[base] = amount;
-                currencies[base] = { 'free': amount, 'used': 0, 'total': amount };
-            }
-        }
-        const timestamp = this.milliseconds (); // alpaca doesn't provide timestamps with account/positions data
-        let balance = {
-            'info': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        balance = this.extend (balance, free, used, total, currencies);
-        return this.parseBalance (balance);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
         const request = {
             'symbol': id,
-            'qty': amount,
+            'qty': this.amountToPrecision (symbol, amount),
             'side': side,
             'type': type, // market, limit, stop, stop_limit and trailling_stop
         };
@@ -445,23 +361,23 @@ module.exports = class alpaca extends Exchange {
         const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'take_profit');
         if (type === 'trailling_stop' || trailPrice !== undefined) {
             request['type'] = 'trailing_stop';
-            request['trail_price'] = triggerPrice;
+            request['trail_price'] = this.priceToPrecision (symbol, trailPrice);
         } else if (triggerPrice !== undefined) {
             let newType = 'stop'; // stop market
             if (type.indexOf ('limit') >= 0) {
                 newType = 'stop_limit';
             }
-            request['stop_price'] = triggerPrice;
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = newType;
         }
         if (type.indexOf ('limit') >= 0) {
-            request['limit_price'] = price;
+            request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         if (stopLossPrice !== undefined) {
-            request['stop_loss'] = { 'stop_price': stopLossPrice };
+            request['stop_loss'] = { 'stop_price': this.priceToPrecision (symbol, stopLossPrice) };
         }
         if (takeProfitPrice !== undefined) {
-            request['take_profit'] = { 'limit_price': takeProfitPrice };
+            request['take_profit'] = { 'limit_price': this.priceToPrecision (symbol, takeProfitPrice) };
         }
         if (stopLossPrice !== undefined || takeProfitPrice !== undefined) {
             if (stopLossPrice !== undefined && takeProfitPrice !== undefined) {
