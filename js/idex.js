@@ -1489,11 +1489,14 @@ module.exports = class idex extends Exchange {
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        params = this.extend ({
-            'method': 'privateGetDeposits',
+        const nonce = this.uuidv1 ();
+        const request = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
             'depositId': id,
-        }, params);
-        return this.fetchTransactionsHelper (code, undefined, undefined, params);
+        };
+        const response = await this.privateGetDeposits (this.extend (request, params));
+        return this.parseTransaction (response, code);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1538,11 +1541,15 @@ module.exports = class idex extends Exchange {
          * @param {dict} params extra parameters specific to the idex api endpoint
          * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
-        params = this.extend ({
-            'method': 'privateGetWithdrawals',
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
             'withdrawalId': id,
-        }, params);
-        return this.fetchTransactionsHelper (code, undefined, undefined, params);
+        };
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        return this.parseTransaction (response, code);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1653,7 +1660,7 @@ module.exports = class idex extends Exchange {
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
         const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeInteger (transaction, 'txTime');
+        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
         let fee = undefined;
         if ('fee' in transaction) {
             fee = {
