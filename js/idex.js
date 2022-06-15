@@ -1414,7 +1414,7 @@ module.exports = class idex extends Exchange {
             this.base16ToBinary (walletBytes),
         ];
         if (market !== undefined) {
-            byteArray.push (market['id']);
+            byteArray.push (this.stringToBinary (this.encode (market['id'])));
             request['parameters']['market'] = market['id'];
         }
         const binary = this.binaryConcatArray (byteArray);
@@ -1423,8 +1423,7 @@ module.exports = class idex extends Exchange {
         request['signature'] = signature;
         // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
         const response = await this.privateDeleteOrders (this.extend (request, params));
-        const canceledOrder = this.safeValue (response, 0);
-        return this.parseOrder (canceledOrder, market);
+        return this.parseOrders (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
