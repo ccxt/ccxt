@@ -2491,7 +2491,7 @@ class Exchange(object):
         for i in range(0, len(trades)):
             trade = self.extend(self.parse_trade(trades[i], market), params)
             result.append(trade)
-        result = self.sort_by2(result, 'timestamp', 'id')
+        result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
         tail = (since is None)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, tail)
@@ -2596,7 +2596,7 @@ class Exchange(object):
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlc_vs(result, market, timeframe, since, limit)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def edit_limit_buy_order(self, id, symbol, amount, price=None, params={}):
         return self.edit_limit_order(id, symbol, 'buy', amount, price, params)

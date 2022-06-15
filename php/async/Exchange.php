@@ -1127,7 +1127,7 @@ class Exchange extends \ccxt\Exchange {
             $trade = array_merge($this->parse_trade($trades[$i], $market), $params);
             $result[] = $trade;
         }
-        $result = $this->sort_by2($result, 'timestamp', 'id');
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $tail = ($since === null);
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit, $tail);
@@ -1259,7 +1259,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function parse_trading_view_ohlcv($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
-        return $this->parse_ohlc_vs($result, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
     public function edit_limit_buy_order($id, $symbol, $amount, $price = null, $params = array ()) {
