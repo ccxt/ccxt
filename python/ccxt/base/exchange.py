@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.87.44'
+__version__ = '1.87.45'
 
 # -----------------------------------------------------------------------------
 
@@ -3046,11 +3046,41 @@ class Exchange(object):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
 
     def parse_tickers(self, tickers, symbols=None, params={}):
-        result = []
-        tickers = self.to_array(tickers)
-        for i in range(0, len(tickers)):
-            result.append(self.extend(self.parse_ticker(tickers[i]), params))
-        return self.filter_by_array(result, 'symbol', symbols)
+        #
+        # the value of tickers is either a dict or a list
+        #
+        # dict
+        #
+        #     {
+        #         'marketId1': {...},
+        #         'marketId2': {...},
+        #         'marketId3': {...},
+        #         ...
+        #     }
+        #
+        # list
+        #
+        #     [
+        #         {'market': 'marketId1', ...},
+        #         {'market': 'marketId2', ...},
+        #         {'market': 'marketId3', ...},
+        #         ...
+        #     ]
+        #
+        results = []
+        if isinstance(tickers, list):
+            for i in range(0, len(tickers)):
+                ticker = self.extend(self.parse_ticker(tickers[i]), params)
+                results.append(ticker)
+        else:
+            marketIds = list(tickers.keys())
+            for i in range(0, len(marketIds)):
+                marketId = marketIds[i]
+                market = self.safe_market(marketId)
+                ticker = self.extend(self.parse_ticker(tickers[marketId], market), params)
+                results.append(ticker)
+        symbols = self.market_symbols(symbols)
+        return self.filter_by_array(results, 'symbol', symbols)
 
     def parse_deposit_addresses(self, addresses, codes=None, indexed=True, params={}):
         result = []

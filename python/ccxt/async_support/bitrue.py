@@ -903,18 +903,16 @@ class bitrue(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        ids = list(data.keys())
-        result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            baseId, quoteId = id.split('_')
-            marketId = baseId + quoteId
-            market = self.safe_market(marketId)
-            rawTicker = self.safe_value(data, id)
-            ticker = self.parse_ticker(rawTicker, market)
-            symbol = ticker['symbol']
-            result[symbol] = ticker
-        return result
+        # the exchange returns market ids with an underscore from the tickers endpoint
+        # the market ids do not have an underscore, so it has to be removed
+        # https://github.com/ccxt/ccxt/issues/13856
+        tickers = {}
+        marketIds = list(data.keys())
+        for i in range(0, len(marketIds)):
+            parts = marketIds[i].split('_')
+            marketId = ''.join(parts)
+            tickers[marketId] = data[marketIds[i]]
+        return self.parse_tickers(tickers, symbols)
 
     def parse_trade(self, trade, market=None):
         #
