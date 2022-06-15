@@ -2575,7 +2575,8 @@ module.exports = class gate extends Exchange {
         //         "order_id": "125924049993",
         //         "fee": "0.00301420496",
         //         "fee_currency": "USDT",
-        //         "point_fee": "0","gt_fee":"0"
+        //         "point_fee": "1.1",
+        //         "gt_fee":"2.2"
         //     }
         //
         // perpetual swap rest
@@ -2613,20 +2614,28 @@ module.exports = class gate extends Exchange {
         amountString = Precise.stringAbs (amountString);
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
+        const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.safeString (trade, 'gt_fee');
-        let feeCurrency = undefined;
-        let feeCostString = undefined;
-        if (gtFee === '0') {
-            feeCurrency = this.safeString (trade, 'fee_currency');
-            feeCostString = this.safeString (trade, 'fee');
-        } else {
-            feeCurrency = 'GT';
-            feeCostString = gtFee;
+        const pointFee = this.safeString (trade, 'point_fee');
+        const fees = [];
+        if (feeAmount && feeAmount !== '0') {
+            fees.push ({
+                'cost': feeAmount,
+                'currency': this.safeString (trade, 'fee_currency'),
+            });
         }
-        const fee = {
-            'cost': feeCostString,
-            'currency': feeCurrency,
-        };
+        if (gtFee && gtFee !== '0') {
+            fees.push ({
+                'cost': gtFee,
+                'currency': 'GT',
+            });
+        }
+        if (pointFee && pointFee !== '0') {
+            fees.push ({
+                'cost': pointFee,
+                'currency': 'POINT',
+            });
+        }
         const takerOrMaker = this.safeString (trade, 'role');
         return this.safeTrade ({
             'info': trade,
@@ -2641,7 +2650,8 @@ module.exports = class gate extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': fee,
+            'fee': undefined,
+            'fees': fees,
         }, market);
     }
 
@@ -2903,7 +2913,7 @@ module.exports = class gate extends Exchange {
                 price = 0;
             }
         } else if (!isLimitOrder) {
-            // Exchange doesn't have market orders for spot
+            // exchange doesn't have market orders for spot
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
