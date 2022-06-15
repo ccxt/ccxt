@@ -698,7 +698,6 @@ module.exports = class gate extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'precision')));
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
@@ -732,7 +731,7 @@ module.exports = class gate extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1244,8 +1243,6 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const result = {};
-        // TODO: remove magic constants
-        const amountPrecision = this.parseNumber ('1e-6');
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1265,7 +1262,7 @@ module.exports = class gate extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': this.parseNumber ('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
