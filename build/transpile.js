@@ -108,7 +108,7 @@ class Transpiler {
         ].concat (this.getCommonRegexes ()).concat ([
 
             // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
-            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) + '(' ],
+            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) ],
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
@@ -315,7 +315,7 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
-            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) + '(' ],
+            [ /this\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) ],
             [ /this\./g, '$this->' ],
             [ / this;/g, ' $this;' ],
             [ /([^'])this_\./g, '$1$this_->' ],
@@ -389,7 +389,7 @@ class Transpiler {
             [ /Math\.(max|min)/g, '$1' ],
             [ /console\.log/g, 'var_dump'],
             [ /process\.exit/g, 'exit'],
-            [ /super\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x)],
+            [ /super\.[a-zA-Z0-9]+ \(/g, x => unCamelCase(x) ],
             [ /super\./g, 'parent::'],
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
