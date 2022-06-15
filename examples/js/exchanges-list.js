@@ -12,6 +12,8 @@ const popularExchanges = [
     'ftx',
     'ftxus',
     'coinbase',
+    'coinbasepro',
+    'coinbasepime',
     'okx',
     'huobi',
     'kucoin',
