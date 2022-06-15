@@ -1634,12 +1634,10 @@ module.exports = class ftx extends Exchange {
         let triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        let isTakeProfit = false;
-        let isStopLoss = false;
+        let isTakeProfit = type === 'takeProfit';
+        let isStopLoss = type === 'stop';
         let isTriggerPrice = false;
         if (triggerPrice !== undefined) {
-            isTakeProfit = type === 'takeProfit';
-            isStopLoss = type === 'stop';
             isTriggerPrice = !isTakeProfit && !isStopLoss;
         } else if (takeProfitPrice !== undefined) {
             isTakeProfit = true;
@@ -1654,6 +1652,13 @@ module.exports = class ftx extends Exchange {
         const isStopOrder = isTakeProfit || isStopLoss || isTriggerPrice;
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (isStopOrder) {
+            if (triggerPrice === undefined) {
+                if (isTakeProfit) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param, a stopPrice or a takeProfitPrice param for a takeProfit order');
+                } else if (isStopLoss) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice param, a stopPrice or a stopLossPrice param for a stop order');
+                }
+            }
             method = 'privatePostConditionalOrders';
             request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
             if ((type === 'limit') && (price === undefined)) {
