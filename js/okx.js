@@ -1723,6 +1723,7 @@ module.exports = class okx extends Exchange {
     }
 
     parseTradingFee (fee, market = undefined) {
+        // https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         //
         //     {
         //         "category": "1",
@@ -1739,8 +1740,8 @@ module.exports = class okx extends Exchange {
             'info': fee,
             'symbol': this.safeSymbol (undefined, market),
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
-            'maker': this.parseNumber (Precise.stringNeg (this.safeString (fee, 'maker'))),
-            'taker': this.parseNumber (Precise.stringNeg (this.safeString (fee, 'taker'))),
+            'maker': this.parseNumber (Precise.stringNeg (this.safeString2 (fee, 'maker', 'makerU'))),
+            'taker': this.parseNumber (Precise.stringNeg (this.safeString2 (fee, 'taker', 'takerU'))),
         };
     }
 
