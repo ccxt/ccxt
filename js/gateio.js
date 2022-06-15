@@ -2575,7 +2575,8 @@ module.exports = class gateio extends Exchange {
         //         "order_id": "125924049993",
         //         "fee": "0.00301420496",
         //         "fee_currency": "USDT",
-        //         "point_fee": "0","gt_fee":"0"
+        //         "point_fee": "0",
+        //         "gt_fee":"0"
         //     }
         //
         // perpetual swap rest
@@ -2613,21 +2614,39 @@ module.exports = class gateio extends Exchange {
         amountString = Precise.stringAbs (amountString);
         const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
+        const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.safeString (trade, 'gt_fee');
-        let feeCurrency = undefined;
-        let feeCostString = undefined;
-        if (gtFee === '0') {
-            feeCurrency = this.safeString (trade, 'fee_currency');
-            feeCostString = this.safeString (trade, 'fee');
-        } else {
-            feeCurrency = 'GT';
-            feeCostString = gtFee;
+        const pointFee = this.safeString (trade, 'point_fee');
+        let fees = [];
+        if (feeAmount && feeAmount !== '0') {
+            fees.push ({
+                'cost': feeAmount,
+                'currency': this.safeString (trade, 'fee_currency'),
+            });
         }
-        const fee = {
-            'cost': feeCostString,
-            'currency': feeCurrency,
-        };
+        if (gtFee && gtFee !== '0') {
+            fees.push ({
+                'cost': gtFee,
+                'currency': 'GT',
+            });
+        }
+        if (pointFee && pointFee !== '0') {
+            fees.push ({
+                'cost': pointFee,
+                'currency': 'POINT',
+            });
+        }
         const takerOrMaker = this.safeString (trade, 'role');
+        let fee = undefined;
+        const feeLength = fees.length;
+        if (feeLength === 1) {
+            fee = fees[0];
+            fees = undefined;
+        }
+        if (feeLength === 0) {
+            fee = undefined;
+            fees = undefined;
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -2642,6 +2661,7 @@ module.exports = class gateio extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
+            'fees': fees,
         }, market);
     }
 
