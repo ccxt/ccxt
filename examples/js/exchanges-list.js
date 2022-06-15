@@ -5,6 +5,7 @@ const ccxt = require ('../../ccxt.js')
 console.log (ccxt.iso8601 (ccxt.milliseconds ()))
 console.log ('CCXT v' + ccxt.version)
 
+// according to coinmarketcap & coingecko top 20-25
 const popularExchanges = [
     'binance',
     'binanceus',
@@ -44,7 +45,7 @@ async function main () {
         if('certified' in exchange && exchange.certified) {
             suffix += ' ✅[CERTIFIED]';
         }
-        if (additionalPopularAfterCertified.includes (exName)) {
+        if (popularExchanges.includes (exName)) {
             suffix += ' ✰[POPULAR]';
         }
         if (exchange.has['ws'] || 'ws' in exchange) {
