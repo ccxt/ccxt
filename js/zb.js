@@ -1821,7 +1821,7 @@ module.exports = class zb extends Exchange {
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        let reduceOnly = this.safeValue (params, 'reduceOnly');
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1858,44 +1858,58 @@ module.exports = class zb extends Exchange {
             const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
             request['tradeType'] = (side === 'buy') ? 1 : 0;
             request['currency'] = market['id'];
-            if (postOnly || 1) {
+            if (postOnly) {
                 request['orderType'] = 1;
             } else if (timeInForce === 'IOC') {
                 request['orderType'] = 2;
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
             }
         } else if (swap) {
             const exchangeSpecificParam = this.safeInteger (params, 'action', type) === 4;
             const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
             // the default mode on zb is one way mode
             // currently ccxt does not support hedge mode natively
+            if (isStopLoss || isTakeProfit) {
+                reduceOnly = true;
+            }
             if (reduceOnly) {
                 request['side'] = 0;
             } else {
                 request['side'] = (side === 'buy') ? 5 : 6;
             }
-            if (timeInForce === 'IOC') {
-                request['action'] = 3;
-            } else if (postOnly) {
-                request['action'] = 4;
-            } else if (timeInForce === 'FOK') {
-                request['action'] = 5;
-            } else if (type === 'limit') {
-                request['action'] = 1;
-            } else {
-                request['action'] = type;
-            }
             if (isStopOrder) {
-                method = 'contractV2PrivatePostTradeAlgoOrder';
+                method = 'contractV2PrivatePostTradeOrderAlgo';
                 if (isStopLoss) {
+                    request['orderType'] = 2;
                     request['bizType'] = 2;
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 } else if (isTakeProfit) {
+                    request['orderType'] = 2;
                     request['bizType'] = 1;
                     request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 } else if (isTriggerOrder) {
+                    request['orderType'] = 1;
                     request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 }
                 request['algoPrice'] = this.priceToPrecision (symbol, price);
+                request['pricetype'] = 2;
+            } else {
+                if (timeInForce === 'IOC') {
+                    request['action'] = 3;
+                } else if (postOnly) {
+                    request['action'] = 4;
+                } else if (timeInForce === 'FOK') {
+                    request['action'] = 5;
+                } else if (type === 'limit') {
+                    request['action'] = 1;
+                } else {
+                    request['action'] = type;
+                }
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
             }
             request['symbol'] = market['id'];
             const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
