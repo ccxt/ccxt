@@ -2442,7 +2442,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {str|undefined} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-         * @param {int|undefined} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|undefined} params.until The latest timestamp, in ms, that fetched trades were made
          * @param {int|undefined} params.page *spot only* Page number
          * @param {str|undefined} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
          * @param {str|undefined} params.order *contract only* Futures order ID, return related data only if specified
@@ -2456,8 +2456,8 @@ module.exports = class gate extends Exchange {
         let marginMode = undefined;
         let request = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const till = this.safeNumber (params, 'till');
-        params = this.omit (params, 'till');
+        const until = this.safeNumber2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future');
         if (contract) {
@@ -2475,8 +2475,8 @@ module.exports = class gate extends Exchange {
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
         }
-        if (till !== undefined) {
-            request['to'] = parseInt (till / 1000);
+        if (until !== undefined) {
+            request['to'] = parseInt (until / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',

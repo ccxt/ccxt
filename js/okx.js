@@ -5136,7 +5136,7 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {dict} params Exchange specific parameters
-         * @param {int|undefined} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @param {int|undefined} params.until The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
@@ -5154,9 +5154,10 @@ module.exports = class okx extends Exchange {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const till = this.safeInteger2 (params, 'till', 'end');
-        if (till !== undefined) {
-            request['end'] = till;
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, [ 'until', 'till' ]);
         }
         const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         //
