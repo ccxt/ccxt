@@ -530,20 +530,23 @@ module.exports = class alpaca extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // symbol, since, and limit filtering done by base class
+        /**
+         * @method
+         * @name alpaca#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the alpaca api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
-        // returns open orders by default
-        const orders = await this.privateGetOrders (params);
-        // add symbols to orders to handle parseOrders
-        const ordersWithSymbols = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            const market = this.safeString (this.markets_by_id, 'symbol');
-            const symbol = this.safeString (market, 'symbol');
-            order = this.extend (order, { 'symbol': symbol });
-            ordersWithSymbols.push (order);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        return this.parseOrders (ordersWithSymbols, undefined, since, limit);
+        const orders = await this.privateGetOrders (params);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -591,10 +594,13 @@ module.exports = class alpaca extends Exchange {
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'comission');
-        const fee = {
-            'cost': feeValue,
-            'currency': 'USD',
-        };
+        let fee = undefined;
+        if (feeValue !== undefined) {
+            fee = {
+                'cost': feeValue,
+                'currency': 'USD',
+            };
+        }
         const datetime = this.safeString (order, 'submitted_at');
         const timestamp = this.parse8601 (datetime);
         return this.safeOrder ({
@@ -624,12 +630,13 @@ module.exports = class alpaca extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'accepted': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
             'filled': 'closed',
         };
-        return this.safeString (statuses, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseTrade (trade, market = undefined) {
