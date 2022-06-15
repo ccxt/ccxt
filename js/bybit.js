@@ -2832,22 +2832,41 @@ module.exports = class bybit extends Exchange {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         if (market['swap']) {
-            const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-            if (stopPx !== undefined) {
-                const basePrice = this.safeValue (params, 'basePrice');
-                if (basePrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order');
+            const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            const isTriggerOrder = triggerPrice !== undefined;
+            const stopLossPrice = this.safeValue2 (params, 'stopLoss', 'stopLossPrice');
+            const isStopLossOrder = stopLossPrice !== undefined;
+            const takeProfitPrice = this.safeValue2 (params, 'takeProfit', 'takeProfitPrice');
+            const isTakeProfitOrder = takeProfitPrice !== undefined;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isTriggerOrder;
+            if (isStopOrder) {
+                if (isTriggerOrder) {
+                    const basePrice = this.safeValue (params, 'basePrice');
+                    if (basePrice === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order');
+                    }
+                    request['orderFilter'] = 'StopOrder';
+                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                    const triggerBy = this.safeString2 (params, 'triggerBy', 'MarkPrice');
+                    request['triggerBy'] = triggerBy;
+                } else {
+                    request['orderFilter'] = 'Order';
                 }
-                request['orderFilter'] = 'StopOrder';
-                request['triggerPrice'] = this.priceToPrecision (symbol, stopPx);
-            } else {
-                request['orderFilter'] = 'Order';
+                if (isStopLossOrder) {
+                    request['stopLoss'] = stopLossPrice;
+                    const slTriggerBy = this.safeString2 (params, 'slTriggerBy', 'MarkPrice');
+                    request['slTriggerBy'] = slTriggerBy;
+                }
+                if (isTakeProfitOrder) {
+                    request['takeProfit'] = takeProfitPrice;
+                    const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
+                    request['tpTriggerBy'] = tpTriggerBy;
+                }
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLoss', 'stopLossPrice', 'takeProfit', 'takeProfitPrice', 'basePrice', 'triggerBy', 'triggerBy', 'tpTriggerby', 'slTriggerBy' ]);
             }
         }
         const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
         request['reduceOnly'] = reduceOnly;
-        params = this.omit (params, [ 'reduce_only', 'reduceOnly' ]);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
@@ -2855,7 +2874,7 @@ module.exports = class bybit extends Exchange {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId', 'reduce_only', 'reduceOnly' ]);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method] (this.extend (request, params));
         //
