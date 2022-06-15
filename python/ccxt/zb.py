@@ -566,7 +566,6 @@ class zb(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        markets = self.spotV1PublicGetMarkets(params)
         #
         #     {
         #         "zb_qc":{
@@ -577,13 +576,9 @@ class zb(Exchange):
         #         },
         #     }
         #
-        contracts = None
-        try:
-            # https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
-            # https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
-            contracts = self.contractV2PublicGetConfigMarketList(params)
-        except Exception as e:
-            contracts = {}
+        promises = [self.spotV1PublicGetMarkets(params), self.contractV2PublicGetConfigMarketList(params)]
+        markets = promises[0]
+        contracts = promises[1]
         #
         #     {
         #         BTC_USDT: {
@@ -1512,6 +1507,7 @@ class zb(Exchange):
         if limit is None:
             limit = 1000
         request = {
+            'size': limit,
             # 'market': market['id'],  # spot only
             # 'symbol': market['id'],  # swap only
             # 'type': timeframeValue,  # spot only
@@ -1537,8 +1533,6 @@ class zb(Exchange):
         elif spot:
             if since is not None:
                 request['since'] = since
-        if limit is not None:
-            request['size'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
@@ -1764,8 +1758,17 @@ class zb(Exchange):
         spot = market['spot']
         timeInForce = self.safe_string(params, 'timeInForce')
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isTriggerOrder = triggerPrice is not None
+        if self.sum(isStopLoss, isTakeProfit, isTriggerOrder):
+            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
+        isStopOrder = isStopLoss or isTakeProfit or isTriggerOrder
+        if isStopOrder and spot:
+            raise ExchangeError(self.id + ' createOrder() it is not possible to make a stop order on spot markets')
         if type == 'market':
             raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
         method = self.get_supported_mapping(market['type'], {
@@ -1783,76 +1786,65 @@ class zb(Exchange):
             # 'priceType': 1,  # Stop Loss Take Profit, 1: Mark price, 2: Last price
             # 'bizType': 1,  # Stop Loss Take Profit, 1: TP, 2: SL
         }
-        if stop or stopPrice:
-            method = 'contractV2PrivatePostTradeOrderAlgo'
-            orderType = self.safe_integer(params, 'orderType')
-            priceType = self.safe_integer(params, 'priceType')
-            bizType = self.safe_integer(params, 'bizType')
-            algoPrice = self.safe_number(params, 'algoPrice')
-            request['symbol'] = market['id']
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if type == 'trigger' or orderType == 1:
+        if spot:
+            exchangeSpecificParam = self.safe_integer(params, 'orderType', type) == 1
+            postOnly = self.is_post_only(False, exchangeSpecificParam, params)
+            request['tradeType'] = 1 if (side == 'buy') else 0
+            request['currency'] = market['id']
+            if postOnly:
                 request['orderType'] = 1
-            elif type == 'stop loss' or type == 'take profit' or orderType == 2 or priceType or bizType:
+            elif timeInForce == 'IOC':
                 request['orderType'] = 2
-                request['priceType'] = priceType
-                request['bizType'] = bizType
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['algoPrice'] = self.price_to_precision(symbol, algoPrice)
-        else:
-            if price:
+            if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
-            if spot:
-                request['tradeType'] = '1' if (side == 'buy') else '0'
-                request['currency'] = market['id']
-                if timeInForce is not None:
-                    if timeInForce == 'PO':
-                        request['orderType'] = 1
-                    elif timeInForce == 'IOC':
-                        request['orderType'] = 2
-                    else:
-                        raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
-            elif swap:
-                if side == 'sell' and reduceOnly:
-                    request['side'] = 3  # close long
-                elif side == 'buy' and reduceOnly:
-                    request['side'] = 4  # close short
-                elif side == 'buy':
-                    request['side'] = 1  # open long
-                elif side == 'sell':
-                    request['side'] = 2  # open short
-                if type == 'limit':
-                    request['action'] = 1
-                elif timeInForce == 'IOC':
+        elif swap:
+            exchangeSpecificParam = self.safe_integer(params, 'action', type) == 4
+            postOnly = self.is_post_only(False, exchangeSpecificParam, params)
+            # the default mode on zb is one way mode
+            # currently ccxt does not support hedge mode natively
+            if isStopLoss or isTakeProfit:
+                reduceOnly = True
+            if reduceOnly:
+                request['side'] = 0
+            else:
+                request['side'] = 5 if (side == 'buy') else 6
+            if isStopOrder:
+                method = 'contractV2PrivatePostTradeOrderAlgo'
+                if isStopLoss:
+                    request['orderType'] = 2
+                    request['bizType'] = 2
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                elif isTakeProfit:
+                    request['orderType'] = 2
+                    request['bizType'] = 1
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                elif isTriggerOrder:
+                    request['orderType'] = 1
+                    request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['algoPrice'] = self.price_to_precision(symbol, price)
+                request['pricetype'] = 2
+            else:
+                if timeInForce == 'IOC':
                     request['action'] = 3
-                elif timeInForce == 'PO':
+                elif postOnly:
                     request['action'] = 4
                 elif timeInForce == 'FOK':
                     request['action'] = 5
+                elif type == 'limit':
+                    request['action'] = 1
                 else:
                     request['action'] = type
-                request['symbol'] = market['id']
-                clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-                if clientOrderId is not None:
-                    request['clientOrderId'] = clientOrderId
-                # using self.extend as name causes issues in python
-                extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-                if extendOrderAlgos is not None:
-                    request['extend'] = extendOrderAlgos
-        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend'])
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            request['symbol'] = market['id']
+            clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
+            # using self.extend as name causes issues in python
+            extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            if extendOrderAlgos is not None:
+                request['extend'] = extendOrderAlgos
+        query = self.omit(params, ['takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot
@@ -1882,15 +1874,10 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if (swap) and (not stop) and (stopPrice is None):
-            response = self.safe_value(response, 'data')
-            response['timeInForce'] = timeInForce
-            tradeType = self.safe_string(response, 'tradeType')
-            if tradeType is None:
-                response['type'] = tradeType
-            response['total_amount'] = amount
-            response['price'] = price
-        return self.parse_order(response, market)
+        result = response
+        if swap and not isStopOrder:
+            result = self.safe_value(response, 'data')
+        return self.parse_order(result, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -1974,8 +1961,9 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
+        if orderType is not None:
+            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
@@ -2000,34 +1988,7 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetOrder',
             'swap': 'contractV2PrivateGetTradeGetOrder',
         })
-        if stop:
-            method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2116,19 +2077,10 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if stop:
-            data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-            result = []
-            for i in range(0, len(response)):
-                entry = response[i]
-                algoId = self.safe_string(entry, 'id')
-                if id == algoId:
-                    result.append(entry)
-            response = result[0]
-        if swap and not stop:
-            response = self.safe_value(response, 'data', {})
-        return self.parse_order(response, market)
+        result = response
+        if swap:
+            result = self.safe_value(response, 'data')
+        return self.parse_order(result, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2143,8 +2095,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
         swap = market['swap']
         request = {
             'pageSize': limit,  # default pageSize is 50 for spot, 30 for swap
@@ -2176,40 +2127,9 @@ class zb(Exchange):
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
-        if stop:
+        if orderType is not None:
             method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = None
-        try:
-            response = getattr(self, method)(self.extend(request, query))
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                return []
-            raise e
+        response = getattr(self, method)(self.extend(request, params))
         # Spot
         #
         #     [
@@ -2309,10 +2229,11 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=10, params={}):
         """
@@ -2472,8 +2393,8 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        swap = market['swap']
+        orderType = self.safe_integer(params, 'orderType')
         request = {
             'pageSize': limit,  # SPOT and STOP, default pageSize is 10, doesn't work with other values now
             # 'currency': market['id'],  # SPOT
@@ -2491,36 +2412,18 @@ class zb(Exchange):
         request[marketIdField] = market['id']
         pageNumField = 'pageIndex' if market['spot'] else 'pageNum'
         request[pageNumField] = 1
-        method = 'spotV1PrivateGetGetFinishedAndPartialOrders'
-        if stop:
-            method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-            request['status'] = 5
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = getattr(self, method)(self.extend(request, query))
+        if swap and (since is not None):
+            request['startTime'] = since
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
+            'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
+        })
+        if orderType is None:
+            raise ExchangeError(self.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead')
+        if swap:
+            # a status of 2 would mean canceled and could also be valid
+            request['status'] = 5  # complete
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2581,10 +2484,11 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if stop:
+        result = response
+        if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2599,8 +2503,7 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
         swap = market['swap']
         request = {
             # 'pageSize': limit,  # default pageSize is 10 for spot, 30 for swap
@@ -2629,44 +2532,14 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         })
-        if stop:
+        if orderType is not None:
             method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-            request['status'] = 1
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+            # value 3 would mean triggered but still open orders
+            request['status'] = 1  # untriggered
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
-        response = None
-        try:
-            response = getattr(self, method)(self.extend(request, query))
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                return []
-            raise e
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2765,10 +2638,11 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        result = None
         if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def parse_order(self, order, market=None):
         #
@@ -2877,15 +2751,22 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
+        orderId = self.safe_string_2(order, 'orderId', 'data') if market['swap'] else self.safe_string(order, 'id')
         if orderId is None:
             orderId = self.safe_value(order, 'id')
         side = self.safe_integer_2(order, 'type', 'side')
         if side is None:
             side = None
         else:
-            if market['type'] == 'spot':
+            if market['spot']:
                 side = 'buy' if (side == 1) else 'sell'
+            elif market['swap']:
+                if side == 0:
+                    side = None
+                elif (side == 1) or (side == 4) or (side == 5):
+                    side = 'buy'
+                elif (side == 2) or (side == 3) or (side == 6):
+                    side = 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
         if timestamp is None:
             timestamp = self.safe_integer(order, 'createTime')
@@ -2926,7 +2807,7 @@ class zb(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'average': self.safe_string(order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
@@ -2951,7 +2832,7 @@ class zb(Exchange):
                 '1': 'open',
                 '2': 'canceled',
                 '3': 'open',  # stop order triggered
-                '4': 'failed',
+                '4': 'rejected',
                 '5': 'closed',
             }
         return self.safe_string(statuses, status, status)
