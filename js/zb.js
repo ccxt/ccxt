@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+const {red} = require("asciichart");
 
 //  ---------------------------------------------------------------------------
 
@@ -1821,10 +1822,19 @@ module.exports = class zb extends Exchange {
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const stop = this.safeValue (params, 'stop');
-        const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isTriggerOrder = triggerPrice !== undefined;
+        if (this.sum (isStopLoss, isTakeProfit, isTriggerOrder)) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
+        const isStopOrder = isStopLoss || isTakeProfit || isTriggerOrder;
+        if (isStopOrder && spot) {
+            throw new ExchangeError (this.id + ' createOrder() it is not possible to make a stop order on spot markets');
+        }
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1843,91 +1853,59 @@ module.exports = class zb extends Exchange {
             // 'priceType': 1, // Stop Loss Take Profit, 1: Mark price, 2: Last price
             // 'bizType': 1, // Stop Loss Take Profit, 1: TP, 2: SL
         };
-        if (stop || stopPrice || stopLossPrice || takeProfitPrice) {
-            method = 'contractV2PrivatePostTradeOrderAlgo';
-            const orderType = this.safeInteger (params, 'orderType');
-            const priceType = this.safeInteger (params, 'priceType');
-            request['symbol'] = market['id'];
-            if (side === 'sell' && reduceOnly) {
-                request['side'] = 3; // close long
-            } else if (side === 'buy' && reduceOnly) {
-                request['side'] = 4; // close short
-            } else if (side === 'buy') {
-                request['side'] = 1; // open long
-            } else if (side === 'sell') {
-                request['side'] = 2; // open short
-            } else if (side === 5) {
-                request['side'] = 5; // one way position buy
-            } else if (side === 6) {
-                request['side'] = 6; // one way position sell
-            } else if (side === 0) {
-                request['side'] = 0; // one way position close only
-            }
-            if (type === 'trigger' || orderType === 1) {
+        if (spot) {
+            const exchangeSpecificParam = this.safeInteger (params, 'orderType', type) === 1;
+            const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
+            request['tradeType'] = (side === 'buy') ? 1 : 0;
+            request['currency'] = market['id'];
+            if (postOnly || 1) {
                 request['orderType'] = 1;
-                request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
-            } else if (type === 'stop loss' || type === 'take profit' || orderType === 2 || priceType || stopLossPrice || takeProfitPrice) {
-                if (priceType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a priceType parameter for stopLoss and takeProfit orders');
-                }
-                request['priceType'] = priceType; // 1: mark price, 2: last price
+            } else if (timeInForce === 'IOC') {
                 request['orderType'] = 2;
-                if (stopLossPrice) {
+            }
+        } else if (swap) {
+            const exchangeSpecificParam = this.safeInteger (params, 'action', type) === 4;
+            const postOnly = this.isPostOnly (false, exchangeSpecificParam, params);
+            // the default mode on zb is one way mode
+            // currently ccxt does not support hedge mode natively
+            if (reduceOnly) {
+                request['side'] = 0;
+            } else {
+                request['side'] = (side === 'buy') ? 5 : 6;
+            }
+            if (timeInForce === 'IOC') {
+                request['action'] = 3;
+            } else if (postOnly) {
+                request['action'] = 4;
+            } else if (timeInForce === 'FOK') {
+                request['action'] = 5;
+            } else if (type === 'limit') {
+                request['action'] = 1;
+            } else {
+                request['action'] = type;
+            }
+            if (isStopOrder) {
+                method = 'contractV2PrivatePostTradeAlgoOrder';
+                if (isStopLoss) {
                     request['bizType'] = 2;
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-                } else if (takeProfitPrice) {
+                } else if (isTakeProfit) {
                     request['bizType'] = 1;
                     request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                } else if (isTriggerOrder) {
+                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 }
+                request['algoPrice'] = this.priceToPrecision (symbol, price);
             }
-            request['algoPrice'] = this.priceToPrecision (symbol, price);
-        } else {
-            if (price) {
-                request['price'] = this.priceToPrecision (symbol, price);
+            request['symbol'] = market['id'];
+            const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
             }
-            if (spot) {
-                request['tradeType'] = (side === 'buy') ? '1' : '0';
-                request['currency'] = market['id'];
-                if (timeInForce !== undefined) {
-                    if (timeInForce === 'PO') {
-                        request['orderType'] = 1;
-                    } else if (timeInForce === 'IOC') {
-                        request['orderType'] = 2;
-                    } else {
-                        throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders');
-                    }
-                }
-            } else if (swap) {
-                if (side === 'sell' && reduceOnly) {
-                    request['side'] = 3; // close long
-                } else if (side === 'buy' && reduceOnly) {
-                    request['side'] = 4; // close short
-                } else if (side === 'buy') {
-                    request['side'] = 1; // open long
-                } else if (side === 'sell') {
-                    request['side'] = 2; // open short
-                }
-                if (type === 'limit') {
-                    request['action'] = 1;
-                } else if (timeInForce === 'IOC') {
-                    request['action'] = 3;
-                } else if (timeInForce === 'PO') {
-                    request['action'] = 4;
-                } else if (timeInForce === 'FOK') {
-                    request['action'] = 5;
-                } else {
-                    request['action'] = type;
-                }
-                request['symbol'] = market['id'];
-                const clientOrderId = this.safeString (params, 'clientOrderId'); // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
-                if (clientOrderId !== undefined) {
-                    request['clientOrderId'] = clientOrderId;
-                }
-                // using extend as const name causes issues in python
-                const extendOrderAlgos = this.safeValue (params, 'extend', undefined); // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-                if (extendOrderAlgos !== undefined) {
-                    request['extend'] = extendOrderAlgos;
-                }
+            // using extend as const name causes issues in python
+            const extendOrderAlgos = this.safeValue (params, 'extend', undefined); // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            if (extendOrderAlgos !== undefined) {
+                request['extend'] = extendOrderAlgos;
             }
         }
         const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
@@ -1960,6 +1938,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
+        /*
         if ((swap) && (!stop) && (stopPrice === undefined) && (stopLossPrice === undefined) && (takeProfitPrice === undefined)) {
             response = this.safeValue (response, 'data');
             response['timeInForce'] = timeInForce;
@@ -1970,6 +1949,7 @@ module.exports = class zb extends Exchange {
             response['total_amount'] = amount;
             response['price'] = price;
         }
+        */
         return this.parseOrder (response, market);
     }
 
