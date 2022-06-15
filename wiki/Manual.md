@@ -4761,7 +4761,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-`fetchFees` will automatically call both `fetchFundingFees` and `fetchTransactionFees` to get all the fee information. You can call fetchTradingFees or fetchTransactionFees for more precise control over what endpoint on the exchange is requested.
+`fetchFees` will automatically call both `fetchTradingFees` and `fetchTransactionFees` to get all the fee information. You can call `fetchTradingFees` or `fetchTransactionFees` for more precise control over what endpoint on the exchange is requested.
 
 ### Fee Structure
 
