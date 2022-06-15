@@ -66,7 +66,9 @@ class therock(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -1575,7 +1577,7 @@ class therock(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {} if (headers is None) else headers
         if api == 'private':
