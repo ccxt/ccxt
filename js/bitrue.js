@@ -925,19 +925,17 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const ids = Object.keys (data);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const [ baseId, quoteId ] = id.split ('_');
-            const marketId = baseId + quoteId;
-            const market = this.safeMarket (marketId);
-            const rawTicker = this.safeValue (data, id);
-            const ticker = this.parseTicker (rawTicker, market);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        // the exchange returns market ids with an underscore from the tickers endpoint
+        // the market ids do not have an underscore, so it has to be removed
+        // https://github.com/ccxt/ccxt/issues/13856
+        const tickers = {};
+        const marketIds = Object.keys (data);
+        for (let i = 0; i < marketIds.length; i++) {
+            const parts = marketIds[i].split ('_');
+            const marketId = parts.join ('');
+            tickers[marketId] = data[marketIds[i]];
         }
-        return result;
+        return this.parseTickers (tickers, symbols);
     }
 
     parseTrade (trade, market = undefined) {

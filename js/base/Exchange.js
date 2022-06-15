@@ -2359,12 +2359,44 @@ module.exports = class Exchange {
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
-        const result = [];
-        tickers = this.toArray (tickers);
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.extend (this.parseTicker (tickers[i]), params));
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1': { ... },
+        //         'marketId2': { ... },
+        //         'marketId3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'market': 'marketId1', ... },
+        //         { 'market': 'marketId2', ... },
+        //         { 'market': 'marketId3', ... },
+        //         ...
+        //     ]
+        //
+        const results = [];
+        if (Array.isArray (tickers)) {
+            for (let i = 0; i < tickers.length; i++) {
+                const ticker = this.extend (this.parseTicker (tickers[i]), params);
+                results.push (ticker);
+            }
+        } else {
+            const marketIds = Object.keys (tickers);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                const ticker = this.extend (this.parseTicker (tickers[marketId], market), params);
+                results.push (ticker);
+            }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbols);
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
