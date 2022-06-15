@@ -2222,7 +2222,7 @@ module.exports = class gate extends Exchange {
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
-         * @param {int|undefined} params.till timestamp in ms of the latest candle to fetch
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2249,9 +2249,9 @@ module.exports = class gate extends Exchange {
             }
         }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        let till = this.safeInteger (params, 'till');
-        if (till !== undefined) {
-            till = parseInt (till / 1000);
+        let until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            until = parseInt (until / 1000);
             params = this.omit (params, 'till');
         }
         if (since !== undefined) {
@@ -2260,13 +2260,13 @@ module.exports = class gate extends Exchange {
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
             const to = Math.min (toTimestamp, currentTimestamp);
-            if (till !== undefined) {
-                request['to'] = Math.min (to, till);
+            if (until !== undefined) {
+                request['to'] = Math.min (to, until);
             } else {
                 request['to'] = to;
             }
-        } else if (till !== undefined) {
-            request['to'] = till;
+        } else if (until !== undefined) {
+            request['to'] = until;
             request['limit'] = limit;
         } else {
             request['limit'] = limit;
