@@ -1921,7 +1921,7 @@ module.exports = class zb extends Exchange {
                 request['extend'] = extendOrderAlgos;
             }
         }
-        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
+        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ]);
         let response = await this[method] (this.extend (request, query));
         //
         // Spot
@@ -1951,8 +1951,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        /*
-        if ((swap) && (!stop) && (stopPrice === undefined) && (stopLossPrice === undefined) && (takeProfitPrice === undefined)) {
+        if ((swap) && (!isStopOrder)) {
             response = this.safeValue (response, 'data');
             response['timeInForce'] = timeInForce;
             const tradeType = this.safeString (response, 'tradeType');
@@ -1962,7 +1961,6 @@ module.exports = class zb extends Exchange {
             response['total_amount'] = amount;
             response['price'] = price;
         }
-        */
         return this.parseOrder (response, market);
     }
 
