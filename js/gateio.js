@@ -2575,8 +2575,8 @@ module.exports = class gateio extends Exchange {
         //         "order_id": "125924049993",
         //         "fee": "0.00301420496",
         //         "fee_currency": "USDT",
-        //         "point_fee": "0",
-        //         "gt_fee":"0"
+        //         "point_fee": "1.1",
+        //         "gt_fee":"2.2"
         //     }
         //
         // perpetual swap rest
@@ -2617,7 +2617,7 @@ module.exports = class gateio extends Exchange {
         const feeAmount = this.safeString (trade, 'fee');
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
-        let fees = [];
+        const fees = [];
         if (feeAmount && feeAmount !== '0') {
             fees.push ({
                 'cost': feeAmount,
@@ -2637,16 +2637,6 @@ module.exports = class gateio extends Exchange {
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');
-        let fee = undefined;
-        const feeLength = fees.length;
-        if (feeLength === 1) {
-            fee = fees[0];
-            fees = undefined;
-        }
-        if (feeLength === 0) {
-            fee = undefined;
-            fees = undefined;
-        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -2660,7 +2650,7 @@ module.exports = class gateio extends Exchange {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': fee,
+            'fee': undefined,
             'fees': fees,
         }, market);
     }
