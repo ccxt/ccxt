@@ -2933,19 +2933,37 @@ module.exports = class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
-        const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
+        const triggerPrice = this.safeValue2 (params, 'stop_px', 'stopPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const stopLossPrice = this.safeValue2 (params, 'stop_loss', 'stopLossPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue2 (params, 'take_profit', 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder || isTriggerOrder;
         const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
         let isConditionalOrder = false;
-        if (stopPx !== undefined) {
-            isConditionalOrder = true;
-            if (basePrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
+        if (isStopOrder) {
+            if (isTriggerOrder) {
+                isConditionalOrder = true;
+                if (basePrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
+                }
+                const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
+                request['trigger_by'] = triggerBy;
+                request['stop_px'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
+                request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
             }
-            request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
-            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-            const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
-            request['trigger_by'] = triggerBy;
-            params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
+            if (isStopLossOrder) {
+                request['stop_loss'] = stopLossPrice;
+                const slTriggerBy = this.safeString2 (params, 'sl_trigger_by', 'LastPrice');
+                request['sl_trigger_by'] = slTriggerBy;
+            }
+            if (isTakeProfitOrder) {
+                request['take_profit'] = takeProfitPrice;
+                const tpTriggerBy = this.safeString2 (params, 'tp_trigger_by', 'LastPrice');
+                request['tp_trigger_by'] = tpTriggerBy;
+            }
+            params = this.omit (params, [ 'stop_px', 'stopPrice', 'stop_loss', 'stopLossPrice', 'take_profit', 'takeProfitPrice', 'base_price', 'triggerBy', 'trigger_by', 'tp_trigger_by', 'sl_trigger_by' ]);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'order_link_id');
         if (clientOrderId !== undefined) {
