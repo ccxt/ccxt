@@ -2452,7 +2452,8 @@ class gateio(Exchange):
         #         "order_id": "125924049993",
         #         "fee": "0.00301420496",
         #         "fee_currency": "USDT",
-        #         "point_fee": "0","gt_fee":"0"
+        #         "point_fee": "1.1",
+        #         "gt_fee":"2.2"
         #     }
         #
         # perpetual swap rest
@@ -2490,19 +2491,25 @@ class gateio(Exchange):
         amountString = Precise.string_abs(amountString)
         side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
+        feeAmount = self.safe_string(trade, 'fee')
         gtFee = self.safe_string(trade, 'gt_fee')
-        feeCurrency = None
-        feeCostString = None
-        if gtFee == '0':
-            feeCurrency = self.safe_string(trade, 'fee_currency')
-            feeCostString = self.safe_string(trade, 'fee')
-        else:
-            feeCurrency = 'GT'
-            feeCostString = gtFee
-        fee = {
-            'cost': feeCostString,
-            'currency': feeCurrency,
-        }
+        pointFee = self.safe_string(trade, 'point_fee')
+        fees = []
+        if feeAmount and feeAmount != '0':
+            fees.append({
+                'cost': feeAmount,
+                'currency': self.safe_string(trade, 'fee_currency'),
+            })
+        if gtFee and gtFee != '0':
+            fees.append({
+                'cost': gtFee,
+                'currency': 'GT',
+            })
+        if pointFee and pointFee != '0':
+            fees.append({
+                'cost': pointFee,
+                'currency': 'POINT',
+            })
         takerOrMaker = self.safe_string(trade, 'role')
         return self.safe_trade({
             'info': trade,
@@ -2517,7 +2524,8 @@ class gateio(Exchange):
             'price': priceString,
             'amount': amountString,
             'cost': None,
-            'fee': fee,
+            'fee': None,
+            'fees': fees,
         }, market)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
