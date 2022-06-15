@@ -1144,13 +1144,13 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     getClassDeclarationMatches (contents) {
-        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{(?:\n([\n\r\s]+\/\*\*[\s\S]+?\*\/))?([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, docstring, classBody ] = this.getClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
@@ -1407,7 +1407,7 @@ class Transpiler {
     transpileBaseMethods () {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
         const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, docstring, classBody ] = this.getClassDeclarationMatches (contents)
         const jsDelimiter = '// ' + delimiter
         const parts = classBody.split (jsDelimiter)
         if (parts.length > 1) {
