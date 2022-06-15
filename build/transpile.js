@@ -49,6 +49,8 @@ class Transpiler {
             [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
             [ /\.safeValue2\s/g, '.safe_value_2'],
             [ /\.sortBy2\s/g, '.sort_by_2'],
+            [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
+            [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /this\.[a-zA-Z0-9]+ \(/g, this.trimmedUnCamelCase ],
         ]
     }
