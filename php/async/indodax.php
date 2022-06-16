@@ -246,7 +246,7 @@ class indodax extends Exchange {
                 'optionType' => null,
                 'percentage' => true,
                 'precision' => array(
-                    'amount' => intval('8'),
+                    'amount' => $this->parse_number($this->parse_precision('8')),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                     'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),

@@ -248,7 +248,6 @@ class idex extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $basePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision')));
             $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision')));
-            $pricePrecision = $this->safe_number($entry, 'tickSize');
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -282,7 +281,7 @@ class idex extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $basePrecision,
-                    'price' => $pricePrecision,
+                    'price' => $this->safe_number($entry, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
