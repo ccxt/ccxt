@@ -2824,7 +2824,13 @@ module.exports = class ftx extends Exchange {
             request['future'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start_time'] = parseInt (since / 1000);
+            request['end_time'] = this.seconds ();
+        }
+        const till = this.safeInteger (params, 'till');
+        if (till !== undefined) {
+            request['end_time'] = parseInt (till / 1000);
+            params = this.omit (params, 'till');
         }
         const response = await this.privateGetFundingPayments (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
