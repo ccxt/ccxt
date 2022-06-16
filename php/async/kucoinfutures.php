@@ -1287,19 +1287,20 @@ class kucoinfutures extends kucoin {
         /**
          * fetches a list of $orders placed on the exchange
          * @param {str} $status 'active' or 'closed', only 'active' is valid for $stop $orders
-         * @param {str} $symbol unified $symbol for the $market to retrieve $orders from
-         * @param {int} $since timestamp in ms of the earliest order to retrieve
-         * @param {int} $limit The maximum number of $orders to retrieve
+         * @param {str|null} $symbol unified $symbol for the $market to retrieve $orders from
+         * @param {int|null} $since timestamp in ms of the earliest order to retrieve
+         * @param {int|null} $limit The maximum number of $orders to retrieve
          * @param {dict} $params exchange specific parameters
-         * @param {bool} $params->stop set to true to retrieve untriggered $stop $orders
-         * @param {int} $params->till End time in ms
-         * @param {str} $params->side buy or sell
-         * @param {str} $params->type $limit or $market
+         * @param {bool|null} $params->stop set to true to retrieve untriggered $stop $orders
+         * @param {int|null} $params->until End time in ms
+         * @param {str|null} $params->side buy or sell
+         * @param {str|null} $params->type $limit or $market
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
          */
         yield $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'stop', 'until', 'till' ));
         if ($status === 'closed') {
             $status = 'done';
         } elseif ($status === 'open') {
@@ -1319,9 +1320,8 @@ class kucoinfutures extends kucoin {
         if ($since !== null) {
             $request['startAt'] = $since;
         }
-        $till = $this->safe_integer_2($params, 'till', 'endAt');
-        if ($till !== null) {
-            $request['endAt'] = $till;
+        if ($until !== null) {
+            $request['endAt'] = $until;
         }
         $method = $stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         $response = yield $this->$method (array_merge($request, $params));

@@ -5047,7 +5047,7 @@ class okx extends Exchange {
          * @param {int|null} $since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|null} $limit Not used by okx, but parsed internally by CCXT
          * @param {dict} $params Exchange specific parameters
-         * @param {int|null} $params->till The time in ms of the latest record to retrieve as a unix timestamp
+         * @param {int|null} $params->until The time in ms of the latest record to retrieve as a unix timestamp
          * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest structures}
          */
         $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
@@ -5065,9 +5065,10 @@ class okx extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $till = $this->safe_integer_2($params, 'till', 'end');
-        if ($till !== null) {
-            $request['end'] = $till;
+        $until = $this->safe_integer_2($params, 'till', 'until');
+        if ($until !== null) {
+            $request['end'] = $until;
+            $params = $this->omit($params, array( 'until', 'till' ));
         }
         $response = yield $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
         //

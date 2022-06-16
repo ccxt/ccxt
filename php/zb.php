@@ -3082,13 +3082,14 @@ class zb extends Exchange {
          * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
          * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
             // 'startTime' => $since,
-            // 'endTime' => $endTime, // current time by default
+            // 'endTime' => endTime, // current time by default
             // 'limit' => $limit, // default 100, max 1000
         );
         if ($symbol !== null) {
@@ -3099,13 +3100,10 @@ class zb extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $till = $this->safe_integer($params, 'till');
-        $endTime = $this->safe_string($params, 'endTime');
+        $until = $this->safe_integer_2($params, 'until', 'till');
         $params = $this->omit($params, array( 'endTime', 'till' ));
-        if ($till !== null) {
-            $request['endTime'] = $till;
-        } elseif ($endTime !== null) {
-            $request['endTime'] = $endTime;
+        if ($until !== null) {
+            $request['endTime'] = $until;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

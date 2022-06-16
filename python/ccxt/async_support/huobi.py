@@ -6123,13 +6123,14 @@ class huobi(Exchange):
         :param int since: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         :param int limit: page items, default 20, shall not exceed 50
         :param dict params: exchange specific params
-        :param int params['till']: timestamp in ms, value range = start_time -> current time，default = current time
+        :param int params['until']: timestamp in ms, value range = start_time -> current time，default = current time
         :param int params['page_index']: page index, default page 1 if not filled
+        :param int params['code']: unified currency code, can be used when symbol is None
         :returns: A list of settlement history objects
         """
         code = self.safe_string(params, 'code')
-        till = self.safe_integer(params, 'till')
-        params = self.omit(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         market = None if (symbol is None) else self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type == 'future':
@@ -6146,8 +6147,8 @@ class huobi(Exchange):
             request['start_at'] = since
         if limit is not None:
             request['page_size'] = limit
-        if till is not None:
-            request['end_at'] = till
+        if until is not None:
+            request['end_at'] = until
         method = 'contractPublicGetApiV1ContractSettlementRecords'
         if market['swap']:
             if market['linear']:

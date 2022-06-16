@@ -4818,7 +4818,7 @@ class okx(Exchange):
         :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int|None params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
         :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
@@ -4834,9 +4834,10 @@ class okx(Exchange):
         }
         if since is not None:
             request['begin'] = since
-        till = self.safe_integer_2(params, 'till', 'end')
-        if till is not None:
-            request['end'] = till
+        until = self.safe_integer_2(params, 'till', 'until')
+        if until is not None:
+            request['end'] = until
+            params = self.omit(params, ['until', 'till'])
         response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {

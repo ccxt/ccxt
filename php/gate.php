@@ -2406,7 +2406,7 @@ class gate extends Exchange {
          * @param {dict} $params extra parameters specific to the gate api endpoint
          * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {str|null} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
-         * @param {int|null} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|null} $params->until The latest timestamp, in ms, that fetched trades were made
          * @param {int|null} $params->page *spot only* Page number
          * @param {str|null} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
          * @param {str|null} $params->order *$contract only* Futures order ID, return related data only if specified
@@ -2420,8 +2420,8 @@ class gate extends Exchange {
         $marginMode = null;
         $request = array();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $till = $this->safe_number($params, 'till');
-        $params = $this->omit($params, 'till');
+        $until = $this->safe_number_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $contract = ($type === 'swap') || ($type === 'future');
         if ($contract) {
@@ -2439,8 +2439,8 @@ class gate extends Exchange {
         if ($since !== null) {
             $request['from'] = intval($since / 1000);
         }
-        if ($till !== null) {
-            $request['to'] = intval($till / 1000);
+        if ($until !== null) {
+            $request['to'] = intval($until / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',

@@ -1311,7 +1311,7 @@ class ftx extends Exchange {
          * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the ftx api endpoint
-         * @param {int|null} $params->till extra parameters specific to the ftx api endpoint
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
          * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
@@ -1324,13 +1324,10 @@ class ftx extends Exchange {
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
         }
-        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'end_time'); // exchange-specific in seconds
-        $params = $this->omit($params, array( 'end_time', 'till' ));
-        if ($till !== null) {
-            $request['end_time'] = intval($till / 1000);
-        } elseif ($endTime !== null) {
-            $request['end_time'] = $endTime;
+        $until = $this->safe_integer($params, 'until', 'till'); // unified in milliseconds
+        $params = $this->omit($params, array( 'end_time', 'until', 'till' ));
+        if ($until !== null) {
+            $request['end_time'] = intval($until / 1000);
         }
         $response = $this->publicGetFundingRates (array_merge($request, $params));
         //
@@ -2099,7 +2096,7 @@ class ftx extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
          * @param {dict} $params extra parameters specific to the ftx api endpoint
-         * @param {int|null} $params->till timestamp in ms of the latest trade
+         * @param {int|null} $params->until timestamp in ms of the latest trade
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         $this->load_markets();
@@ -2111,14 +2108,14 @@ class ftx extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $till = $this->safe_integer($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
         if ($since !== null) {
             $request['start_time'] = intval($since / 1000);
             $request['end_time'] = $this->seconds();
         }
-        if ($till !== null) {
-            $request['end_time'] = intval($till / 1000);
-            $params = $this->omit($params, 'till');
+        if ($until !== null) {
+            $request['end_time'] = intval($until / 1000);
+            $params = $this->omit($params, array( 'until', 'till' ));
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

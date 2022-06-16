@@ -2964,6 +2964,7 @@ class zb(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the zb api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         await self.load_markets()
@@ -2979,13 +2980,10 @@ class zb(Exchange):
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        till = self.safe_integer(params, 'till')
-        endTime = self.safe_string(params, 'endTime')
+        until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['endTime', 'till'])
-        if till is not None:
-            request['endTime'] = till
-        elif endTime is not None:
-            request['endTime'] = endTime
+        if until is not None:
+            request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
         response = await self.contractV2PublicGetFundingRate(self.extend(request, params))

@@ -2322,7 +2322,7 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the gate api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int|None params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['until']: The latest timestamp, in ms, that fetched trades were made
         :param int|None params['page']: *spot only* Page number
         :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
         :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
@@ -2336,8 +2336,8 @@ class gate(Exchange):
         marginMode = None
         request = {}
         market = self.market(symbol) if (symbol is not None) else None
-        till = self.safe_number(params, 'till')
-        params = self.omit(params, 'till')
+        until = self.safe_number_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         contract = (type == 'swap') or (type == 'future')
         if contract:
@@ -2351,8 +2351,8 @@ class gate(Exchange):
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
-        if till is not None:
-            request['to'] = int(till / 1000)
+        if until is not None:
+            request['to'] = int(until / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',

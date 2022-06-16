@@ -1283,7 +1283,7 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: extra parameters specific to the ftx api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
@@ -1294,13 +1294,10 @@ class ftx(Exchange):
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
-        params = self.omit(params, ['end_time', 'till'])
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-        elif endTime is not None:
-            request['end_time'] = endTime
+        until = self.safe_integer(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['end_time', 'until', 'till'])
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         response = self.publicGetFundingRates(self.extend(request, params))
         #
         #     {
@@ -2015,7 +2012,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: timestamp in ms of the latest trade
+        :param int|None params['until']: timestamp in ms of the latest trade
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
@@ -2025,13 +2022,13 @@ class ftx(Exchange):
             request['market'] = marketId
         if market is not None:
             symbol = market['symbol']
-        till = self.safe_integer(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
         if since is not None:
             request['start_time'] = int(since / 1000)
             request['end_time'] = self.seconds()
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-            params = self.omit(params, 'till')
+        if until is not None:
+            request['end_time'] = int(until / 1000)
+            params = self.omit(params, ['until', 'till'])
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
