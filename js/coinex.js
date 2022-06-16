@@ -256,10 +256,6 @@ module.exports = class coinex extends Exchange {
                     'max': undefined,
                 },
             },
-            'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
@@ -285,18 +281,18 @@ module.exports = class coinex extends Exchange {
         //     {
         //         code: 0,
         //         data: {
-        //           'CET-CSC': {
-        //               asset: 'CET',
-        //               chain: 'CSC',
-        //               withdrawal_precision: 8,
-        //               can_deposit: true,
-        //               can_withdraw: true,
-        //               deposit_least_amount: '0.026',
-        //               withdraw_least_amount: '20',
-        //               withdraw_tx_fee: '0.026'
-        //           },
-        //           ...
-        //           message: 'Success',
+        //             "USDT-ERC20": {
+        //                  "asset": "USDT",
+        //                  "chain": "ERC20",
+        //                  "withdrawal_precision": 6,
+        //                  "can_deposit": true,
+        //                  "can_withdraw": true,
+        //                  "deposit_least_amount": "4.9",
+        //                  "withdraw_least_amount": "4.9",
+        //                  "withdraw_tx_fee": "4.9"
+        //             },
+        //         },
+        //         message: 'Success',
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -308,6 +304,7 @@ module.exports = class coinex extends Exchange {
             const currencyId = this.safeString (currency, 'asset');
             const networkId = this.safeString (currency, 'chain');
             const code = this.safeCurrencyCode (currencyId);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision')));
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': currencyId,
@@ -319,7 +316,7 @@ module.exports = class coinex extends Exchange {
                     'deposit': this.safeValue (currency, 'can_deposit'),
                     'withdraw': this.safeValue (currency, 'can_withdraw'),
                     'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -360,7 +357,7 @@ module.exports = class coinex extends Exchange {
                 'deposit': this.safeValue (currency, 'can_deposit'),
                 'withdraw': this.safeValue (currency, 'can_withdraw'),
                 'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                'precision': precision,
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;

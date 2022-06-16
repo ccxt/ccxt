@@ -338,8 +338,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
+                    'amount': this.parseNumber ('0.00000001'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
