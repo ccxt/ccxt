@@ -361,7 +361,6 @@ class btcmarkets(Exchange):
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals')))
             minAmount = self.safe_number(market, 'minOrderAmount')
             maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
@@ -394,7 +393,7 @@ class btcmarkets(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals'))),
                     'price': pricePrecision,
                 },
                 'limits': {
@@ -730,7 +729,7 @@ class btcmarkets(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the btcmarkets api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

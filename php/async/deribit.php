@@ -95,9 +95,13 @@ class deribit extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'test' => 'https://test.deribit.com',
+                'test' => array(
+                    'rest' => 'https://test.deribit.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api' => 'https://www.deribit.com',
+                'api' => array(
+                    'rest' => 'https://www.deribit.com',
+                ),
                 'www' => 'https://www.deribit.com',
                 'doc' => array(
                     'https://docs.deribit.com/v2',
@@ -1573,7 +1577,7 @@ class deribit extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the deribit api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
@@ -2222,7 +2226,7 @@ class deribit extends Exchange {
         } elseif (gettype($symbols) === 'string') {
             $code = $symbols;
         } else {
-            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $length = is_array($symbols) ? count($symbols) : 0;
                 if ($length !== 1) {
                     throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
@@ -2506,7 +2510,7 @@ class deribit extends Exchange {
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

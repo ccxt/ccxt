@@ -920,6 +920,8 @@ class ftx extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {str|null} $params->price "index" for index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -936,7 +938,8 @@ class ftx extends Exchange {
             'limit' => $limit,
         );
         $price = $this->safe_string($params, 'price');
-        $params = $this->omit($params, 'price');
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'price', 'until' ));
         if ($since !== null) {
             $startTime = intval($since / 1000);
             $request['start_time'] = $startTime;
@@ -947,6 +950,9 @@ class ftx extends Exchange {
                 $wholeDaysInTimeframe = intval($duration / 86400);
                 $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
             }
+        }
+        if ($until !== null) {
+            $request['end_time'] = intval($until / 1000);
         }
         $method = 'publicGetMarketsMarketNameCandles';
         if ($price === 'index') {
@@ -1582,7 +1588,7 @@ class ftx extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the ftx api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1592,7 +1598,6 @@ class ftx extends Exchange {
             'market' => $market['id'],
             'side' => $side, // 'buy' or 'sell'
             // 'price' => 0.306525, // send null for $market orders
-            'type' => $type, // "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size' => floatval($this->amount_to_precision($symbol, $amount)),
             // 'reduceOnly' => false, // optional, default is false
             // 'ioc' => false, // optional, default is false, limit or $market orders only
@@ -1612,50 +1617,68 @@ class ftx extends Exchange {
             $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
         }
         $method = null;
-        $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ((($type === 'limit') || ($type === 'market')) && ($stopPrice === null)) {
-            $method = 'privatePostOrders';
-            if ($type === 'limit') {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
-            } elseif ($type === 'market') {
-                $request['price'] = null;
-            }
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
-            if ($timeInForce !== null) {
-                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
-                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isTakeProfit = $type === 'takeProfit';
+        $isStopLoss = $type === 'stop';
+        $isTriggerPrice = false;
+        if ($triggerPrice !== null) {
+            $isTriggerPrice = !$isTakeProfit && !$isStopLoss;
+        } elseif ($takeProfitPrice !== null) {
+            $isTakeProfit = true;
+            $triggerPrice = $takeProfitPrice;
+        } elseif ($stopLossPrice !== null) {
+            $isStopLoss = true;
+            $triggerPrice = $stopLossPrice;
+        }
+        if (!$isTriggerPrice) {
+            $request['type'] = $type;
+        }
+        $isStopOrder = $isTakeProfit || $isStopLoss || $isTriggerPrice;
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($isStopOrder) {
+            if ($triggerPrice === null) {
+                if ($isTakeProfit) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $takeProfitPrice param for a takeProfit order');
+                } elseif ($isStopLoss) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $stopLossPrice param for a stop order');
                 }
             }
-            $maker = (($timeInForce === 'PO') || $postOnly);
-            if (($type === 'market') && $maker) {
-                throw new InvalidOrder($this->id . ' createOrder () does not accept $postOnly => true or $timeInForce => PO for $market orders');
-            }
-            $ioc = ($timeInForce === 'IOC');
-            if ($maker) {
-                $request['postOnly'] = true;
-            }
-            if ($ioc) {
-                $request['ioc'] = true;
-            }
-        } elseif (($type === 'stop') || ($type === 'takeProfit') || ($stopPrice !== null)) {
             $method = 'privatePostConditionalOrders';
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $stopPrice parameter or a triggerPrice parameter for ' . $type . ' orders');
-            } else {
-                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $stopPrice));
-            }
+            $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
             if (($type === 'limit') && ($price === null)) {
                 throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
             }
             if ($price !== null) {
                 $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
             }
-            if (($type === 'limit') || ($type === 'market')) {
-                // default to stop orders for main argument
-                $request['type'] = 'stop';
+            if ($isStopLoss || $isTakeProfit) {
+                $request['type'] = $isStopLoss ? 'stop' : 'takeProfit';
+            }
+        } elseif (($type === 'limit') || ($type === 'market')) {
+            $method = 'privatePostOrders';
+            $isMarketOrder = false;
+            if ($type === 'limit') {
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            } elseif ($type === 'market') {
+                $request['price'] = null;
+                $isMarketOrder = true;
+            }
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+            if ($timeInForce !== null) {
+                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
+                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+                }
+            }
+            $ioc = ($timeInForce === 'IOC');
+            if ($postOnly) {
+                $request['postOnly'] = true;
+            }
+            if ($ioc) {
+                $request['ioc'] = true;
             }
         } elseif ($type === 'trailingStop') {
             $trailValue = $this->safe_number($params, 'trailValue', $price);
@@ -1669,7 +1692,7 @@ class ftx extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
-        // orders
+        // regular orders
         //
         //     {
         //         "success" => true,
@@ -1697,27 +1720,30 @@ class ftx extends Exchange {
         // conditional orders
         //
         //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //                 "future" => "XRP-PERP",
-        //                 "id" => 9596912,
-        //                 "market" => "XRP-PERP",
-        //                 "triggerPrice" => 0.306525,
-        //                 "orderId" => null,
-        //                 "side" => "sell",
-        //                 "size" => 31431,
-        //                 "status" => "open",
-        //                 "type" => "stop",
-        //                 "orderPrice" => null,
-        //                 "error" => null,
-        //                 "triggeredAt" => null,
-        //                 "reduceOnly" => false
-        //             }
-        //         )
+        //         "success":true,
+        //         "result":{
+        //             "id":215826320,
+        //             "market":"BTC/USD",
+        //             "future":null,
+        //             "side":"sell",
+        //             "type":"take_profit", // the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" $type with underscore
+        //             "orderPrice":40000.0,
+        //             "triggerPrice":39000.0,
+        //             "size":0.001,
+        //             "status":"open",
+        //             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        //             "triggeredAt":null,
+        //             "orderId":null,
+        //             "error":null,
+        //             "reduceOnly":false,
+        //             "trailValue":null,
+        //             "trailStart":null,
+        //             "cancelledAt":null,
+        //             "cancelReason":null,
+        //             "retryUntilFilled":false,
+        //             "orderType":"limit"
+        //         }
         //     }
-        //
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
@@ -2093,6 +2119,9 @@ class ftx extends Exchange {
         if ($till !== null) {
             $request['end_time'] = intval($till / 1000);
             $params = $this->omit($params, 'till');
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
         }
         $response = $this->privateGetFills (array_merge($request, $params));
         //

@@ -285,7 +285,6 @@ class liquid extends Exchange {
             $withdrawable = $this->safe_value($currency, 'withdrawable');
             $active = $depositable && $withdrawable;
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'assets_precision')));
-            $assetPrecisionInteger = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -299,7 +298,7 @@ class liquid extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $amountPrecision,
-                        'max' => pow(10, $assetPrecisionInteger),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),
@@ -945,7 +944,7 @@ class liquid extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} $params extra parameters specific to the liquid api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

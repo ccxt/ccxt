@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.86.84",
+  "version": "1.87.58",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -580,7 +580,9 @@
     "bitopro.com",
     "BitoPro",
     "coinflex.com",
-    "CoinFLEX"
+    "CoinFLEX",
+    "btcex.com",
+    "BTCEX"
   ],
   "collective": {
     "type": "opencollective",

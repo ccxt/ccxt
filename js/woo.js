@@ -311,11 +311,6 @@ module.exports = class woo extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const minQuote = this.safeNumber (market, 'quote_min');
-            const maxQuote = this.safeNumber (market, 'quote_max');
-            const minBase = this.safeNumber (market, 'base_min');
-            const maxBase = this.safeNumber (market, 'base_max');
-            const minCost = this.safeNumber (market, 'min_notional');
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
@@ -350,15 +345,15 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': minBase,
-                        'max': maxBase,
+                        'min': this.safeNumber (market, 'base_min'),
+                        'max': this.safeNumber (market, 'base_max'),
                     },
                     'price': {
-                        'min': minQuote,
-                        'max': maxQuote,
+                        'min': this.safeNumber (market, 'quote_min'),
+                        'max': this.safeNumber (market, 'quote_max'),
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': this.safeNumber (market, 'min_notional'),
                         'max': undefined,
                     },
                 },
@@ -731,7 +726,7 @@ module.exports = class woo extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the woo api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

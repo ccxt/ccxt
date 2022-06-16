@@ -370,7 +370,6 @@ class btcmarkets extends Exchange {
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
             $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
-            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimals')));
             $minAmount = $this->safe_number($market, 'minOrderAmount');
             $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
@@ -404,7 +403,7 @@ class btcmarkets extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimals'))),
                     'price' => $pricePrecision,
                 ),
                 'limits' => array(
@@ -758,7 +757,7 @@ class btcmarkets extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the btcmarkets api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

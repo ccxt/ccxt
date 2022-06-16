@@ -52,6 +52,7 @@ class bitvavo extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -62,6 +63,7 @@ class bitvavo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -267,7 +269,7 @@ class bitvavo extends Exchange {
     }
 
     public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], DECIMAL_PLACES);
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -332,10 +334,6 @@ class bitvavo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $baseCurrency = $this->safe_value($currenciesById, $baseId);
-            $amountPrecision = null;
-            if ($baseCurrency !== null) {
-                $amountPrecision = $this->safe_integer($baseCurrency, 'decimals', 8);
-            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -361,7 +359,7 @@ class bitvavo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
+                    'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
                     'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
@@ -440,7 +438,6 @@ class bitvavo extends Exchange {
             $withdrawal = ($withdrawalStatus === 'OK');
             $active = $deposit && $withdrawal;
             $name = $this->safe_string($currency, 'name');
-            $precision = $this->safe_integer($currency, 'decimals', 8);
             $result[$code] = array(
                 'id' => $id,
                 'info' => $currency,
@@ -450,7 +447,7 @@ class bitvavo extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdrawal,
                 'fee' => $this->safe_number($currency, 'withdrawalFee'),
-                'precision' => $precision,
+                'precision' => $this->safe_integer($currency, 'decimals', 8),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -926,7 +923,7 @@ class bitvavo extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitvavo api endpoint
          * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
          * @param {float} $params->stopPrice The $price at which a trigger order is triggered at

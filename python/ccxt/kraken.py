@@ -499,10 +499,10 @@ class kraken(Exchange):
     def append_inactive_markets(self, result):
         # result should be an array to append to
         precision = {
-            'amount': self.parse_number(self.parse_precision('8')),
-            'price': self.parse_number(self.parse_precision('8')),
+            'amount': self.parse_number('0.00000001'),
+            'price': self.parse_number('0.00000001'),
         }
-        costLimits = {'min': 0, 'max': None}
+        costLimits = {'min': None, 'max': None}
         priceLimits = {'min': precision['price'], 'max': None}
         amountLimits = {'min': precision['amount'], 'max': None}
         limits = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}
@@ -1171,7 +1171,7 @@ class kraken(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

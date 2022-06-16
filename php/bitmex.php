@@ -1625,7 +1625,7 @@ class bitmex extends Exchange {
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'transactTime'));
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
-        $filled = $this->safe_string($order, 'cumQty', 0.0);
+        $filled = $this->safe_string($order, 'cumQty');
         $average = $this->safe_string($order, 'avgPx');
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
@@ -1634,7 +1634,10 @@ class bitmex extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
-        $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        $postOnly = null;
+        if ($execInst !== null) {
+            $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1722,7 +1725,7 @@ class bitmex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitmex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1826,7 +1829,19 @@ class bitmex extends Exchange {
          * @param {dict} $params extra parameters specific to the bitmex api endpoint
          * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
-        return $this->cancel_order($ids, $symbol, $params);
+        // return $this->cancel_order($ids, $symbol, $params);
+        $this->load_markets();
+        // https://github.com/ccxt/ccxt/issues/6507
+        $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
+        $request = array();
+        if ($clientOrderId === null) {
+            $request['orderID'] = $ids;
+        } else {
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+        }
+        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        return $this->parse_orders($response);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {

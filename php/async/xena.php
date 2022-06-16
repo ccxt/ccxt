@@ -336,7 +336,7 @@ class xena extends Exchange {
             }
             $inverse = $this->safe_value($market, 'inverse', false);
             $contract = $swap || $future;
-            $pricePrecision = $this->safe_integer_2($market, 'tickSize', 'pricePrecision');
+            $pricePrecision = $this->safe_string_2($market, 'tickSize', 'pricePrecision');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -363,7 +363,7 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('0')),
+                    'amount' => $this->parse_number('1'),
                     'price' => $this->parse_number($this->parse_precision($pricePrecision)),
                 ),
                 'limits' => array(
@@ -1109,7 +1109,7 @@ class xena extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the xena api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

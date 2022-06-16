@@ -420,7 +420,7 @@ class crex24 extends Exchange {
         //         depositConfirmationCount =>  8,
         //                       minDeposit =>  0,
         //               withdrawalsAllowed =>  true,
-        //              $withdrawalPrecision =>  8,
+        //              withdrawalPrecision =>  8,
         //                    minWithdrawal =>  4,
         //                    maxWithdrawal =>  1000000000,
         //                flatWithdrawalFee =>  2,
@@ -432,7 +432,7 @@ class crex24 extends Exchange {
         //         depositConfirmationCount =>  8,
         //                       minDeposit =>  0,
         //               withdrawalsAllowed =>  false,
-        //              $withdrawalPrecision =>  8,
+        //              withdrawalPrecision =>  8,
         //                    minWithdrawal =>  0.2,
         //                    maxWithdrawal =>  1000000000,
         //                flatWithdrawalFee =>  0.1,
@@ -443,7 +443,6 @@ class crex24 extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
-            $withdrawalPrecision = $this->safe_integer($currency, 'withdrawalPrecision');
             $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawalPrecision')));
             $address = $this->safe_value($currency, 'BaseAddress');
             $deposit = $this->safe_value($currency, 'depositsAllowed');
@@ -467,7 +466,7 @@ class crex24 extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $precision,
-                        'max' => pow(10, $withdrawalPrecision),
+                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minDeposit'),
@@ -1060,7 +1059,7 @@ class crex24 extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the crex24 api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1387,7 +1386,7 @@ class crex24 extends Exchange {
          * @param {dict} $params extra parameters specific to the crex24 api endpoint
          * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
-        if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
+        if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
         }
         $this->load_markets();

@@ -1485,7 +1485,7 @@ class coinbase extends Exchange {
         }
         $errors = $this->safe_value($response, 'errors');
         if ($errors !== null) {
-            if (gettype($errors) === 'array' && count(array_filter(array_keys($errors), 'is_string')) == 0) {
+            if (gettype($errors) === 'array' && array_keys($errors) === array_keys(array_keys($errors))) {
                 $numErrors = is_array($errors) ? count($errors) : 0;
                 if ($numErrors > 0) {
                     $errorCode = $this->safe_string($errors[0], 'id');

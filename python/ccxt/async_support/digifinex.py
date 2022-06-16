@@ -303,7 +303,7 @@ class digifinex(Exchange):
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': self.parse_number(self.parse_precision('8')),  # todo fix hardcoded value
+                    'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
                     'limits': {
                         'amount': {
                             'min': None,
@@ -927,7 +927,7 @@ class digifinex(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

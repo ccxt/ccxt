@@ -438,7 +438,6 @@ module.exports = class crex24 extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const withdrawalPrecision = this.safeInteger (currency, 'withdrawalPrecision');
             const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawalPrecision')));
             const address = this.safeValue (currency, 'BaseAddress');
             const deposit = this.safeValue (currency, 'depositsAllowed');
@@ -462,7 +461,7 @@ module.exports = class crex24 extends Exchange {
                 'limits': {
                     'amount': {
                         'min': precision,
-                        'max': Math.pow (10, withdrawalPrecision),
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minDeposit'),
@@ -1073,7 +1072,7 @@ module.exports = class crex24 extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

@@ -50,6 +50,7 @@ class bitstamp extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -59,6 +60,7 @@ class bitstamp extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -286,6 +288,10 @@ class bitstamp extends Exchange {
                         'mana_address/' => 1,
                         'lrc_withdrawal/' => 1,
                         'lrc_address/' => 1,
+                        'ape_withdrawal/' => 1,
+                        'ape_address/' => 1,
+                        'mpl_withdrawal/' => 1,
+                        'mpl_address/' => 1,
                     ),
                 ),
             ),
@@ -1132,7 +1138,7 @@ class bitstamp extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitstamp api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
@@ -1900,7 +1906,7 @@ class bitstamp extends Exchange {
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);
-                    if (gettype($value) === 'array' && count(array_filter(array_keys($value), 'is_string')) == 0) {
+                    if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                         $errors = $this->array_concat($errors, $value);
                     } else {
                         $errors[] = $value;

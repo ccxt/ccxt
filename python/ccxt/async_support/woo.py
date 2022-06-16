@@ -315,13 +315,6 @@ class woo(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            minQuote = self.safe_number(market, 'quote_min')
-            maxQuote = self.safe_number(market, 'quote_max')
-            minBase = self.safe_number(market, 'base_min')
-            maxBase = self.safe_number(market, 'base_max')
-            priceScale = self.safe_number(market, 'quote_tick')
-            quantityScale = self.safe_number(market, 'base_tick')
-            minCost = self.safe_number(market, 'min_notional')
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -347,8 +340,8 @@ class woo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': quantityScale,
-                    'price': priceScale,
+                    'amount': self.safe_number(market, 'base_tick'),
+                    'price': self.safe_number(market, 'quote_tick'),
                 },
                 'limits': {
                     'leverage': {
@@ -356,15 +349,15 @@ class woo(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': minBase,
-                        'max': maxBase,
+                        'min': self.safe_number(market, 'base_min'),
+                        'max': self.safe_number(market, 'base_max'),
                     },
                     'price': {
-                        'min': minQuote,
-                        'max': maxQuote,
+                        'min': self.safe_number(market, 'quote_min'),
+                        'max': self.safe_number(market, 'quote_max'),
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': self.safe_number(market, 'min_notional'),
                         'max': None,
                     },
                 },
@@ -711,7 +704,7 @@ class woo(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the woo api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

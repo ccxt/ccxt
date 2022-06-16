@@ -2584,12 +2584,15 @@ class bybit(Exchange):
                 orderKey = 'orderId' if isUsdcSettled else 'order_id'
             params[orderKey] = id
         if isUsdcSettled or market['future'] or market['inverse']:
-            raise NotSupported(self.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
+            raise NotSupported(self.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
         else:
             # only linear swap markets allow using all purpose
             # fetchOrders endpoint filtering by id
             orders = await self.fetch_orders(symbol, None, None, params)
-            return self.safe_value(orders, 0)
+            order = self.safe_value(orders, 0)
+            if order is None:
+                raise OrderNotFound(self.id + ' fetchOrder() order ' + id + ' not found')
+            return order
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -2598,7 +2601,7 @@ class bybit(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

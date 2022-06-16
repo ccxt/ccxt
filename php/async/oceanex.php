@@ -607,7 +607,7 @@ class oceanex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the oceanex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -635,7 +635,7 @@ class oceanex extends Exchange {
          * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $ids = $id;
-        if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) != 0) {
+        if (gettype($id) !== 'array' || array_keys($id) !== array_keys(array_keys($id))) {
             $ids = array( $id );
         }
         yield $this->load_markets();
@@ -650,7 +650,7 @@ class oceanex extends Exchange {
         if ($data === null) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
-        if (gettype($id) === 'array' && count(array_filter(array_keys($id), 'is_string')) == 0) {
+        if (gettype($id) === 'array' && array_keys($id) === array_keys(array_keys($id))) {
             return $this->parse_orders($data, $market);
         }
         if ($dataLength === 0) {

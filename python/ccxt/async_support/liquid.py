@@ -290,7 +290,6 @@ class liquid(Exchange):
             withdrawable = self.safe_value(currency, 'withdrawable')
             active = depositable and withdrawable
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'assets_precision')))
-            assetPrecisionInteger = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -304,7 +303,7 @@ class liquid(Exchange):
                 'limits': {
                     'amount': {
                         'min': amountPrecision,
-                        'max': math.pow(10, assetPrecisionInteger),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
@@ -916,7 +915,7 @@ class liquid(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the liquid api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

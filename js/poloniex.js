@@ -140,11 +140,11 @@ module.exports = class poloniex extends Exchange {
                 },
                 'price': {
                     'min': 0.00000001,
-                    'max': 1000000000,
+                    'max': undefined,
                 },
                 'cost': {
-                    'min': 0.00000000,
-                    'max': 1000000000,
+                    'min': undefined,
+                    'max': undefined,
                 },
             },
             'commonCurrencies': {
@@ -1147,7 +1147,7 @@ module.exports = class poloniex extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the poloniex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

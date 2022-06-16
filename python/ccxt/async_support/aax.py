@@ -81,6 +81,7 @@ class aax(Exchange):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -96,6 +97,7 @@ class aax(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': None,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -625,7 +627,6 @@ class aax(Exchange):
             id = self.safe_string(currency, 'chain')
             name = self.safe_string(currency, 'displayName')
             code = self.safe_currency_code(id)
-            precision = self.safe_number(currency, 'withdrawPrecision')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
             enableDeposit = self.safe_value(currency, 'enableDeposit')
             fee = self.safe_number(currency, 'withdrawFee')
@@ -638,7 +639,7 @@ class aax(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'withdrawPrecision'),
                 'info': currency,
                 'active': active,
                 'deposit': deposit,
@@ -1207,7 +1208,7 @@ class aax(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the aax api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2170,7 +2171,7 @@ class aax(Exchange):
         await self.load_markets()
         request = {
             # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 90 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
         }
@@ -2212,7 +2213,7 @@ class aax(Exchange):
         await self.load_markets()
         request = {
             # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 30 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
             # Note difference between endTime and startTime must be 90 days or less

@@ -276,7 +276,7 @@ class digifinex extends Exchange {
             $active = $deposit && $withdraw;
             $fee = $this->safe_number($currency, 'withdraw_fee_rate');
             if (is_array($result) && array_key_exists($code, $result)) {
-                if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
+                if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
                     $result[$code]['info'][] = $currency;
                 } else {
                     $result[$code]['info'] = [ $result[$code]['info'], $currency ];
@@ -292,7 +292,7 @@ class digifinex extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => $fee,
-                    'precision' => $this->parse_number($this->parse_precision('8')), // todo fix hardcoded value
+                    'precision' => $this->parse_number('0.00000001'), // todo fix hardcoded value
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -943,7 +943,7 @@ class digifinex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the digifinex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

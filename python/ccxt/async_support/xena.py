@@ -335,7 +335,7 @@ class xena(Exchange):
                     swap = True
             inverse = self.safe_value(market, 'inverse', False)
             contract = swap or future
-            pricePrecision = self.safe_integer_2(market, 'tickSize', 'pricePrecision')
+            pricePrecision = self.safe_string_2(market, 'tickSize', 'pricePrecision')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -362,7 +362,7 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('0')),
+                    'amount': self.parse_number('1'),
                     'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
@@ -1065,7 +1065,7 @@ class xena(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the xena api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

@@ -909,6 +909,8 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param str|None params['price']: "index" for index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -925,7 +927,8 @@ class ftx(Exchange):
             'limit': limit,
         }
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         if since is not None:
             startTime = int(since / 1000)
             request['start_time'] = startTime
@@ -935,6 +938,8 @@ class ftx(Exchange):
             if duration > 86400:
                 wholeDaysInTimeframe = int(duration / 86400)
                 request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
@@ -1540,7 +1545,7 @@ class ftx(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the ftx api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1550,7 +1555,6 @@ class ftx(Exchange):
             'market': market['id'],
             'side': side,  # 'buy' or 'sell'
             # 'price': 0.306525,  # send null for market orders
-            'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
             # 'reduceOnly': False,  # optional, default is False
             # 'ioc': False,  # optional, default is False, limit or market orders only
@@ -1568,41 +1572,57 @@ class ftx(Exchange):
             request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
-        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
-            method = 'privatePostOrders'
-            if type == 'limit':
-                request['price'] = float(self.price_to_precision(symbol, price))
-            elif type == 'market':
-                request['price'] = None
-            timeInForce = self.safe_string(params, 'timeInForce')
-            postOnly = self.safe_value(params, 'postOnly', False)
-            params = self.omit(params, ['timeInForce', 'postOnly'])
-            if timeInForce is not None:
-                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
-                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
-            maker = ((timeInForce == 'PO') or postOnly)
-            if (type == 'market') and maker:
-                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
-            ioc = (timeInForce == 'IOC')
-            if maker:
-                request['postOnly'] = True
-            if ioc:
-                request['ioc'] = True
-        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isTakeProfit = type == 'takeProfit'
+        isStopLoss = type == 'stop'
+        isTriggerPrice = False
+        if triggerPrice is not None:
+            isTriggerPrice = not isTakeProfit and not isStopLoss
+        elif takeProfitPrice is not None:
+            isTakeProfit = True
+            triggerPrice = takeProfitPrice
+        elif stopLossPrice is not None:
+            isStopLoss = True
+            triggerPrice = stopLossPrice
+        if not isTriggerPrice:
+            request['type'] = type
+        isStopOrder = isTakeProfit or isStopLoss or isTriggerPrice
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isStopOrder:
+            if triggerPrice is None:
+                if isTakeProfit:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a takeProfitPrice param for a takeProfit order')
+                elif isStopLoss:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a stopLossPrice param for a stop order')
             method = 'privatePostConditionalOrders'
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
-            else:
-                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
             if (type == 'limit') and (price is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
-            if (type == 'limit') or (type == 'market'):
-                # default to stop orders for main argument
-                request['type'] = 'stop'
+            if isStopLoss or isTakeProfit:
+                request['type'] = 'stop' if isStopLoss else 'takeProfit'
+        elif (type == 'limit') or (type == 'market'):
+            method = 'privatePostOrders'
+            isMarketOrder = False
+            if type == 'limit':
+                request['price'] = float(self.price_to_precision(symbol, price))
+            elif type == 'market':
+                request['price'] = None
+                isMarketOrder = True
+            timeInForce = self.safe_string(params, 'timeInForce')
+            postOnly = self.is_post_only(isMarketOrder, None, params)
+            params = self.omit(params, ['timeInForce', 'postOnly'])
+            if timeInForce is not None:
+                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
+                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
+            ioc = (timeInForce == 'IOC')
+            if postOnly:
+                request['postOnly'] = True
+            if ioc:
+                request['ioc'] = True
         elif type == 'trailingStop':
             trailValue = self.safe_number(params, 'trailValue', price)
             if trailValue is None:
@@ -1613,7 +1633,7 @@ class ftx(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = getattr(self, method)(self.extend(request, params))
         #
-        # orders
+        # regular orders
         #
         #     {
         #         "success": True,
@@ -1641,27 +1661,30 @@ class ftx(Exchange):
         # conditional orders
         #
         #     {
-        #         "success": True,
-        #         "result": [
-        #             {
-        #                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
-        #                 "future": "XRP-PERP",
-        #                 "id": 9596912,
-        #                 "market": "XRP-PERP",
-        #                 "triggerPrice": 0.306525,
-        #                 "orderId": null,
-        #                 "side": "sell",
-        #                 "size": 31431,
-        #                 "status": "open",
-        #                 "type": "stop",
-        #                 "orderPrice": null,
-        #                 "error": null,
-        #                 "triggeredAt": null,
-        #                 "reduceOnly": False
-        #             }
-        #         ]
+        #         "success":true,
+        #         "result":{
+        #             "id":215826320,
+        #             "market":"BTC/USD",
+        #             "future":null,
+        #             "side":"sell",
+        #             "type":"take_profit",  # the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" type with underscore
+        #             "orderPrice":40000.0,
+        #             "triggerPrice":39000.0,
+        #             "size":0.001,
+        #             "status":"open",
+        #             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        #             "triggeredAt":null,
+        #             "orderId":null,
+        #             "error":null,
+        #             "reduceOnly":false,
+        #             "trailValue":null,
+        #             "trailStart":null,
+        #             "cancelledAt":null,
+        #             "cancelReason":null,
+        #             "retryUntilFilled":false,
+        #             "orderType":"limit"
+        #         }
         #     }
-        #
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
@@ -2009,6 +2032,8 @@ class ftx(Exchange):
         if till is not None:
             request['end_time'] = int(till / 1000)
             params = self.omit(params, 'till')
+        if limit is not None:
+            request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
         #
         #     {

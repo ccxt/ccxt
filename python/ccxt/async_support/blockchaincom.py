@@ -228,13 +228,11 @@ class blockchaincom(Exchange):
             minPriceIncrementScaleString = self.safe_string(market, 'min_price_increment_scale')
             minPriceScalePrecisionString = self.parse_precision(minPriceIncrementScaleString)
             pricePrecisionString = Precise.string_mul(minPriceIncrementString, minPriceScalePrecisionString)
-            pricePrecision = self.parse_number(pricePrecisionString)
             # amount precision
             lotSizeString = self.safe_string(market, 'lot_size')
             lotSizeScaleString = self.safe_string(market, 'lot_size_scale')
             lotSizeScalePrecisionString = self.parse_precision(lotSizeScaleString)
             amountPrecisionString = Precise.string_mul(lotSizeString, lotSizeScalePrecisionString)
-            amountPrecision = self.parse_number(amountPrecisionString)
             # minimum order size
             minOrderSizeString = self.safe_string(market, 'min_order_size')
             minOrderSizeScaleString = self.safe_string(market, 'min_order_size_scale')
@@ -278,8 +276,8 @@ class blockchaincom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': self.parse_number(amountPrecisionString),
+                    'price': self.parse_number(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {
@@ -476,7 +474,7 @@ class blockchaincom(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the blockchaincom api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

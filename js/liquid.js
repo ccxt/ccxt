@@ -282,7 +282,6 @@ module.exports = class liquid extends Exchange {
             const withdrawable = this.safeValue (currency, 'withdrawable');
             const active = depositable && withdrawable;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'assets_precision')));
-            const assetPrecisionInteger = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -296,7 +295,7 @@ module.exports = class liquid extends Exchange {
                 'limits': {
                     'amount': {
                         'min': amountPrecision,
-                        'max': Math.pow (10, assetPrecisionInteger),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
@@ -962,7 +961,7 @@ module.exports = class liquid extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

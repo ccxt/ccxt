@@ -310,13 +310,6 @@ class woo extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $minQuote = $this->safe_number($market, 'quote_min');
-            $maxQuote = $this->safe_number($market, 'quote_max');
-            $minBase = $this->safe_number($market, 'base_min');
-            $maxBase = $this->safe_number($market, 'base_max');
-            $priceScale = $this->safe_number($market, 'quote_tick');
-            $quantityScale = $this->safe_number($market, 'base_tick');
-            $minCost = $this->safe_number($market, 'min_notional');
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $symbol,
@@ -342,8 +335,8 @@ class woo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $quantityScale,
-                    'price' => $priceScale,
+                    'amount' => $this->safe_number($market, 'base_tick'),
+                    'price' => $this->safe_number($market, 'quote_tick'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -351,15 +344,15 @@ class woo extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $minBase,
-                        'max' => $maxBase,
+                        'min' => $this->safe_number($market, 'base_min'),
+                        'max' => $this->safe_number($market, 'base_max'),
                     ),
                     'price' => array(
-                        'min' => $minQuote,
-                        'max' => $maxQuote,
+                        'min' => $this->safe_number($market, 'quote_min'),
+                        'max' => $this->safe_number($market, 'quote_max'),
                     ),
                     'cost' => array(
-                        'min' => $minCost,
+                        'min' => $this->safe_number($market, 'min_notional'),
                         'max' => null,
                     ),
                 ),
@@ -724,7 +717,7 @@ class woo extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the woo api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

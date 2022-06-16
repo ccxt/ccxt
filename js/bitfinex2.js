@@ -1543,14 +1543,15 @@ module.exports = class bitfinex2 extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
-        amount = (side === 'buy') ? amount : -amount;
+        let amountString = this.amountToPrecision (symbol, amount);
+        amountString = (side === 'buy') ? amountString : Precise.stringNeg (amount);
         const request = {
             // 'gid': 0123456789, // int32,  optional group id for the order
             // 'cid': 0123456789, // int32 client order id
             'type': orderType,
             'symbol': market['id'],
             // 'price': this.numberToString (price),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': amountString,
             // 'flags': 0, // int32, https://docs.bitfinex.com/v2/docs/flag-values
             // 'lev': 10, // leverage for a derivative orders, the value should be between 1 and 100 inclusive, optional, 10 by default
             // 'price_trailing': this.numberToString (priceTrailing),

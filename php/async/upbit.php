@@ -367,8 +367,8 @@ class upbit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->parse_number($this->parse_precision('8')),
-                'price' => $this->parse_number($this->parse_precision('8')),
+                'amount' => $this->parse_number('0.00000001'),
+                'price' => $this->parse_number('0.00000001'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -443,8 +443,8 @@ class upbit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision('8')),
-                    'amount' => $this->parse_number($this->parse_precision('8')),
+                    'price' => $this->parse_number('0.00000001'),
+                    'amount' => $this->parse_number('0.00000001'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1001,7 +1001,7 @@ class upbit extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the upbit api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

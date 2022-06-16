@@ -67,6 +67,7 @@ class bitvavo(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -77,6 +78,7 @@ class bitvavo(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -281,7 +283,7 @@ class bitvavo(Exchange):
         })
 
     def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -342,9 +344,6 @@ class bitvavo(Exchange):
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             baseCurrency = self.safe_value(currenciesById, baseId)
-            amountPrecision = None
-            if baseCurrency is not None:
-                amountPrecision = self.safe_integer(baseCurrency, 'decimals', 8)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -370,7 +369,7 @@ class bitvavo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.safe_integer(baseCurrency, 'decimals', 8),
                     'price': self.safe_integer(market, 'pricePrecision'),
                 },
                 'limits': {
@@ -445,7 +444,6 @@ class bitvavo(Exchange):
             withdrawal = (withdrawalStatus == 'OK')
             active = deposit and withdrawal
             name = self.safe_string(currency, 'name')
-            precision = self.safe_integer(currency, 'decimals', 8)
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -455,7 +453,7 @@ class bitvavo(Exchange):
                 'deposit': deposit,
                 'withdraw': withdrawal,
                 'fee': self.safe_number(currency, 'withdrawalFee'),
-                'precision': precision,
+                'precision': self.safe_integer(currency, 'decimals', 8),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -907,7 +905,7 @@ class bitvavo(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitvavo api endpoint
         :param str params['timeInForce']: "GTC", "IOC", or "PO"
         :param float params['stopPrice']: The price at which a trigger order is triggered at
