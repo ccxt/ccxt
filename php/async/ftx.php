@@ -2775,7 +2775,13 @@ class ftx extends Exchange {
             $request['future'] = $market['id'];
         }
         if ($since !== null) {
-            $request['startTime'] = $since;
+            $request['start_time'] = intval($since / 1000);
+            $request['end_time'] = $this->seconds();
+        }
+        $till = $this->safe_integer($params, 'till');
+        if ($till !== null) {
+            $request['end_time'] = intval($till / 1000);
+            $params = $this->omit($params, 'till');
         }
         $response = yield $this->privateGetFundingPayments (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());

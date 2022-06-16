@@ -2645,7 +2645,12 @@ class ftx(Exchange):
             market = self.market(symbol)
             request['future'] = market['id']
         if since is not None:
-            request['startTime'] = since
+            request['start_time'] = int(since / 1000)
+            request['end_time'] = self.seconds()
+        till = self.safe_integer(params, 'till')
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+            params = self.omit(params, 'till')
         response = await self.privateGetFundingPayments(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
