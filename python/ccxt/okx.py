@@ -1105,7 +1105,6 @@ class okx(Exchange):
         result = {}
         dataByCurrencyId = self.group_by(data, 'ccy')
         currencyIds = list(dataByCurrencyId.keys())
-        precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             currency = self.safe_currency(currencyId)
@@ -1168,7 +1167,7 @@ class okx(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': None,

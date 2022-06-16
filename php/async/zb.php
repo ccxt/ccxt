@@ -641,8 +641,6 @@ class zb extends Exchange {
             $linear = $swap ? true : null;
             $active = true;
             $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string_2($market, 'amountScale', 'amountDecimal');
-            $pricePrecisionString = $this->safe_string_2($market, 'priceScale', 'priceDecimal');
             if ($swap) {
                 $status = $this->safe_string($market, 'status');
                 $active = ($status === '1');
@@ -673,8 +671,8 @@ class zb extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'amountScale', 'amountDecimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'priceScale', 'priceDecimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

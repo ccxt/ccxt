@@ -1116,7 +1116,6 @@ class okx extends Exchange {
         $result = array();
         $dataByCurrencyId = $this->group_by($data, 'ccy');
         $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
-        $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $currency = $this->safe_currency($currencyId);
@@ -1184,7 +1183,7 @@ class okx extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number('0.00000001'),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

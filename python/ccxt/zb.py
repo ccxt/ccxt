@@ -652,8 +652,6 @@ class zb(Exchange):
             linear = True if swap else None
             active = True
             symbol = base + '/' + quote
-            amountPrecisionString = self.safe_string_2(market, 'amountScale', 'amountDecimal')
-            pricePrecisionString = self.safe_string_2(market, 'priceScale', 'priceDecimal')
             if swap:
                 status = self.safe_string(market, 'status')
                 active = (status == '1')
@@ -683,8 +681,8 @@ class zb(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
-                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string_2(market, 'amountScale', 'amountDecimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'priceScale', 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {

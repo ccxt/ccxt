@@ -281,10 +281,6 @@ class probit(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             closed = self.safe_value(market, 'closed', False)
-            amountPrecision = self.safe_string(market, 'quantity_precision')
-            costPrecision = self.safe_string(market, 'cost_precision')
-            amountTickSize = self.parse_precision(amountPrecision)
-            costTickSize = self.parse_precision(costPrecision)
             takerFeeRate = self.safe_string(market, 'taker_fee_rate')
             taker = Precise.string_div(takerFeeRate, '100')
             makerFeeRate = self.safe_string(market, 'maker_fee_rate')
@@ -316,9 +312,9 @@ class probit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(amountTickSize),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
                     'price': self.safe_number(market, 'price_increment'),
-                    'cost': self.parse_number(costTickSize),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'cost_precision'))),
                 },
                 'limits': {
                     'leverage': {
