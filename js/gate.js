@@ -2211,13 +2211,15 @@ module.exports = class gate extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name gate#fetchOHLCV
+         * @name gateio#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2244,13 +2246,26 @@ module.exports = class gate extends Exchange {
             }
         }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            until = parseInt (until / 1000);
+            params = this.omit (params, 'until');
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
-            request['to'] = Math.min (toTimestamp, currentTimestamp);
+            const to = Math.min (toTimestamp, currentTimestamp);
+            if (until !== undefined) {
+                request['to'] = Math.min (to, until);
+            } else {
+                request['to'] = to;
+            }
         } else {
+            if (until !== undefined) {
+                request['to'] = until;
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
