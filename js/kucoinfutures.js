@@ -1316,19 +1316,20 @@ module.exports = class kucoinfutures extends kucoin {
          * @name kucoinfutures#fetchOrdersByStatus
          * @description fetches a list of orders placed on the exchange
          * @param {str} status 'active' or 'closed', only 'active' is valid for stop orders
-         * @param {str} symbol unified symbol for the market to retrieve orders from
-         * @param {int} since timestamp in ms of the earliest order to retrieve
-         * @param {int} limit The maximum number of orders to retrieve
+         * @param {str|undefined} symbol unified symbol for the market to retrieve orders from
+         * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
+         * @param {int|undefined} limit The maximum number of orders to retrieve
          * @param {dict} params exchange specific parameters
-         * @param {bool} params.stop set to true to retrieve untriggered stop orders
-         * @param {int} params.till End time in ms
-         * @param {str} params.side buy or sell
-         * @param {str} params.type limit or market
+         * @param {bool|undefined} params.stop set to true to retrieve untriggered stop orders
+         * @param {int|undefined} params.until End time in ms
+         * @param {str|undefined} params.side buy or sell
+         * @param {str|undefined} params.type limit or market
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
         } else if (status === 'open') {
@@ -1348,9 +1349,8 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const till = this.safeInteger2 (params, 'till', 'endAt');
-        if (till !== undefined) {
-            request['endAt'] = till;
+        if (until !== undefined) {
+            request['endAt'] = until;
         }
         const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         const response = await this[method] (this.extend (request, params));

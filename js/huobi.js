@@ -6542,13 +6542,14 @@ module.exports = class huobi extends Exchange {
          * @param {int} since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
          * @param {int} limit page items, default 20, shall not exceed 50
          * @param {dict} params exchange specific params
-         * @param {int} params.till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} params.until timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} params.page_index page index, default page 1 if not filled
+         * @param {int} params.code unified currency code, can be used when symbol is undefined
          * @returns A list of settlement history objects
          */
         const code = this.safeString (params, 'code');
-        const till = this.safeInteger (params, 'till');
-        params = this.omit (params, 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if (type === 'future') {
@@ -6570,8 +6571,8 @@ module.exports = class huobi extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        if (till !== undefined) {
-            request['end_at'] = till;
+        if (until !== undefined) {
+            request['end_at'] = until;
         }
         let method = 'contractPublicGetApiV1ContractSettlementRecords';
         if (market['swap']) {
