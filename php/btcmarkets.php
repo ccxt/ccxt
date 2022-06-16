@@ -370,7 +370,6 @@ class btcmarkets extends Exchange {
             $symbol = $base . '/' . $quote;
             $fees = $this->safe_value($this->safe_value($this->options, 'fees', array()), $quote, $this->fees);
             $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
-            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimals')));
             $minAmount = $this->safe_number($market, 'minOrderAmount');
             $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
@@ -404,7 +403,7 @@ class btcmarkets extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimals'))),
                     'price' => $pricePrecision,
                 ),
                 'limits' => array(

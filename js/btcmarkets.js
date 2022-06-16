@@ -376,7 +376,6 @@ module.exports = class btcmarkets extends Exchange {
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
             const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals')));
             const minAmount = this.safeNumber (market, 'minOrderAmount');
             const maxAmount = this.safeNumber (market, 'maxOrderAmount');
             let minPrice = undefined;
@@ -410,7 +409,7 @@ module.exports = class btcmarkets extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals'))),
                     'price': pricePrecision,
                 },
                 'limits': {
