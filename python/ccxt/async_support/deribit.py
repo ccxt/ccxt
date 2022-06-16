@@ -714,11 +714,10 @@ class deribit(Exchange):
                 })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, balance):
         result = {
-            'info': response,
+            'info': balance,
         }
-        balance = self.safe_value(response, 'result', {})
         currencyId = self.safe_string(balance, 'currency')
         currencyCode = self.safe_currency_code(currencyId)
         account = self.account()
@@ -783,7 +782,8 @@ class deribit(Exchange):
         #         testnet: False
         #     }
         #
-        return self.parse_balance(response)
+        result = self.safe_value(response, 'result', {})
+        return self.parse_balance(result)
 
     async def create_deposit_address(self, code, params={}):
         """
