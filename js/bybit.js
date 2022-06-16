@@ -3056,7 +3056,6 @@ module.exports = class bybit extends Exchange {
         const orderType = this.safeString (params, 'orderType');
         const isStop = this.safeValue (params, 'stop', false);
         const isConditionalOrder = isStop || (orderType === 'stop' || orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
         const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
         request[idKey] = id;
         if (amount !== undefined) {
@@ -3074,6 +3073,21 @@ module.exports = class bybit extends Exchange {
             // inverse swaps
             method = isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
+        const stopLossPrice = this.safeValue2 (params, 'stop_loss', 'stopLossPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue2 (params, 'take_profit', 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        if (isStopLossOrder) {
+            request['stop_loss'] = stopLossPrice;
+            const slTriggerBy = this.safeString2 (params, 'sl_trigger_by', 'LastPrice');
+            request['sl_trigger_by'] = slTriggerBy;
+        }
+        if (isTakeProfitOrder) {
+            request['take_profit'] = takeProfitPrice;
+            const tpTriggerBy = this.safeString2 (params, 'tp_trigger_by', 'LastPrice');
+            request['tp_trigger_by'] = tpTriggerBy;
+        }
+        params = this.omit (params, [ 'orderType', 'stop', 'stop_loss', 'stopLossPrice', 'take_Profit', 'takeProfitPrice', 'tp_trigger_by', 'sl_trigger_by' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
