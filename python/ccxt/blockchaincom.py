@@ -228,13 +228,11 @@ class blockchaincom(Exchange):
             minPriceIncrementScaleString = self.safe_string(market, 'min_price_increment_scale')
             minPriceScalePrecisionString = self.parse_precision(minPriceIncrementScaleString)
             pricePrecisionString = Precise.string_mul(minPriceIncrementString, minPriceScalePrecisionString)
-            pricePrecision = self.parse_number(pricePrecisionString)
             # amount precision
             lotSizeString = self.safe_string(market, 'lot_size')
             lotSizeScaleString = self.safe_string(market, 'lot_size_scale')
             lotSizeScalePrecisionString = self.parse_precision(lotSizeScaleString)
             amountPrecisionString = Precise.string_mul(lotSizeString, lotSizeScalePrecisionString)
-            amountPrecision = self.parse_number(amountPrecisionString)
             # minimum order size
             minOrderSizeString = self.safe_string(market, 'min_order_size')
             minOrderSizeScaleString = self.safe_string(market, 'min_order_size_scale')
@@ -278,8 +276,8 @@ class blockchaincom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': self.parse_number(amountPrecisionString),
+                    'price': self.parse_number(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

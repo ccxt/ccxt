@@ -228,13 +228,11 @@ class blockchaincom extends Exchange {
             $minPriceIncrementScaleString = $this->safe_string($market, 'min_price_increment_scale');
             $minPriceScalePrecisionString = $this->parse_precision($minPriceIncrementScaleString);
             $pricePrecisionString = Precise::string_mul($minPriceIncrementString, $minPriceScalePrecisionString);
-            $pricePrecision = $this->parse_number($pricePrecisionString);
             // amount precision
             $lotSizeString = $this->safe_string($market, 'lot_size');
             $lotSizeScaleString = $this->safe_string($market, 'lot_size_scale');
             $lotSizeScalePrecisionString = $this->parse_precision($lotSizeScaleString);
             $amountPrecisionString = Precise::string_mul($lotSizeString, $lotSizeScalePrecisionString);
-            $amountPrecision = $this->parse_number($amountPrecisionString);
             // minimum order size
             $minOrderSizeString = $this->safe_string($market, 'min_order_size');
             $minOrderSizeScaleString = $this->safe_string($market, 'min_order_size_scale');
@@ -279,8 +277,8 @@ class blockchaincom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'amount' => $this->parse_number($amountPrecisionString),
+                    'price' => $this->parse_number($pricePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

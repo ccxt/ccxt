@@ -627,7 +627,6 @@ class aax extends Exchange {
             $id = $this->safe_string($currency, 'chain');
             $name = $this->safe_string($currency, 'displayName');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_number($currency, 'withdrawPrecision');
             $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
             $enableDeposit = $this->safe_value($currency, 'enableDeposit');
             $fee = $this->safe_number($currency, 'withdrawFee');
@@ -640,7 +639,7 @@ class aax extends Exchange {
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => $deposit,

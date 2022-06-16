@@ -1767,8 +1767,7 @@ class bitmart extends Exchange {
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $precision = $market['precision']['price'];
-                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
                 } elseif ($side === 'sell') {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }

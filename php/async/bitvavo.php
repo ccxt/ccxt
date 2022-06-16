@@ -269,7 +269,7 @@ class bitvavo extends Exchange {
     }
 
     public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], DECIMAL_PLACES);
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -334,10 +334,6 @@ class bitvavo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $baseCurrency = $this->safe_value($currenciesById, $baseId);
-            $amountPrecision = null;
-            if ($baseCurrency !== null) {
-                $amountPrecision = $this->safe_integer($baseCurrency, 'decimals', 8);
-            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -363,7 +359,7 @@ class bitvavo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
+                    'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
                     'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
@@ -442,7 +438,6 @@ class bitvavo extends Exchange {
             $withdrawal = ($withdrawalStatus === 'OK');
             $active = $deposit && $withdrawal;
             $name = $this->safe_string($currency, 'name');
-            $precision = $this->safe_integer($currency, 'decimals', 8);
             $result[$code] = array(
                 'id' => $id,
                 'info' => $currency,
@@ -452,7 +447,7 @@ class bitvavo extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdrawal,
                 'fee' => $this->safe_number($currency, 'withdrawalFee'),
-                'precision' => $precision,
+                'precision' => $this->safe_integer($currency, 'decimals', 8),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

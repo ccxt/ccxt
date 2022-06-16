@@ -627,7 +627,6 @@ class aax(Exchange):
             id = self.safe_string(currency, 'chain')
             name = self.safe_string(currency, 'displayName')
             code = self.safe_currency_code(id)
-            precision = self.safe_number(currency, 'withdrawPrecision')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
             enableDeposit = self.safe_value(currency, 'enableDeposit')
             fee = self.safe_number(currency, 'withdrawFee')
@@ -640,7 +639,7 @@ class aax(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'withdrawPrecision'),
                 'info': currency,
                 'active': active,
                 'deposit': deposit,
