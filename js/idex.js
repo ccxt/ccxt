@@ -247,7 +247,6 @@ module.exports = class idex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
             const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
-            const pricePrecision = this.safeNumber (entry, 'tickSize');
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -281,7 +280,7 @@ module.exports = class idex extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': basePrecision,
-                    'price': pricePrecision,
+                    'price': this.safeNumber (entry, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
