@@ -4431,10 +4431,6 @@ module.exports = class huobi extends Exchange {
         return response;
     }
 
-    currencyToPrecision (code, fee, networkCode = undefined) {
-        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
-    }
-
     safeNetwork (networkId) {
         const lastCharacterIndex = networkId.length - 1;
         const lastCharacter = networkId[lastCharacterIndex];
