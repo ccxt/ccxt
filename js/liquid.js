@@ -210,6 +210,7 @@ module.exports = class liquid extends Exchange {
                 'price_too_high': InvalidOrder,
                 'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
                 'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                'is not in your IP whitelist': AuthenticationError, // {"message":"93.177.130.181 is not in your IP whitelist"}
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
