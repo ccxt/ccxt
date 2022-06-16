@@ -704,7 +704,6 @@ class gate extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
@@ -738,7 +737,7 @@ class gate extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1240,8 +1239,6 @@ class gate extends Exchange {
         //    }
         //
         $result = array();
-        // TODO => remove magic constants
-        $amountPrecision = $this->parse_number('1e-6');
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -1261,7 +1258,7 @@ class gate extends Exchange {
                 'lowerCaseId' => $currencyIdLower,
                 'name' => null,
                 'code' => $code,
-                'precision' => $amountPrecision,
+                'precision' => $this->parse_number('1e-6'),
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $depositEnabled,

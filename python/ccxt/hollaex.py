@@ -370,7 +370,6 @@ class hollaex(Exchange):
             isActive = self.safe_value(currency, 'active')
             active = isActive and depositEnabled and withdrawEnabled
             fee = self.safe_number(currency, 'withdrawal_fee')
-            precision = self.safe_number(currency, 'increment_unit')
             withdrawalLimits = self.safe_value(currency, 'withdrawal_limits', [])
             result[code] = {
                 'id': id,
@@ -382,7 +381,7 @@ class hollaex(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'increment_unit'),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'min'),

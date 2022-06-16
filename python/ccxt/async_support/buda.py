@@ -262,7 +262,6 @@ class buda(Exchange):
             quote = self.safe_currency_code(quoteId)
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
-            pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
             taker_fee = self.safe_string(market, 'taker_fee')
             maker_fee = self.safe_string(market, 'maker_fee')
@@ -294,7 +293,7 @@ class buda(Exchange):
                 'maker': self.parse_number(Precise.string_div(maker_fee, '1000')),
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(baseInfo, 'input_decimals'))),
-                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(quoteInfo, 'input_decimals'))),
                 },
                 'limits': {
                     'leverage': {

@@ -1488,7 +1488,7 @@ class cdax extends Exchange {
     }
 
     public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision'], $this->precisionMode);
     }
 
     public function safe_network($networkId) {

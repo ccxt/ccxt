@@ -708,7 +708,6 @@ class gate(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'precision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
@@ -742,7 +741,7 @@ class gate(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1212,8 +1211,6 @@ class gate(Exchange):
         #    }
         #
         result = {}
-        # TODO: remove magic constants
-        amountPrecision = self.parse_number('1e-6')
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1233,7 +1230,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': self.parse_number('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,

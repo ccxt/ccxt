@@ -584,7 +584,6 @@ class bybit extends Exchange {
         $data = $this->safe_value($response, 'result', array());
         $rows = $this->safe_value($data, 'rows', array());
         $result = array();
-        $precision = $this->parse_number('0.00000001');
         for ($i = 0; $i < count($rows); $i++) {
             $currency = $rows[$i];
             $currencyId = $this->safe_string($currency, 'coin');
@@ -626,7 +625,7 @@ class bybit extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number('0.00000001'),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
