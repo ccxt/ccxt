@@ -94,9 +94,13 @@ class deribit extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'test' => 'https://test.deribit.com',
+                'test' => array(
+                    'rest' => 'https://test.deribit.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api' => 'https://www.deribit.com',
+                'api' => array(
+                    'rest' => 'https://www.deribit.com',
+                ),
                 'www' => 'https://www.deribit.com',
                 'doc' => array(
                     'https://docs.deribit.com/v2',
@@ -2505,7 +2509,7 @@ class deribit extends Exchange {
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

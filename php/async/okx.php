@@ -1707,6 +1707,7 @@ class okx extends Exchange {
     }
 
     public function parse_trading_fee($fee, $market = null) {
+        // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
         //
         //     {
         //         "category" => "1",
@@ -1723,8 +1724,8 @@ class okx extends Exchange {
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
-            'maker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'maker'))),
-            'taker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'taker'))),
+            'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
+            'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
         );
     }
 

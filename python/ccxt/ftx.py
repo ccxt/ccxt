@@ -909,6 +909,8 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param str|None params['price']: "index" for index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -925,7 +927,8 @@ class ftx(Exchange):
             'limit': limit,
         }
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         if since is not None:
             startTime = int(since / 1000)
             request['start_time'] = startTime
@@ -935,6 +938,8 @@ class ftx(Exchange):
             if duration > 86400:
                 wholeDaysInTimeframe = int(duration / 86400)
                 request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:

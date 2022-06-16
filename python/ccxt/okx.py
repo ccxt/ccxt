@@ -1658,6 +1658,7 @@ class okx(Exchange):
         return self.safe_balance(result)
 
     def parse_trading_fee(self, fee, market=None):
+        # https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         #
         #     {
         #         "category": "1",
@@ -1674,8 +1675,8 @@ class okx(Exchange):
             'info': fee,
             'symbol': self.safe_symbol(None, market),
             # OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
-            'maker': self.parse_number(Precise.string_neg(self.safe_string(fee, 'maker'))),
-            'taker': self.parse_number(Precise.string_neg(self.safe_string(fee, 'taker'))),
+            'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
+            'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
         }
 
     def fetch_trading_fee(self, symbol, params={}):

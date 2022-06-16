@@ -2722,7 +2722,15 @@ class gate(Exchange):
         self.load_markets()
         market = self.market(symbol)
         contract = market['contract']
-        stopPrice = self.safe_number(params, 'stopPrice')
+        trigger = self.safe_value(params, 'trigger')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLossOrder = stopLossPrice is not None
+        isTakeProfitOrder = takeProfitPrice is not None
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        if isStopLossOrder and isTakeProfitOrder:
+            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
         methodTail = 'Orders'
         reduceOnly = self.safe_value(params, 'reduceOnly')
         exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
@@ -2740,7 +2748,7 @@ class gate(Exchange):
             tif = self.safe_string(timeInForceMapping, timeInForce)
             if tif is None:
                 raise ExchangeError(self.id + ' createOrder() does not support timeInForce "' + timeInForce + '"')
-        params = self.omit(params, ['stopPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
         if postOnly:
             tif = 'poc'
         isLimitOrder = (type == 'limit')
@@ -2760,8 +2768,7 @@ class gate(Exchange):
             # exchange doesn't have market orders for spot
             raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
         request = None
-        trigger = self.safe_value(params, 'trigger')
-        if stopPrice is None and trigger is None:
+        if not isStopOrder and (trigger is None):
             if contract:
                 # contract order
                 request = {
@@ -2814,7 +2821,6 @@ class gate(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2825,19 +2831,26 @@ class gate(Exchange):
                         # 'text': clientOrderId,  # web, api, app
                         # 'reduce_only': False,
                     },
-                    'trigger': {
-                        # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
-                        # 'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
-                        'price': self.price_to_precision(symbol, stopPrice),  # price or gap
-                        'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
-                        # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    },
                     'settle': market['settleId'],
                 }
-                expiration = self.safe_integer(params, 'expiration')
-                if expiration is not None:
-                    request['trigger']['expiration'] = expiration
-                    params = self.omit(params, 'expiration')
+                if trigger is None:
+                    rule = None
+                    triggerOrderPrice = None
+                    if isStopLossOrder:
+                        # we trigger orders be aliases for stopLoss orders because
+                        # gateio doesn't accept conventional trigger orders for spot markets
+                        rule = 1 if (side == 'buy') else 2
+                        triggerOrderPrice = self.price_to_precision(symbol, stopLossPrice)
+                    elif isTakeProfitOrder:
+                        rule = 2 if (side == 'buy') else 1
+                        triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    request['trigger'] = {
+                        # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
+                        'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
+                        'price': self.price_to_precision(symbol, triggerOrderPrice),  # price or gap
+                        'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
+                        # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    }
                 if reduceOnly is not None:
                     request['initial']['reduce_only'] = reduceOnly
                 if tif is not None:
@@ -2847,26 +2860,35 @@ class gate(Exchange):
                 options = self.safe_value(self.options, 'createOrder', {})
                 marginMode = None
                 marginMode, params = self.get_margin_mode(True, params)
-                defaultExpiration = self.safe_integer(options, 'expiration')
-                expiration = self.safe_integer(params, 'expiration', defaultExpiration)
-                rule = '>=' if (side == 'buy') else '<='
-                triggerPrice = self.safe_value(trigger, 'price', stopPrice)
                 request = {
-                    'trigger': {
-                        'price': self.price_to_precision(symbol, triggerPrice),
-                        'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
-                        'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
-                    },
                     'put': {
                         'type': type,
                         'side': side,
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
                         'account': marginMode,
-                        # 'time_in_force': tif,  # gtc, ioc for taker only
+                        'time_in_force': 'gtc',  # gtc, ioc for taker only
                     },
                     'market': market['id'],
                 }
+                if trigger is None:
+                    defaultExpiration = self.safe_integer(options, 'expiration')
+                    expiration = self.safe_integer(params, 'expiration', defaultExpiration)
+                    rule = None
+                    triggerOrderPrice = None
+                    if isStopLossOrder:
+                        # we trigger orders be aliases for stopLoss orders because
+                        # gateio doesn't accept conventional trigger orders for spot markets
+                        rule = '>=' if (side == 'buy') else '<='
+                        triggerOrderPrice = self.price_to_precision(symbol, stopLossPrice)
+                    elif isTakeProfitOrder:
+                        rule = '<=' if (side == 'buy') else '>='
+                        triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    request['trigger'] = {
+                        'price': self.price_to_precision(symbol, triggerOrderPrice),
+                        'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
+                    }
                 if tif is not None:
                     request['put']['time_in_force'] = tif
             methodTail = 'PriceOrders'

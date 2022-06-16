@@ -2872,7 +2872,16 @@ module.exports = class gate extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const contract = market['contract'];
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const trigger = this.safeValue (params, 'trigger');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
@@ -2892,7 +2901,7 @@ module.exports = class gate extends Exchange {
                 throw new ExchangeError (this.id + ' createOrder() does not support timeInForce "' + timeInForce + '"');
             }
         }
-        params = this.omit (params, [ 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
         if (postOnly) {
             tif = 'poc';
         }
@@ -2917,8 +2926,7 @@ module.exports = class gate extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
-        const trigger = this.safeValue (params, 'trigger');
-        if (stopPrice === undefined && trigger === undefined) {
+        if (!isStopOrder && (trigger === undefined)) {
             if (contract) {
                 // contract order
                 request = {
@@ -2978,7 +2986,6 @@ module.exports = class gate extends Exchange {
         } else {
             if (contract) {
                 // contract conditional order
-                const rule = (side === 'buy') ? 1 : 2;
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2989,19 +2996,27 @@ module.exports = class gate extends Exchange {
                         // 'text': clientOrderId, // web, api, app
                         // 'reduce_only': false,
                     },
-                    'trigger': {
-                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
-                        // 'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
-                        'price': this.priceToPrecision (symbol, stopPrice), // price or gap
-                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
-                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    },
                     'settle': market['settleId'],
                 };
-                const expiration = this.safeInteger (params, 'expiration');
-                if (expiration !== undefined) {
-                    request['trigger']['expiration'] = expiration;
-                    params = this.omit (params, 'expiration');
+                if (trigger === undefined) {
+                    let rule = undefined;
+                    let triggerOrderPrice = undefined;
+                    if (isStopLossOrder) {
+                        // we let trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional trigger orders for spot markets
+                        rule = (side === 'buy') ? 1 : 2;
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    } else if (isTakeProfitOrder) {
+                        rule = (side === 'buy') ? 2 : 1;
+                        triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    }
+                    request['trigger'] = {
+                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
+                        'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price': this.priceToPrecision (symbol, triggerOrderPrice), // price or gap
+                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
+                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    };
                 }
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
@@ -3014,26 +3029,37 @@ module.exports = class gate extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
-                const defaultExpiration = this.safeInteger (options, 'expiration');
-                const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
-                const rule = (side === 'buy') ? '>=' : '<=';
-                const triggerPrice = this.safeValue (trigger, 'price', stopPrice);
                 request = {
-                    'trigger': {
-                        'price': this.priceToPrecision (symbol, triggerPrice),
-                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
-                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
-                    },
                     'put': {
                         'type': type,
                         'side': side,
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        // 'time_in_force': tif, // gtc, ioc for taker only
+                        'time_in_force': 'gtc', // gtc, ioc for taker only
                     },
                     'market': market['id'],
                 };
+                if (trigger === undefined) {
+                    const defaultExpiration = this.safeInteger (options, 'expiration');
+                    const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
+                    let rule = undefined;
+                    let triggerOrderPrice = undefined;
+                    if (isStopLossOrder) {
+                        // we let trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional trigger orders for spot markets
+                        rule = (side === 'buy') ? '>=' : '<=';
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    } else if (isTakeProfitOrder) {
+                        rule = (side === 'buy') ? '<=' : '>=';
+                        triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    }
+                    request['trigger'] = {
+                        'price': this.priceToPrecision (symbol, triggerOrderPrice),
+                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    };
+                }
                 if (tif !== undefined) {
                     request['put']['time_in_force'] = tif;
                 }
