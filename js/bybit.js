@@ -2864,7 +2864,7 @@ module.exports = class bybit extends Exchange {
                     const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
                     request['tpTriggerBy'] = tpTriggerBy;
                 }
-                params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLoss', 'stopLossPrice', 'takeProfit', 'takeProfitPrice', 'basePrice', 'triggerBy', 'triggerBy', 'tpTriggerby', 'slTriggerBy' ]);
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLoss', 'stopLossPrice', 'takeProfit', 'takeProfitPrice', 'basePrice', 'triggerBy', 'tpTriggerby', 'slTriggerBy' ]);
             }
         }
         const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
