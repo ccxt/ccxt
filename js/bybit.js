@@ -2628,6 +2628,14 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
+        let stopLossPrice = this.safeNumber2 (order, 'stop_loss', 'stopLoss');
+        if (stopLossPrice === 0) {
+            stopLossPrice = undefined;
+        }
+        let takeProfitPrice = this.safeNumber2 (order, 'take_profit', 'takeProfit');
+        if (takeProfitPrice === 0) {
+            takeProfitPrice = undefined;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2642,8 +2650,8 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'stopLossPrice': this.safeNumber2 (order, 'stop_loss', 'stopLoss'),
-            'takeProfitPrice': this.safeNumber2 (order, 'take_profit', 'takeProfit'),
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2855,12 +2863,12 @@ module.exports = class bybit extends Exchange {
                     request['orderFilter'] = 'Order';
                 }
                 if (isStopLossOrder) {
-                    request['stopLoss'] = stopLossPrice;
+                    request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
                     const slTriggerBy = this.safeString2 (params, 'slTriggerBy', 'MarkPrice');
                     request['slTriggerBy'] = slTriggerBy;
                 }
                 if (isTakeProfitOrder) {
-                    request['takeProfit'] = takeProfitPrice;
+                    request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
                     const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
                     request['tpTriggerBy'] = tpTriggerBy;
                 }
@@ -2975,12 +2983,12 @@ module.exports = class bybit extends Exchange {
                 request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
             }
             if (isStopLossOrder) {
-                request['stop_loss'] = stopLossPrice;
+                request['stop_loss'] = this.priceToPrecision (symbol, stopLossPrice);
                 const slTriggerBy = this.safeString2 (params, 'sl_trigger_by', 'LastPrice');
                 request['sl_trigger_by'] = slTriggerBy;
             }
             if (isTakeProfitOrder) {
-                request['take_profit'] = takeProfitPrice;
+                request['take_profit'] = this.priceToPrecision (symbol, takeProfitPrice);
                 const tpTriggerBy = this.safeString2 (params, 'tp_trigger_by', 'LastPrice');
                 request['tp_trigger_by'] = tpTriggerBy;
             }
@@ -4591,6 +4599,14 @@ module.exports = class bybit extends Exchange {
         }
         const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
+        let stopLossPrice = this.safeNumber2 (position, 'stop_loss', 'stopLoss');
+        if (stopLossPrice === 0) {
+            stopLossPrice = undefined;
+        }
+        let takeProfitPrice = this.safeNumber2 (position, 'take_profit', 'takeProfit');
+        if (takeProfitPrice === 0) {
+            takeProfitPrice = undefined;
+        }
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -4612,6 +4628,8 @@ module.exports = class bybit extends Exchange {
             'collateral': undefined,
             'marginMode': marginMode,
             'side': side,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'percentage': this.parseNumber (percentage),
         };
     }
