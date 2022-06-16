@@ -25,7 +25,10 @@ module.exports = class indodax extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -63,6 +66,8 @@ module.exports = class indodax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -70,6 +75,7 @@ module.exports = class indodax extends Exchange {
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -717,6 +723,40 @@ module.exports = class indodax extends Exchange {
             'type': side,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTransactionFee
+         * @description fetch the fee for a transaction
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'return', {});
+        const currencyId = this.safeString (data, 'currency');
+        return {
+            'info': response,
+            'rate': this.safeNumber (data, 'withdraw_fee'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+        };
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
