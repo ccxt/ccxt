@@ -261,7 +261,6 @@ module.exports = class coinbasepro extends Exchange {
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
             const details = this.safeValue (currency, 'details', {});
-            const precision = this.safeNumber (currency, 'max_precision');
             const status = this.safeString (currency, 'status');
             const active = (status === 'online');
             result[code] = {
@@ -274,7 +273,7 @@ module.exports = class coinbasepro extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.safeNumber (currency, 'max_precision'),
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (details, 'min_size'),

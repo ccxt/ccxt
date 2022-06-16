@@ -582,7 +582,6 @@ module.exports = class bybit extends Exchange {
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
         const result = {};
-        const precision = this.parseNumber ('0.00000001');
         for (let i = 0; i < rows.length; i++) {
             const currency = rows[i];
             const currencyId = this.safeString (currency, 'coin');
@@ -624,7 +623,7 @@ module.exports = class bybit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber ('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': undefined,
