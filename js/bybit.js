@@ -3022,12 +3022,12 @@ module.exports = class bybit extends Exchange {
             const takeProfitPrice = this.safeValue2 (params, 'takeProfit', 'takeProfitPrice');
             const isTakeProfitOrder = takeProfitPrice !== undefined;
             if (isStopLossOrder) {
-                request['stopLoss'] = stopLossPrice;
+                request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
                 const slTriggerBy = this.safeString2 (params, 'slTriggerBy', 'MarkPrice');
                 request['slTriggerBy'] = slTriggerBy;
             }
             if (isTakeProfitOrder) {
-                request['takeProfit'] = takeProfitPrice;
+                request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
                 const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
                 request['tpTriggerBy'] = tpTriggerBy;
             }
@@ -3095,12 +3095,12 @@ module.exports = class bybit extends Exchange {
         const takeProfitPrice = this.safeValue2 (params, 'take_profit', 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         if (isStopLossOrder) {
-            request['stop_loss'] = stopLossPrice;
+            request['stop_loss'] = this.priceToPrecision (symbol, stopLossPrice);
             const slTriggerBy = this.safeString2 (params, 'sl_trigger_by', 'LastPrice');
             request['sl_trigger_by'] = slTriggerBy;
         }
         if (isTakeProfitOrder) {
-            request['take_profit'] = takeProfitPrice;
+            request['take_profit'] = this.priceToPrecision (symbol, takeProfitPrice);
             const tpTriggerBy = this.safeString2 (params, 'tp_trigger_by', 'LastPrice');
             request['tp_trigger_by'] = tpTriggerBy;
         }
