@@ -3016,7 +3016,24 @@ module.exports = class bybit extends Exchange {
         if (price !== undefined) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
-        const method = market['option'] ? 'privatePostOptionUsdcOpenApiPrivateV1ReplaceOrder' : 'privatePostPerpetualUsdcOpenApiPrivateV1ReplaceOrder';
+        if (market['swap']) {
+            const stopLossPrice = this.safeValue2 (params, 'stopLoss', 'stopLossPrice');
+            const isStopLossOrder = stopLossPrice !== undefined;
+            const takeProfitPrice = this.safeValue2 (params, 'takeProfit', 'takeProfitPrice');
+            const isTakeProfitOrder = takeProfitPrice !== undefined;
+            if (isStopLossOrder) {
+                request['stopLoss'] = stopLossPrice;
+                const slTriggerBy = this.safeString2 (params, 'slTriggerBy', 'MarkPrice');
+                request['slTriggerBy'] = slTriggerBy;
+            }
+            if (isTakeProfitOrder) {
+                request['takeProfit'] = takeProfitPrice;
+                const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
+                request['tpTriggerBy'] = tpTriggerBy;
+            }
+            params = this.omit (params, [ 'stopLoss', 'stopLossPrice', 'takeProfit', 'takeProfitPrice', 'tpTriggerby', 'slTriggerBy' ]);
+        }
+        const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
         const response = await this[method] (this.extend (request, params));
         //
         //    {
