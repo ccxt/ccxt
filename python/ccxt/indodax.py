@@ -33,7 +33,10 @@ class indodax(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -71,6 +74,8 @@ class indodax(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFee': True,
+                'fetchTransactionFees': False,
                 'fetchTransactions': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -78,6 +83,7 @@ class indodax(Exchange):
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
@@ -668,6 +674,37 @@ class indodax(Exchange):
             'type': side,
         }
         return self.privatePostCancelOrder(self.extend(request, params))
+
+    def fetch_transaction_fee(self, code, params={}):
+        """
+        fetch the fee for a transaction
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'return', {})
+        currencyId = self.safe_string(data, 'currency')
+        return {
+            'info': response,
+            'rate': self.safe_number(data, 'withdraw_fee'),
+            'currency': self.safe_currency_code(currencyId, currency),
+        }
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
