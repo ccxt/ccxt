@@ -2252,7 +2252,7 @@ module.exports = class gate extends Exchange {
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             until = parseInt (until / 1000);
-            params = this.omit (params, 'till');
+            params = this.omit (params, 'until');
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
@@ -2265,10 +2265,10 @@ module.exports = class gate extends Exchange {
             } else {
                 request['to'] = to;
             }
-        } else if (until !== undefined) {
-            request['to'] = until;
-            request['limit'] = limit;
         } else {
+            if (until !== undefined) {
+                request['to'] = until;
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
