@@ -1534,6 +1534,8 @@ class okx extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1561,6 +1563,11 @@ class okx extends Exchange {
             $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;
             $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['after'] = $until;
+            $params = $this->omit($params, 'until');
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
