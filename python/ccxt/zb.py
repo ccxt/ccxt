@@ -2979,7 +2979,7 @@ class zb(Exchange):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['endTime', 'till'])
+        params = self.omit(params, ['endTime', 'till', 'until'])
         if until is not None:
             request['endTime'] = until
         if limit is not None:

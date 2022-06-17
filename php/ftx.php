@@ -1325,7 +1325,7 @@ class ftx extends Exchange {
             $request['start_time'] = intval($since / 1000);
         }
         $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $params = $this->omit($params, array( 'end_time', 'until', 'till' ));
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($until !== null) {
             $request['end_time'] = intval($until / 1000);
         }

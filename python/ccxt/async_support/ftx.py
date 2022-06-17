@@ -1295,7 +1295,7 @@ class ftx(Exchange):
         if since is not None:
             request['start_time'] = int(since / 1000)
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        params = self.omit(params, ['end_time', 'until', 'till'])
+        params = self.omit(params, ['until', 'till'])
         if until is not None:
             request['end_time'] = int(until / 1000)
         response = await self.publicGetFundingRates(self.extend(request, params))

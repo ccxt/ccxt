@@ -3103,7 +3103,7 @@ class zb extends Exchange {
             $request['startTime'] = $since;
         }
         $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'endTime', 'till' ));
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($until !== null) {
             $request['endTime'] = $until;
         }
