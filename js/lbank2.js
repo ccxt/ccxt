@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class lbank2 extends Exchange {
+export default class lbank2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lbank2',
@@ -2151,4 +2151,4 @@ module.exports = class lbank2 extends Exchange {
             throw new ErrorClass (message);
         }
     }
-};
+}
