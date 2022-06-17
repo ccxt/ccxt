@@ -44,12 +44,12 @@ module.exports = class coinex extends ccxt.coinex {
             },
             'exceptions': {
                 'codes': {
-                    '1': BadRequest,            // Parameter error
-                    '2': ExchangeError,         // Internal error
-                    '3': ExchangeNotAvailable,  // Service unavailable
-                    '4': NotSupported,          // Method unavailable
-                    '5': RequestTimeout,        // Service timeout
-                    '6': AuthenticationError,   // Permission denied
+                    '1': BadRequest, // Parameter error
+                    '2': ExchangeError, // Internal error
+                    '3': ExchangeNotAvailable, // Service unavailable
+                    '4': NotSupported, // Method unavailable
+                    '5': RequestTimeout, // Service timeout
+                    '6': AuthenticationError, // Permission denied
                 },
             },
             'timeframes': {
@@ -79,6 +79,7 @@ module.exports = class coinex extends ccxt.coinex {
     handleTicker (client, message) {
         //
         //  spot
+        //
         //     {
         //         method: 'state.update',
         //         params: [{
@@ -98,6 +99,7 @@ module.exports = class coinex extends ccxt.coinex {
         //     }
         //
         //  swap
+        //
         //     {
         //         method: 'state.update',
         //         params: [{
@@ -140,6 +142,7 @@ module.exports = class coinex extends ccxt.coinex {
     parseWSTicker (ticker, market = undefined) {
         //
         //  spot
+        //
         //     {
         //         last: '31577.89',
         //         open: '29318.36',
@@ -154,6 +157,7 @@ module.exports = class coinex extends ccxt.coinex {
         //     }
         //
         //  swap
+        //
         //     {
         //         period: 86400,
         //         funding_time: 422,
@@ -622,6 +626,7 @@ module.exports = class coinex extends ccxt.coinex {
     handleOrders (client, message) {
         //
         //  spot
+        //
         //      {
         //          method: 'order.update',
         //          params: [
@@ -662,6 +667,7 @@ module.exports = class coinex extends ccxt.coinex {
         //      }
         //
         //  swap
+        //
         //      {
         //          method: 'order.update',
         //          params: [
@@ -720,8 +726,8 @@ module.exports = class coinex extends ccxt.coinex {
 
     parseWSOrder (order, market = undefined) {
         //
-        //
         //  spot
+        //
         //       {
         //           id: 77782469357,
         //           type: 1,
@@ -755,6 +761,7 @@ module.exports = class coinex extends ccxt.coinex {
         //       }
         //
         //  swap
+        //
         //      {
         //          order_id: 23423462821,
         //          position_id: 0,
@@ -790,8 +797,8 @@ module.exports = class coinex extends ccxt.coinex {
         //          position_type: 2
         //      }
         //
-        //
         //  order.update_stop
+        //
         //       {
         //           id: 78006745870,
         //           type: 1,
