@@ -2241,6 +2241,8 @@ class binance(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
@@ -2250,7 +2252,8 @@ class binance(Exchange):
         defaultLimit = 500
         maxLimit = 1500
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'interval': self.timeframes[timeframe],
@@ -2273,6 +2276,8 @@ class binance(Exchange):
                     endTime = self.sum(since, limit * duration * 1000 - 1)
                     now = self.milliseconds()
                     request['endTime'] = min(now, endTime)
+        if until is not None:
+            request['endTime'] = until
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:

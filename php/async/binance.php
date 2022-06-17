@@ -2277,6 +2277,8 @@ class binance extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
@@ -2286,7 +2288,8 @@ class binance extends Exchange {
         $defaultLimit = 500;
         $maxLimit = 1500;
         $price = $this->safe_string($params, 'price');
-        $params = $this->omit($params, 'price');
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'price', 'until' ));
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
             'interval' => $this->timeframes[$timeframe],
@@ -2312,6 +2315,9 @@ class binance extends Exchange {
                     $request['endTime'] = min ($now, $endTime);
                 }
             }
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
         }
         $method = 'publicGetKlines';
         if ($price === 'mark') {
