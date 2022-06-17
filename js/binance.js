@@ -2319,9 +2319,7 @@ module.exports = class binance extends Exchange {
             // It didn't work before without the endTime
             // https://github.com/ccxt/ccxt/issues/8454
             //
-            if (until !== undefined) {
-                request['endTime'] = until;
-            } else if (market['inverse']) {
+            if (market['inverse']) {
                 if (since > 0) {
                     const duration = this.parseTimeframe (timeframe);
                     const endTime = this.sum (since, limit * duration * 1000 - 1);
