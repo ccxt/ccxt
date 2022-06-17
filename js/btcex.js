@@ -1,15 +1,11 @@
-'use strict';
+import { Exchange } from './base/Exchange.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, NotSupported, RequestTimeout, DDoSProtection, InvalidOrder, InvalidAddress, BadRequest, InsufficientFunds, OrderNotFound, AuthenticationError, ExchangeNotAvailable, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class btcex extends Exchange {
+export default class btcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcex',
@@ -1920,4 +1916,4 @@ module.exports = class btcex extends Exchange {
             throw new ExchangeError (feedback); // unknown message
         }
     }
-};
+}
