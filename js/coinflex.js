@@ -1,15 +1,14 @@
 'use strict';
 
 // ---------------------------------------------------------------------------
-
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange.js';
+import { ExchangeError, NotSupported, BadRequest, PermissionDenied, InvalidOrder, OrderNotFound, ArgumentsRequired, InsufficientFunds } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class coinflex extends Exchange {
+export default class coinflex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinflex',
@@ -2671,4 +2670,4 @@ module.exports = class coinflex extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}
