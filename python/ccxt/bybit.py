@@ -469,6 +469,7 @@ class bybit(Exchange):
                     '34036': BadRequest,  # {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest,  # {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
                     '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
+                    '130074': InvalidOrder,  # {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '3100116': BadRequest,  # {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest,  # {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds,  # {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
@@ -653,8 +654,9 @@ class bybit(Exchange):
             # so they can't be loaded together
             spotMarkets = self.fetch_spot_markets(params)
             return spotMarkets
-        contractMarkets = self.fetch_swap_and_future_markets(params)
-        usdcMarkets = self.fetch_usdc_markets(params)
+        promises = [self.fetch_swap_and_future_markets(params), self.fetch_usdc_markets(params)]
+        contractMarkets = promises[0]
+        usdcMarkets = promises[1]
         markets = contractMarkets
         markets = self.array_concat(markets, usdcMarkets)
         return markets
@@ -863,7 +865,7 @@ class bybit(Exchange):
                 expiry = self.parse8601(expiryDatetime)
                 symbol = symbol + '-' + self.yymmdd(expiry)
             inverse = not linear
-            contractSize = self.safe_number(lotSizeFilter, 'min_trading_qty') if inverse else None
+            contractSize = self.safe_number(lotSizeFilter, 'min_trading_qty') if inverse else self.parse_number('1')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -1065,9 +1067,9 @@ class bybit(Exchange):
                 'contract': True,
                 'linear': linear,
                 'inverse': not linear,
-                'taker': self.safe_number(market, 'taker_fee'),
-                'maker': self.safe_number(market, 'maker_fee'),
-                'contractSize': None,
+                'taker': self.safe_number_2(market, 'taker_fee', 'takerFeeRate'),
+                'maker': self.safe_number_2(market, 'maker_fee', 'makerFeeRate'),
+                'contractSize': self.parse_number('1'),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': strike,
@@ -2627,22 +2629,26 @@ class bybit(Exchange):
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
                     amount = cost if (cost is not None) else amount * price
+        upperCaseType = type.upper()
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'type': type.upper(),  # limit, market or limit_maker
+            'type': upperCaseType,  # limit, market or limit_maker
             'timeInForce': 'GTC',  # FOK, IOC
             'qty': self.amount_to_precision(symbol, amount),
             # 'orderLinkId': 'string',  # unique client order id, max 36 characters
         }
-        if type == 'limit' or type == 'limit_maker':
+        if (upperCaseType == 'LIMIT') or (upperCaseType == 'LIMIT_MAKER'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires a price argument for a ' + type + ' order')
             request['price'] = float(self.price_to_precision(symbol, price))
+        isPostOnly = self.is_post_only(upperCaseType == 'MARKET', type == 'LIMIT_MAKER', params)
+        if isPostOnly:
+            request['type'] = 'LIMIT_MAKER'
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'orderLinkId'])
+        params = self.omit(params, ['clientOrderId', 'orderLinkId', 'postOnly'])
         brokerId = self.safe_string(self.options, 'brokerId')
         if brokerId is not None:
             request['agentSource'] = brokerId
@@ -2678,10 +2684,11 @@ class bybit(Exchange):
             raise NotSupported(self.id + 'createOrder does not allow market orders for ' + symbol + ' markets')
         if price is None and type == 'limit':
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
+        lowerCaseType = type.lower()
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'orderType': self.capitalize(type),  # limit or market
+            'orderType': self.capitalize(lowerCaseType),  # limit or market
             'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             'orderQty': self.amount_to_precision(symbol, amount),
             # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
@@ -2698,29 +2705,45 @@ class bybit(Exchange):
             # 'orderFilter': 'Order' or 'StopOrder'
             # 'mmp': False  # market maker protection
         }
-        if price is not None:
+        isMarket = lowerCaseType == 'market'
+        isLimit = lowerCaseType == 'limit'
+        if isLimit is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
+        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        if postOnly:
+            request['time_in_force'] = 'PostOnly'
+        elif timeInForce == 'gtc':
+            request['time_in_force'] = 'GoodTillCancel'
+        elif timeInForce == 'fok':
+            request['time_in_force'] = 'FillOrKill'
+        elif timeInForce == 'ioc':
+            request['time_in_force'] = 'ImmediateOrCancel'
         if market['swap']:
-            stopPx = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            params = self.omit(params, ['stopPrice', 'triggerPrice'])
-            if stopPx is not None:
-                basePrice = self.safe_value(params, 'basePrice')
-                if basePrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order')
+            triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+            stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+            isStopLossOrder = stopLossPrice is not None
+            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+            isTakeProfitOrder = takeProfitPrice is not None
+            isStopOrder = isStopLossOrder or isTakeProfitOrder
+            if isStopOrder:
                 request['orderFilter'] = 'StopOrder'
-                request['triggerPrice'] = self.price_to_precision(symbol, stopPx)
+                request['trigger_by'] = 'LastPrice'
+                stopPx = stopLossPrice if isStopLossOrder else takeProfitPrice
+                preciseStopPrice = self.price_to_precision(symbol, stopPx)
+                request['triggerPrice'] = preciseStopPrice
+                delta = self.number_to_string(market['precision']['price'])
+                request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossOrder else Precise.string_add(preciseStopPrice, delta)
             else:
                 request['orderFilter'] = 'Order'
-        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
-        request['reduceOnly'] = reduceOnly
-        params = self.omit(params, ['reduce_only', 'reduceOnly'])
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
         elif market['option']:
             # mandatory field for options
             request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['clientOrderId', 'orderLinkId'])
+        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
         method = 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' if market['option'] else 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -2758,10 +2781,11 @@ class bybit(Exchange):
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
         amount = self.amount_to_precision(symbol, amount)
         amount = float(amount) if market['linear'] else int(amount)
+        lowerCaseType = type.lower()
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
-            'order_type': self.capitalize(type),  # limit
+            'order_type': self.capitalize(lowerCaseType),  # limit
             'time_in_force': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
             'qty': amount,
             # 'take_profit': 123.45,  # take profit price, only take effect upon opening the position
@@ -2787,36 +2811,51 @@ class bybit(Exchange):
             request['position_idx'] = positionIdx
             params = self.omit(params, 'position_idx')
         if market['linear']:
-            reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
-            closeOnTrigger = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
-            request['reduce_only'] = reduceOnly
-            request['close_on_trigger'] = closeOnTrigger
-        if price is not None:
+            request['reduce_only'] = self.safe_value_2(params, 'reduce_only', 'reduceOnly', False)
+            request['close_on_trigger'] = False
+        isMarket = lowerCaseType == 'market'
+        isLimit = lowerCaseType == 'limit'
+        if isLimit:
+            if price is None:
+                raise ExchangeError(self.id + ' createOrder() requires price argument for limit orders')
             request['price'] = float(self.price_to_precision(symbol, price))
-        stopPx = self.safe_value_2(params, 'stop_px', 'stopPrice')
-        basePrice = self.safe_value_2(params, 'base_price', 'basePrice')
-        isConditionalOrder = False
-        if stopPx is not None:
-            isConditionalOrder = True
-            if basePrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
-            request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
-            request['base_price'] = float(self.price_to_precision(symbol, basePrice))
-            triggerBy = self.safe_string_2(params, 'trigger_by', 'triggerBy', 'LastPrice')
-            request['trigger_by'] = triggerBy
-            params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by'])
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'order_link_id')
+        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
+        if postOnly:
+            request['time_in_force'] = 'PostOnly'
+        elif timeInForce == 'gtc':
+            request['time_in_force'] = 'GoodTillCancel'
+        elif timeInForce == 'fok':
+            request['time_in_force'] = 'FillOrKill'
+        elif timeInForce == 'ioc':
+            request['time_in_force'] = 'ImmediateOrCancel'
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        isStopLossOrder = stopLossPrice is not None
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isTakeProfitOrder = takeProfitPrice is not None
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        if isStopOrder:
+            request['trigger_by'] = 'LastPrice'
+            stopPx = stopLossPrice if isStopLossOrder else takeProfitPrice
+            preciseStopPrice = self.price_to_precision(symbol, stopPx)
+            request['stop_px'] = float(preciseStopPrice)
+            delta = self.number_to_string(market['precision']['price'])
+            basePriceString = Precise.string_sub(preciseStopPrice, delta) if isStopLossOrder else Precise.string_add(preciseStopPrice, delta)
+            request['base_price'] = float(basePriceString)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['clientOrderId', 'order_link_id'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCreate' if isConditionalOrder else 'privatePostFuturesPrivateOrderCreate'
+            method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
         elif market['linear']:
-            method = 'privatePostPrivateLinearStopOrderCreate' if isConditionalOrder else 'privatePostPrivateLinearOrderCreate'
+            method = 'privatePostPrivateLinearStopOrderCreate' if isStopOrder else 'privatePostPrivateLinearOrderCreate'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateStopOrderCreate' if isConditionalOrder else 'privatePostV2PrivateOrderCreate'
+            method = 'privatePostV2PrivateStopOrderCreate' if isStopOrder else 'privatePostV2PrivateOrderCreate'
         response = getattr(self, method)(self.extend(request, params))
         #
         #    {
@@ -4277,35 +4316,46 @@ class bybit(Exchange):
         side = self.safe_string(position, 'side')
         side = 'long' if (side == 'Buy') else 'short'
         notional = self.safe_string_2(position, 'position_value', 'positionValue')
-        unrealisedPnl = self.safe_string_2(position, 'unrealised_pnl', 'unrealisedPnl')
-        initialMarginString = self.safe_string_2(position, 'position_margin', 'orderMargin')
-        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
+        unrealisedPnl = self.omit_zero(self.safe_string_2(position, 'unrealised_pnl', 'unrealisedPnl'))
+        initialMarginString = self.safe_string(position, 'positionIM')
+        maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if timestamp is None:
             timestamp = self.safe_integer(position, 'createdAt')
-            if timestamp is None:
-                timestamp = self.milliseconds()
         isIsolated = self.safe_value(position, 'is_isolated', False)  # if not present it is cross
         marginMode = 'isolated' if isIsolated else 'cross'
+        collateralString = self.safe_string(position, 'position_margin')
+        entryPrice = self.omit_zero(self.safe_string_2(position, 'entry_price', 'entryPrice'))
+        liquidationPrice = self.omit_zero(self.safe_string_2(position, 'liq_price', 'liqPrice'))
+        leverage = self.safe_string(position, 'leverage')
+        if market['settle'] == 'USDT':
+            # Initial Margin = Contract size x Entry Price / Leverage
+            initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
+        elif market['inverse']:
+            # Initial Margin = Contracts / ( Entry Price x Leverage )
+            initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
+            if not isIsolated:
+                collateralString = self.safe_string(position, 'wallet_balance')
+        percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
-            'maintenanceMargin': None,
+            'maintenanceMargin': maintenanceMarginString,
             'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_number_2(position, 'entry_price', 'entryPrice'),
+            'entryPrice': self.parse_number(entryPrice),
             'notional': self.parse_number(notional),
-            'leverage': self.safe_number(position, 'leverage'),
+            'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(size),  # in USD for inverse swaps
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_number_2(position, 'liq_price', 'liqPrice'),
+            'liquidationPrice': self.parse_number(liquidationPrice),
             'markPrice': self.safe_number(position, 'markPrice'),
-            'collateral': None,
+            'collateral': self.parse_number(collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': self.parse_number(percentage),
