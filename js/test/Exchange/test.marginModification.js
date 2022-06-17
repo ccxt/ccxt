@@ -1,9 +1,7 @@
-'use strict';
-
-
-const assert = require('assert');
+import assert from 'assert'
 
 function testMarginModification (exchange, marginModification) {
+
     const format = {
         info: {},
         type: 'add',
@@ -13,11 +11,14 @@ function testMarginModification (exchange, marginModification) {
         symbol: 'ADA/USDT:USDT',
         status: 'ok',
     };
+
     const keys = Object.keys(format);
     for (let i = 0; i < keys.length; i++) {
         assert (keys[i] in margin);
     }
+
     assert (typeof marginModification['info'] === 'object');
+
     if (marginModification['type'] !== undefined) {
         assert (marginModification['type'] === 'add' || marginModification['type'] === 'reduce' || marginModification['type'] === 'set');
     }
@@ -38,4 +39,4 @@ function testMarginModification (exchange, marginModification) {
     }
 }
 
-module.exports = testMarginModification;
+export default testMarginModification;

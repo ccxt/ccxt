@@ -6,7 +6,7 @@ import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, borrowRate, method, code) => {
+function testBorrowRate (exchange, borrowRate, method, code) {
 
     const format = {
         'currency': 'USDT',
@@ -30,3 +30,5 @@ export default (exchange, borrowRate, method, code) => {
 
     return borrowRate
 }
+
+export default testBorrowRate;

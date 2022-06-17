@@ -1,8 +1,7 @@
-'use strict'
-
-const assert = require ('assert')
+import assert from 'assert'
 
 function testAccount (exchange, account, method) {
+
     const format = {
         'info': {},
         'code': 'BTC',
@@ -25,4 +24,4 @@ function testAccount (exchange, account, method) {
     assert (account['code'] === undefined || typeof account['code'] === 'string');
 }
 
-module.exports = testAccount;
+export default testAccount;
