@@ -71,6 +71,7 @@ module.exports = class bybit extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -4700,6 +4701,57 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setPositionMode() does not support market ' + symbol + '');
+        }
+        if (market['inverse'] && !market['future']) {
+            throw new BadRequest (this.id + ' setPositionMode() must be inverse future');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        let mode = '';
+        if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionSwitchMode';
+            if (hedged) {
+                mode = '3';
+            } else {
+                mode = '0';
+            }
+        } else {
+            // linear
+            method = 'privatePostPrivateLinearPositionSwitchMode';
+            if (hedged) {
+                mode = 'BothSide';
+            } else {
+                mode = 'MergedSingle';
+            }
+        }
+        request['mode'] = mode;
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": null,
+        //         "ext_info": null,
+        //         "time_now": "1577477968.175013",
+        //         "rate_limit_status": 74,
+        //         "rate_limit_reset_ms": 1577477968183,
+        //         "rate_limit": 75
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
