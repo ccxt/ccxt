@@ -320,8 +320,6 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-
-        this.emulateSingleMarketMethod ('fetchPosition', 'fetchPositions');
         
         // http client options
         const agentOptions = {
