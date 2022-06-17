@@ -1341,7 +1341,7 @@ module.exports = class ftx extends Exchange {
             request['start_time'] = parseInt (since / 1000);
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
-        params = this.omit (params, [ 'end_time', 'until', 'till' ]);
+        params = this.omit (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             request['end_time'] = parseInt (until / 1000);
         }
