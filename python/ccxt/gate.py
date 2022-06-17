@@ -2121,7 +2121,9 @@ class gate(Exchange):
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the gate api endpoint
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
@@ -2145,13 +2147,23 @@ class gate(Exchange):
                 request['contract'] = price + '_' + market['id']
                 params = self.omit(params, 'price')
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            until = int(until / 1000)
+            params = self.omit(params, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
-            request['to'] = min(toTimestamp, currentTimestamp)
+            to = min(toTimestamp, currentTimestamp)
+            if until is not None:
+                request['to'] = min(to, until)
+            else:
+                request['to'] = to
         else:
+            if until is not None:
+                request['to'] = until
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

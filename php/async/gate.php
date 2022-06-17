@@ -2187,11 +2187,13 @@ class gate extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {dict} $params extra parameters specific $to the gateio api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
@@ -2218,13 +2220,26 @@ class gate extends Exchange {
             }
         }
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $until = intval($until / 1000);
+            $params = $this->omit($params, 'until');
+        }
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
-            $request['to'] = min ($toTimestamp, $currentTimestamp);
+            $to = min ($toTimestamp, $currentTimestamp);
+            if ($until !== null) {
+                $request['to'] = min ($to, $until);
+            } else {
+                $request['to'] = $to;
+            }
         } else {
+            if ($until !== null) {
+                $request['to'] = $until;
+            }
             $request['limit'] = $limit;
         }
         $response = yield $this->$method (array_merge($request, $params));
