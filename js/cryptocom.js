@@ -534,7 +534,7 @@ module.exports = class cryptocom extends ccxt.cryptocom {
 
     handleAuthenticate (client, message) {
         //
-        //  { id: 1648132625434, method: 'public/auth', code: 0 }}
+        //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //
         const future = client.futures['authenticated'];
         future.resolve (1);
