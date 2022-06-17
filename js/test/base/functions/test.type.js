@@ -1,8 +1,13 @@
 /*  ------------------------------------------------------------------------ */
 
-import { safeFloat, safeInteger, safeValue } from '../../../../ccxt.js'
-import { equal, deepEqual } from 'assert.js'
+import { functions } from '../../../../ccxt.js'
+import { equal, deepEqual } from 'assert'
 
+const {
+    safeFloat,
+    safeInteger,
+    safeValue
+} = functions;
 /*  ------------------------------------------------------------------------ */
 
 function testSafeFloatSafeInteger() {

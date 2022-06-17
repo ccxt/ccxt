@@ -1,5 +1,5 @@
 import { ccxt }  from '../../../../ccxt.js';
-import assert  from 'assert.js';
+import assert  from 'assert';
 import { ROUND_UP, ROUND_DOWN }  from '../../../base/functions/misc.js';
 
 const exchange = new ccxt.Exchange ({

@@ -1,17 +1,18 @@
-/*
-// ----------------------------------------------------------------------------
 
-global.log = require ('ololog') // for easier debugging
+import ololog from 'ololog'
+global.log =  ololog // for easier debugging
 
-const { Exchange, index, aggregate, unCamelCase } = require ('../../../ccxt')
-const { strictEqual: equal, deepEqual } = require ('assert')
+import { Exchange, index, aggregate, unCamelCase } from'../../../ccxt.js'
+import { strictEqual, deepEqual } from 'assert'
 
-require ('./functions/test.generic')
-require ('./functions/test.time')
-require ('./functions/test.type')
-require ('./functions/test.number')
-require ('./functions/test.datetime')
-require ('./functions/test.crypto')
+const equal = strictEqual;
+
+import './functions/test.generic.js'
+import './functions/test.time.js'
+import './functions/test.type.js'
+import './functions/test.number.js'
+import './functions/test.datetime.js'
+import './functions/test.crypto.js'
 
 function testCalculateFee() {
     const price  = 100.00
