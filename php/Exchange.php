@@ -1421,6 +1421,8 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
+        
+        $this->add_emulated_methods_to_has();
     }
 
     public function set_sandbox_mode($enabled) {
@@ -1628,12 +1630,6 @@ class Exchange {
 
     public function on_json_response($response_body) {
         return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
-    }
-
-    public function emulate_single_market_method($emulated_method, $multi_market_method) {
-        if ($this->has[$multi_market_method] && $this->has[$emulated_method] === null) {
-            $this->has[$emulated_method] = 'emulated';
-        }
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {

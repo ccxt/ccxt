@@ -429,6 +429,7 @@ class Exchange(object):
 
         self.session = self.session if self.session or not self.synchronous else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
+        self.add_emulated_methods_to_has()
 
     def __del__(self):
         if self.session:
@@ -567,10 +568,6 @@ class Exchange(object):
             return json.loads(response_body, parse_float=str, parse_int=str)
         else:
             return json.loads(response_body)
-
-    def emulate_single_market_method(self, emulated_method, multi_market_method):
-        if self.has[multi_market_method] and self.has[emulated_method] is None:
-            self.has[emulated_method] = 'emulated'
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""

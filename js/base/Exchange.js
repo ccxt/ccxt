@@ -320,7 +320,6 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-        
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -352,6 +351,7 @@ module.exports = class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+        this.addEmulatedMethodsToHas ();
     }
 
     encodeURIComponent (...args) {
@@ -612,12 +612,6 @@ module.exports = class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod) {
-        if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
-            this.has[emulatedMethod] = 'emulated';
-        }
-    }
-
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
@@ -803,6 +797,18 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    addEmulatedMethodsToHas () {
+        // Place all emulated methods inside here
+        this.emulateSingleMarketMethod ('fetchFundingRate', 'fetchFundingRates');
+        this.emulateSingleMarketMethod ('fetchMarketLeverageTiers', 'fetchLeverageTiers');
+    }
+
+    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod) {
+        if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
+            this.has[emulatedMethod] = 'emulated';
+        }
+    }
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
