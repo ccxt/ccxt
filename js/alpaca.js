@@ -52,7 +52,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
-                'fetchL1OrderBook': false,
+                'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
