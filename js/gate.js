@@ -2468,7 +2468,7 @@ module.exports = class gate extends Exchange {
         let marginMode = undefined;
         let request = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const until = this.safeNumber2 (params, 'until', 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'until', 'till' ]);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future');
