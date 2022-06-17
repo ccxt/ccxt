@@ -198,7 +198,7 @@ module.exports = class coinex extends ccxt.coinex {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'deal'),
             'info': ticker,
         }, market);
     }
@@ -224,7 +224,7 @@ module.exports = class coinex extends ccxt.coinex {
             'id': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     handleBalance (client, message) {
@@ -372,7 +372,7 @@ module.exports = class coinex extends ccxt.coinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ticker:' + symbol;
         const subscribe = {
@@ -400,7 +400,7 @@ module.exports = class coinex extends ccxt.coinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchTrades', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.urls['api']['ws'][type];
         const messageHash = 'trades:' + symbol;
         const message = {
@@ -428,7 +428,7 @@ module.exports = class coinex extends ccxt.coinex {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         const url = this.urls['api']['ws'][type];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
@@ -480,7 +480,7 @@ module.exports = class coinex extends ccxt.coinex {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
-            throw new NotSupported (this.id + ' watchOHLCV() is only support for swap markets');
+            throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
         }
         const url = this.urls['api']['ws'][type];
         const subscribe = {
@@ -488,7 +488,7 @@ module.exports = class coinex extends ccxt.coinex {
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeNumber (this.timeframes, timeframe, timeframe),
+                this.safeInteger (this.timeframes, timeframe, timeframe),
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -724,7 +724,7 @@ module.exports = class coinex extends ccxt.coinex {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSOrder (order, market = undefined) {
+    parseWSOrder (order) {
         //
         //  spot
         //
@@ -825,27 +825,37 @@ module.exports = class coinex extends ccxt.coinex {
         const timestamp = this.safeTimestamp2 (order, 'update_time', 'mtime');
         const marketId = this.safeString (order, 'market');
         const typeCode = this.safeString (order, 'type');
-        const type = this.getSupportedMapping (typeCode, {
+        const type = this.safeString ({
             '1': 'limit',
             '2': 'market',
-        });
+        }, typeCode);
         const sideCode = this.safeString (order, 'side');
-        const side = this.getSupportedMapping (sideCode, {
+        const side = this.safeString ({
             '1': 'sell',
             '2': 'buy',
-        });
+        }, sideCode);
         const remaining = this.safeString (order, 'left');
         const amount = this.safeString (order, 'amount');
-        const filled = Precise.stringSub (amount, remaining);
-        const feeCurrencyId = this.safeString (order, 'fee_asset');
-        const feeCode = this.safeCurrencyCode (feeCurrencyId);
-        let feeRate = undefined;
-        if (side === 'buy') {
-            feeRate = this.safeNumber (order, 'taker_fee');
-        } else if (side === 'sell') {
-            feeRate = this.safeNumber (order, 'maker_fee');
-        }
         const status = this.safeString (order, 'status');
+        const market = this.safeMarket (marketId);
+        let cost = this.safeString (order, 'deal_money');
+        let filled = this.safeString (order, 'deal_stock');
+        let average = undefined;
+        if (market['swap']) {
+            const leverage = this.safeString (order, 'leverage');
+            cost = Precise.stringDiv (filled, leverage);
+            average = Precise.stringDiv (filled, amount);
+            filled = undefined;
+        }
+        let fee = undefined;
+        const feeCost = this.omitZero (this.safeString (order, 'money_fee'));
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'fee_asset', market['quote']);
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': feeCost,
+            };
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'order_id', 'id'),
@@ -853,26 +863,22 @@ module.exports = class coinex extends ccxt.coinex {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp (order, 'last_deal_time'),
-            'symbol': this.safeSymbol (marketId),
+            'symbol': market['symbol'],
             'type': type === 1 ? 'limit' : 'market',
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber (order, 'price'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': this.safeString (order, 'stop_price'),
-            'amount': this.parseNumber (amount),
-            'filled': this.parseNumber (filled),
-            'remaining': this.parseNumber (remaining),
-            'cost': undefined,
-            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': average,
             'status': this.parseWSOrderStatus (status),
-            'fee': {
-                'currency': feeCode,
-                'cost': this.safeNumber2 (order, 'fee_asset', 'deal_fee'),
-                'rate': feeRate,
-            },
+            'fee': fee,
             'trades': undefined,
-        }, this.safeMarket (marketId));
+        }, market);
     }
 
     parseWSOrderStatus (status) {
@@ -924,64 +930,73 @@ module.exports = class coinex extends ccxt.coinex {
 
     handleSubscriptionStatus (client, message) {
         const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
+        const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
-            const method = this.safeValue (subscription, 'callmethod');
-            if (method !== undefined) {
-                return method.call (this, client, message, subscription);
+            const futureIndex = this.safeString (subscription, 'future');
+            const future = this.safeValue (client.futures, futureIndex);
+            if (future !== undefined) {
+                future.resolve (true);
             }
-            if (id in client.subscriptions) {
-                delete client.subscriptions[id];
-            }
+            delete client.subscriptions[id];
         }
-        return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
-        const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            this.checkRequiredCredentials ();
+        if (type === 'spot') {
+            const messageHash = 'authenticated:spot';
+            const authenticated = this.safeValue (client.futures, messageHash);
+            if (authenticated !== undefined) {
+                return;
+            }
+            const future = client.future (messageHash);
             const requestId = this.requestId ();
             const subscribe = {
                 'id': requestId,
-                'callmethod': this.handleAuthenticationMessage,
+                'future': 'authenticated:spot',
             };
-            if (type === 'spot') {
-                const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
-                const hash = this.hash (this.encode (signData), 'md5');
-                const request = {
-                    'method': 'server.sign',
-                    'params': [
-                        this.apiKey,
-                        hash.toUpperCase (),
-                        time,
-                    ],
-                    'id': requestId,
-                };
-                this.spawn (this.watch, url, messageHash, request, messageHash, subscribe);
-            } else {
-                const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
-                const hash = this.hash (this.encode (signData), 'sha256', 'hex');
-                const request = {
-                    'method': 'server.sign',
-                    'params': [
-                        this.apiKey,
-                        hash.toLowerCase (),
-                        time,
-                    ],
-                    'id': this.requestId (),
-                };
-                this.spawn (this.watch, url, messageHash, request, messageHash, subscribe);
+            const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
+            const hash = this.hash (this.encode (signData), 'md5');
+            const request = {
+                'method': 'server.sign',
+                'params': [
+                    this.apiKey,
+                    hash.toUpperCase (),
+                    time,
+                ],
+                'id': requestId,
+            };
+            this.spawn (this.watch, url, messageHash, request, requestId, subscribe);
+            return future;
+        } else {
+            const messageHash = 'authenticated:swap';
+            const authenticated = this.safeValue (client.futures, messageHash);
+            if (authenticated !== undefined) {
+                return;
             }
+            const future = client.future ('authenticated:swap');
+            const requestId = this.requestId ();
+            const subscribe = {
+                'id': requestId,
+                'future': 'authenticated:swap',
+            };
+            const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
+            const hash = this.hash (this.encode (signData), 'sha256', 'hex');
+            const request = {
+                'method': 'server.sign',
+                'params': [
+                    this.apiKey,
+                    hash.toLowerCase (),
+                    time,
+                ],
+                'id': requestId,
+            };
+            this.spawn (this.watch, url, messageHash, request, requestId, subscribe);
+            return future;
         }
-        return await future;
     }
 };
