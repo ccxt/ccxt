@@ -1038,15 +1038,12 @@ module.exports = class bitso extends Exchange {
         //     }
         //
         const payload = this.safeValue (response, 'payload', []);
-        const cancelledOrders = [];
+        const canceledOrders = [];
         for (let i = 0; i < payload.length; i++) {
-            const order = this.safeOrder ({
-                'info': payload[i],
-                'id': payload[i],
-            });
-            cancelledOrders.push (order);
+            const order = this.parseOrder (payload[i]);
+            canceledOrders.push (order);
         }
-        return cancelledOrders;
+        return canceledOrders;
     }
 
     parseOrderStatus (status) {
