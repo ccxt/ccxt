@@ -5257,7 +5257,7 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionMode (params = {}) {
+    async fetchPositionMode (symbol = undefined, params = {}) {
         const request = {};
         let method = undefined;
         let defaultType = 'future';
@@ -5282,7 +5282,11 @@ module.exports = class binance extends Exchange {
             throw new NotSupported (this.id + ' fetchPositionMode() supports linear and inverse contracts only');
         }
         const response = await this[method] (this.extend (request, params));
-        return response;
+        const hedged = this.safeValue (response, 'dualSidePosition');
+        return {
+            'info': response,
+            'hedged': hedged,
+        };
     }
 
     async fetchPositionsRisk (symbols = undefined, params = {}) {
