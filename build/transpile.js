@@ -15,6 +15,7 @@ import { pathToFileURL } from 'url'
 import { errorHierarchy } from '../js/base/errorHierarchy.js'
 import { platform } from 'process'
 
+ansi.nice
 
 const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
@@ -1119,7 +1120,7 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
-        const [ _, className, baseClass, classBody ] = this.getExchangeClassDeclarationMatches (contents)
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
@@ -1198,7 +1199,7 @@ class Transpiler {
 
             } else {
 
-                const [ _, className, baseClass ] = this.getExchangeClassDeclarationMatches (contents)
+                const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents)
                 log.green ('Already transpiled', filename.yellow)
                 return { className, baseClass }
             }
