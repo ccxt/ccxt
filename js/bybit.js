@@ -2866,11 +2866,9 @@ module.exports = class bybit extends Exchange {
                 request['trigger_by'] = 'LastPrice';
                 const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
                 const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
-                const floatStopPrice = parseFloat (preciseStopPrice);
                 request['triggerPrice'] = preciseStopPrice;
-                const delta = market['precision']['price'];
-                const basePrice = isStopLossOrder ? floatStopPrice - delta : this.sum (floatStopPrice, delta);
-                request['basePrice'] = this.numberToString (basePrice);
+                const delta = this.numberToString (market['precision']['price']);
+                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
             } else {
                 request['orderFilter'] = 'Order';
             }
@@ -2985,16 +2983,17 @@ module.exports = class bybit extends Exchange {
         if (isStopOrder) {
             request['trigger_by'] = 'LastPrice';
             const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-            const floatStopPx = parseFloat (this.priceToPrecision (symbol, stopPx));
-            request['stop_px'] = floatStopPx;
-            const delta = market['precision']['price'];
-            request['base_price'] = isStopLossOrder ? floatStopPx - delta : this.sum (floatStopPx, delta);
+            const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+            request['stop_px'] = parseFloat (preciseStopPrice);
+            const delta = this.numberToString (market['precision']['price']);
+            const basePriceString = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
+            request['base_price'] = parseFloat (basePriceString);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
             method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
