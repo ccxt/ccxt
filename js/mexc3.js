@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+import { Exchange } from './base/Exchange.js';
+import { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } from './base/errors.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
-module.exports = class mexc3 extends Exchange {
+export default class mexc3 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mexc3',
@@ -4055,4 +4055,4 @@ module.exports = class mexc3 extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}
