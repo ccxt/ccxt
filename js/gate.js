@@ -1,13 +1,11 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const Precise = require ('./base/Precise');
-const { TICK_SIZE } = require ('./base/functions/number');
-const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } = require ('./base/errors');
+import { Exchange } from './base/Exchange.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
 
-module.exports = class gate extends Exchange {
+export default class gate extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gate',
@@ -4403,4 +4401,4 @@ module.exports = class gate extends Exchange {
             throw new ExchangeError (feedback);
         }
     }
-};
+}
