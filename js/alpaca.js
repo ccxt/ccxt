@@ -20,14 +20,14 @@ module.exports = class alpaca extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/26471228/142237130-8f3a06c5-7e35-4fa1-9a82-28ac25795490.jpg',
                 'www': 'https://alpaca.markets',
                 'api': {
-                    'public': 'https://api.alpaca.markets/{version}',
-                    'private': 'https://api.alpaca.markets/{version}',
-                    'crypto': 'https://data.alpaca.markets/{version}',
+                    'public': 'https://api.{hostname}/{version}',
+                    'private': 'https://api.{hostname}/{version}',
+                    'crypto': 'https://data.{hostname}/{version}',
                 },
                 'test': {
-                    'public': 'https://paper-api.alpaca.markets/{version}',
-                    'private': 'https://paper-api.alpaca.markets/{version}',
-                    'crypto': 'https://data.alpaca.markets/{version}',
+                    'public': 'https://paper-api.{hostname}/{version}',
+                    'private': 'https://paper-api.{hostname}/{version}',
+                    'crypto': 'https://data.{hostname}/{version}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
@@ -625,13 +625,18 @@ module.exports = class alpaca extends Exchange {
         const symbol = market['symbol'];
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
-        const feeValue = this.safeString (order, 'comission');
+        const feeValue = this.safeString (order, 'commission');
         let fee = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,
                 'currency': 'USD',
             };
+        }
+        let orderType = this.safeString (order, 'order_type');
+        if (orderType.indexOf ('limit') >= 0) {
+            // might be limit or stop-limit
+            orderType = 'limit';
         }
         const datetime = this.safeString (order, 'submitted_at');
         const timestamp = this.parse8601 (datetime);
@@ -643,7 +648,7 @@ module.exports = class alpaca extends Exchange {
             'lastTradeTimeStamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': this.safeString (order, 'order_type'),
+            'type': orderType,
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': undefined,
             'side': this.safeString (order, 'side'),
@@ -760,6 +765,7 @@ module.exports = class alpaca extends Exchange {
         const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeParams (this.urls['api'][api], { 'version': version });
+        url = this.implodeHostname (url);
         headers = (headers !== undefined) ? headers : {};
         if ((api === 'private') || (api === 'crypto')) {
             headers['APCA-API-KEY-ID'] = this.apiKey;
