@@ -2589,4 +2589,11 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    methodGuard (hasMethod, unsupportedMethod = undefined) {
+        if (!this.has[hasMethod]) {
+            unsupportedMethod = unsupportedMethod ? unsupportedMethod : hasMethod;
+            throw new NotSupported (this.id + ' ' + unsupportedMethod + ' () is not supported yet');
+        }
+    }
 };
