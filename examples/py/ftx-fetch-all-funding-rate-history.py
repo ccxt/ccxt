@@ -2,24 +2,15 @@
 
 import os
 import sys
-from pprint import pprint
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-
-# make sure your version is 1.51+
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.ftx({
-    # 'apiKey': 'YOUR_API_KEY',
-    # 'secret': 'YOUR_SECRET',
-    # "headers": {
-    #     "FTX-SUBACCOUNT": "YOUR_SUBACCOUNT"
-    # }
-})
+exchange = ccxt.ftx()
 
 
 markets = exchange.load_markets ()
@@ -45,6 +36,7 @@ while True:
         print('Fetched', len(results), 'funding rates from', first['datetime'], 'till', last['datetime'])
         all_results = results + all_results
         if end_time < since:
+            print('Done')
             break
     else:
         print('Done')
