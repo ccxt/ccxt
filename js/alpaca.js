@@ -441,7 +441,6 @@ module.exports = class alpaca extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the alpaca api endpoint
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {float} params.triggerPrice The price at which a trigger order is triggered at
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -454,7 +453,7 @@ module.exports = class alpaca extends Exchange {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
             let newType = undefined;
             if (type.indexOf ('limit') >= 0) {
@@ -469,17 +468,17 @@ module.exports = class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', defaultTIF);
+        const timeInForce = this.safeString (params, 'timeInForce', defaultTIF);
         request['time_in_force'] = timeInForce;
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'triggerPrice', 'stop_price' ]);
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
         const random_id = parts.join ('');
         const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id', defaultClientId);
+        const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         request['client_order_id'] = clientOrderId;
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'clientOrderId' ]);
         const order = await this.privatePostOrders (this.extend (request, params));
         //
         //   {
