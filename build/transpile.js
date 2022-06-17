@@ -1113,13 +1113,13 @@ class Transpiler {
     }
     
     getClassDeclarationMatches (contents) {
-        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^export \s*(?:default)?\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
-        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const [ _, className, baseClass, classBody ] = this.getExchangeClassDeclarationMatches (contents)
         const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
@@ -1198,7 +1198,7 @@ class Transpiler {
 
             } else {
 
-                const [ _, className, baseClass ] = this.getClassDeclarationMatches (contents)
+                const [ _, className, baseClass ] = this.getExchangeClassDeclarationMatches (contents)
                 log.green ('Already transpiled', filename.yellow)
                 return { className, baseClass }
             }
