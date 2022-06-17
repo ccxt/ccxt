@@ -376,16 +376,11 @@ module.exports = class coinex extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (query);
-        } else if (type === 'swap') {
-            result = await this.fetchContractMarkets (query);
-        } else {
-            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
-        }
-        return result;
+        let promises = [ this.fetchSpotMarkets (params), this.fetchContractMarkets (params) ];
+        promises = await Promise.all (promises);
+        const spot = promises[0];
+        const swap = promises[1];
+        return this.arrayConcat (spot, swap);
     }
 
     async fetchSpotMarkets (params) {
