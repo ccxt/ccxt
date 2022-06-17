@@ -2794,8 +2794,16 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        let uppercaseType = type.toUpperCase ();
+        const isMarketOrder = uppercaseType === 'MARKET';
+        const isLimitOrder = uppercaseType === 'LIMIT';
+        const postOnly = this.isPostOnly (isMarketOrder, uppercaseType === 'LIMIT_MAKER', params);
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((marketType !== 'future') && (marketType !== 'delivery')) {
@@ -2822,24 +2830,27 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const initialUppercaseType = type.toUpperCase ();
-        let uppercaseType = initialUppercaseType;
-        const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            params = this.omit (params, 'stopPrice');
-            if (uppercaseType === 'MARKET') {
+        let stopPrice = undefined;
+        if (isStopLoss) {
+            stopPrice = stopLossPrice;
+            if (isMarketOrder) {
+                // spot STOP_LOSS market orders are not a valid order type
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
-            } else if (uppercaseType === 'LIMIT') {
+            } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        } else if (isTakeProfit) {
+            stopPrice = takeProfitPrice;
+            if (isMarketOrder) {
+                // spot TAKE_PROFIT market orders are not a valid order type
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+            } else if (isLimitOrder) {
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
-            if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
-            } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
-            }
+            throw new InvalidOrder (this.id + ' ' + uppercaseType + ' is not a valid order type for the ' + symbol + ' market');
         }
         const request = {
             'symbol': market['id'],
