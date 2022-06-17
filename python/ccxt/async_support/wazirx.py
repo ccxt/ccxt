@@ -177,14 +177,14 @@ class wazirx(Exchange):
         markets = self.safe_value(response, 'symbols', [])
         result = []
         for i in range(0, len(markets)):
-            entry = markets[i]
-            id = self.safe_string(entry, 'symbol')
-            baseId = self.safe_string(entry, 'baseAsset')
-            quoteId = self.safe_string(entry, 'quoteAsset')
+            market = markets[i]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'baseAsset')
+            quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            isSpot = self.safe_value(entry, 'isSpotTradingAllowed')
-            filters = self.safe_value(entry, 'filters')
+            isSpot = self.safe_value(market, 'isSpotTradingAllowed')
+            filters = self.safe_value(market, 'filters')
             minPrice = None
             for j in range(0, len(filters)):
                 filter = filters[j]
@@ -196,7 +196,7 @@ class wazirx(Exchange):
             takerString = Precise.string_div(takerString, '100')
             makerString = self.safe_string(fee, 'maker', '0.2')
             makerString = Precise.string_div(makerString, '100')
-            status = self.safe_string(entry, 'status')
+            status = self.safe_string(market, 'status')
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -224,8 +224,8 @@ class wazirx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'baseAssetPrecision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'quoteAssetPrecision'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteAssetPrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -245,7 +245,7 @@ class wazirx(Exchange):
                         'max': None,
                     },
                 },
-                'info': entry,
+                'info': market,
             })
         return result
 

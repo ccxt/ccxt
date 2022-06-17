@@ -2510,7 +2510,7 @@ module.exports = class bitmex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the bitmex api endpoint
-         * @param {int|undefined} params.till timestamp in ms for ending date filter
+         * @param {int|undefined} params.until timestamp in ms for ending date filter
          * @param {bool|undefined} params.reverse if true, will sort results newest first
          * @param {int|undefined} params.start starting point for results
          * @param {str|undefined} params.columns array of column names to fetch in info, if omitted, will return all columns
@@ -2542,10 +2542,10 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const till = this.safeInteger (params, 'till');
-        params = this.omit (params, [ 'till' ]);
-        if (till !== undefined) {
-            request['endTime'] = this.iso8601 (till);
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            request['endTime'] = this.iso8601 (until);
         }
         const response = await this.publicGetFunding (this.extend (request, params));
         //

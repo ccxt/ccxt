@@ -1591,7 +1591,7 @@ class bitget extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the bitget api endpoint
-         * @param {dict} $params->till timestamp in ms of the latest candle to fetch
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1604,7 +1604,8 @@ class bitget extends Exchange {
             'spot' => 'publicSpotGetMarketCandles',
             'swap' => 'publicMixGetMarketCandles',
         ));
-        $till = $this->safe_integer($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($limit === null) {
             $limit = 100;
         }
@@ -1613,13 +1614,13 @@ class bitget extends Exchange {
             $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
-                if ($till === null) {
+                if ($until === null) {
                     $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
                     $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
                 }
             }
-            if ($till !== null) {
-                $request['before'] = $till;
+            if ($until !== null) {
+                $request['before'] = $until;
             }
         } elseif ($market['type'] === 'swap') {
             $request['granularity'] = $this->timeframes['swap'][$timeframe];
@@ -1630,8 +1631,8 @@ class bitget extends Exchange {
                 $request['endTime'] = $now;
             } else {
                 $request['startTime'] = $this->sum($since, $duration * 1000);
-                if ($till !== null) {
-                    $request['endTime'] = $till;
+                if ($until !== null) {
+                    $request['endTime'] = $until;
                 } else {
                     $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
                 }

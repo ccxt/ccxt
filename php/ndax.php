@@ -344,7 +344,6 @@ class ndax extends Exchange {
             $name = $this->safe_string($currency, 'ProductFullName');
             $type = $this->safe_string($currency, 'ProductType');
             $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-            $precision = $this->safe_number($currency, 'TickSize');
             $isDisabled = $this->safe_value($currency, 'IsDisabled');
             $active = !$isDisabled;
             $result[$code] = array(
@@ -352,7 +351,7 @@ class ndax extends Exchange {
                 'name' => $name,
                 'code' => $code,
                 'type' => $type,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'TickSize'),
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => null,

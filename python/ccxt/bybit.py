@@ -587,7 +587,6 @@ class bybit(Exchange):
         data = self.safe_value(response, 'result', [])
         rows = self.safe_value(data, 'rows', [])
         result = {}
-        precision = self.parse_number('0.00000001')
         for i in range(0, len(rows)):
             currency = rows[i]
             currencyId = self.safe_string(currency, 'coin')
@@ -628,7 +627,7 @@ class bybit(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': None,

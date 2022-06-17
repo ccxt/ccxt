@@ -4560,7 +4560,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the binance api endpoint
-         * @param {int|undefined} params.till timestamp in ms of the earliest funding rate
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
@@ -4590,9 +4590,9 @@ module.exports = class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const till = this.safeInteger (params, 'till'); // unified in milliseconds
-        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'till' ]);
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -6094,7 +6094,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit default 30, max 500
          * @param {dict} params exchange specific parameters
-         * @param {int|undefined} params.till the time(ms) of the latest record to retrieve as a unix timestamp
+         * @param {int|undefined} params.until the time(ms) of the latest record to retrieve as a unix timestamp
          * @returns {dict} an array of [open interest history structure]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         if (timeframe === '1m') {
@@ -6116,9 +6116,9 @@ module.exports = class binance extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const till = this.safeInteger (params, 'till'); // unified in milliseconds
-        const endTime = this.safeString (params, 'endTime', till); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'till' ]);
+        const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        const endTime = this.safeString (params, 'endTime', until); // exchange-specific in milliseconds
+        params = this.omit (params, [ 'endTime', 'until', 'till' ]);
         if (endTime) {
             request['endTime'] = endTime;
         } else if (since) {

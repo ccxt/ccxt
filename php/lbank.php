@@ -128,6 +128,7 @@ class lbank extends Exchange {
             'options' => array(
                 'cacheSecretAsPem' => true,
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -192,8 +193,8 @@ class lbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'quantityAccuracy'),
-                    'price' => $this->safe_integer($market, 'priceAccuracy'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

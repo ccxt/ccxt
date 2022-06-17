@@ -448,8 +448,6 @@ class mexc extends Exchange {
                 $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
                 $active = ($isDepositEnabled && $isWithdrawEnabled);
                 $currencyActive = $active || $currencyActive;
-                $precisionDigits = $this->safe_integer($chain, 'precision');
-                $precision = 1 / pow(10, $precisionDigits);
                 $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');
                 $withdrawMax = $this->safe_string($chain, 'withdraw_limit_max');
                 $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
@@ -474,7 +472,7 @@ class mexc extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $this->safe_number($chain, 'fee'),
-                    'precision' => $precision,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision'))),
                     'limits' => array(
                         'withdraw' => array(
                             'min' => $withdrawMin,
@@ -697,8 +695,6 @@ class mexc extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $priceScale = $this->safe_string($market, 'price_scale');
-            $quantityScale = $this->safe_string($market, 'quantity_scale');
             $state = $this->safe_string($market, 'state');
             $active = false;
             for ($j = 0; $j < count($symbols); $j++) {
@@ -736,8 +732,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($quantityScale)),
-                    'price' => $this->parse_number($this->parse_precision($priceScale)),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_scale'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

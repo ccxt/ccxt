@@ -1107,7 +1107,6 @@ class okx(Exchange):
         result = {}
         dataByCurrencyId = self.group_by(data, 'ccy')
         currencyIds = list(dataByCurrencyId.keys())
-        precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             currency = self.safe_currency(currencyId)
@@ -1170,7 +1169,7 @@ class okx(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -1507,6 +1506,8 @@ class okx(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1532,6 +1533,10 @@ class okx(Exchange):
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(startTime, durationInMilliseconds * limit)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['after'] = until
+            params = self.omit(params, 'until')
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', defaultType)  # Candles or HistoryCandles
         type = self.safe_string(params, 'type', defaultType)
@@ -4819,7 +4824,7 @@ class okx(Exchange):
         :param int|None since: The time in ms of the earliest record to retrieve as a unix timestamp
         :param int|None limit: Not used by okx, but parsed internally by CCXT
         :param dict params: Exchange specific parameters
-        :param int|None params['till']: The time in ms of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: The time in ms of the latest record to retrieve as a unix timestamp
         :returns: An array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
@@ -4835,9 +4840,10 @@ class okx(Exchange):
         }
         if since is not None:
             request['begin'] = since
-        till = self.safe_integer_2(params, 'till', 'end')
-        if till is not None:
-            request['end'] = till
+        until = self.safe_integer_2(params, 'till', 'until')
+        if until is not None:
+            request['end'] = until
+            params = self.omit(params, ['until', 'till'])
         response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {

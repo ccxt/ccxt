@@ -274,10 +274,6 @@ class probit extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $closed = $this->safe_value($market, 'closed', false);
-            $amountPrecision = $this->safe_string($market, 'quantity_precision');
-            $costPrecision = $this->safe_string($market, 'cost_precision');
-            $amountTickSize = $this->parse_precision($amountPrecision);
-            $costTickSize = $this->parse_precision($costPrecision);
             $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
             $taker = Precise::string_div($takerFeeRate, '100');
             $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
@@ -309,9 +305,9 @@ class probit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($amountTickSize),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
                     'price' => $this->safe_number($market, 'price_increment'),
-                    'cost' => $this->parse_number($costTickSize),
+                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

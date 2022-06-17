@@ -1550,6 +1550,8 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the okx api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1577,6 +1579,11 @@ module.exports = class okx extends Exchange {
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
             request['after'] = this.sum (startTime, durationInMilliseconds * limit);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+            params = this.omit (params, 'until');
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
@@ -5136,7 +5143,7 @@ module.exports = class okx extends Exchange {
          * @param {int|undefined} since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|undefined} limit Not used by okx, but parsed internally by CCXT
          * @param {dict} params Exchange specific parameters
-         * @param {int|undefined} params.till The time in ms of the latest record to retrieve as a unix timestamp
+         * @param {int|undefined} params.until The time in ms of the latest record to retrieve as a unix timestamp
          * @returns An array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
@@ -5154,9 +5161,10 @@ module.exports = class okx extends Exchange {
         if (since !== undefined) {
             request['begin'] = since;
         }
-        const till = this.safeInteger2 (params, 'till', 'end');
-        if (till !== undefined) {
-            request['end'] = till;
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+            params = this.omit (params, [ 'until', 'till' ]);
         }
         const response = await this.publicGetRubikStatContractsOpenInterestVolume (this.extend (request, params));
         //

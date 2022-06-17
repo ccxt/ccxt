@@ -714,11 +714,10 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($balance) {
         $result = array(
-            'info' => $response,
+            'info' => $balance,
         );
-        $balance = $this->safe_value($response, 'result', array());
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
@@ -745,7 +744,7 @@ class deribit extends Exchange {
         //
         //     {
         //         jsonrpc => '2.0',
-        //         result => array(
+        //         $result => array(
         //             total_pl => 0,
         //             session_upl => 0,
         //             session_rpl => 0,
@@ -784,7 +783,8 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
-        return $this->parse_balance($response);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_balance($result);
     }
 
     public function create_deposit_address($code, $params = array ()) {

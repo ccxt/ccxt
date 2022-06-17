@@ -264,7 +264,6 @@ class buda extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $baseInfo = yield $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = yield $this->fetch_currency_info($quoteId, $currencies);
-            $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
             $taker_fee = $this->safe_string($market, 'taker_fee');
             $maker_fee = $this->safe_string($market, 'maker_fee');
@@ -296,7 +295,7 @@ class buda extends Exchange {
                 'maker' => $this->parse_number(Precise::string_div($maker_fee, '1000')),
                 'precision' => array(
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($baseInfo, 'input_decimals'))),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($quoteInfo, 'input_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

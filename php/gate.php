@@ -703,7 +703,6 @@ class gate extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
@@ -737,7 +736,7 @@ class gate extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1239,8 +1238,6 @@ class gate extends Exchange {
         //    }
         //
         $result = array();
-        // TODO => remove magic constants
-        $amountPrecision = $this->parse_number('1e-6');
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -1260,7 +1257,7 @@ class gate extends Exchange {
                 'lowerCaseId' => $currencyIdLower,
                 'name' => null,
                 'code' => $code,
-                'precision' => $amountPrecision,
+                'precision' => $this->parse_number('1e-6'),
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $depositEnabled,
@@ -2189,11 +2186,13 @@ class gate extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {dict} $params extra parameters specific $to the gateio api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -2220,13 +2219,26 @@ class gate extends Exchange {
             }
         }
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $until = intval($until / 1000);
+            $params = $this->omit($params, 'until');
+        }
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
-            $request['to'] = min ($toTimestamp, $currentTimestamp);
+            $to = min ($toTimestamp, $currentTimestamp);
+            if ($until !== null) {
+                $request['to'] = min ($to, $until);
+            } else {
+                $request['to'] = $to;
+            }
         } else {
+            if ($until !== null) {
+                $request['to'] = $until;
+            }
             $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2409,7 +2421,7 @@ class gate extends Exchange {
          * @param {dict} $params extra parameters specific to the gate api endpoint
          * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {str|null} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
-         * @param {int|null} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|null} $params->until The latest timestamp, in ms, that fetched trades were made
          * @param {int|null} $params->page *spot only* Page number
          * @param {str|null} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
          * @param {str|null} $params->order *$contract only* Futures order ID, return related data only if specified
@@ -2423,8 +2435,8 @@ class gate extends Exchange {
         $marginMode = null;
         $request = array();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $till = $this->safe_number($params, 'till');
-        $params = $this->omit($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $contract = ($type === 'swap') || ($type === 'future');
         if ($contract) {
@@ -2442,8 +2454,8 @@ class gate extends Exchange {
         if ($since !== null) {
             $request['from'] = intval($since / 1000);
         }
-        if ($till !== null) {
-            $request['to'] = intval($till / 1000);
+        if ($until !== null) {
+            $request['to'] = intval($until / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',

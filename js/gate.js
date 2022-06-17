@@ -2211,13 +2211,15 @@ module.exports = class gate extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name gate#fetchOHLCV
+         * @name gateio#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2244,13 +2246,26 @@ module.exports = class gate extends Exchange {
             }
         }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            until = parseInt (until / 1000);
+            params = this.omit (params, 'until');
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
-            request['to'] = Math.min (toTimestamp, currentTimestamp);
+            const to = Math.min (toTimestamp, currentTimestamp);
+            if (until !== undefined) {
+                request['to'] = Math.min (to, until);
+            } else {
+                request['to'] = to;
+            }
         } else {
+            if (until !== undefined) {
+                request['to'] = until;
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
@@ -2439,7 +2454,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {str|undefined} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-         * @param {int|undefined} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|undefined} params.until The latest timestamp, in ms, that fetched trades were made
          * @param {int|undefined} params.page *spot only* Page number
          * @param {str|undefined} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
          * @param {str|undefined} params.order *contract only* Futures order ID, return related data only if specified
@@ -2453,8 +2468,8 @@ module.exports = class gate extends Exchange {
         let marginMode = undefined;
         let request = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const till = this.safeNumber (params, 'till');
-        params = this.omit (params, 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future');
         if (contract) {
@@ -2472,8 +2487,8 @@ module.exports = class gate extends Exchange {
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
         }
-        if (till !== undefined) {
-            request['to'] = parseInt (till / 1000);
+        if (until !== undefined) {
+            request['to'] = parseInt (until / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',

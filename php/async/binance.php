@@ -4502,7 +4502,7 @@ class binance extends Exchange {
          * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @param {int|null} $params->till $timestamp in ms of the earliest funding rate
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate
          * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         yield $this->load_markets();
@@ -4532,9 +4532,9 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till' ));
+        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $until); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         }
@@ -5999,7 +5999,7 @@ class binance extends Exchange {
          * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int|null} $limit default 30, max 500
          * @param {dict} $params exchange specific parameters
-         * @param {int|null} $params->till the time(ms) of the latest record to retrieve as a unix timestamp
+         * @param {int|null} $params->until the time(ms) of the latest record to retrieve as a unix timestamp
          * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest history structure}
          */
         if ($timeframe === '1m') {
@@ -6021,9 +6021,9 @@ class binance extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'endTime', $till); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'till' ));
+        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $endTime = $this->safe_string($params, 'endTime', $until); // exchange-specific in milliseconds
+        $params = $this->omit($params, array( 'endTime', 'until', 'till' ));
         if ($endTime) {
             $request['endTime'] = $endTime;
         } elseif ($since) {

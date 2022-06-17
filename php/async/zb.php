@@ -641,8 +641,6 @@ class zb extends Exchange {
             $linear = $swap ? true : null;
             $active = true;
             $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string_2($market, 'amountScale', 'amountDecimal');
-            $pricePrecisionString = $this->safe_string_2($market, 'priceScale', 'priceDecimal');
             if ($swap) {
                 $status = $this->safe_string($market, 'status');
                 $active = ($status === '1');
@@ -673,8 +671,8 @@ class zb extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'amountScale', 'amountDecimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string_2($market, 'priceScale', 'priceDecimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -3086,13 +3084,14 @@ class zb extends Exchange {
          * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
          * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         yield $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
             // 'startTime' => $since,
-            // 'endTime' => $endTime, // current time by default
+            // 'endTime' => endTime, // current time by default
             // 'limit' => $limit, // default 100, max 1000
         );
         if ($symbol !== null) {
@@ -3103,13 +3102,10 @@ class zb extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $till = $this->safe_integer($params, 'till');
-        $endTime = $this->safe_string($params, 'endTime');
-        $params = $this->omit($params, array( 'endTime', 'till' ));
-        if ($till !== null) {
-            $request['endTime'] = $till;
-        } elseif ($endTime !== null) {
-            $request['endTime'] = $endTime;
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
+        if ($until !== null) {
+            $request['endTime'] = $until;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

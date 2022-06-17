@@ -257,7 +257,6 @@ class idex(Exchange):
             quote = self.safe_currency_code(quoteId)
             basePrecision = self.parse_number(self.parse_precision(self.safe_string(entry, 'baseAssetPrecision')))
             quotePrecision = self.parse_number(self.parse_precision(self.safe_string(entry, 'quoteAssetPrecision')))
-            pricePrecision = self.safe_number(entry, 'tickSize')
             status = self.safe_string(entry, 'status')
             minCost = None
             if quote == 'ETH':
@@ -290,7 +289,7 @@ class idex(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': basePrecision,
-                    'price': pricePrecision,
+                    'price': self.safe_number(entry, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {

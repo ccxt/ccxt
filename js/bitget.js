@@ -1608,7 +1608,7 @@ module.exports = class bitget extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the bitget api endpoint
-         * @param {dict} params.till timestamp in ms of the latest candle to fetch
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -1621,7 +1621,8 @@ module.exports = class bitget extends Exchange {
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         });
-        const till = this.safeInteger (params, 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         if (limit === undefined) {
             limit = 100;
         }
@@ -1630,13 +1631,13 @@ module.exports = class bitget extends Exchange {
             request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
-                if (till === undefined) {
+                if (until === undefined) {
                     const millisecondsPerTimeframe = this.timeframes['swap'][timeframe] * 1000;
                     request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
                 }
             }
-            if (till !== undefined) {
-                request['before'] = till;
+            if (until !== undefined) {
+                request['before'] = until;
             }
         } else if (market['type'] === 'swap') {
             request['granularity'] = this.timeframes['swap'][timeframe];
@@ -1647,8 +1648,8 @@ module.exports = class bitget extends Exchange {
                 request['endTime'] = now;
             } else {
                 request['startTime'] = this.sum (since, duration * 1000);
-                if (till !== undefined) {
-                    request['endTime'] = till;
+                if (until !== undefined) {
+                    request['endTime'] = until;
                 } else {
                     request['endTime'] = this.sum (since, limit * duration * 1000);
                 }

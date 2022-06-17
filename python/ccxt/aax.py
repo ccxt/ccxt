@@ -2446,6 +2446,7 @@ class aax(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the aax api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         if symbol is None:
@@ -2457,13 +2458,10 @@ class aax(Exchange):
         }
         if since is not None:
             request['startTime'] = int(since / 1000)
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime')  # exchange-specific in seconds
-        params = self.omit(params, ['endTime', 'till'])
+        till = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['till', 'until'])
         if till is not None:
             request['endTime'] = int(till / 1000)
-        elif endTime is not None:
-            request['endTime'] = endTime
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetFuturesFundingFundingRate(self.extend(request, params))

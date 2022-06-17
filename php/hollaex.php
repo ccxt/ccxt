@@ -367,7 +367,6 @@ class hollaex extends Exchange {
             $isActive = $this->safe_value($currency, 'active');
             $active = $isActive && $depositEnabled && $withdrawEnabled;
             $fee = $this->safe_number($currency, 'withdrawal_fee');
-            $precision = $this->safe_number($currency, 'increment_unit');
             $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
             $result[$code] = array(
                 'id' => $id,
@@ -379,7 +378,7 @@ class hollaex extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'increment_unit'),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'min'),

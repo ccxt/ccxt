@@ -297,7 +297,6 @@ class ripio(Exchange):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
             active = self.safe_value(currency, 'enabled', True)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal_places')))
             result[code] = {
                 'id': id,
                 'code': code,
@@ -307,7 +306,7 @@ class ripio(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimal_places'))),
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},

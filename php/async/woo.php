@@ -572,7 +572,7 @@ class woo extends Exchange {
         //         array(
         //             token => "ETH_USDT",
         //             fullname => "Tether",
-        //             $decimals => 6,
+        //             decimals => 6,
         //             balance_token => "USDT",
         //             created_time => "0",
         //             updated_time => "0"
@@ -580,7 +580,7 @@ class woo extends Exchange {
         //         array(
         //             token => "BSC_USDT",
         //             fullname => "Tether",
-        //             $decimals => 18,
+        //             decimals => 18,
         //             balance_token => "USDT",
         //             created_time => "0",
         //             updated_time => "0"
@@ -588,7 +588,7 @@ class woo extends Exchange {
         //         array(
         //             token => "ZEC",
         //             fullname => "ZCash",
-        //             $decimals => 8,
+        //             decimals => 8,
         //             balance_token => "ZEC",
         //             created_time => "0",
         //             updated_time => "0"
@@ -636,7 +636,7 @@ class woo extends Exchange {
             $id = $this->safe_string($currency, 'balance_token');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
-            $decimals = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             $chainedTokenCode = $this->safe_string($currency, 'token');
             $parts = explode('_', $chainedTokenCode);
             $chainNameId = $this->safe_string($parts, 0, $chainedTokenCode);
@@ -679,7 +679,7 @@ class woo extends Exchange {
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
-                    'precision' => ($networkLength === 1) ? $decimals : null, // will be filled down below
+                    'precision' => ($networkLength === 1) ? $precision : null, // will be filled down below
                     'active' => null,
                     'fee' => ($networkLength === 1) ? $resultingNetworks[$firstNetworkKey]['fee'] : null,
                     'networks' => $resultingNetworks,
@@ -698,12 +698,12 @@ class woo extends Exchange {
             }
             $networkKeys = is_array($result[$code]['networks']) ? array_keys($result[$code]['networks']) : array();
             $firstNetworkKey = $this->safe_string($networkKeys, 0);
-            // now add the precision info from token-object
+            // now add the $precision info from token-object
             if (is_array($result[$code]['networks']) && array_key_exists($chainCode, $result[$code]['networks'])) {
-                $result[$code]['networks'][$chainCode]['precision'] = $decimals;
+                $result[$code]['networks'][$chainCode]['precision'] = $precision;
             } else {
                 // else $chainCode will be the only token slug, which has only 1 supported network
-                $result[$code]['networks'][$firstNetworkKey]['precision'] = $decimals;
+                $result[$code]['networks'][$firstNetworkKey]['precision'] = $precision;
             }
             // now add the info object specifically for the item
             $result[$code]['info'][$chainedTokenCode] = $currency;

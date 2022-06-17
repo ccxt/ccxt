@@ -708,7 +708,6 @@ class gate(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'precision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
@@ -742,7 +741,7 @@ class gate(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1212,8 +1211,6 @@ class gate(Exchange):
         #    }
         #
         result = {}
-        # TODO: remove magic constants
-        amountPrecision = self.parse_number('1e-6')
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1233,7 +1230,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': self.parse_number('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2124,7 +2121,9 @@ class gate(Exchange):
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the gate api endpoint
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
@@ -2148,13 +2147,23 @@ class gate(Exchange):
                 request['contract'] = price + '_' + market['id']
                 params = self.omit(params, 'price')
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            until = int(until / 1000)
+            params = self.omit(params, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
-            request['to'] = min(toTimestamp, currentTimestamp)
+            to = min(toTimestamp, currentTimestamp)
+            if until is not None:
+                request['to'] = min(to, until)
+            else:
+                request['to'] = to
         else:
+            if until is not None:
+                request['to'] = until
             request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -2325,7 +2334,7 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the gate api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int|None params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['until']: The latest timestamp, in ms, that fetched trades were made
         :param int|None params['page']: *spot only* Page number
         :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
         :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
@@ -2339,8 +2348,8 @@ class gate(Exchange):
         marginMode = None
         request = {}
         market = self.market(symbol) if (symbol is not None) else None
-        till = self.safe_number(params, 'till')
-        params = self.omit(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         contract = (type == 'swap') or (type == 'future')
         if contract:
@@ -2354,8 +2363,8 @@ class gate(Exchange):
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
-        if till is not None:
-            request['to'] = int(till / 1000)
+        if until is not None:
+            request['to'] = int(until / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',

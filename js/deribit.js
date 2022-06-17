@@ -718,11 +718,10 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (balance) {
         const result = {
-            'info': response,
+            'info': balance,
         };
-        const balance = this.safeValue (response, 'result', {});
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
@@ -790,7 +789,8 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        return this.parseBalance (response);
+        const result = this.safeValue (response, 'result', {});
+        return this.parseBalance (result);
     }
 
     async createDepositAddress (code, params = {}) {
