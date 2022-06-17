@@ -455,6 +455,7 @@ module.exports = class bybit extends Exchange {
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
+                    '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
@@ -656,8 +657,10 @@ module.exports = class bybit extends Exchange {
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
         }
-        const contractMarkets = await this.fetchSwapAndFutureMarkets (params);
-        const usdcMarkets = await this.fetchUSDCMarkets (params);
+        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        promises = await Promise.all (promises);
+        const contractMarkets = promises[0];
+        const usdcMarkets = promises[1];
         let markets = contractMarkets;
         markets = this.arrayConcat (markets, usdcMarkets);
         return markets;
@@ -872,7 +875,7 @@ module.exports = class bybit extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
             const inverse = !linear;
-            const contractSize = inverse ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : undefined;
+            const contractSize = inverse ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : this.parseNumber ('1');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -1081,9 +1084,9 @@ module.exports = class bybit extends Exchange {
                 'contract': true,
                 'linear': linear,
                 'inverse': !linear,
-                'taker': this.safeNumber (market, 'taker_fee'),
-                'maker': this.safeNumber (market, 'maker_fee'),
-                'contractSize': undefined,
+                'taker': this.safeNumber2 (market, 'taker_fee', 'takerFeeRate'),
+                'maker': this.safeNumber2 (market, 'maker_fee', 'makerFeeRate'),
+                'contractSize': this.parseNumber ('1'),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': strike,
@@ -2752,25 +2755,30 @@ module.exports = class bybit extends Exchange {
                 }
             }
         }
+        const upperCaseType = type.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'type': type.toUpperCase (), // limit, market or limit_maker
+            'type': upperCaseType, // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
             'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
-        if (type === 'limit' || type === 'limit_maker') {
+        if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
+        const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
+        if (isPostOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId', 'postOnly' ]);
         const brokerId = this.safeString (this.options, 'brokerId');
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
@@ -2810,10 +2818,11 @@ module.exports = class bybit extends Exchange {
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
+        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderType': this.capitalize (type), // limit or market
+            'orderType': this.capitalize (lowerCaseType), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'orderQty': this.amountToPrecision (symbol, amount),
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
@@ -2830,53 +2839,52 @@ module.exports = class bybit extends Exchange {
             // 'orderFilter': 'Order' or 'StopOrder'
             // 'mmp': false // market maker protection
         };
-        if (price !== undefined) {
+        const isMarket = lowerCaseType === 'market';
+        const isLimit = lowerCaseType === 'limit';
+        if (isLimit !== undefined) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['time_in_force'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['time_in_force'] = 'GoodTillCancel';
+        } else if (timeInForce === 'fok') {
+            request['time_in_force'] = 'FillOrKill';
+        } else if (timeInForce === 'ioc') {
+            request['time_in_force'] = 'ImmediateOrCancel';
         }
         if (market['swap']) {
             const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-            const isTriggerOrder = triggerPrice !== undefined;
-            const stopLossPrice = this.safeValue2 (params, 'stopLoss', 'stopLossPrice');
+            const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
             const isStopLossOrder = stopLossPrice !== undefined;
-            const takeProfitPrice = this.safeValue2 (params, 'takeProfit', 'takeProfitPrice');
+            const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
             const isTakeProfitOrder = takeProfitPrice !== undefined;
-            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isTriggerOrder;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder;
             if (isStopOrder) {
-                if (isTriggerOrder) {
-                    const basePrice = this.safeValue (params, 'basePrice');
-                    if (basePrice === undefined) {
-                        throw new ArgumentsRequired (this.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order');
-                    }
-                    request['orderFilter'] = 'StopOrder';
-                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                    const triggerBy = this.safeString2 (params, 'triggerBy', 'MarkPrice');
-                    request['triggerBy'] = triggerBy;
-                } else {
-                    request['orderFilter'] = 'Order';
-                }
-                if (isStopLossOrder) {
-                    request['stopLoss'] = stopLossPrice;
-                    const slTriggerBy = this.safeString2 (params, 'slTriggerBy', 'MarkPrice');
-                    request['slTriggerBy'] = slTriggerBy;
-                }
-                if (isTakeProfitOrder) {
-                    request['takeProfit'] = takeProfitPrice;
-                    const tpTriggerBy = this.safeString2 (params, 'tpTriggerBy', 'MarkPrice');
-                    request['tpTriggerBy'] = tpTriggerBy;
-                }
-                params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopLoss', 'stopLossPrice', 'takeProfit', 'takeProfitPrice', 'basePrice', 'triggerBy', 'tpTriggerby', 'slTriggerBy' ]);
+                request['orderFilter'] = 'StopOrder';
+                request['trigger_by'] = 'LastPrice';
+                const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+                const floatStopPrice = parseFloat (preciseStopPrice);
+                request['triggerPrice'] = preciseStopPrice;
+                const delta = market['precision']['price'];
+                const basePrice = isStopLossOrder ? floatStopPrice - delta : this.sum (floatStopPrice, delta);
+                request['basePrice'] = this.numberToString (basePrice);
+            } else {
+                request['orderFilter'] = 'Order';
             }
         }
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-        request['reduceOnly'] = reduceOnly;
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         } else if (market['option']) {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId', 'reduce_only', 'reduceOnly' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ]);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method] (this.extend (request, params));
         //
@@ -2916,10 +2924,11 @@ module.exports = class bybit extends Exchange {
         }
         amount = this.amountToPrecision (symbol, amount);
         amount = market['linear'] ? parseFloat (amount) : parseInt (amount);
+        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'order_type': this.capitalize (type), // limit
+            'order_type': this.capitalize (lowerCaseType), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'qty': amount,
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
@@ -2946,59 +2955,56 @@ module.exports = class bybit extends Exchange {
             params = this.omit (params, 'position_idx');
         }
         if (market['linear']) {
-            const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-            const closeOnTrigger = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-            request['reduce_only'] = reduceOnly;
-            request['close_on_trigger'] = closeOnTrigger;
+            request['reduce_only'] = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+            request['close_on_trigger'] = false;
         }
-        if (price !== undefined) {
+        const isMarket = lowerCaseType === 'market';
+        const isLimit = lowerCaseType === 'limit';
+        if (isLimit) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' createOrder() requires price argument for limit orders');
+            }
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
-        const triggerPrice = this.safeValue2 (params, 'stop_px', 'stopPrice');
-        const isTriggerOrder = triggerPrice !== undefined;
-        const stopLossPrice = this.safeValue2 (params, 'stop_loss', 'stopLossPrice');
-        const isStopLossOrder = stopLossPrice !== undefined;
-        const takeProfitPrice = this.safeValue2 (params, 'take_profit', 'takeProfitPrice');
-        const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder || isTriggerOrder;
-        const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
-        let isConditionalOrder = false;
-        if (isStopOrder) {
-            if (isTriggerOrder) {
-                isConditionalOrder = true;
-                if (basePrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
-                }
-                const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
-                request['trigger_by'] = triggerBy;
-                request['stop_px'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
-                request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-            }
-            if (isStopLossOrder) {
-                request['stop_loss'] = stopLossPrice;
-                const slTriggerBy = this.safeString2 (params, 'sl_trigger_by', 'LastPrice');
-                request['sl_trigger_by'] = slTriggerBy;
-            }
-            if (isTakeProfitOrder) {
-                request['take_profit'] = takeProfitPrice;
-                const tpTriggerBy = this.safeString2 (params, 'tp_trigger_by', 'LastPrice');
-                request['tp_trigger_by'] = tpTriggerBy;
-            }
-            params = this.omit (params, [ 'stop_px', 'stopPrice', 'stop_loss', 'stopLossPrice', 'take_profit', 'takeProfitPrice', 'base_price', 'triggerBy', 'trigger_by', 'tp_trigger_by', 'sl_trigger_by' ]);
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['time_in_force'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['time_in_force'] = 'GoodTillCancel';
+        } else if (timeInForce === 'fok') {
+            request['time_in_force'] = 'FillOrKill';
+        } else if (timeInForce === 'ioc') {
+            request['time_in_force'] = 'ImmediateOrCancel';
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'order_link_id');
+        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopOrder) {
+            request['trigger_by'] = 'LastPrice';
+            const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            const floatStopPx = parseFloat (this.priceToPrecision (symbol, stopPx));
+            request['stop_px'] = floatStopPx;
+            const delta = market['precision']['price'];
+            request['base_price'] = isStopLossOrder ? floatStopPx - delta : this.sum (floatStopPx, delta);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'order_link_id' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
-            method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+            method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
         } else if (market['linear']) {
-            method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+            method = isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+            method = isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -4579,37 +4585,49 @@ module.exports = class bybit extends Exchange {
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
         const notional = this.safeString2 (position, 'position_value', 'positionValue');
-        const unrealisedPnl = this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl');
-        const initialMarginString = this.safeString2 (position, 'position_margin', 'orderMargin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl'));
+        let initialMarginString = this.safeString (position, 'positionIM');
+        const maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (timestamp === undefined) {
             timestamp = this.safeInteger (position, 'createdAt');
-            if (timestamp === undefined) {
-                timestamp = this.milliseconds ();
-            }
         }
         const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
+        let collateralString = this.safeString (position, 'position_margin');
+        const entryPrice = this.omitZero (this.safeString (position, 'entry_price', 'entryPrice'));
+        const liquidationPrice = this.omitZero (this.safeString (position, 'liq_price', 'liqPrice'));
+        const leverage = this.safeString (position, 'leverage');
+        if (market['settle'] === 'USDT') {
+            // Initial Margin = Contract size x Entry Price / Leverage
+            initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+        } else if (market['inverse']) {
+            // Initial Margin = Contracts / ( Entry Price x Leverage )
+            initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+            if (!isIsolated) {
+                collateralString = this.safeString (position, 'wallet_balance');
+            }
+        }
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': maintenanceMarginString,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber2 (position, 'entry_price', 'entryPrice'),
+            'entryPrice': this.parseNumber (entryPrice),
             'notional': this.parseNumber (notional),
-            'leverage': this.safeNumber (position, 'leverage'),
+            'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size), // in USD for inverse swaps
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber2 (position, 'liq_price', 'liqPrice'),
+            'liquidationPrice': this.parseNumber (liquidationPrice),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'collateral': undefined,
+            'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (percentage),
