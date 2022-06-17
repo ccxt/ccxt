@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 39 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 43 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -245,6 +245,21 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg
+          :target: https://www.bitopro.com
+          :alt: bitopro
+     
+     - bitopro
+     - `BitoPro <https://www.bitopro.com>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md
+          :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
           :target: https://www.bitstamp.net
           :alt: bitstamp
@@ -275,7 +290,7 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -289,6 +304,21 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
+          :target: https://partner.bybit.com/b/ccxt
+          :alt: bybit
+     
+     - bybit
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://bybit-exchange.github.io/docs/inverse/
+          :alt: API Version 2
+     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -317,6 +347,21 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
           :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -406,9 +451,9 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
-          :alt: gateio
+          :alt: gate
      
-     - gateio
+     - gate
      - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html
@@ -544,6 +589,24 @@ The CCXT Pro library currently supports the following 39 cryptocurrency exchange
           :alt: API Version 2
      
      - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc
+     
+     - mexc
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://mxcdevelop.github.io/APIDoc/
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -878,7 +941,6 @@ The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro libra
 .. code-block:: Python
 
    ccxtpro.ftx({
-       'enableRateLimit': True,
        'options': {
            'tradesLimit': 1000,
            'OHLCVLimit': 1000,
@@ -1010,7 +1072,7 @@ Creating a CCXT Pro exchange instance is pretty much identical to creating a CCX
 
    // JavaScript
    const ccxtpro = require ('ccxt.pro')
-   const exchange = new ccxtpro.binance ({ enableRateLimit: true, newUpdates: false })
+   const exchange = new ccxtpro.binance ({ newUpdates: false })
 
 The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.python.org/3/library/asyncio.html>`__ and `Event Loop <https://docs.python.org/3/library/asyncio-eventloop.html>`__ in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to ``ccxt.async support``\ ):
 
@@ -1018,17 +1080,17 @@ The Python implementation of CCXT Pro relies on builtin `asyncio <https://docs.p
 
    # Python
    import ccxtpro
-   import asyncio
+   from asyncio import run
 
-   async def main(loop):
-       exchange = ccxtpro.kraken({'enableRateLimit': True, 'asyncio_loop': loop, 'newUpdates': False })
+   async def main():
+       exchange = ccxtpro.kraken({'newUpdates': False})
        while True:
            orderbook = await exchange.watch_order_book('BTC/USD')
            print(orderbook['asks'][0], orderbook['bids'][0])
        await exchange.close()
 
-   loop = asyncio.new_event_loop()
-   loop.run_until_complete(main(loop))
+
+   run(main())
 
 In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`__. The PHP implementation of CCXT Pro relies on `Promise <https://github.com/reactphp/promise>`__ and `EventLoop <https://github.com/reactphp/event-loop>`__ in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
@@ -1040,7 +1102,7 @@ In PHP the async primitives are borrowed from `ReactPHP <https://reactphp.org>`_
    require_once 'vendor/autoload.php';
 
    $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
-   $exchange = new \ccxtpro\kucoin(array('enableRateLimit' => true, 'loop' => $loop, 'newUpdates': false ));
+   $exchange = new \ccxtpro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 
 Exchange Properties
 -------------------

@@ -47,7 +47,6 @@ async function main () {
     await exchange.loadMarkets ();
     const allSwapSymbols = exchange.symbols.filter (symbol => exchange.market (symbol)[type] );
     const ohlcvs = await Promise.all (allSwapSymbols.map (symbol => fetchOHLCV (symbol)));
-    console.log (ohlcvs)
     const priceChanges = ohlcvs.map (ohlcv => getPriceChangePercent (ohlcv));
     const sorted = priceChanges.sort (sort);
     console.dir(sorted, {'maxArrayLength': null})

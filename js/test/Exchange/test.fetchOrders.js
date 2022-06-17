@@ -9,19 +9,21 @@ import testOrder from './test.order.js'
 
 export default async (exchange, symbol) => {
 
+    const method = 'fetchOrders'
+
     const skippedExchanges = [
         'bitmart',
         'rightbtc',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchOrders) {
+    if (exchange.has[method]) {
 
-        const orders = await exchange.fetchOrders (symbol)
+        const orders = await exchange[method] (symbol)
 
         console.log ('fetched', orders.length, 'orders, asserting each...')
 
@@ -36,6 +38,6 @@ export default async (exchange, symbol) => {
 
     } else {
 
-        console.log ('fetching orders not supported')
+        console.log (method + '() is not supported')
     }
 }

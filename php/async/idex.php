@@ -60,6 +60,7 @@ class idex extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -160,40 +161,78 @@ class idex extends Exchange {
                 'apiKey' => true,
                 'secret' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'paddingMode' => PAD_WITH_ZERO,
             'commonCurrencies' => array(),
         ));
     }
 
+    public function price_to_precision($symbol, $price) {
+        //
+        // we override priceToPrecision to fix the following issue
+        // https://github.com/ccxt/ccxt/issues/13367
+        // array("code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\" => all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes")
+        //
+        $market = $this->market($symbol);
+        $info = $this->safe_value($market, 'info', array());
+        $quoteAssetPrecision = $this->safe_integer($info, 'quoteAssetPrecision');
+        $price = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode);
+        return $this->decimal_to_precision($price, TRUNCATE, $quoteAssetPrecision, DECIMAL_PLACES, PAD_WITH_ZERO);
+    }
+
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for idex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $response = yield $this->publicGetMarkets ($params);
         //
-        // array(
-        //   array(
-        //     market => 'DIL-ETH',
-        //     $status => 'active',
-        //     baseAsset => 'DIL',
-        //     baseAssetPrecision => 8,
-        //     quoteAsset => 'ETH',
-        //     quoteAssetPrecision => 8
-        //   ), ...
-        // )
+        //    array(
+        //        array(
+        //            "market" => "ETH-USDC",
+        //            "type" => "hybrid",
+        //            "status" => "activeHybrid",
+        //            "baseAsset" => "ETH",
+        //            "baseAssetPrecision" => "8",
+        //            "quoteAsset" => "USDC",
+        //            "quoteAssetPrecision" => "8",
+        //            "makerFeeRate" => "0.0000",
+        //            "takerFeeRate" => "0.2500",
+        //            "takerIdexFeeRate" => "0.0500",
+        //            "takerLiquidityProviderFeeRate" => "0.2000",
+        //            "tickSize" => "0.01000000"
+        //        ),
+        //    )
         //
         $response2 = yield $this->publicGetExchange ();
         //
-        // {
-        //     "timeZone" => "UTC",
-        //     "serverTime" => 1590408000000,
-        //     "ethereumDepositContractAddress" => "0x...",
-        //     "ethUsdPrice" => "206.46",
-        //     "gasPrice" => 7,
-        //     "volume24hUsd" => "10416227.98",
-        //     "makerFeeRate" => "0.001",
-        //     "takerFeeRate" => "0.002",
-        //     "makerTradeMinimum" => "0.15000000",
-        //     "takerTradeMinimum" => "0.05000000",
-        //     "withdrawalMinimum" => "0.04000000"
-        // }
+        //    {
+        //        "timeZone" => "UTC",
+        //        "serverTime" => "1654460599952",
+        //        "maticDepositContractAddress" => "0x3253a7e75539edaeb1db608ce6ef9aa1ac9126b6",
+        //        "maticCustodyContractAddress" => "0x3bcc4eca0a40358558ca8d1bcd2d1dbde63eb468",
+        //        "maticUsdPrice" => "0.60",
+        //        "gasPrice" => "180",
+        //        "volume24hUsd" => "10015814.46",
+        //        "totalVolumeUsd" => "1589273533.28",
+        //        "totalTrades" => "1534904",
+        //        "totalValueLockedUsd" => "12041929.44",
+        //        "idexStakingValueLockedUsd" => "20133816.98",
+        //        "idexTokenAddress" => "0x9Cb74C8032b007466865f060ad2c46145d45553D",
+        //        "idexUsdPrice" => "0.07",
+        //        "idexMarketCapUsd" => "48012346.00",
+        //        "makerFeeRate" => "0.0000",
+        //        "takerFeeRate" => "0.0025",
+        //        "takerIdexFeeRate" => "0.0005",
+        //        "takerLiquidityProviderFeeRate" => "0.0020",
+        //        "makerTradeMinimum" => "10.00000000",
+        //        "takerTradeMinimum" => "1.00000000",
+        //        "withdrawMinimum" => "0.50000000",
+        //        "liquidityAdditionMinimum" => "0.50000000",
+        //        "liquidityRemovalMinimum" => "0.40000000",
+        //        "blockConfirmationDelay" => "64"
+        //    }
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
         $taker = $this->safe_number($response2, 'takerFeeRate');
@@ -208,10 +247,8 @@ class idex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
-            $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
-            $basePrecision = $this->parse_precision($basePrecisionString);
-            $quotePrecision = $this->parse_precision($quotePrecisionString);
+            $basePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision')));
+            $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision')));
             $status = $this->safe_string($entry, 'status');
             $minCost = null;
             if ($quote === 'ETH') {
@@ -232,7 +269,7 @@ class idex extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($status === 'active'),
+                'active' => ($status !== 'inactive'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -244,8 +281,8 @@ class idex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($basePrecisionString),
-                    'price' => intval($quotePrecisionString),
+                    'amount' => $basePrecision,
+                    'price' => $this->safe_number($entry, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -253,11 +290,11 @@ class idex extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->parse_number($basePrecision),
+                        'min' => $basePrecision,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($quotePrecision),
+                        'min' => $quotePrecision,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -272,6 +309,12 @@ class idex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -301,6 +344,12 @@ class idex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         yield $this->load_markets();
         // array(
         //   array(
@@ -367,10 +416,19 @@ class idex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -384,7 +442,7 @@ class idex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = yield $this->publicGetCandles (array_merge($request, $params));
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // array(
             //   array(
             //     start => 1598345580000,
@@ -423,6 +481,14 @@ class idex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -528,6 +594,11 @@ class idex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->check_required_credentials();
         yield $this->load_markets();
         $nonce = $this->uuidv1();
@@ -567,6 +638,13 @@ class idex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -623,25 +701,31 @@ class idex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        // array(
-        //   array(
-        //     $name => 'Ether',
-        //     symbol => 'ETH',
-        //     contractAddress => '0x0000000000000000000000000000000000000000',
-        //     assetDecimals => 18,
-        //     exchangeDecimals => 8
-        //   ), ..
-        // )
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetAssets ($params);
+        //
+        //     array(
+        //        array(
+        //            "name" => "Ethereum",
+        //            "symbol" => "ETH",
+        //            "contractAddress" => "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+        //            "assetDecimals" => "18",
+        //            "exchangeDecimals" => "8",
+        //            "maticPrice" => "3029.38503483"
+        //        ),
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $name = $this->safe_string($entry, 'name');
             $currencyId = $this->safe_string($entry, 'symbol');
-            $precisionString = $this->safe_string($entry, 'exchangeDecimals');
             $code = $this->safe_currency_code($currencyId);
-            $precision = $this->parse_precision($precisionString);
-            $lot = $this->parse_number($precision);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'exchangeDecimals')));
             $result[$code] = array(
                 'id' => $currencyId,
                 'code' => $code,
@@ -652,10 +736,10 @@ class idex extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => intval($precisionString),
+                'precision' => $precision,
                 'limits' => array(
-                    'amount' => array( 'min' => $lot, 'max' => null ),
-                    'withdraw' => array( 'min' => $lot, 'max' => null ),
+                    'amount' => array( 'min' => $precision, 'max' => null ),
+                    'withdraw' => array( 'min' => $precision, 'max' => null ),
                 ),
             );
         }
@@ -682,6 +766,11 @@ class idex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->check_required_credentials();
         yield $this->load_markets();
         $nonce1 = $this->uuidv1();
@@ -700,7 +789,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' wallet is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchBalance() wallet is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -718,6 +807,14 @@ class idex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->check_required_credentials();
         yield $this->load_markets();
         $market = null;
@@ -757,7 +854,7 @@ class idex extends Exchange {
         // )
         $extendedRequest = array_merge($request, $params);
         if ($extendedRequest['wallet'] === null) {
-            throw new BadRequest($this->id . ' $walletAddress is null, set $this->walletAddress or "address" in params');
+            throw new BadRequest($this->id . ' fetchMyTrades() $walletAddress is null, set $this->walletAddress or "address" in params');
         }
         $response = null;
         try {
@@ -775,6 +872,12 @@ class idex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $request = array(
             'orderId' => $id,
         );
@@ -782,6 +885,14 @@ class idex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'closed' => false,
         );
@@ -789,6 +900,14 @@ class idex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array(
             'closed' => true,
         );
@@ -874,7 +993,7 @@ class idex extends Exchange {
         //        liquidity => 'taker',
         //        txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
         //        txStatus => 'mined' } ) }
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
             return $this->parse_order($response, $market);
@@ -993,7 +1112,16 @@ class idex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // https://docs.idex.io/#create-order
+        /**
+         * create a trade order, https://docs.idex.io/#create-order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->check_required_credentials();
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1008,7 +1136,7 @@ class idex extends Exchange {
         $stopPriceString = null;
         if (($type === 'stopLossLimit') || ($type === 'takeProfitLimit') || (is_array($params) && array_key_exists('stopPrice', $params))) {
             if (!(is_array($params) && array_key_exists('stopPrice', $params))) {
-                throw new BadRequest($this->id . ' stopPrice is a required parameter for ' . $type . 'orders');
+                throw new BadRequest($this->id . ' createOrder() stopPrice is a required parameter for ' . $type . 'orders');
             }
             $stopPriceString = $this->price_to_precision($symbol, $params['stopPrice']);
         }
@@ -1022,10 +1150,10 @@ class idex extends Exchange {
         if (is_array($limitTypeEnums) && array_key_exists($type, $limitTypeEnums)) {
             $typeEnum = $limitTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
-        } else if (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
+        } elseif (is_array($stopLossTypeEnums) && array_key_exists($type, $stopLossTypeEnums)) {
             $typeEnum = $stopLossTypeEnums[$type];
             $priceString = $this->price_to_precision($symbol, $price);
-        } else if ($type === 'market') {
+        } elseif ($type === 'market') {
             $typeEnum = 0;
         } else {
             throw new BadRequest($this->id . ' ' . $type . ' is not a valid order type');
@@ -1033,7 +1161,7 @@ class idex extends Exchange {
         $amountEnum = 0; // base quantity
         if (is_array($params) && array_key_exists('quoteOrderQuantity', $params)) {
             if ($type !== 'market') {
-                throw new NotSupported($this->id . ' quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
+                throw new NotSupported($this->id . ' createOrder() quoteOrderQuantity is not supported for ' . $type . ' orders, only supported for $market orders');
             }
             $amountEnum = 1;
             $amount = $this->safe_number($params, 'quoteOrderQuantity');
@@ -1175,6 +1303,15 @@ class idex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_required_credentials();
         yield $this->load_markets();
@@ -1218,6 +1355,13 @@ class idex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->check_required_credentials();
         yield $this->load_markets();
         $market = null;
@@ -1261,6 +1405,14 @@ class idex extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $params = array_merge(array(
             'method' => 'privateGetDeposits',
         ), $params);
@@ -1268,6 +1420,14 @@ class idex extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $params = array_merge(array(
             'method' => 'privateGetWithdrawals',
         ), $params);
@@ -1357,7 +1517,7 @@ class idex extends Exchange {
         $type = null;
         if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
             $type = 'deposit';
-        } else if ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
+        } elseif ((is_array($transaction) && array_key_exists('withdrawId', $transaction)) || (is_array($transaction) && array_key_exists('withdrawalId', $transaction))) {
             $type = 'withdrawal';
         }
         $id = $this->safe_string_2($transaction, 'depositId', 'withdrawId');

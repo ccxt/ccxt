@@ -13,10 +13,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 async def work(exchange_id):
 
     # create it once per program lifetime
-    exchange = getattr(ccxt, exchange_id)({
-        # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        'enableRateLimit': True
-    })
+    exchange = getattr(ccxt, exchange_id)()
 
     print(exchange_id, 'loaded')
 
@@ -55,7 +52,7 @@ async def work(exchange_id):
     await exchange.close()
 
 
-async def main(loop):
+async def main():
 
     # https://stackoverflow.com/questions/48483348/limited-concurrency-with-asyncio
     max_concurrency = 5  # how many exchanges at once
@@ -74,5 +71,4 @@ async def main(loop):
     await asyncio.wait(tasks)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main(loop))
+asyncio.run(main())

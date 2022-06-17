@@ -2,9 +2,7 @@
 
 import ccxt from '../../ccxt.js';
 
-const exchange = new ccxt.hitbtc ({
-    'enableRateLimit': true,
-})
+const exchange = new ccxt.hitbtc ()
 
 ;(async () => {
 

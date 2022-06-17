@@ -24,6 +24,7 @@ export default class ftxus extends ftx {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchMarkOHLCV': false,
+                'fetchOpenInterestHistory': false,
                 'fetchPremiumIndexOHLCV': false,
             },
             'urls': {

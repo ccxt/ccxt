@@ -7,7 +7,7 @@ const enableRateLimit = true, exchanges = {}, tickers = {};
 
 ccxt.exchanges.forEach (id => {
     try {
-        const exchange = new ccxt[id] ({ enableRateLimit })
+        const exchange = new ccxt[id] ()
         if (exchange.has['fetchTickers']) {
             exchanges[id] = exchange
         }

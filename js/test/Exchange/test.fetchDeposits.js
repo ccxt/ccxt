@@ -9,9 +9,11 @@ import testTransaction  from './test.transaction.js'
 
 export default async (exchange, code) => {
 
-    if (exchange.has.fetchDeposits) {
+    const method = 'fetchDeposits'
 
-        const transactions = await exchange.fetchDeposits (code)
+    if (exchange.has[method]) {
+
+        const transactions = await exchange[method] (code)
 
         console.log ('fetched', transactions.length, 'deposits, asserting each...')
 
@@ -26,6 +28,6 @@ export default async (exchange, code) => {
 
     } else {
 
-        console.log ('fetching deposits not supported')
+        console.log (method + '() is not supported')
     }
 }

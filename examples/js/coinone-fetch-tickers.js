@@ -12,7 +12,6 @@ const table = asTable.configure ({
     });
 
 const exchange = new ccxt.coinone ({
-    'enableRateLimit': true,
     'verbose': process.argv.includes ('--verbose'),
 })
 
@@ -41,7 +40,7 @@ async function fetchOneByOneAndPrint () {
         log (`${i+1} / ${symbols.length}`)
         log ('\u001b[1A'.repeat (2))  // cursor up
     }
-    
+
     printTickersAsTable (exchange, tickers)
 }
 

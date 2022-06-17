@@ -190,25 +190,36 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - British Virgin Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
-          :target: https://www.bitfinex.com/?refcode=P61eYxFL
+          :target: https://www.bitfinex.com
           :alt: bitfinex2
      
      - bitfinex2
-     - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
+     - `Bitfinex <https://www.bitfinex.com>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.bitfinex.com/v2/docs/
           :alt: API Version 2
      
    * - British Virgin Islands
      - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://www.bybit.com/app/register?ref=X7Prm
+          :target: https://partner.bybit.com/b/ccxt
           :alt: bybit
      
      - bybit
-     - `Bybit <https://www.bybit.com/app/register?ref=X7Prm>`__
+     - `Bybit <https://partner.bybit.com/b/ccxt>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
+     
+   * - Canada
+     - .. image:: https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg
+          :target: https://www.btcex.com/en-us/register?i=48biatg1
+          :alt: btcex
+     
+     - btcex
+     - `BTCEX <https://www.btcex.com/en-us/register?i=48biatg1>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.btcex.com/
+          :alt: API Version 1
      
    * - Canada
      - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
@@ -333,14 +344,25 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
-          :target: https://www.lbex.io/invite?icode=7QCY
+          :target: https://www.lbank.info/invitevip?icode=7QCY
           :alt: lbank
      
      - lbank
-     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://github.com/LBank-exchange/lbank-official-api-docs
           :alt: API Version 1
+     
+   * - China
+     - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
+          :target: https://www.lbank.info/invitevip?icode=7QCY
+          :alt: lbank2
+     
+     - lbank2
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://www.lbank.info/en-US/docs/index.html
+          :alt: API Version 2
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
@@ -482,7 +504,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - stex
      - `STEX <https://app.stex.com?ref=36416021>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://help.stex.com/en/collections/1593608-api-v3-documentation
+          :target: https://apidocs.stex.com/
           :alt: API Version 3
      
    * - Estonia
@@ -849,7 +871,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - Netherlands
-     - .. image:: https://user-images.githubusercontent.com/1294454/83165440-2f1cf200-a116-11ea-9046-a255d09fb2ed.jpg
+     - .. image:: https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg
           :target: https://bitvavo.com/?a=24F34952F7
           :alt: bitvavo
      
@@ -970,6 +992,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
+          :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
+          :alt: coinflex
+     
+     - coinflex
+     - `CoinFLEX <https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://docs.coinflex.com/
+          :alt: API Version 3
+     
+   * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
           :target: https://www.kucoin.com/?rcode=E5wkqe
           :alt: kucoin
@@ -1003,6 +1036,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Seychelles
+     - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
+          :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
+          :alt: mexc3
+     
+     - mexc3
+     - `MEXC Global <https://m.mexc.com/auth/signup?inviteCode=1FQ1G>`__
+     - .. image:: https://img.shields.io/badge/3-lightgray
+          :target: https://mxcdevelop.github.io/apidocs/spot_v3_en/
+          :alt: API Version 3
+     
+   * - Seychelles
      - .. image:: https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg
           :target: https://www.probit.com/r/34608773
           :alt: probit
@@ -1032,7 +1076,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://bitgetlimited.github.io/apidoc/en/swap
+          :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
    * - Singapore
@@ -1148,9 +1192,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
    * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
-          :alt: gateio
+          :alt: gate
      
-     - gateio
+     - gate
      - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html

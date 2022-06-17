@@ -9,9 +9,11 @@ import testOrder from './test.order.js'
 
 export default async (exchange, symbol) => {
 
-    if (exchange.has.fetchClosedOrders) {
+    const method = 'fetchClosedOrders'
 
-        const orders = await exchange.fetchClosedOrders (symbol)
+    if (exchange.has[method]) {
+
+        const orders = await exchange[method] (symbol)
 
         console.log ('fetched', orders.length, 'closed orders, testing each')
 
@@ -27,6 +29,6 @@ export default async (exchange, symbol) => {
 
     } else {
 
-        console.log ('fetching closed orders not supported')
+        console.log (method + '() is not supported')
     }
 }

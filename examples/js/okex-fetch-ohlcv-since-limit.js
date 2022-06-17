@@ -7,7 +7,6 @@ ansicolor.nice
 (async () => {
 
     const exchange = new ccxt['okex']()
-    exchange.enableRateLimit = true
 
     let limit = undefined
     let symbol = 'BTC/USDT'

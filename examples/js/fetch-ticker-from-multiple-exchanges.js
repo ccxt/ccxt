@@ -15,7 +15,7 @@ import ccxt from '../../ccxt.js';
 
         new Promise (async (resolve, reject) => {
 
-            const exchange = new ccxt[exchangeId] ({ enableRateLimit: true })
+            const exchange = new ccxt[exchangeId] ()
 
             while (true) {
 

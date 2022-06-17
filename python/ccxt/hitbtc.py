@@ -15,7 +15,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -29,7 +28,7 @@ class hitbtc(Exchange):
             'countries': ['HK'],
             # 300 requests per second => 1000ms / 300 = 3.333ms between requests on average(Trading)
             # 100 requests per second =>( 1000ms / rateLimit ) / 100 => cost = 3.0003(Market Data)
-            # 10 requests per second =>( 1000ms / rateLimit ) / 10 => cost = 30.003(Other Requests)
+            # 20 requests per second =>( 1000ms / rateLimit ) / 20 => cost = 15.0015(Other Requests)
             'rateLimit': 3.333,
             'version': '2',
             'pro': True,
@@ -67,6 +66,7 @@ class hitbtc(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -142,32 +142,32 @@ class hitbtc(Exchange):
                 },
                 'private': {
                     'get': {
-                        'trading/balance': 30,  # Get trading balance
-                        'order': 30,  # List your current open orders
-                        'order/{clientOrderId}': 30,  # Get a single order by clientOrderId
-                        'trading/fee/all': 30,  # Get trading fee rate
-                        'trading/fee/{symbol}': 30,  # Get trading fee rate
-                        'margin/account': 30,
-                        'margin/account/{symbol}': 30,
-                        'margin/position': 30,
-                        'margin/position/{symbol}': 30,
-                        'margin/order': 30,
-                        'margin/order/{clientOrderId}': 30,
-                        'history/order': 30,  # Get historical orders
-                        'history/trades': 30,  # Get historical trades
-                        'history/order/{orderId}/trades': 30,  # Get historical trades by specified order
-                        'account/balance': 30,  # Get main acccount balance
-                        'account/crypto/address/{currency}': 30,  # Get current address
-                        'account/crypto/addresses/{currency}': 30,  # Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}': 30,  # Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw': 30,
-                        'account/crypto/is-mine/{address}': 30,
-                        'account/transactions': 30,  # Get account transactions
-                        'account/transactions/{id}': 30,  # Get account transaction by id
-                        'sub-acc': 30,
-                        'sub-acc/acl': 30,
-                        'sub-acc/balance/{subAccountUserID}': 30,
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 30,
+                        'trading/balance': 15.0015,  # Get trading balance
+                        'order': 15.0015,  # List your current open orders
+                        'order/{clientOrderId}': 15.0015,  # Get a single order by clientOrderId
+                        'trading/fee/all': 15.0015,  # Get trading fee rate
+                        'trading/fee/{symbol}': 15.0015,  # Get trading fee rate
+                        'margin/account': 15.0015,
+                        'margin/account/{symbol}': 15.0015,
+                        'margin/position': 15.0015,
+                        'margin/position/{symbol}': 15.0015,
+                        'margin/order': 15.0015,
+                        'margin/order/{clientOrderId}': 15.0015,
+                        'history/order': 15.0015,  # Get historical orders
+                        'history/trades': 15.0015,  # Get historical trades
+                        'history/order/{orderId}/trades': 15.0015,  # Get historical trades by specified order
+                        'account/balance': 15.0015,  # Get main acccount balance
+                        'account/crypto/address/{currency}': 15.0015,  # Get current address
+                        'account/crypto/addresses/{currency}': 15.0015,  # Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}': 15.0015,  # Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw': 15.0015,
+                        'account/crypto/is-mine/{address}': 15.0015,
+                        'account/transactions': 15.0015,  # Get account transactions
+                        'account/transactions/{id}': 15.0015,  # Get account transaction by id
+                        'sub-acc': 15.0015,
+                        'sub-acc/acl': 15.0015,
+                        'sub-acc/balance/{subAccountUserID}': 15.0015,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}': 15.0015,
                     },
                     'post': {
                         'order': 1,  # Create new order
@@ -277,9 +277,14 @@ class hitbtc(Exchange):
         })
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
+        return self.decimal_to_precision(fee, TRUNCATE, 0.00000001, TICK_SIZE)
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for hitbtc
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetSymbol(params)
         #
         #     [
@@ -366,6 +371,15 @@ class hitbtc(Exchange):
         return result
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         # account can be "exchange" or "bank", with aliases "main" or "trading" respectively
         self.load_markets()
         currency = self.currency(code)
@@ -416,6 +430,11 @@ class hitbtc(Exchange):
         }
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrency(params)
         #
         #     [
@@ -443,8 +462,8 @@ class hitbtc(Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            decimals = self.safe_integer(currency, 'precisionTransfer', 8)
-            precision = 1 / math.pow(10, decimals)
+            precision = self.safe_string(currency, 'precisionTransfer', '8')
+            decimals = self.parse_number(precision)
             code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
@@ -470,15 +489,15 @@ class hitbtc(Exchange):
                 'deposit': payin,
                 'withdraw': payout,
                 'fee': self.safe_number(currency, 'payoutFee'),  # todo: redesign
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(precision)),
                 'limits': {
                     'amount': {
                         'min': 1 / math.pow(10, decimals),
-                        'max': math.pow(10, decimals),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }
@@ -502,6 +521,12 @@ class hitbtc(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -533,12 +558,17 @@ class hitbtc(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
         fetchBalanceAccounts = self.safe_value(self.options, 'fetchBalanceMethod', {})
         typeId = self.safe_string(fetchBalanceAccounts, type)
         if typeId is None:
-            raise ExchangeError(self.id + ' fetchBalance account type must be either main or trading')
+            raise ExchangeError(self.id + ' fetchBalance() account type must be either main or trading')
         method = 'privateGet' + self.capitalize(typeId) + 'Balance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
@@ -573,6 +603,15 @@ class hitbtc(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -594,6 +633,13 @@ class hitbtc(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -631,9 +677,15 @@ class hitbtc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetTicker(params)
         result = {}
@@ -646,6 +698,12 @@ class hitbtc(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -735,6 +793,14 @@ class hitbtc(Exchange):
         }, market)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -835,6 +901,14 @@ class hitbtc(Exchange):
         return self.safe_string(types, type, type)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -849,6 +923,16 @@ class hitbtc(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         # we use clientOrderId as the order id with self exchange intentionally
@@ -899,6 +983,13 @@ class hitbtc(Exchange):
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -1007,6 +1098,12 @@ class hitbtc(Exchange):
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by hitbtc fetchOrder
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -1021,6 +1118,13 @@ class hitbtc(Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_open_order(self, id, symbol=None, params={}):
+        """
+        fetch an open order by it's id
+        :param str id: order id
+        :param str|None symbol: not used by hitbtc fetchOpenOrder()
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
@@ -1032,6 +1136,14 @@ class hitbtc(Exchange):
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1042,6 +1154,14 @@ class hitbtc(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1063,11 +1183,19 @@ class hitbtc(Exchange):
         return self.filter_by_since_limit(orders, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {
             # 'symbol': 'BTC/USD',  # optional
             # 'sort':   'DESC',  # or 'ASC'
-            # 'by':     'timestamp',  # or 'id' String timestamp by default, or id
+            # 'by':     'timestamp',  # or 'id' str timestamp by default, or id
             # 'from':   'Datetime or Number',  # ISO 8601
             # 'till':   'Datetime or Number',
             # 'limit':  100,
@@ -1111,6 +1239,15 @@ class hitbtc(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # The id needed here is the exchange's id, and not the clientOrderID,
         # which is the id that is stored in the unified order id
         # To get the exchange's id you need to grab it from order['info']['id']
@@ -1128,6 +1265,12 @@ class hitbtc(Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found, ' + self.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]')
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1145,6 +1288,12 @@ class hitbtc(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1175,7 +1324,7 @@ class hitbtc(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise ExchangeError(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise ExchangeError(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         request = {
             'fromCurrency': currency['id'] + fromNetwork,
             'toCurrency': currency['id'] + toNetwork,
@@ -1187,6 +1336,15 @@ class hitbtc(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)

@@ -5,7 +5,7 @@ import log from 'ololog';
 import { nice as ansi } from 'ansicolor';
 import asTable from 'as-table';
 
-const exchange = new ccxt.coinbasepro ({ enableRateLimit: true })
+const exchange = new ccxt.coinbasepro ()
 const repeat   = 100
 
 async function test (symbol) {

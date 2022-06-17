@@ -10,6 +10,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -37,7 +38,6 @@ class therock(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
-                'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
@@ -45,6 +45,8 @@ class therock(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -56,11 +58,17 @@ class therock(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -75,6 +83,7 @@ class therock(Exchange):
                         'funds/{id}/orderbook': 1,
                         'funds/{id}/ticker': 1,
                         'funds/{id}/trades': 1,
+                        'funds/{id}/ohlc_statistics': 1,
                         'funds/tickers': 1,
                     },
                 },
@@ -127,6 +136,7 @@ class therock(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Request already running': BadRequest,
@@ -143,9 +153,19 @@ class therock(Exchange):
                     ' is invalid': InvalidAddress,
                 },
             },
+            'options': {
+                'withdraw': {
+                    'fillResponseFromRequest': True,
+                },
+            },
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for therock
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetFunds(params)
         #
         #    {
@@ -171,7 +191,7 @@ class therock(Exchange):
         markets = self.safe_value(response, 'funds')
         result = []
         if markets is None:
-            raise ExchangeError(self.id + ' fetchMarkets got an unexpected response')
+            raise ExchangeError(self.id + ' fetchMarkets() got an unexpected response')
         else:
             for i in range(0, len(markets)):
                 market = markets[i]
@@ -213,8 +233,8 @@ class therock(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'amount': self.safe_integer(market, 'trade_currency_decimals'),
-                        'price': self.safe_integer(market, 'base_currency_decimals'),
+                        'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trade_currency_decimals'))),
+                        'price': self.parse_number(self.parse_precision(self.safe_string(market, 'base_currency_decimals'))),
                     },
                     'limits': {
                         'leverage': {
@@ -252,11 +272,23 @@ class therock(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privateGetBalances(params)
         return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'id': self.market_id(symbol),
@@ -305,9 +337,15 @@ class therock(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume_traded'),
             'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
@@ -322,6 +360,12 @@ class therock(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -571,6 +615,14 @@ class therock(Exchange):
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         await self.load_markets()
         request = {
             # 'page': 1,
@@ -762,7 +814,10 @@ class therock(Exchange):
         #         }
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # privatePostAtmsWithdraw
+        #    {"transaction_id": 65088485}
+        #
+        id = self.safe_string_2(transaction, 'id', 'transaction_id')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         detail = self.safe_value(transaction, 'transfer_detail', {})
         method = self.safe_string(detail, 'method')
@@ -801,18 +856,42 @@ class therock(Exchange):
         }
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'withdraw',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'atm_payment',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'page': 1,
@@ -896,6 +975,48 @@ class therock(Exchange):
         transactionTypes = ['withdraw', 'atm_payment']
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
         return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        await self.load_markets()
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'destination_address': address,
+            'amount': float(amount),
+        }
+        if tag is not None:
+            request['destination_tag'] = tag
+        # requires write permission on the wallet
+        response = await self.privatePostAtmsWithdraw(self.extend(request, params))
+        #
+        #    {"transaction_id": 65088485}
+        #
+        transaction = self.parse_transaction(response, currency)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            if transaction['addressTo'] == address:
+                transaction['addressTo'] = address
+            if transaction['address'] is None:
+                transaction['address'] = address
+            if transaction['tagTo'] is None:
+                transaction['tagTo'] = tag
+            if transaction['tag'] is None:
+                transaction['tag'] = tag
+            if transaction['amount'] is None:
+                transaction['amount'] = amount
+        return transaction
 
     def parse_order_status(self, status):
         statuses = {
@@ -999,18 +1120,42 @@ class therock(Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'active',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'status': 'executed',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
@@ -1053,6 +1198,12 @@ class therock(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param strs symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -1094,6 +1245,16 @@ class therock(Exchange):
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         if type == 'market':
             price = 0
@@ -1107,6 +1268,13 @@ class therock(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1115,7 +1283,82 @@ class therock(Exchange):
         response = await self.privateDeleteFundsFundIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents in minutes
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        periodInSeconds = self.parse_timeframe(timeframe)
+        periodInMinutes = int(periodInSeconds / 60)
+        request = {
+            'id': market['id'],
+            'period': periodInMinutes,
+        }
+        if since is None:
+            request['after'] = self.iso8601(since)
+        response = await self.publicGetFundsIdOhlcStatistics(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "fund_id": "BTCUSDT",
+        #             "open": 31500.0,
+        #             "high": 31500.0,
+        #             "low": 31500.0,
+        #             "close": 31500.0,
+        #             "average": 31500.0,
+        #             "weighted_average": 31500.0,
+        #             "base_volume": 0.0,
+        #             "traded_volume": 0.0,
+        #             "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #             "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #         }
+        #         ...
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "fund_id": "BTCUSDT",
+        #         "open": 31500.0,
+        #         "high": 31500.0,
+        #         "low": 31500.0,
+        #         "close": 31500.0,
+        #         "average": 31500.0,
+        #         "weighted_average": 31500.0,
+        #         "base_volume": 0.0,
+        #         "traded_volume": 0.0,
+        #         "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #         "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #     }
+        #
+        dateTime = self.safe_string(ohlcv, 'interval_starts_at')
+        return [
+            self.parse8601(dateTime),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'base_volume'),
+        ]
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
@@ -1161,6 +1404,14 @@ class therock(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1206,6 +1457,12 @@ class therock(Exchange):
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1245,6 +1502,11 @@ class therock(Exchange):
         return self.parse_trading_fee(response, discount, market)
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.publicGetFunds(params)
         #
@@ -1315,7 +1577,7 @@ class therock(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {} if (headers is None) else headers
         if api == 'private':

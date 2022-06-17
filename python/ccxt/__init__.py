@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.80.88'
+__version__ = '1.87.80'
 
 # ----------------------------------------------------------------------------
 
@@ -108,6 +108,7 @@ from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
+from ccxt.btcex import btcex                                # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
@@ -123,6 +124,7 @@ from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinfalcon import coinfalcon                      # noqa: F401
+from ccxt.coinflex import coinflex                          # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -138,6 +140,7 @@ from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.fmfwio import fmfwio                              # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.ftxus import ftxus                                # noqa: F401
+from ccxt.gate import gate                                  # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
@@ -156,11 +159,13 @@ from ccxt.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
+from ccxt.lbank2 import lbank2                              # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mexc import mexc                                  # noqa: F401
+from ccxt.mexc3 import mexc3                                # noqa: F401
 from ccxt.ndax import ndax                                  # noqa: F401
 from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
@@ -228,6 +233,7 @@ exchanges = [
     'blockchaincom',
     'btcalpha',
     'btcbox',
+    'btcex',
     'btcmarkets',
     'btctradeua',
     'btcturk',
@@ -243,6 +249,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinflex',
     'coinmate',
     'coinone',
     'coinspot',
@@ -258,6 +265,7 @@ exchanges = [
     'fmfwio',
     'ftx',
     'ftxus',
+    'gate',
     'gateio',
     'gemini',
     'hitbtc',
@@ -276,11 +284,13 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
+    'lbank2',
     'liquid',
     'luno',
     'lykke',
     'mercado',
     'mexc',
+    'mexc3',
     'ndax',
     'novadax',
     'oceanex',

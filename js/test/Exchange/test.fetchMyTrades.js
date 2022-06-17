@@ -9,18 +9,20 @@ import testTrade from './test.trade.js'
 
 export default async (exchange, symbol) => {
 
+    const method = 'fetchMyTrades'
+
     const skippedExchanges = [
         'bitso',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchMyTrades) {
+    if (exchange.has[method]) {
 
-        const trades = await exchange.fetchMyTrades (symbol)
+        const trades = await exchange[method] (symbol)
 
         assert (trades instanceof Array)
 
@@ -37,6 +39,6 @@ export default async (exchange, symbol) => {
 
     } else {
 
-        console.log ('fetching my trades not supported')
+        console.log (method + '() is not supported')
     }
 }

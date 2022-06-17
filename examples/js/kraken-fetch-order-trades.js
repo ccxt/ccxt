@@ -3,7 +3,6 @@ import ccxt from '../../ccxt.js';
 (async () => {
 
     const exchange = new ccxt.kraken ({
-        'enableRateLimit': true,
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         // 'verbose': true,

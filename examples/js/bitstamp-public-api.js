@@ -17,7 +17,7 @@ const table = asTable.configure ({ delimiter: ' | ' }), id = 'bitstamp', exchang
     // Order book data
     const orderbook = await exchange.fetchOrderBook (symbol)
     console.log ('Order book ', symbol, orderbook.asks[0], orderbook.bids[0])
-    
+
     // Ticker
     const ticker = await exchange.fetchTicker (symbol)
     console.log ('Ticker ', symbol, " bid ", ticker.bid, " ask ", ticker.ask)

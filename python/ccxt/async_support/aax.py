@@ -27,7 +27,6 @@ class aax(Exchange):
             'id': 'aax',
             'name': 'AAX',
             'countries': ['MT'],  # Malta
-            'enableRateLimit': True,
             # 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
             # market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
             # 5000 / hour => weight = 1.2("all other authenticated endpoints")
@@ -40,22 +39,22 @@ class aax(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': False,
+                'margin': True,
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': None,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': None,
-                'createDepositAddress': None,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
-                'fetchAccounts': None,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
@@ -67,13 +66,11 @@ class aax(Exchange):
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
-                'fetchDepositAddresses': None,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
-                'fetchFundingFee': None,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -84,6 +81,7 @@ class aax(Exchange):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -95,10 +93,11 @@ class aax(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': None,
+                'fetchOrderBooks': False,
                 'fetchOrders': True,
                 'fetchOrderTrades': None,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -110,14 +109,17 @@ class aax(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'fetchWithdrawalWhitelist': None,
-                'reduceMargin': None,
+                'fetchWithdrawalWhitelist': False,
+                'reduceMargin': False,
                 'setLeverage': True,
+                'setMargin': True,
                 'setMarginMode': False,
                 'setPositionMode': None,
                 'signIn': None,
@@ -328,6 +330,12 @@ class aax(Exchange):
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
+                'accountsById': {
+                    'SPTP': 'spot',
+                    'FUTP': 'future',
+                    'F2CP': 'otc',
+                    'VLTP': 'saving',
+                },
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
@@ -340,6 +348,11 @@ class aax(Exchange):
         })
 
     async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = await self.publicGetTime(params)
         #
         #    {
@@ -352,6 +365,11 @@ class aax(Exchange):
         return self.safe_integer(response, 'data')
 
     async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
+        """
         response = await self.publicGetAnnouncementMaintenance(params)
         #
         # note, when there is no maintenance, then data is `null`
@@ -396,10 +414,16 @@ class aax(Exchange):
             'status': status,
             'updated': updated,
             'eta': eta,
+            'url': None,
             'info': response,
         }
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for aax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetInstruments(params)
         #
         #     {
@@ -473,7 +497,7 @@ class aax(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -499,10 +523,15 @@ class aax(Exchange):
             symbol = base + '/' + quote
             type = 'spot'
             contractSize = None
+            minLeverage = None
+            maxLeverage = None
             if swap:
                 symbol = symbol + ':' + settle
                 type = 'swap'
                 contractSize = self.safe_number(market, 'multiplier')
+                minLeverage = '1'
+                imRate = self.safe_string(market, 'imRate')
+                maxLeverage = Precise.string_div('1', imRate)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -522,6 +551,7 @@ class aax(Exchange):
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
+                'quanto': quanto,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
@@ -529,23 +559,22 @@ class aax(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'quanto': quanto,
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
-                        'max': None,
+                        'min': self.parse_number(minLeverage),
+                        'max': self.parse_number(maxLeverage),
                     },
                     'amount': {
-                        'min': self.safe_string(market, 'minQuantity'),
-                        'max': self.safe_string(market, 'maxQuantity'),
+                        'min': self.safe_number(market, 'minQuantity'),
+                        'max': self.safe_number(market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': self.safe_string(market, 'minPrice'),
-                        'max': self.safe_string(market, 'maxPrice'),
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
                         'min': None,
@@ -557,6 +586,11 @@ class aax(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetCurrencies(params)
         #
         #     {
@@ -593,7 +627,6 @@ class aax(Exchange):
             id = self.safe_string(currency, 'chain')
             name = self.safe_string(currency, 'displayName')
             code = self.safe_currency_code(id)
-            precision = self.safe_number(currency, 'withdrawPrecision')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
             enableDeposit = self.safe_value(currency, 'enableDeposit')
             fee = self.safe_number(currency, 'withdrawFee')
@@ -606,7 +639,7 @@ class aax(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'withdrawPrecision'),
                 'info': currency,
                 'active': active,
                 'deposit': deposit,
@@ -667,9 +700,108 @@ class aax(Exchange):
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
+
+    async def set_margin(self, symbol, amount, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'margin': amount,
+        }
+        response = await self.privatePostFuturesPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         code: '1',
+        #         data: {
+        #             autoMarginCall: False,
+        #             avgEntryPrice: '0.52331',
+        #             bankruptPrice: '0.3185780400',
+        #             base: 'ADA',
+        #             code: 'FP',
+        #             commission: '0.00031399',
+        #             currentQty: '1',
+        #             funding: '0',
+        #             fundingStatus: null,
+        #             id: '447888550222172160',
+        #             leverage: '5.25',
+        #             liquidationPrice: '0.324007',
+        #             marketPrice: '0',
+        #             openTime: '2022-05-20T14:30:42.759Z',
+        #             posLeverage: '2.56',
+        #             posMargin: '0.20473196',
+        #             quote: 'USDT',
+        #             realisedPnl: '0',
+        #             riskLimit: '10000000',
+        #             riskyPrice: '0.403728',
+        #             settleType: 'VANILLA',
+        #             stopLossPrice: '0',
+        #             stopLossSource: '0',
+        #             symbol: 'ADAUSDTFP',
+        #             takeProfitPrice: '0',
+        #             takeProfitSource: '0',
+        #             unrealisedPnl: '-0.00151000',
+        #             userID: '3311296'
+        #         },
+        #         message: 'success',
+        #         ts: '1653057280756'
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_modify_margin(data, market)
+
+    def parse_modify_margin(self, data, market=None):
+        #
+        #     {
+        #         autoMarginCall: False,
+        #         avgEntryPrice: '0.52331',
+        #         bankruptPrice: '0.3185780400',
+        #         base: 'ADA',
+        #         code: 'FP',
+        #         commission: '0.00031399',
+        #         currentQty: '1',
+        #         funding: '0',
+        #         fundingStatus: null,
+        #         id: '447888550222172160',
+        #         leverage: '5.25',
+        #         liquidationPrice: '0.324007',
+        #         marketPrice: '0',
+        #         openTime: '2022-05-20T14:30:42.759Z',
+        #         posLeverage: '2.56',
+        #         posMargin: '0.20473196',
+        #         quote: 'USDT',
+        #         realisedPnl: '0',
+        #         riskLimit: '10000000',
+        #         riskyPrice: '0.403728',
+        #         settleType: 'VANILLA',
+        #         stopLossPrice: '0',
+        #         stopLossSource: '0',
+        #         symbol: 'ADAUSDTFP',
+        #         takeProfitPrice: '0',
+        #         takeProfitSource: '0',
+        #         unrealisedPnl: '-0.00151000',
+        #         userID: '3315296'
+        #     }
+        #
+        marketId = self.safe_string(data, 'symbol')
+        quote = self.safe_string(data, 'quote')
+        return {
+            'info': data,
+            'type': 'set',
+            'amount': None,
+            'total': self.safe_number(data, 'posMargin'),
+            'code': self.safe_currency_code(quote),
+            'symbol': self.safe_symbol(marketId, market),
+            'status': None,
+        }
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         response = await self.publicGetMarketTickers(params)
         #
@@ -699,6 +831,13 @@ class aax(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -827,6 +966,14 @@ class aax(Exchange):
         }, market)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {}
@@ -856,6 +1003,14 @@ class aax(Exchange):
         return self.parse_transfers(transfers, currency, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         limit = 2000 if (limit is None) else limit
@@ -899,6 +1054,15 @@ class aax(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -931,7 +1095,62 @@ class aax(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
+        response = await self.privateGetAccountBalances(params)
+        #
+        #     {
+        #         "code":1,
+        #         "data":[
+        #             {
+        #                 "purseType":"FUTP",
+        #                 "currency":"BTC",
+        #                 "available":"0.41000000",
+        #                 "unavailable":"0.00000000"
+        #             },
+        #             {
+        #                 "purseType":"FUTP",
+        #                 "currency":"USDT",
+        #                 "available":"0.21000000",
+        #                 "unvaliable":"0.00000000"
+        #             }
+        #         ]
+        #         "message":"success",
+        #         "ts":1573530401020
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_accounts(data)
+
+    def parse_account(self, account):
+        #
+        #    {
+        #        "purseType":"FUTP",
+        #        "currency":"USDT",
+        #        "available":"0.21000000",
+        #        "unvaliable":"0.00000000"
+        #    }
+        #
+        currencyId = self.safe_string(account, 'currency')
+        accountId = self.safe_string(account, 'purseType')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        return {
+            'info': account,
+            'id': None,
+            'code': self.safe_currency_code(currencyId),
+            'type': self.safe_string(accountsById, accountId, accountId),
+        }
+
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
@@ -963,7 +1182,7 @@ class aax(Exchange):
         #         "ts":1573530401020
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         timestamp = self.safe_integer(response, 'ts')
         result = {
             'info': response,
@@ -983,6 +1202,16 @@ class aax(Exchange):
         return self.safe_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         orderType = type.upper()
         orderSide = side.upper()
         await self.load_markets()
@@ -1214,6 +1443,13 @@ class aax(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'orderID': id,
@@ -1311,6 +1547,12 @@ class aax(Exchange):
         return self.parse_order(data, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         await self.load_markets()
@@ -1338,6 +1580,12 @@ class aax(Exchange):
         return response
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', 'spot')
         params['type'] = self.safe_string(params, 'type', defaultType)
@@ -1358,6 +1606,14 @@ class aax(Exchange):
         return order
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -1482,18 +1738,42 @@ class aax(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'orderStatus': '2',  # 1 new, 2 filled, 3 canceled
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'orderStatus': '3',  # 1 new, 2 filled, 3 canceled
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -1761,6 +2041,14 @@ class aax(Exchange):
         }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {
             # 'pageNum': '1',
@@ -1837,6 +2125,12 @@ class aax(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1866,10 +2160,18 @@ class aax(Exchange):
         return self.parse_deposit_address(data, currency)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 90 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
         }
@@ -1900,10 +2202,18 @@ class aax(Exchange):
         return self.parse_transactions(data, code, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
-            # currency: Not required -  String Currency
+            # currency: Not required -  str Currency
             # startTime Not required Integer Default: 30 days from current timestamp.
             # endTime Not required Integer Default: present timestamp.
             # Note difference between endTime and startTime must be 90 days or less
@@ -2038,6 +2348,12 @@ class aax(Exchange):
         }
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2124,6 +2440,15 @@ class aax(Exchange):
         }
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the aax api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
@@ -2133,13 +2458,10 @@ class aax(Exchange):
         }
         if since is not None:
             request['startTime'] = int(since / 1000)
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime')  # exchange-specific in seconds
-        params = self.omit(params, ['endTime', 'till'])
+        till = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['till', 'until'])
         if till is not None:
             request['endTime'] = int(till / 1000)
-        elif endTime is not None:
-            request['endTime'] = endTime
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetFuturesFundingFundingRate(self.extend(request, params))
@@ -2155,7 +2477,7 @@ class aax(Exchange):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', [])
         rates = []
         for i in range(0, len(data)):
             entry = data[i]
@@ -2173,6 +2495,14 @@ class aax(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -2222,6 +2552,13 @@ class aax(Exchange):
         return result
 
     async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: response from the exchange
+        """
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
@@ -2274,6 +2611,15 @@ class aax(Exchange):
         return self.safe_string(statuses, status, 'canceled')
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         accountTypes = self.safe_value(self.options, 'accountsByType', {})
@@ -2359,34 +2705,66 @@ class aax(Exchange):
         contractSize = self.safe_string(market, 'contractSize')
         initialQuote = Precise.string_mul(currentQty, contractSize)
         marketPrice = self.safe_string(position, 'marketPrice')
-        notional = Precise.string_mul(initialQuote, marketPrice)
         timestamp = self.safe_integer(position, 'ts')
         liquidationPrice = self.safe_string(position, 'liquidationPrice')
+        marketInfo = self.safe_value(market, 'info')
+        multiplier = self.safe_string(marketInfo, 'multiplier')
+        settleType = self.safe_string(position, 'settleType')
+        avgEntryPrice = self.safe_string(position, 'avgEntryPrice')
+        commission = self.safe_string(position, 'commission')
+        initialMargin = None
+        maintenanceMargin = None
+        notional = None
+        # https://support.aax.com/en/articles/5295653-what-is-margin
+        if settleType == 'VANILLA':
+            notional = Precise.string_mul(initialQuote, marketPrice)
+            # Initial Margin(Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.string_div(Precise.string_mul(Precise.string_mul(currentQty, avgEntryPrice), multiplier), leverage)
+            # Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            tmp = Precise.string_div(Precise.string_mul(currentQty, multiplier), Precise.string_mul(avgEntryPrice, leverage))
+            maintenanceMargin = Precise.string_add(tmp, commission)
+        else:
+            # inverse contracts
+            notional = Precise.string_div(initialQuote, marketPrice)
+            # Initial Margin(Limit Order) = Number of contracts / Entry Price / Leverage
+            # ^ no brackets /<::>\
+            initialMargin = Precise.string_div(currentQty, Precise.string_mul(leverage, avgEntryPrice))
+            # Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin
+        collateral = self.safe_string(position, 'posMargin')
+        percentage = Precise.string_div(unrealisedPnl, initialMargin)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
         return {
             'info': position,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_number(position, 'avgEntryPrice'),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(Precise.string_div(initialMargin, notional)),
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_div(maintenanceMargin, notional)),
+            'entryPrice': self.parse_number(avgEntryPrice),
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(size),
             'contractSize': self.parse_number(contractSize),
-            'marginRatio': None,
+            'marginRatio': self.parse_number(marginRatio),
             'liquidationPrice': liquidationPrice,
             'markPrice': self.safe_number(position, 'marketPrice'),
-            'collateral': self.safe_number(position, 'posMargin'),
-            'marginType': self.safe_string(position, 'settleType'),
+            'collateral': self.parse_number(collateral),
+            'marginMode': 'isolated',
             'side': side,
-            'percentage': None,
+            'percentage': self.parse_number(percentage),
         }
 
     async def fetch_position(self, symbol=None, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2443,6 +2821,12 @@ class aax(Exchange):
         })
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         request = {}
         if symbols is not None:
@@ -2450,7 +2834,7 @@ class aax(Exchange):
             if isinstance(symbols, list):
                 symbolsLength = len(symbols)
                 if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
                 symbol = symbols[0]
             else:
                 symbol = symbols

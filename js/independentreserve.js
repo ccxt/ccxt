@@ -3,6 +3,7 @@
 
 import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -24,6 +25,9 @@ export default class independentreserve extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -41,6 +45,7 @@ export default class independentreserve extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -120,21 +125,29 @@ export default class independentreserve extends Exchange {
             'commonCurrencies': {
                 'PLA': 'PlayChip',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchMarkets
+         * @description retrieves data on all markets for independentreserve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes (params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
         const quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes (params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limits = await this.publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,
-        //         "Bch": 0.001,
-        //         "Bsv": 0.001,
         //         "Eth": 0.001,
         //         "Ltc": 0.01,
-        //         "Xrp": 1,
+        //         "Xrp": 1.0,
         //     }
         //
         const result = [];
@@ -170,7 +183,10 @@ export default class independentreserve extends Exchange {
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
-                    'precision': this.precision,
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
                     'limits': {
                         'leverage': {
                             'min': undefined,
@@ -211,12 +227,28 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostGetAccounts (params);
         return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -273,10 +305,18 @@ export default class independentreserve extends Exchange {
             'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -351,15 +391,17 @@ export default class independentreserve extends Exchange {
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side = undefined;
-        if (orderType.indexOf ('Bid') >= 0) {
-            side = 'buy';
-        } else if (orderType.indexOf ('Offer') >= 0) {
-            side = 'sell';
-        }
-        if (orderType.indexOf ('Market') >= 0) {
-            orderType = 'market';
-        } else if (orderType.indexOf ('Limit') >= 0) {
-            orderType = 'limit';
+        if (orderType !== undefined) {
+            if (orderType.indexOf ('Bid') >= 0) {
+                side = 'buy';
+            } else if (orderType.indexOf ('Offer') >= 0) {
+                side = 'sell';
+            }
+            if (orderType.indexOf ('Market') >= 0) {
+                orderType = 'market';
+            } else if (orderType.indexOf ('Limit') >= 0) {
+                orderType = 'limit';
+            }
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const amount = this.safeString2 (order, 'VolumeOrdered', 'Volume');
@@ -419,6 +461,14 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
@@ -431,6 +481,16 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = this.ordered ({});
         let market = undefined;
@@ -450,6 +510,16 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = this.ordered ({});
         let market = undefined;
@@ -469,6 +539,16 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
         if (limit === undefined) {
@@ -528,6 +608,16 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -540,6 +630,13 @@ export default class independentreserve extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name independentreserve#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privatePostGetBrokerageFees (params);
         //
@@ -580,6 +677,18 @@ export default class independentreserve extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const capitalizedOrderType = this.capitalize (type);
@@ -603,6 +712,15 @@ export default class independentreserve extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name independentreserve#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the independentreserve api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderGuid': id,

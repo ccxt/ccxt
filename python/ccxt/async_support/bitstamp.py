@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -45,6 +45,9 @@ class bitstamp(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -53,7 +56,6 @@ class bitstamp(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -61,14 +63,17 @@ class bitstamp(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -76,6 +81,7 @@ class bitstamp(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -142,6 +148,17 @@ class bitstamp(Exchange):
                         'sell/{pair}/': 1,
                         'sell/market/{pair}/': 1,
                         'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        # individual coins
                         'btc_withdrawal/': 1,
                         'btc_address/': 1,
                         'ripple_withdrawal/': 1,
@@ -266,16 +283,28 @@ class bitstamp(Exchange):
                         'gods_address/': 1,
                         'rad_withdrawal/': 1,
                         'rad_address/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
+                        'band_withdrawal/': 1,
+                        'band_address/': 1,
+                        'inj_withdrawal/': 1,
+                        'inj_address/': 1,
+                        'rly_withdrawal/': 1,
+                        'rly_address/': 1,
+                        'rndr_withdrawal/': 1,
+                        'rndr_address/': 1,
+                        'vega_withdrawal/': 1,
+                        'vega_address/': 1,
+                        '1inch_withdrawal/': 1,
+                        '1inch_address/': 1,
+                        'ens_withdrawal/': 1,
+                        'ens_address/': 1,
+                        'mana_withdrawal/': 1,
+                        'mana_address/': 1,
+                        'lrc_withdrawal/': 1,
+                        'lrc_address/': 1,
+                        'ape_withdrawal/': 1,
+                        'ape_address/': 1,
+                        'mpl_withdrawal/': 1,
+                        'mpl_address/': 1,
                     },
                 },
             },
@@ -343,6 +372,10 @@ class bitstamp(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'UST': 'USTC',
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,
@@ -370,6 +403,11 @@ class bitstamp(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitstamp
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.fetch_markets_from_cache(params)
         #
         #     [
@@ -423,8 +461,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'base_decimals'),
-                    'price': self.safe_integer(market, 'counter_decimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -453,6 +491,7 @@ class bitstamp(Exchange):
         description = self.describe()
         if self.is_fiat(code):
             currencyType = 'fiat'
+        tickSize = self.parse_number(self.parse_precision(self.number_to_string(precision)))
         return {
             'id': id,
             'code': code,
@@ -463,14 +502,14 @@ class bitstamp(Exchange):
             'deposit': None,
             'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'cost': {
@@ -500,6 +539,11 @@ class bitstamp(Exchange):
         return self.safe_value(self.options['fetchMarkets'], 'response')
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.fetch_markets_from_cache(params)
         #
         #     [
@@ -538,6 +582,13 @@ class bitstamp(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -607,9 +658,15 @@ class bitstamp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -679,7 +736,7 @@ class bitstamp(Exchange):
         currencyIds = list(trade.keys())
         numCurrencyIds = len(currencyIds)
         if numCurrencyIds > 2:
-            raise ExchangeError(self.id + ' getMarketFromTrade too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
+            raise ExchangeError(self.id + ' getMarketFromTrade() too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
@@ -807,6 +864,14 @@ class bitstamp(Exchange):
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -855,6 +920,15 @@ class bitstamp(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -913,6 +987,11 @@ class bitstamp(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         #
@@ -936,6 +1015,12 @@ class bitstamp(Exchange):
         return self.parse_balance(response)
 
     async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -967,6 +1052,11 @@ class bitstamp(Exchange):
         return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_trading_fees(response)
@@ -986,12 +1076,28 @@ class bitstamp(Exchange):
             'deposit': {},
         }
 
-    async def fetch_funding_fees(self, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
         balance = await self.privatePostBalance(params)
         return self.parse_funding_fees(balance)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
@@ -1017,6 +1123,13 @@ class bitstamp(Exchange):
         })
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1024,6 +1137,12 @@ class bitstamp(Exchange):
         return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         request = {}
@@ -1056,6 +1175,12 @@ class bitstamp(Exchange):
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -1089,6 +1214,14 @@ class bitstamp(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {}
         method = 'privatePostUserTransactions'
@@ -1104,6 +1237,14 @@ class bitstamp(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {}
         if limit is not None:
@@ -1142,6 +1283,14 @@ class bitstamp(Exchange):
         return self.parse_transactions(transactions, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {}
         if since is not None:
@@ -1475,6 +1624,14 @@ class bitstamp(Exchange):
             }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         await self.load_markets()
         request = {}
         if limit is not None:
@@ -1486,6 +1643,14 @@ class bitstamp(Exchange):
         return self.parse_ledger(response, currency, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = None
         await self.load_markets()
         if symbol is not None:
@@ -1515,6 +1680,12 @@ class bitstamp(Exchange):
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
@@ -1532,6 +1703,15 @@ class bitstamp(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

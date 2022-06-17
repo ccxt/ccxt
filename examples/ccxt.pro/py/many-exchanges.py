@@ -5,7 +5,7 @@ import ccxtpro
 
 
 async def loop(exchange_id, symbol):
-    exchange = getattr(ccxtpro, exchange_id)({'enableRateLimit': True})
+    exchange = getattr(ccxtpro, exchange_id)()
     while True:
         try:
             orderbook = await exchange.watch_order_book(symbol)
@@ -26,5 +26,5 @@ async def main():
     }
     await asyncio.gather(*[loop(exchange_id, symbol) for exchange_id, symbol in symbols.items()])
 
-if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
+
+asyncio.run(main())

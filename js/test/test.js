@@ -110,7 +110,9 @@ if (settings && settings.skip) {
 
 async function test (methodName, exchange, ... args) {
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
-    return await (tests[methodName] (exchange, ... args))
+    if (exchange.has[methodName]) {
+        return await (tests[methodName] (exchange, ... args))
+    }
 }
 
 async function testSymbol (exchange, symbol) {
@@ -308,15 +310,18 @@ async function testExchange (exchange) {
 
     const balance = await test ('fetchBalance', exchange)
 
-    await test ('fetchFundingFees', exchange)
+    await test ('fetchAccounts', exchange)
+    await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
+    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchOrders', exchange, symbol)
     await test ('fetchOpenOrders', exchange, symbol)
     await test ('fetchClosedOrders', exchange, symbol)
     await test ('fetchMyTrades', exchange, symbol)
     await test ('fetchLeverageTiers', exchange, symbol)
+    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchPositions', exchange, symbol)
 
@@ -407,8 +412,6 @@ async function tryAllProxies (exchange, proxies) {
                 continue
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 continue
-            } else if (e instanceof ccxt.AuthenticationError) {
-                return
             } else if (e instanceof ccxt.AuthenticationError) {
                 return
             } else if (e instanceof ccxt.InvalidNonce) {

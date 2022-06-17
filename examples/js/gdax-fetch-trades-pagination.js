@@ -1,9 +1,7 @@
 import ccxt from '../../ccxt.js';
 import { noLocate as log } from 'ololog';
 
-const exchange = new ccxt.coinbasepro ({
-    'enableRateLimit': true,  // required by the Manual
-})
+const exchange = new ccxt.coinbasepro ()
 
 ;(async () => {
 

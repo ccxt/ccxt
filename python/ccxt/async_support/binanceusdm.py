@@ -34,6 +34,7 @@ class binanceusdm(binance):
                 # tier amount, maintenance margin, initial margin
                 'leverageBrackets': None,
                 'marginTypes': {},
+                'marginModes': {},
             },
         })
 

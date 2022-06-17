@@ -20,10 +20,10 @@ def get_positive_accounts(balance):
     return result
 
 
-exchange = ccxt.hitbtc2({
-    "apiKey": "a34ca826b430bdfcca969241b0f7bd2d",
-    "secret": "7b28d6b17aea18ae39903add0dae048a",
-    "enableRateLimit": True,
+exchange = ccxt.hitbtc({
+    'apiKey': "YOUR_API_KEY",
+    'secret': "YOUR_SECRET",
+    'enableRateLimit': True,
 })
 
 

@@ -4,7 +4,6 @@ import log from 'ololog';
 import ccxt from '../../ccxt.js';
 
 const exchange = new ccxt.coinone ({
-    'enableRateLimit': true,
     'verbose': process.argv.includes ('--verbose'),
 })
 

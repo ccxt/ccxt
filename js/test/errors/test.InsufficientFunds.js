@@ -11,7 +11,7 @@ import ccxt from'../../../ccxt.js'
 export default async (exchange, symbol, balance) => {
 
     if (!exchange.has.createOrder) {
-        console.log ('createOrder not supported')
+        console.log ('createOrder() is not supported')
         return
     }
 

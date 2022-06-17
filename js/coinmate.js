@@ -4,6 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +42,7 @@ export default class coinmate extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -59,6 +61,7 @@ export default class coinmate extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460806-1c9f3f00-c616-11ea-8c46-a77018a8f3f4.jpg',
@@ -162,6 +165,20 @@ export default class coinmate extends Exchange {
                     },
                 },
             },
+            'options': {
+                'withdraw': {
+                    'fillResponsefromRequest': true,
+                    'methods': {
+                        'BTC': 'privatePostBitcoinWithdrawal',
+                        'LTC': 'privatePostLitecoinWithdrawal',
+                        'BCH': 'privatePostBitcoinCashWithdrawal',
+                        'ETH': 'privatePostEthereumWithdrawal',
+                        'XRP': 'privatePostRippleWithdrawal',
+                        'DASH': 'privatePostDashWithdrawal',
+                        'DAI': 'privatePostDaiWithdrawal',
+                    },
+                },
+            },
             'exceptions': {
                 'exact': {
                     'No order with given ID': OrderNotFound,
@@ -174,10 +191,18 @@ export default class coinmate extends Exchange {
                     'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
                 },
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchMarkets
+         * @description retrieves data on all markets for coinmate
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.publicGetTradingPairs (params);
         //
         //     {
@@ -198,7 +223,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -233,8 +258,8 @@ export default class coinmate extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'lotDecimals'),
-                    'price': this.safeInteger (market, 'priceDecimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'lotDecimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -261,7 +286,7 @@ export default class coinmate extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeValue (response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -278,12 +303,28 @@ export default class coinmate extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostBalances (params);
         return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'currencyPair': this.marketId (symbol),
@@ -296,6 +337,14 @@ export default class coinmate extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'currencyPair': this.marketId (symbol),
@@ -329,6 +378,16 @@ export default class coinmate extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'limit': 1000,
@@ -350,8 +409,13 @@ export default class coinmate extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            // any other types ?
             'COMPLETED': 'ok',
+            'WAITING': 'pending',
+            'SENT': 'pending',
+            'CREATED': 'pending',
+            'OK': 'ok',
+            'NEW': 'pending',
+            'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -391,6 +455,12 @@ export default class coinmate extends Exchange {
         //         destinationTag: null
         //     }
         //
+        // withdraw
+        //
+        //     {
+        //         "id": 2132583,
+        //     }
+        //
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const amount = this.safeNumber (transaction, 'amount');
         const fee = this.safeNumber (transaction, 'fee');
@@ -401,7 +471,7 @@ export default class coinmate extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'transferType');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'transferStatus'));
-        const id = this.safeString (transaction, 'transactionId');
+        const id = this.safeString2 (transaction, 'transactionId', 'id');
         const network = this.safeString (transaction, 'walletType');
         return {
             'id': id,
@@ -427,7 +497,71 @@ export default class coinmate extends Exchange {
         };
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const methods = this.safeValue (withdrawOptions, 'methods', {});
+        const method = this.safeString (methods, code);
+        if (method === undefined) {
+            const allowedCurrencies = Object.keys (methods);
+            throw new ExchangeError (this.id + ' withdraw() only allows withdrawing the following currencies: ' + allowedCurrencies.join (', '));
+        }
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": {
+        //             "id": "9e0a37fc-4ab4-4b9d-b9e7-c9c8f7c4c8e0"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const transaction = this.parseTransaction (data, currency);
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transaction['amount'] = amount;
+            transaction['currency'] = code;
+            transaction['address'] = address;
+            transaction['tag'] = tag;
+            transaction['type'] = 'withdrawal';
+            transaction['status'] = 'pending';
+        }
+        return transaction;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 1000;
@@ -512,6 +646,16 @@ export default class coinmate extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -540,6 +684,14 @@ export default class coinmate extends Exchange {
     }
 
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -569,12 +721,32 @@ export default class coinmate extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const response = await this.privatePostOpenOrders (this.extend ({}, params));
         const extension = { 'status': 'open' };
         return this.parseOrders (response['data'], undefined, since, limit, extension);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -691,6 +863,18 @@ export default class coinmate extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         const request = {
@@ -717,6 +901,14 @@ export default class coinmate extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
@@ -731,6 +923,15 @@ export default class coinmate extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinmate#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol not used by coinmate cancelOrder ()
+         * @param {dict} params extra parameters specific to the coinmate api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         const request = { 'orderId': id };
         const response = await this.privatePostCancelOrderWithInfo (this.extend (request, params));

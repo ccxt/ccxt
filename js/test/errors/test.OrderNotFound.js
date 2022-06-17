@@ -9,7 +9,7 @@ import ccxt from'../../../ccxt.js'
 export default async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        console.log ('createOrder not supported -> test skipped')
+        console.log ('createOrder() is not supported')
         return
     }
 

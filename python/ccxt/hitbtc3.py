@@ -357,6 +357,11 @@ class hitbtc3(Exchange):
         return self.milliseconds()
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for hitbtc3
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetPublicSymbol(params)
         #
         #     {
@@ -485,6 +490,11 @@ class hitbtc3(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetPublicCurrency(params)
         #
         #     {
@@ -530,12 +540,10 @@ class hitbtc3(Exchange):
             withdrawEnabled = None
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
-                networkId = self.safe_string(rawNetwork, 'protocol')
-                if len(networkId) == 0:
-                    networkId = self.safe_string(rawNetwork, 'network')
+                networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
-                precision = self.safe_number(rawNetwork, 'precision_payout')
+                networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
                 payinEnabledNetwork = self.safe_value(entry, 'payin_enabled', False)
                 payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
@@ -555,7 +563,7 @@ class hitbtc3(Exchange):
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
                     'withdraw': payoutEnabledNetwork,
-                    'precision': precision,
+                    'precision': networkPrecision,
                     'limits': {
                         'withdraw': {
                             'min': None,
@@ -592,6 +600,12 @@ class hitbtc3(Exchange):
             return networkId.upper()
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -634,6 +648,11 @@ class hitbtc3(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -662,10 +681,22 @@ class hitbtc3(Exchange):
         return self.parse_balance(response)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         response = self.fetch_tickers([symbol], params)
         return self.safe_value(response, symbol)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         request = {}
         if symbols is not None:
@@ -739,9 +770,17 @@ class hitbtc3(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -765,6 +804,14 @@ class hitbtc3(Exchange):
         return trades
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1015,15 +1062,46 @@ class hitbtc3(Exchange):
         }
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         self.load_markets()
         request = {}
         if symbols is not None:
@@ -1043,6 +1121,13 @@ class hitbtc3(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         result = self.fetch_order_books([symbol], limit, params)
         return result[symbol]
 
@@ -1066,6 +1151,12 @@ class hitbtc3(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1085,6 +1176,11 @@ class hitbtc3(Exchange):
         return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, symbols=None, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchTradingFees', None, params)
         method = self.get_supported_mapping(marketType, {
@@ -1109,6 +1205,15 @@ class hitbtc3(Exchange):
         return result
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1163,24 +1268,6 @@ class hitbtc3(Exchange):
         ohlcvs = self.safe_value(response, market['id'])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'mark',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'index',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
-    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        request = {
-            'price': 'premiumIndex',
-        }
-        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
-
     def parse_ohlcv(self, ohlcv, market=None):
         #
         # Spot and Swap
@@ -1215,6 +1302,14 @@ class hitbtc3(Exchange):
         ]
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1236,6 +1331,12 @@ class hitbtc3(Exchange):
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1273,6 +1374,15 @@ class hitbtc3(Exchange):
         return self.parse_order(order, market)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1328,6 +1438,14 @@ class hitbtc3(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1363,6 +1481,13 @@ class hitbtc3(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_order(self, id, symbol=None, params={}):
+        """
+        fetch an open order by it's id
+        :param str id: order id
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1380,6 +1505,12 @@ class hitbtc3(Exchange):
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1396,6 +1527,13 @@ class hitbtc3(Exchange):
         return self.parse_orders(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {
@@ -1421,7 +1559,7 @@ class hitbtc3(Exchange):
         }
         if (type == 'limit') or (type == 'stopLimit'):
             if price is None:
-                raise ExchangeError(self.id + ' limit order requires price')
+                raise ExchangeError(self.id + ' editOrder() limit order requires price')
             request['price'] = self.price_to_precision(symbol, price)
         if symbol is not None:
             market = self.market(symbol)
@@ -1435,12 +1573,18 @@ class hitbtc3(Exchange):
         return self.parse_order(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value_2(params, 'reduce_only', 'reduceOnly')
-        if reduceOnly is not None:
-            if (market['type'] != 'swap') and (market['type'] != 'margin'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         request = {
             'type': type,
             'side': side,
@@ -1458,6 +1602,12 @@ class hitbtc3(Exchange):
             # 'take_rate': 0.001,  # Optional
             # 'make_rate': 0.001,  # Optional
         }
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        if reduceOnly is not None:
+            if (market['type'] != 'swap') and (market['type'] != 'margin'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
+        if reduceOnly is True:
+            request['reduce_only'] = reduceOnly
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
         expireTime = self.safe_string(params, 'expire_time')
         stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
@@ -1481,12 +1631,6 @@ class hitbtc3(Exchange):
         })
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
-
-    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
-        request = {
-            'reduce_only': True,
-        }
-        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -1602,6 +1746,7 @@ class hitbtc3(Exchange):
             'side': side,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
+            'reduceOnly': self.safe_value(order, 'reduce_only'),
             'filled': filled,
             'remaining': None,
             'cost': None,
@@ -1612,6 +1757,15 @@ class hitbtc3(Exchange):
         }, market)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         # account can be "spot", "wallet", or "derivatives"
         self.load_markets()
         currency = self.currency(code)
@@ -1673,7 +1827,7 @@ class hitbtc3(Exchange):
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
         toNetwork = self.safe_string(networks, toNetwork)  # handle ETH>ERC20 alias
         if fromNetwork == toNetwork:
-            raise BadRequest(self.id + ' fromNetwork cannot be the same as toNetwork')
+            raise BadRequest(self.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork')
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
@@ -1689,6 +1843,15 @@ class hitbtc3(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
         self.check_address(address)
@@ -1716,6 +1879,14 @@ class hitbtc3(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
         self.load_markets()
         market = None
         request = {
@@ -1773,6 +1944,12 @@ class hitbtc3(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: not used by hitbtc3 fetchPositions()
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchPositions', None, params)
@@ -1819,6 +1996,12 @@ class hitbtc3(Exchange):
         return result
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
@@ -1897,7 +2080,7 @@ class hitbtc3(Exchange):
         #         },
         #     ]
         #
-        marginType = self.safe_string(position, 'type')
+        marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
         positions = self.safe_value(position, 'positions', [])
@@ -1921,7 +2104,8 @@ class hitbtc3(Exchange):
             'info': position,
             'symbol': symbol,
             'notional': None,
-            'marginType': marginType,
+            'marginMode': marginMode,
+            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': None,
@@ -1943,6 +2127,12 @@ class hitbtc3(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2014,10 +2204,10 @@ class hitbtc3(Exchange):
         self.load_markets()
         market = self.market(symbol)
         leverage = self.safe_string(params, 'leverage')
-        amount = self.amount_to_precision(symbol, amount)
         if market['type'] == 'swap':
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a leverage parameter for swap markets')
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
@@ -2050,26 +2240,52 @@ class hitbtc3(Exchange):
         #         "positions": null
         #     }
         #
-        currencies = self.safe_value(response, 'currencies', [])
-        data = self.safe_value(currencies, 0)
-        return {
-            'info': response,
+        return self.extend(self.parse_margin_modification(response, market), {
+            'amount': self.safe_number(amount),
             'type': type,
-            'amount': amount,
-            'code': self.safe_string(data, 'code'),
+        })
+
+    def parse_margin_modification(self, data, market=None):
+        currencies = self.safe_value(data, 'currencies', [])
+        currencyInfo = self.safe_value(currencies, 0)
+        return {
+            'info': data,
+            'type': None,
+            'amount': None,
+            'code': self.safe_string(currencyInfo, 'code'),
             'symbol': market['symbol'],
             'status': None,
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if amount != 0:
             raise BadRequest(self.id + ' reduceMargin() on hitbtc3 requires the amount to be 0 and that will remove the entire margin amount')
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
     def fetch_leverage(self, symbol, params={}):
+        """
+        fetch the set leverage for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2114,6 +2330,13 @@ class hitbtc3(Exchange):
         return self.safe_number(response, 'leverage')
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')

@@ -69,7 +69,7 @@ class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees', // add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees', // add fetchFees, fetchTradingFees, fetchTransactionFees
                     ),
                 ),
                 'private' => array(
@@ -241,6 +241,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} an associative dictionary of currencies
+         */
         $response = yield $this->publicGetCurrencies ($params);
         //
         //     array(
@@ -279,7 +284,7 @@ class liquid extends Exchange {
             $depositable = $this->safe_value($currency, 'depositable');
             $withdrawable = $this->safe_value($currency, 'withdrawable');
             $active = $depositable && $withdrawable;
-            $amountPrecision = $this->safe_integer($currency, 'assets_precision');
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'assets_precision')));
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -292,8 +297,8 @@ class liquid extends Exchange {
                 'precision' => $amountPrecision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$amountPrecision),
-                        'max' => pow(10, $amountPrecision),
+                        'min' => $amountPrecision,
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),
@@ -306,6 +311,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for liquid
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $spot = yield $this->publicGetProducts ($params);
         //
         //     array(
@@ -530,6 +540,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privateGetAccounts ($params);
         //
@@ -570,6 +585,13 @@ class liquid extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -619,10 +641,16 @@ class liquid extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetProducts ($params);
         $result = array();
@@ -635,6 +663,12 @@ class liquid extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -684,6 +718,14 @@ class liquid extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -702,6 +744,12 @@ class liquid extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -763,6 +811,11 @@ class liquid extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple $markets
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $spot = yield $this->publicGetProducts ($params);
         //
@@ -862,6 +915,14 @@ class liquid extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         // the `with_details` param is undocumented - it adds the order_id to the results
@@ -877,6 +938,16 @@ class liquid extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
@@ -920,6 +991,13 @@ class liquid extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol unified $symbol of the market the $order was made in
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -1023,53 +1101,20 @@ class liquid extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_value($this->markets_by_id, $marketId);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'filled_quantity');
-        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'filled_quantity');
+        $price = $this->safe_string($order, 'price');
         $type = $this->safe_string($order, 'order_type');
-        $tradeCost = 0;
-        $tradeFilled = 0;
-        $average = $this->safe_number($order, 'average_price');
-        $trades = $this->parse_trades($this->safe_value($order, 'executions', array()), $market, null, null, array(
-            'order' => $orderId,
-            'type' => $type,
-        ));
-        $numTrades = is_array($trades) ? count($trades) : 0;
-        for ($i = 0; $i < $numTrades; $i++) {
-            // php copies values upon assignment, but not references them
-            // todo rewrite this (shortly)
-            $trade = $trades[$i];
-            $trade['order'] = $orderId;
-            $trade['type'] = $type;
-            $tradeFilled = $this->sum($tradeFilled, $trade['amount']);
-            $tradeCost = $this->sum($tradeCost, $trade['cost']);
-        }
-        $cost = null;
-        $lastTradeTimestamp = null;
-        if ($numTrades > 0) {
-            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
-            if (!$average && ($tradeFilled > 0)) {
-                $average = $tradeCost / $tradeFilled;
-            }
-            if ($cost === null) {
-                $cost = $tradeCost;
-            }
-            if ($filled === null) {
-                $filled = $tradeFilled;
-            }
-        }
-        $remaining = null;
-        if ($amount !== null && $filled !== null) {
-            $remaining = $amount - $filled;
-        }
+        $average = $this->safe_string($order, 'average_price');
+        $trades = $this->safe_value($order, 'executions', array());
         $side = $this->safe_string($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
@@ -1080,28 +1125,90 @@ class liquid extends Exchange {
             'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'cost' => $cost,
-            'remaining' => $remaining,
+            'cost' => null,
+            'remaining' => null,
             'average' => $average,
             'trades' => $trades,
             'fee' => array(
                 'currency' => $market['quote'],
-                'cost' => $this->safe_number($order, 'order_fee'),
+                'cost' => $this->safe_string($order, 'order_fee'),
             ),
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol not used by liquid fetchOrder
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
         );
         $response = yield $this->privateGetOrdersId (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 6929766032,
+        //         "order_type" => "limit",
+        //         "quantity" => "0.003",
+        //         "disc_quantity" => "0.0",
+        //         "iceberg_total_quantity" => "0.0",
+        //         "side" => "buy",
+        //         "filled_quantity" => "0.0",
+        //         "price" => 1800.0,
+        //         "created_at" => 1653139172,
+        //         "updated_at" => 1653139172,
+        //         "status" => "live",
+        //         "leverage_level" => 1,
+        //         "source_exchange" => "QUOINE",
+        //         "product_id" => 625,
+        //         "margin_type" => null,
+        //         "take_profit" => null,
+        //         "stop_loss" => null,
+        //         "trading_type" => "spot",
+        //         "product_code" => "CASH",
+        //         "funding_currency" => "USDT",
+        //         "crypto_account_id" => null,
+        //         "currency_pair_code" => "ETHUSDT",
+        //         "average_price" => 0.0,
+        //         "target" => "spot",
+        //         "order_fee" => "0.0",
+        //         "source_action" => "manual",
+        //         "unwound_trade_id" => null,
+        //         "trade_id" => null,
+        //         "client_order_id" => "2865675_1653139172173",
+        //         "settings" => null,
+        //         "trailing_stop_type" => null,
+        //         "trailing_stop_value" => null,
+        //         "executions" => array( // array will be empty for unfilled order
+        //           {
+        //             "id" => 485442157,
+        //             "quantity" => "0.002",
+        //             "price" => "1973.32",
+        //             "taker_side" => "buy",
+        //             "created_at" => 1653139978,
+        //             "timestamp" => "1653139978.434518",
+        //             "my_side" => "buy"
+        //          }
+        //         ),
+        //         "stop_triggered_time" => null
+        //     }
+        //
         return $this->parse_order($response);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $market = null;
         $request = array(
@@ -1122,27 +1229,52 @@ class liquid extends Exchange {
         //
         //     {
         //         "models" => array(
-        //             {
-        //                 "id" => 2157474,
-        //                 "order_type" => "limit",
-        //                 "quantity" => "0.01",
-        //                 "disc_quantity" => "0.0",
-        //                 "iceberg_total_quantity" => "0.0",
-        //                 "side" => "sell",
-        //                 "filled_quantity" => "0.0",
-        //                 "price" => "500.0",
-        //                 "created_at" => 1462123639,
-        //                 "updated_at" => 1462123639,
-        //                 "status" => "live",
-        //                 "leverage_level" => 1,
-        //                 "source_exchange" => "QUOINE",
-        //                 "product_id" => 1,
-        //                 "product_code" => "CASH",
-        //                 "funding_currency" => "USD",
-        //                 "currency_pair_code" => "BTCUSD",
-        //                 "order_fee" => "0.0",
-        //                 "executions" => array(), // optional
-        //             }
+        //           {
+        //             "id" => 6929766034,
+        //             "order_type" => "limit",
+        //             "quantity" => "0.003",
+        //             "disc_quantity" => "0.0",
+        //             "iceberg_total_quantity" => "0.0",
+        //             "side" => "buy",
+        //             "filled_quantity" => "0.0",
+        //             "price" => 1800.0,
+        //             "created_at" => 1653139172,
+        //             "updated_at" => 1653139172,
+        //             "status" => "live",
+        //             "leverage_level" => 1,
+        //             "source_exchange" => 0,
+        //             "product_id" => 625,
+        //             "margin_type" => null,
+        //             "take_profit" => null,
+        //             "stop_loss" => null,
+        //             "trading_type" => "spot",
+        //             "product_code" => "CASH",
+        //             "funding_currency" => "USDT",
+        //             "crypto_account_id" => null,
+        //             "currency_pair_code" => "ETHUSDT",
+        //             "average_price" => 0.0,
+        //             "target" => "spot",
+        //             "order_fee" => "0.0",
+        //             "source_action" => "manual",
+        //             "unwound_trade_id" => null,
+        //             "trade_id" => null,
+        //             "client_order_id" => "2865672_1653139172173",
+        //             "settings" => null,
+        //             "trailing_stop_type" => null,
+        //             "trailing_stop_value" => null,
+        //             "stop_triggered_time" => null
+        //             "executions" => array( // array will be empty for unfilled order
+        //               {
+        //                 "id" => 485442157,
+        //                 "quantity" => "0.002",
+        //                 "price" => "1973.32",
+        //                 "taker_side" => "buy",
+        //                 "created_at" => 1653139978,
+        //                 "timestamp" => "1653139978.434518",
+        //                 "my_side" => "buy"
+        //              }
+        //             ),
+        //           }
         //         ),
         //         "current_page" => 1,
         //         "total_pages" => 1
@@ -1153,16 +1285,41 @@ class liquid extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array( 'status' => 'live' );
         return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array( 'status' => 'filled' );
         return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
@@ -1181,7 +1338,7 @@ class liquid extends Exchange {
         if ($tag !== null) {
             if ($code === 'XRP') {
                 $request['crypto_withdrawal']['payment_id'] = $tag;
-            } else if ($code === 'XLM') {
+            } elseif ($code === 'XLM') {
                 $request['crypto_withdrawal']['memo_type'] = 'text'; // overrideable via $params
                 $request['crypto_withdrawal']['memo_value'] = $tag;
             } else {
@@ -1218,6 +1375,14 @@ class liquid extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $request = array(
             // state => 'processed', // optional => pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
@@ -1370,7 +1535,7 @@ class liquid extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($query) {
+            } elseif ($query) {
                 $body = $this->json($query);
             }
             $nonce = $this->nonce();
@@ -1415,7 +1580,7 @@ class liquid extends Exchange {
             //  array( "message" => "Order not found" )
             //
             $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
-        } else if ($errors !== null) {
+        } elseif ($errors !== null) {
             //
             //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
             //  array( "errors" => array( "quantity" => ["less_than_order_size"] ))

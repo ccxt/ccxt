@@ -12,7 +12,6 @@ const table   = asTable.configure ({ delimiter: ' | ' }),
     const symbol = 'BTC/USDT'
 
     const exchange = new ccxt.latoken ({
-        'enableRateLimit': true,
         'verbose': process.argv.includes ('--verbose'),
         // uncomment and change for your keys to enable private calls
         // 'apiKey': 'YOUR_API_KEY',

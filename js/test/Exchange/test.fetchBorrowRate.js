@@ -13,7 +13,7 @@ export default async (exchange, code) => {
 
     if (exchange.has[method]) {
 
-        const borrowRate = await exchange.fetchBorrowRate (code)
+        const borrowRate = await exchange[method] (code)
 
         testBorrowRate (exchange, borrowRate, method, code)
 
@@ -27,6 +27,6 @@ export default async (exchange, code) => {
 
     } else {
 
-        console.log (code, 'fetchBorrowRate () not supported')
+        console.log (code, method + '() is not supported')
     }
 }

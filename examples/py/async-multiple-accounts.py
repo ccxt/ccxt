@@ -30,4 +30,4 @@ async def test():
     await asyncio.gather(*coroutines)
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(test())
+    asyncio.run(test())

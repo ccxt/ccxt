@@ -26,6 +26,9 @@ class bitforex extends Exchange {
                 'option' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -33,6 +36,7 @@ class bitforex extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
@@ -40,6 +44,7 @@ class bitforex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTrades' => true,
@@ -76,7 +81,9 @@ class bitforex extends Exchange {
                     'get' => array(
                         'api/v1/market/symbols' => 20,
                         'api/v1/market/ticker' => 4,
+                        'api/v1/market/ticker-all' => 4,
                         'api/v1/market/depth' => 4,
+                        'api/v1/market/depth-all' => 4,
                         'api/v1/market/trades' => 20,
                         'api/v1/market/kline' => 20,
                     ),
@@ -121,6 +128,7 @@ class bitforex extends Exchange {
                 'NOIA' => 'METANOIA',
                 'TON' => 'To The Moon',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '1000' => '\\ccxt\\OrderNotFound', // array("code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong")
                 '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")
@@ -138,6 +146,11 @@ class bitforex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves $data on all markets for bitforex
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market $data
+         */
         $response = $this->publicGetApiV1MarketSymbols ($params);
         //
         //    {
@@ -187,8 +200,8 @@ class bitforex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amountPrecision'),
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -260,6 +273,14 @@ class bitforex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -305,6 +326,11 @@ class bitforex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privatePostApiV1FundAllAccount ($params);
         return $this->parse_balance($response);
@@ -345,16 +371,22 @@ class bitforex extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         */
         $this->load_markets();
         $market = $this->markets[$symbol];
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetApiV1MarketTicker (array_merge($request, $params));
+        $response = $this->publicGetApiV1MarketTickerAll (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'data');
         //
         //     {
@@ -397,6 +429,15 @@ class bitforex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {str} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -423,6 +464,13 @@ class bitforex extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $marketId = $this->market_id($symbol);
         $request = array(
@@ -431,7 +479,7 @@ class bitforex extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->publicGetApiV1MarketDepth (array_merge($request, $params));
+        $response = $this->publicGetApiV1MarketDepthAll (array_merge($request, $params));
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($response, 'time');
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
@@ -451,7 +499,7 @@ class bitforex extends Exchange {
     public function parse_side($sideId) {
         if ($sideId === 1) {
             return 'buy';
-        } else if ($sideId === 2) {
+        } elseif ($sideId === 2) {
             return 'sell';
         } else {
             return null;
@@ -503,6 +551,12 @@ class bitforex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the $order was made in
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -515,6 +569,14 @@ class bitforex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -526,6 +588,14 @@ class bitforex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -537,11 +607,21 @@ class bitforex extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $sideId = null;
         if ($side === 'buy') {
             $sideId = 1;
-        } else if ($side === 'sell') {
+        } elseif ($side === 'sell') {
             $sideId = 2;
         }
         $request = array(
@@ -559,6 +639,13 @@ class bitforex extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the bitforex api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'orderId' => $id,
