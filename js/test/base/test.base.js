@@ -1,5 +1,5 @@
 import ololog from 'ololog'
-import { functions } from '../../../../ccxt.js';
+import { functions } from '../../../ccxt.js';
 import { strictEqual, deepEqual } from 'assert'
 
 const { Exchange, index, aggregate, unCamelCase } = functions;
