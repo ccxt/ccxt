@@ -1,12 +1,10 @@
-'use strict'
+// ----------------------------------------------------------------------------
+
+import testOpenInterest from './test.openInterest.js';
 
 // ----------------------------------------------------------------------------
 
-const testOpenInterest = require('./test.openInterest.js');
-
-// ----------------------------------------------------------------------------
-
-module.exports = async (exchange, symbol) => {
+async function testFetchOpenInterestHistory (exchange, symbol) {
     const method = 'fetchOpenInterestHistory';
     if (exchange.has[method]) {
         const openInterestHistory = await exchange[method] (symbol);
@@ -20,3 +18,5 @@ module.exports = async (exchange, symbol) => {
         console.log ('fetching open interest history not supported');
     }
 }
+
+export default testFetchOpenInterestHistory;

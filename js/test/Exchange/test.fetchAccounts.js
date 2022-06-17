@@ -1,12 +1,11 @@
-'use strict'
 
 // ----------------------------------------------------------------------------
 
-const testAccount = require ('./test.account.js')
+import testAccount from './test.account.js'
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+async function testFetchAccounts (exchange)  {
 
     const method = 'fetchAccounts'
 
@@ -23,3 +22,5 @@ module.exports = async (exchange) => {
 
     return accounts
 }
+
+export default testFetchAccounts;

@@ -1,13 +1,10 @@
-'use strict'
+
+import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert');
 
-// ----------------------------------------------------------------------------
-
-
-module.exports = (exchange, openInterest, method) => {
+function testOpenInterest (exchange, openInterest, method)  {
     const format = {
         symbol: 'BTC/USDT',
         baseVolume: 81094.084,
@@ -39,3 +36,5 @@ module.exports = (exchange, openInterest, method) => {
     assert (typeof openInterest['datetime'] === 'string' || typeof openInterest['datetime'] === undefined);
     return openInterest;
 }
+
+export default testOpenInterest;
