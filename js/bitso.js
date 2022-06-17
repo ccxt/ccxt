@@ -1511,7 +1511,7 @@ module.exports = class bitso extends Exchange {
             'datetime': datetime,
             'network': this.safeNetwork (networkId),
             'addressFrom': receivingAddress,
-            'address': withdrawalAddress !== undefined ? withdrawalAddress : receivingAddress,
+            'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
             'amount': this.safeString (transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
