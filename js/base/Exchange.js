@@ -82,6 +82,7 @@ const {
     , ROUND
     , DECIMAL_PLACES
     , NO_PADDING
+    , TICK_SIZE
 } = functions
 
 // import exceptions from "./errors.js"
