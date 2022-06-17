@@ -1567,6 +1567,7 @@ class Transpiler {
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
             [/^\/\*.*\s+/mg, ''],
+            [/^const\s+{.*}\s+=.*$/gm, ''],
         ])
 
         let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
@@ -1609,6 +1610,7 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
+            [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /decimalToPrecision/g, 'decimal_to_precision' ],
             [ /numberToString/g, 'number_to_string' ],
         ])
@@ -1681,6 +1683,7 @@ class Transpiler {
             [ /\'use strict\';?\s+/g, '' ],
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /^export default[^\n]+\n/g, '' ],
+            [/^const\s+{.*}\s+=.*$/gm, ''],
             [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
         ])
 
