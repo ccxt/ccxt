@@ -998,13 +998,7 @@ module.exports = class bitso extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let oids = '';
-        for (let i = 0; i < ids.length; i++) {
-            oids += ids[i];
-            if (i < ids.length - 1) {
-                oids += ',';
-            }
-        }
+        const oids = ids.join (',');
         const request = {
             'oids': oids,
         };
