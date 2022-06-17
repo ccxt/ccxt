@@ -1132,7 +1132,7 @@ class okx(Exchange):
                     withdrawEnabled = True
                 elif not canWithdraw:
                     withdrawEnabled = False
-                if networkId.find('-') >= 0:
+                if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
                     network = self.safe_network(chainPart)

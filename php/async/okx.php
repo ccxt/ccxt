@@ -1143,7 +1143,7 @@ class okx extends Exchange {
                 } elseif (!$canWithdraw) {
                     $withdrawEnabled = false;
                 }
-                if (mb_strpos($networkId, '-') !== false) {
+                if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
                     $network = $this->safe_network($chainPart);
