@@ -34,7 +34,7 @@ script:
 - cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
 - npm run test-base
-- bash -c 'node run-tests --js --python --php --verbose 3' 2>&1
+- bash -c 'node run-tests --js --python --php --verbose 5' 2>&1
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
 after_failure:
 - dmesg | grep -i kill

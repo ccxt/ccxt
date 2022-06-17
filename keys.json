@@ -11,6 +11,7 @@
     "cdax": { "skip": true },
     "dsx": { "skip": true },
     "gateio": { "skip": true },
+    "huobi": { "ski":  true },
     "huobipro": { "skip": true },
     "hollaex": { "skip": true },
     "idex": { "skip": true },
