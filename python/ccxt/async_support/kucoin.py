@@ -1340,11 +1340,11 @@ class kucoin(Exchange):
             request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = self.safe_integer_2(params, ['until', 'till'])
+        until = self.safe_integer_2(params, 'until', 'till')
         if until:
             request['endAt'] = until
         stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        params = self.omit(params, ['stop', 'till', 'until'])
         method = 'privateGetOrders'
         if stop:
             method = 'privateGetStopOrder'

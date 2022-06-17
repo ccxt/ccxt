@@ -1375,12 +1375,12 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = $this->safe_integer_2($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until) {
             $request['endAt'] = $until;
         }
         $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
         $method = 'privateGetOrders';
         if ($stop) {
             $method = 'privateGetStopOrder';
