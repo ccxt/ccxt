@@ -21,7 +21,7 @@ module.exports = class coinex extends ccxt.coinex {
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': true,
+                'watchOHLCV': false, // only for swap markets
             },
             'urls': {
                 'api': {
