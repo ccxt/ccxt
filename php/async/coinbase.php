@@ -391,7 +391,7 @@ class coinbase extends Exchange {
          * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#order-structure list of order structures}
          */
         // they don't have an endpoint for all historical trades
-        $request = yield $this->prepare_account_request($limit, $params);
+        $request = $this->prepare_account_request($limit, $params);
         yield $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $sells = yield $this->privateGetAccountsAccountIdSells (array_merge($request, $query));
@@ -408,7 +408,7 @@ class coinbase extends Exchange {
          * @return {dict} a list of  {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         // they don't have an endpoint for all historical trades
-        $request = yield $this->prepare_account_request($limit, $params);
+        $request = $this->prepare_account_request($limit, $params);
         yield $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $buys = yield $this->privateGetAccountsAccountIdBuys (array_merge($request, $query));
