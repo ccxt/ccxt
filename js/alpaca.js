@@ -14,7 +14,7 @@ module.exports = class alpaca extends Exchange {
             'id': 'alpaca',
             'name': 'Alpaca',
             'countries': [ 'US' ],
-            'rateLimit': 300, // 200 calls per min --> 300 ms between calls
+            'rateLimit': 300,
             'hostname': 'alpaca.markets',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/26471228/142237130-8f3a06c5-7e35-4fa1-9a82-28ac25795490.jpg',
@@ -253,9 +253,9 @@ module.exports = class alpaca extends Exchange {
             const quoteId = quote.toLowerCase ();
             const precisions = this.safeValue (this.options, 'precision', {});
             const precision = this.safeValue (precisions, symbol, {});
-            const amount = this.safeString (precision, 'amount');
-            const price = this.safeString (precision, 'price');
-            const minAmount = this.safeString (precision, 'minAmount');
+            const amount = this.safeNumber (precision, 'amount');
+            const price = this.safeNumber (precision, 'price');
+            const minAmount = this.safeNumber (precision, 'minAmount');
             markets.push ({
                 'id': id,
                 'symbol': symbol,
