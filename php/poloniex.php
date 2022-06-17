@@ -471,7 +471,7 @@ class poloniex extends \ccxt\async\poloniex {
             $entry = $data[$i];
             $type = $this->safe_string($entry, 0);
             $callbacks = $this->safe_value($methods, $type);
-            if (gettype($callbacks) === 'array' && count(array_filter(array_keys($callbacks), 'is_string')) == 0) {
+            if (gettype($callbacks) === 'array' && array_keys($callbacks) === array_keys(array_keys($callbacks))) {
                 for ($j = 0; $j < count($callbacks); $j++) {
                     $callback = $callbacks[$j];
                     $callback($client, $entry);

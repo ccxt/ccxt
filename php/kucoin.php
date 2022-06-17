@@ -600,7 +600,7 @@ class kucoin extends \ccxt\async\kucoin {
         $statuses = array(
             'open' => 'open',
             'filled' => 'closed',
-            'match' => 'closed',
+            'match' => 'open',
             'update' => 'open',
             'canceled' => 'canceled',
         );
