@@ -385,7 +385,7 @@ class coinbase(Exchange):
         :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         sells = await self.privateGetAccountsAccountIdSells(self.extend(request, query))
@@ -401,7 +401,7 @@ class coinbase(Exchange):
         :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         buys = await self.privateGetAccountsAccountIdBuys(self.extend(request, query))
