@@ -40,6 +40,7 @@ Exchange::$exchanges = array(
     'cdax',
     'coinbaseprime',
     'coinbasepro',
+    'coinex',
     'coinflex',
     'cryptocom',
     'currencycom',
