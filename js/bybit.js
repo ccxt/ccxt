@@ -2631,6 +2631,14 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
+        let stopLossPrice = this.safeNumber2 (order, 'stop_loss', 'stopLoss');
+        if (stopLossPrice === 0) {
+            stopLossPrice = undefined;
+        }
+        let takeProfitPrice = this.safeNumber2 (order, 'take_profit', 'takeProfit');
+        if (takeProfitPrice === 0) {
+            takeProfitPrice = undefined;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2645,8 +2653,8 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'stopLossPrice': this.safeNumber2 (order, 'stop_loss', 'stopLoss'),
-            'takeProfitPrice': this.safeNumber2 (order, 'take_profit', 'takeProfit'),
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
