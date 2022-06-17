@@ -1,11 +1,12 @@
-
 import ololog from 'ololog'
-global.log =  ololog // for easier debugging
-
-import { Exchange, index, aggregate, unCamelCase } from'../../../ccxt.js'
+import { functions } from '../../../../ccxt.js';
 import { strictEqual, deepEqual } from 'assert'
 
+const { Exchange, index, aggregate, unCamelCase } = functions;
+
 const equal = strictEqual;
+
+global.log =  ololog // for easier debugging
 
 import './functions/test.generic.js'
 import './functions/test.time.js'

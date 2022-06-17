@@ -1,6 +1,8 @@
-import { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../../../ccxt.js';
+import { functions } from '../../../../ccxt.js';
 import { Precise } from '../../../base/Precise.js'
-import { assert } from 'assert';
+import assert from 'assert';
+
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS} = functions;
 
 // ----------------------------------------------------------------------------
 // numberToString
