@@ -1294,7 +1294,7 @@ class ftx(Exchange):
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
-        until = self.safe_integer(params, 'until', 'till')  # unified in milliseconds
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
         params = self.omit(params, ['end_time', 'until', 'till'])
         if until is not None:
             request['end_time'] = int(until / 1000)
