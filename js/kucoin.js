@@ -1406,12 +1406,12 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const until = this.safeInteger2 (params, [ 'until', 'till' ]);
+        const until = this.safeInteger2 (params, 'until', 'till');
         if (until) {
             request['endAt'] = until;
         }
         const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
