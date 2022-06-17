@@ -2631,14 +2631,6 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
-        let stopLossPrice = this.safeNumber2 (order, 'stop_loss', 'stopLoss');
-        if (stopLossPrice === 0) {
-            stopLossPrice = undefined;
-        }
-        let takeProfitPrice = this.safeNumber2 (order, 'take_profit', 'takeProfit');
-        if (takeProfitPrice === 0) {
-            takeProfitPrice = undefined;
-        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2653,8 +2645,6 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'stopLossPrice': stopLossPrice,
-            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -4603,8 +4593,8 @@ module.exports = class bybit extends Exchange {
         const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
         let collateralString = this.safeString (position, 'position_margin');
-        const entryPrice = this.omitZero (this.safeString (position, 'entry_price', 'entryPrice'));
-        const liquidationPrice = this.omitZero (this.safeString (position, 'liq_price', 'liqPrice'));
+        const entryPrice = this.omitZero (this.safeString2 (position, 'entry_price', 'entryPrice'));
+        const liquidationPrice = this.omitZero (this.safeString2 (position, 'liq_price', 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (market['settle'] === 'USDT') {
             // Initial Margin = Contract size x Entry Price / Leverage
