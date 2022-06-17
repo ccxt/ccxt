@@ -2289,6 +2289,8 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -2298,7 +2300,8 @@ module.exports = class binance extends Exchange {
         const defaultLimit = 500;
         const maxLimit = 1500;
         const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'interval': this.timeframes[timeframe],
@@ -2324,6 +2327,9 @@ module.exports = class binance extends Exchange {
                     request['endTime'] = Math.min (now, endTime);
                 }
             }
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         let method = 'publicGetKlines';
         if (price === 'mark') {
