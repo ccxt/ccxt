@@ -3133,7 +3133,7 @@ module.exports = class zb extends Exchange {
             request['startTime'] = since;
         }
         const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'endTime', 'till' ]);
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
         if (until !== undefined) {
             request['endTime'] = until;
         }
