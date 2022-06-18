@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.87.91'
+__version__ = '1.87.92'
 
 # -----------------------------------------------------------------------------
 
@@ -284,6 +284,45 @@ class Exchange(BaseExchange):
     # ########################################################################
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    def safe_ledger_entry(self, entry, currency=None):
+        currency = self.safe_currency(None, currency)
+        direction = self.safe_string(entry, 'direction')
+        before = self.safe_string(entry, 'before')
+        after = self.safe_string(entry, 'after')
+        amount = self.safe_string(entry, 'amount')
+        if amount is not None:
+            if before is None and after is not None:
+                before = Precise.string_sub(after, amount)
+            elif before is not None and after is None:
+                after = Precise.string_add(before, amount)
+        if before is not None and after is not None:
+            if direction is None:
+                if Precise.string_gt(before, after):
+                    direction = 'out'
+                if Precise.string_gt(after, before):
+                    direction = 'in'
+        fee = self.safe_value(entry, 'fee')
+        if fee is not None:
+            fee['cost'] = self.safe_number(fee, 'cost')
+        timestamp = self.safe_integer(entry, 'timestamp')
+        return {
+            'id': self.safe_string(entry, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': self.safe_string(entry, 'account'),
+            'referenceId': self.safe_string(entry, 'referenceId'),
+            'referenceAccount': self.safe_string(entry, 'referenceAccount'),
+            'type': self.safe_string(entry, 'type'),
+            'currency': currency['code'],
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
+            'status': self.safe_string(entry, 'status'),
+            'fee': fee,
+            'info': entry,
+        }
 
     def set_markets(self, markets, currencies=None):
         values = []

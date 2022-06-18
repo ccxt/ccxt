@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.87.91';
+$version = '1.87.92';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.87.91';
+    const VERSION = '1.87.92';
 
     public static $loop;
     public static $kernel;
@@ -271,6 +271,53 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        $direction = $this->safe_string($entry, 'direction');
+        $before = $this->safe_string($entry, 'before');
+        $after = $this->safe_string($entry, 'after');
+        $amount = $this->safe_string($entry, 'amount');
+        if ($amount !== null) {
+            if ($before === null && $after !== null) {
+                $before = Precise::string_sub($after, $amount);
+            } elseif ($before !== null && $after === null) {
+                $after = Precise::string_add($before, $amount);
+            }
+        }
+        if ($before !== null && $after !== null) {
+            if ($direction === null) {
+                if (Precise::string_gt($before, $after)) {
+                    $direction = 'out';
+                }
+                if (Precise::string_gt($after, $before)) {
+                    $direction = 'in';
+                }
+            }
+        }
+        $fee = $this->safe_value($entry, 'fee');
+        if ($fee !== null) {
+            $fee['cost'] = $this->safe_number($fee, 'cost');
+        }
+        $timestamp = $this->safe_integer($entry, 'timestamp');
+        return array(
+            'id' => $this->safe_string($entry, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'direction' => $direction,
+            'account' => $this->safe_string($entry, 'account'),
+            'referenceId' => $this->safe_string($entry, 'referenceId'),
+            'referenceAccount' => $this->safe_string($entry, 'referenceAccount'),
+            'type' => $this->safe_string($entry, 'type'),
+            'currency' => $currency['code'],
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => $this->safe_string($entry, 'status'),
+            'fee' => $fee,
+            'info' => $entry,
+        );
+    }
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
