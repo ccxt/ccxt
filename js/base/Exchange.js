@@ -800,12 +800,18 @@ module.exports = class Exchange {
 
     addEmulatedMethodsToHas () {
         // Place all emulated methods inside here
-        this.emulateSingleMarketMethod ('fetchFundingRate', 'fetchFundingRates');
-        this.emulateSingleMarketMethod ('fetchMarketLeverageTiers', 'fetchLeverageTiers');
+        this.addEmulatedMethodToHas ('fetchFundingRate', 'fetchFundingRates');
+        this.addEmulatedMethodToHas ('fetchMarketLeverageTiers', 'fetchLeverageTiers');
+        this.addEmulatedMethodToHas ('fetchOHLCV', 'fetchTrades');
+        this.addEmulatedMethodToHas ('fetchOHLCVC', 'fetchTrades');
+        this.addEmulatedMethodToHas ('fetchBorrowRate', 'fetchBorrowRates');
+        this.addEmulatedMethodToHas ('fetchTicker', 'fetchTickers');
+        this.addEmulatedMethodToHas ('fetchDepositAddress', 'fetchDepositAddresses');
+        this.addEmulatedMethodToHas ('fetchTradingFee', 'fetchTradingFees');
     }
 
-    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod) {
-        if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
+    addEmulatedMethodToHas (emulatedMethod, emulatedFrom) {
+        if (this.has[emulatedFrom] && this.has[emulatedMethod] === undefined) {
             this.has[emulatedMethod] = 'emulated';
         }
     }
