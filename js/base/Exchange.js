@@ -104,6 +104,7 @@ module.exports = class Exchange {
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
+                'fetchOHLCVC': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,

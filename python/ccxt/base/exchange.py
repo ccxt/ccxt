@@ -295,6 +295,7 @@ class Exchange(object):
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
         'fetchOHLCV': 'emulated',
+        'fetchOHLCVC': None,
         'fetchOpenOrder': None,
         'fetchOpenOrders': None,
         'fetchOrder': None,

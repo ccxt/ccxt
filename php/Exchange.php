@@ -416,6 +416,7 @@ class Exchange {
         'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
+        'fetchOHLCVC' => 'fetch_ohlcvc',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1320,6 +1321,7 @@ class Exchange {
             'fetchMarkOHLCV' => null,
             'fetchMyTrades' => null,
             'fetchOHLCV' => 'emulated',
+            'fetchOHLCVC' => null,
             'fetchOpenOrder' => null,
             'fetchOpenOrders' => null,
             'fetchOrder' => null,
