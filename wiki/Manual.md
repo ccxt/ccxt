@@ -3020,7 +3020,7 @@ exchange.checkRequiredCredentials() // throw AuthenticationError
 import ccxt
 exchange = ccxt.coinbasepro()
 print(exchange.requiredCredentials)  # prints required credentials
-exchange.checkRequiredCredentials()  # raises AuthenticationError
+exchange.check_required_credentials()  # raises AuthenticationError
 ```
 
 ```PHP

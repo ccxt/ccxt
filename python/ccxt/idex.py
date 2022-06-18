@@ -44,7 +44,10 @@ class idex(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
@@ -58,6 +61,7 @@ class idex(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -85,6 +89,7 @@ class idex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': None,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1297,6 +1302,41 @@ class idex(Exchange):
         #
         return self.parse_transaction(response, currency)
 
+    def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.check_required_credentials()
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        nonce = self.uuidv1()
+        request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': self.walletAddress,
+            },
+        }
+        walletBytes = self.remove0x_prefix(self.walletAddress)
+        byteArray = [
+            self.base16_to_binary(nonce),
+            self.base16_to_binary(walletBytes),
+        ]
+        if market is not None:
+            byteArray.append(self.encode(market['id']))
+            request['parameters']['market'] = market['id']
+        binary = self.binary_concat_array(byteArray)
+        hash = self.hash(binary, 'keccak', 'hex')
+        signature = self.sign_message_string(hash, self.privateKey)
+        request['signature'] = signature
+        # [{orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e'}]
+        response = self.privateDeleteOrders(self.extend(request, params))
+        return self.parse_orders(response, market)
+
     def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -1342,6 +1382,24 @@ class idex(Exchange):
         if errorCode is not None:
             raise ExchangeError(self.id + ' ' + message)
 
+    def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by idex fetchDeposit()
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        nonce = self.uuidv1()
+        request = {
+            'nonce': nonce,
+            'wallet': self.walletAddress,
+            'depositId': id,
+        }
+        response = self.privateGetDeposits(self.extend(request, params))
+        return self.parse_transaction(response, code)
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
@@ -1355,6 +1413,36 @@ class idex(Exchange):
             'method': 'privateGetDeposits',
         }, params)
         return self.fetch_transactions_helper(code, since, limit, params)
+
+    def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        response = self.publicGetTime(params)
+        #
+        #    {serverTime: '1655258263236'}
+        #
+        return self.safe_number(response, 'serverTime')
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: not used by idex.fetchWithdrawal
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        nonce = self.uuidv1()
+        request = {
+            'nonce': nonce,
+            'wallet': self.walletAddress,
+            'withdrawalId': id,
+        }
+        response = self.privateGetWithdrawals(self.extend(request, params))
+        return self.parse_transaction(response, code)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1455,7 +1543,7 @@ class idex(Exchange):
         code = self.safe_currency_code(self.safe_string(transaction, 'asset'), currency)
         amount = self.safe_number(transaction, 'quantity')
         txid = self.safe_string(transaction, 'txId')
-        timestamp = self.safe_integer(transaction, 'txTime')
+        timestamp = self.safe_integer_2(transaction, 'txTime', 'time')
         fee = None
         if 'fee' in transaction:
             fee = {

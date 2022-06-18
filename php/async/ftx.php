@@ -1851,6 +1851,7 @@ class ftx extends Exchange {
          * @param {str} $id order $id
          * @param {str|null} $symbol not used by ftx cancelOrder ()
          * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {bool} $params->stop true if cancelling a stop/trigger order
          * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
@@ -1860,18 +1861,19 @@ class ftx extends Exchange {
         $options = $this->safe_value($this->options, 'cancelOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $type = $this->safe_value($params, 'type');
+        $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
+        $stop = $this->safe_value($params, 'stop');
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
             $request['order_id'] = intval($id);
-            if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
                 $method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             $request['client_order_id'] = $clientOrderId;
             $method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
+        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ));
         $response = yield $this->$method (array_merge($request, $query));
         //
         //     {

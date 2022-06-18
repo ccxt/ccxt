@@ -1782,6 +1782,7 @@ class ftx(Exchange):
         :param str id: order id
         :param str|None symbol: not used by ftx cancelOrder()
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param bool params['stop']: True if cancelling a stop/trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1791,16 +1792,17 @@ class ftx(Exchange):
         options = self.safe_value(self.options, 'cancelOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
-        type = self.safe_value(params, 'type')
+        type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
+        stop = self.safe_value(params, 'stop')
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
