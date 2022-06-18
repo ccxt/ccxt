@@ -923,7 +923,7 @@ class ftx extends Exchange {
          * @param {dict} $params extra parameters specific to the ftx api endpoint
          * @param {str|null} $params->price "index" for index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         yield $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);

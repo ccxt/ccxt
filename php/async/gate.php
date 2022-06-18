@@ -2194,7 +2194,7 @@ class gate extends Exchange {
          * @param {dict} $params extra parameters specific $to the gateio api endpoint
          * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         yield $this->load_markets();
         $market = $this->market($symbol);

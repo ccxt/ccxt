@@ -2124,7 +2124,7 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the gateio api endpoint
         :param str|None params['price']: "mark" or "index" for mark price and index price candles
         :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         await self.load_markets()
         market = self.market(symbol)
