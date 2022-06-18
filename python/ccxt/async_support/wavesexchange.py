@@ -1125,7 +1125,7 @@ class wavesexchange(Exchange):
         if amount is None:
             return None
         precise = Precise(amount)
-        precise.decimals = precise.decimals + scale
+        precise.decimals = self.sum(precise.decimals, scale)
         precise.reduce()
         return str(precise)
 
@@ -1143,7 +1143,7 @@ class wavesexchange(Exchange):
     def price_from_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
+        scale = wavesPrecision - self.sum(market['precision']['amount'], market['precision']['price'])
         return self.from_precision(price, scale)
 
     def safe_get_dynamic(self, settings):

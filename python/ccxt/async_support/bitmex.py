@@ -2372,7 +2372,7 @@ class bitmex(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the bitmex api endpoint
-        :param int|None params['till']: timestamp in ms for ending date filter
+        :param int|None params['until']: timestamp in ms for ending date filter
         :param bool|None params['reverse']: if True, will sort results newest first
         :param int|None params['start']: starting point for results
         :param str|None params['columns']: array of column names to fetch in info, if omitted, will return all columns
@@ -2400,10 +2400,10 @@ class bitmex(Exchange):
             request['startTime'] = self.iso8601(since)
         if limit is not None:
             request['count'] = limit
-        till = self.safe_integer(params, 'till')
-        params = self.omit(params, ['till'])
-        if till is not None:
-            request['endTime'] = self.iso8601(till)
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['endTime'] = self.iso8601(until)
         response = await self.publicGetFunding(self.extend(request, params))
         #
         #    [

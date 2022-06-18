@@ -698,7 +698,6 @@ module.exports = class gate extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerPercent = this.safeString (market, 'fee');
             const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'precision')));
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision')));
             const tradeStatus = this.safeString (market, 'trade_status');
             const leverage = this.safeNumber (market, 'leverage');
@@ -732,7 +731,7 @@ module.exports = class gate extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1244,8 +1243,6 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const result = {};
-        // TODO: remove magic constants
-        const amountPrecision = this.parseNumber ('1e-6');
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
@@ -1265,7 +1262,7 @@ module.exports = class gate extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': this.parseNumber ('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2214,14 +2211,16 @@ module.exports = class gate extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name gate#fetchOHLCV
+         * @name gateio#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {str} symbol unified symbol of the market to fetch OHLCV data for
          * @param {str} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the gate api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {dict} params extra parameters specific to the gateio api endpoint
+         * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2247,13 +2246,26 @@ module.exports = class gate extends Exchange {
             }
         }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
+        let until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            until = parseInt (until / 1000);
+            params = this.omit (params, 'until');
+        }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
-            request['to'] = Math.min (toTimestamp, currentTimestamp);
+            const to = Math.min (toTimestamp, currentTimestamp);
+            if (until !== undefined) {
+                request['to'] = Math.min (to, until);
+            } else {
+                request['to'] = to;
+            }
         } else {
+            if (until !== undefined) {
+                request['to'] = until;
+            }
             request['limit'] = limit;
         }
         const response = await this[method] (this.extend (request, params));
@@ -2431,6 +2443,45 @@ module.exports = class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        //
+        //      [
+        //          {
+        //              "id":"3711449544",
+        //              "create_time":"1655486040",
+        //              "create_time_ms":"1655486040177.599900",
+        //              "currency_pair":"SHIB_USDT",
+        //              "side":"buy",
+        //              "role":"taker",
+        //              "amount":"1360039",
+        //              "price":"0.0000081084",
+        //              "order_id":"169717399644",
+        //              "fee":"2720.078",
+        //              "fee_currency":"SHIB",
+        //              "point_fee":"0",
+        //              "gt_fee":"0"
+        //          }
+        //      ]
+        //
+        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        return response;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2442,7 +2493,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {str|undefined} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
-         * @param {int|undefined} params.till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|undefined} params.until The latest timestamp, in ms, that fetched trades were made
          * @param {int|undefined} params.page *spot only* Page number
          * @param {str|undefined} params.order_id *spot only* Filter trades with specified order ID. symbol is also required if this field is present
          * @param {str|undefined} params.order *contract only* Futures order ID, return related data only if specified
@@ -2456,8 +2507,8 @@ module.exports = class gate extends Exchange {
         let marginMode = undefined;
         let request = {};
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const till = this.safeNumber (params, 'till');
-        params = this.omit (params, 'till');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const contract = (type === 'swap') || (type === 'future');
         if (contract) {
@@ -2475,8 +2526,8 @@ module.exports = class gate extends Exchange {
         if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
         }
-        if (till !== undefined) {
-            request['to'] = parseInt (till / 1000);
+        if (until !== undefined) {
+            request['to'] = parseInt (until / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
@@ -2872,7 +2923,16 @@ module.exports = class gate extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const contract = market['contract'];
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const trigger = this.safeValue (params, 'trigger');
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
         let methodTail = 'Orders';
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
@@ -2892,7 +2952,7 @@ module.exports = class gate extends Exchange {
                 throw new ExchangeError (this.id + ' createOrder() does not support timeInForce "' + timeInForce + '"');
             }
         }
-        params = this.omit (params, [ 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
         if (postOnly) {
             tif = 'poc';
         }
@@ -2917,8 +2977,7 @@ module.exports = class gate extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
-        const trigger = this.safeValue (params, 'trigger');
-        if (stopPrice === undefined && trigger === undefined) {
+        if (!isStopOrder && (trigger === undefined)) {
             if (contract) {
                 // contract order
                 request = {
@@ -2978,7 +3037,6 @@ module.exports = class gate extends Exchange {
         } else {
             if (contract) {
                 // contract conditional order
-                const rule = (side === 'buy') ? 1 : 2;
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2989,19 +3047,27 @@ module.exports = class gate extends Exchange {
                         // 'text': clientOrderId, // web, api, app
                         // 'reduce_only': false,
                     },
-                    'trigger': {
-                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
-                        // 'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
-                        'price': this.priceToPrecision (symbol, stopPrice), // price or gap
-                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
-                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    },
                     'settle': market['settleId'],
                 };
-                const expiration = this.safeInteger (params, 'expiration');
-                if (expiration !== undefined) {
-                    request['trigger']['expiration'] = expiration;
-                    params = this.omit (params, 'expiration');
+                if (trigger === undefined) {
+                    let rule = undefined;
+                    let triggerOrderPrice = undefined;
+                    if (isStopLossOrder) {
+                        // we let trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional trigger orders for spot markets
+                        rule = (side === 'buy') ? 1 : 2;
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    } else if (isTakeProfitOrder) {
+                        rule = (side === 'buy') ? 2 : 1;
+                        triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    }
+                    request['trigger'] = {
+                        // 'strategy_type': 0, // 0 = by price, 1 = by price gap, only 0 is supported currently
+                        'price_type': 0, // 0 latest deal price, 1 mark price, 2 index price
+                        'price': this.priceToPrecision (symbol, triggerOrderPrice), // price or gap
+                        'rule': rule, // 1 means price_type >= price, 2 means price_type <= price
+                        // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    };
                 }
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
@@ -3014,26 +3080,37 @@ module.exports = class gate extends Exchange {
                 const options = this.safeValue (this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [ marginMode, params ] = this.getMarginMode (true, params);
-                const defaultExpiration = this.safeInteger (options, 'expiration');
-                const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
-                const rule = (side === 'buy') ? '>=' : '<=';
-                const triggerPrice = this.safeValue (trigger, 'price', stopPrice);
                 request = {
-                    'trigger': {
-                        'price': this.priceToPrecision (symbol, triggerPrice),
-                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
-                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
-                    },
                     'put': {
                         'type': type,
                         'side': side,
                         'price': this.priceToPrecision (symbol, price),
                         'amount': this.amountToPrecision (symbol, amount),
                         'account': marginMode,
-                        // 'time_in_force': tif, // gtc, ioc for taker only
+                        'time_in_force': 'gtc', // gtc, ioc for taker only
                     },
                     'market': market['id'],
                 };
+                if (trigger === undefined) {
+                    const defaultExpiration = this.safeInteger (options, 'expiration');
+                    const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
+                    let rule = undefined;
+                    let triggerOrderPrice = undefined;
+                    if (isStopLossOrder) {
+                        // we let trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional trigger orders for spot markets
+                        rule = (side === 'buy') ? '>=' : '<=';
+                        triggerOrderPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    } else if (isTakeProfitOrder) {
+                        rule = (side === 'buy') ? '<=' : '>=';
+                        triggerOrderPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    }
+                    request['trigger'] = {
+                        'price': this.priceToPrecision (symbol, triggerOrderPrice),
+                        'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    };
+                }
                 if (tif !== undefined) {
                     request['put']['time_in_force'] = tif;
                 }

@@ -2241,6 +2241,8 @@ class binance(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
@@ -2250,7 +2252,8 @@ class binance(Exchange):
         defaultLimit = 500
         maxLimit = 1500
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
             'interval': self.timeframes[timeframe],
@@ -2273,6 +2276,8 @@ class binance(Exchange):
                     endTime = self.sum(since, limit * duration * 1000 - 1)
                     now = self.milliseconds()
                     request['endTime'] = min(now, endTime)
+        if until is not None:
+            request['endTime'] = until
         method = 'publicGetKlines'
         if price == 'mark':
             if market['inverse']:
@@ -4307,7 +4312,7 @@ class binance(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the binance api endpoint
-        :param int|None params['till']: timestamp in ms of the earliest funding rate
+        :param int|None params['until']: timestamp in ms of the latest funding rate
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         await self.load_markets()
@@ -4332,9 +4337,9 @@ class binance(Exchange):
             raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
         if since is not None:
             request['startTime'] = since
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', till)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till'])
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
         if limit is not None:
@@ -5662,7 +5667,7 @@ class binance(Exchange):
         :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int|None limit: default 30, max 500
         :param dict params: exchange specific parameters
-        :param int|None params['till']: the time(ms) of the latest record to retrieve as a unix timestamp
+        :param int|None params['until']: the time(ms) of the latest record to retrieve as a unix timestamp
         :returns dict: an array of `open interest history structure <https://docs.ccxt.com/en/latest/manual.html#interest-history-structure>`
         """
         if timeframe == '1m':
@@ -5680,9 +5685,9 @@ class binance(Exchange):
             request['contractType'] = self.safe_string(params, 'contractType', 'CURRENT_QUARTER')
         if since is not None:
             request['startTime'] = since
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', till)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'till'])
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'until', 'till'])
         if endTime:
             request['endTime'] = endTime
         elif since:

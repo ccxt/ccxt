@@ -102,9 +102,9 @@ class lbank2(Exchange):
                 'api': 'https://api.lbank.info',
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
-                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
+                'doc': 'https://www.lbank.info/en-US/docs/index.html',
                 'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
-                'referral': 'https://www.lbex.io/invite?icode=7QCY',
+                'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
                 'public': {

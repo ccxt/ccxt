@@ -2473,7 +2473,7 @@ class bitmex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the bitmex api endpoint
-         * @param {int|null} $params->till timestamp in ms for ending date filter
+         * @param {int|null} $params->until timestamp in ms for ending date filter
          * @param {bool|null} $params->reverse if true, will sort results newest first
          * @param {int|null} $params->start starting point for results
          * @param {str|null} $params->columns array of column names to fetch in info, if omitted, will return all columns
@@ -2505,10 +2505,10 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $till = $this->safe_integer($params, 'till');
-        $params = $this->omit($params, array( 'till' ));
-        if ($till !== null) {
-            $request['endTime'] = $this->iso8601($till);
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['endTime'] = $this->iso8601($until);
         }
         $response = yield $this->publicGetFunding (array_merge($request, $params));
         //

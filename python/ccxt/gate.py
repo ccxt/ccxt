@@ -708,7 +708,6 @@ class gate(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerPercent = self.safe_string(market, 'fee')
             makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
-            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'precision')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision')))
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
@@ -742,7 +741,7 @@ class gate(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1212,8 +1211,6 @@ class gate(Exchange):
         #    }
         #
         result = {}
-        # TODO: remove magic constants
-        amountPrecision = self.parse_number('1e-6')
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1233,7 +1230,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': amountPrecision,
+                'precision': self.parse_number('1e-6'),
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2124,8 +2121,10 @@ class gate(Exchange):
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the gate api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param dict params: extra parameters specific to the gateio api endpoint
+        :param str|None params['price']: "mark" or "index" for mark price and index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2148,13 +2147,23 @@ class gate(Exchange):
                 request['contract'] = price + '_' + market['id']
                 params = self.omit(params, 'price')
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            until = int(until / 1000)
+            params = self.omit(params, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
             toTimestamp = self.sum(request['from'], limit * duration - 1)
             currentTimestamp = self.seconds()
-            request['to'] = min(toTimestamp, currentTimestamp)
+            to = min(toTimestamp, currentTimestamp)
+            if until is not None:
+                request['to'] = min(to, until)
+            else:
+                request['to'] = to
         else:
+            if until is not None:
+                request['to'] = until
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -2316,6 +2325,41 @@ class gate(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+        #
+        #      [
+        #          {
+        #              "id":"3711449544",
+        #              "create_time":"1655486040",
+        #              "create_time_ms":"1655486040177.599900",
+        #              "currency_pair":"SHIB_USDT",
+        #              "side":"buy",
+        #              "role":"taker",
+        #              "amount":"1360039",
+        #              "price":"0.0000081084",
+        #              "order_id":"169717399644",
+        #              "fee":"2720.078",
+        #              "fee_currency":"SHIB",
+        #              "point_fee":"0",
+        #              "gt_fee":"0"
+        #          }
+        #      ]
+        #
+        response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
+        return response
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetch personal trading history
@@ -2325,7 +2369,7 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the gate api endpoint
         :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str|None params['type']: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
-        :param int|None params['till']: The latest timestamp, in ms, that fetched trades were made
+        :param int|None params['until']: The latest timestamp, in ms, that fetched trades were made
         :param int|None params['page']: *spot only* Page number
         :param str|None params['order_id']: *spot only* Filter trades with specified order ID. symbol is also required if self field is present
         :param str|None params['order']: *contract only* Futures order ID, return related data only if specified
@@ -2339,8 +2383,8 @@ class gate(Exchange):
         marginMode = None
         request = {}
         market = self.market(symbol) if (symbol is not None) else None
-        till = self.safe_number(params, 'till')
-        params = self.omit(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         contract = (type == 'swap') or (type == 'future')
         if contract:
@@ -2354,8 +2398,8 @@ class gate(Exchange):
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
-        if till is not None:
-            request['to'] = int(till / 1000)
+        if until is not None:
+            request['to'] = int(until / 1000)
         method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
@@ -2722,7 +2766,15 @@ class gate(Exchange):
         self.load_markets()
         market = self.market(symbol)
         contract = market['contract']
-        stopPrice = self.safe_number(params, 'stopPrice')
+        trigger = self.safe_value(params, 'trigger')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLossOrder = stopLossPrice is not None
+        isTakeProfitOrder = takeProfitPrice is not None
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        if isStopLossOrder and isTakeProfitOrder:
+            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
         methodTail = 'Orders'
         reduceOnly = self.safe_value(params, 'reduceOnly')
         exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
@@ -2740,7 +2792,7 @@ class gate(Exchange):
             tif = self.safe_string(timeInForceMapping, timeInForce)
             if tif is None:
                 raise ExchangeError(self.id + ' createOrder() does not support timeInForce "' + timeInForce + '"')
-        params = self.omit(params, ['stopPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
         if postOnly:
             tif = 'poc'
         isLimitOrder = (type == 'limit')
@@ -2760,8 +2812,7 @@ class gate(Exchange):
             # exchange doesn't have market orders for spot
             raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
         request = None
-        trigger = self.safe_value(params, 'trigger')
-        if stopPrice is None and trigger is None:
+        if not isStopOrder and (trigger is None):
             if contract:
                 # contract order
                 request = {
@@ -2814,7 +2865,6 @@ class gate(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2825,19 +2875,26 @@ class gate(Exchange):
                         # 'text': clientOrderId,  # web, api, app
                         # 'reduce_only': False,
                     },
-                    'trigger': {
-                        # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
-                        # 'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
-                        'price': self.price_to_precision(symbol, stopPrice),  # price or gap
-                        'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
-                        # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    },
                     'settle': market['settleId'],
                 }
-                expiration = self.safe_integer(params, 'expiration')
-                if expiration is not None:
-                    request['trigger']['expiration'] = expiration
-                    params = self.omit(params, 'expiration')
+                if trigger is None:
+                    rule = None
+                    triggerOrderPrice = None
+                    if isStopLossOrder:
+                        # we trigger orders be aliases for stopLoss orders because
+                        # gateio doesn't accept conventional trigger orders for spot markets
+                        rule = 1 if (side == 'buy') else 2
+                        triggerOrderPrice = self.price_to_precision(symbol, stopLossPrice)
+                    elif isTakeProfitOrder:
+                        rule = 2 if (side == 'buy') else 1
+                        triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    request['trigger'] = {
+                        # 'strategy_type': 0,  # 0 = by price, 1 = by price gap, only 0 is supported currently
+                        'price_type': 0,  # 0 latest deal price, 1 mark price, 2 index price
+                        'price': self.price_to_precision(symbol, triggerOrderPrice),  # price or gap
+                        'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
+                        # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    }
                 if reduceOnly is not None:
                     request['initial']['reduce_only'] = reduceOnly
                 if tif is not None:
@@ -2847,26 +2904,35 @@ class gate(Exchange):
                 options = self.safe_value(self.options, 'createOrder', {})
                 marginMode = None
                 marginMode, params = self.get_margin_mode(True, params)
-                defaultExpiration = self.safe_integer(options, 'expiration')
-                expiration = self.safe_integer(params, 'expiration', defaultExpiration)
-                rule = '>=' if (side == 'buy') else '<='
-                triggerPrice = self.safe_value(trigger, 'price', stopPrice)
                 request = {
-                    'trigger': {
-                        'price': self.price_to_precision(symbol, triggerPrice),
-                        'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
-                        'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
-                    },
                     'put': {
                         'type': type,
                         'side': side,
                         'price': self.price_to_precision(symbol, price),
                         'amount': self.amount_to_precision(symbol, amount),
                         'account': marginMode,
-                        # 'time_in_force': tif,  # gtc, ioc for taker only
+                        'time_in_force': 'gtc',  # gtc, ioc for taker only
                     },
                     'market': market['id'],
                 }
+                if trigger is None:
+                    defaultExpiration = self.safe_integer(options, 'expiration')
+                    expiration = self.safe_integer(params, 'expiration', defaultExpiration)
+                    rule = None
+                    triggerOrderPrice = None
+                    if isStopLossOrder:
+                        # we trigger orders be aliases for stopLoss orders because
+                        # gateio doesn't accept conventional trigger orders for spot markets
+                        rule = '>=' if (side == 'buy') else '<='
+                        triggerOrderPrice = self.price_to_precision(symbol, stopLossPrice)
+                    elif isTakeProfitOrder:
+                        rule = '<=' if (side == 'buy') else '>='
+                        triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
+                    request['trigger'] = {
+                        'price': self.price_to_precision(symbol, triggerOrderPrice),
+                        'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
+                        'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
+                    }
                 if tif is not None:
                     request['put']['time_in_force'] = tif
             methodTail = 'PriceOrders'

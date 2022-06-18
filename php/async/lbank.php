@@ -28,6 +28,9 @@ class lbank extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -85,7 +88,7 @@ class lbank extends Exchange {
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees' => 'https://www.lbank.info/fees.html',
-                'referral' => 'https://www.lbex.io/invite?icode=7QCY',
+                'referral' => 'https://www.lbank.info/invitevip?icode=7QCY',
             ),
             'api' => array(
                 'public' => array(
@@ -129,6 +132,7 @@ class lbank extends Exchange {
             'options' => array(
                 'cacheSecretAsPem' => true,
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -193,8 +197,8 @@ class lbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'quantityAccuracy'),
-                    'price' => $this->safe_integer($market, 'priceAccuracy'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                 ),
                 'limits' => array(
                     'leverage' => array(

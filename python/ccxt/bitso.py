@@ -6,8 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -30,21 +32,29 @@ class bitso(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
+                'createDepositAddress': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -62,11 +72,14 @@ class bitso(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': True,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'reduceMargin': False,
@@ -154,6 +167,7 @@ class bitso(Exchange):
                         'litecoin_withdrawal',
                     ],
                     'delete': [
+                        'orders',
                         'orders/{oid}',
                         'orders/all',
                     ],
@@ -165,6 +179,154 @@ class bitso(Exchange):
                 '0304': BadRequest,  # {"success":false,"error":{"code":"0304","message":"The field time_bucket() is either invalid or missing"}}
             },
         })
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetLedger(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         payload: [{
+        #             eid: '2510b3e2bc1c87f584500a18084f35ed',
+        #             created_at: '2022-06-08T12:21:42+0000',
+        #             balance_updates: [{
+        #                 amount: '0.00080000',
+        #                 currency: 'btc'
+        #             }],
+        #             operation: 'funding',
+        #             details: {
+        #                 network: 'btc',
+        #                 method: 'btc',
+        #                 method_name: 'Bitcoin',
+        #                 asset: 'btc',
+        #                 protocol: 'btc',
+        #                 integration: 'bitgo-v2',
+        #                 fid: '6112c6369100d6ecceb7f54f17cf0511'
+        #             }
+        #         }]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        return self.parse_ledger(payload, code, since, limit)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'funding': 'transaction',
+            'withdrawal': 'transaction',
+            'trade': 'trade',
+            'fee': 'fee',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         eid: '2510b3e2bc1c87f584500a18084f35ed',
+        #         created_at: '2022-06-08T12:21:42+0000',
+        #         balance_updates: [{
+        #             amount: '0.00080000',
+        #             currency: 'btc'
+        #         }],
+        #         operation: 'funding',
+        #         details: {
+        #             network: 'btc',
+        #             method: 'btc',
+        #             method_name: 'Bitcoin',
+        #             asset: 'btc',
+        #             protocol: 'btc',
+        #             integration: 'bitgo-v2',
+        #             fid: '6112c6369100d6ecceb7f54f17cf0511'
+        #         }
+        #     }
+        #
+        #  trade
+        #     {
+        #         eid: '8976c6053f078f704f037d82a813678a',
+        #         created_at: '2022-06-08T17:01:48+0000',
+        #         balance_updates: [{
+        #                 amount: '59.21320500',
+        #                 currency: 'mxn'
+        #             },
+        #             {
+        #                 amount: '-0.00010000',
+        #                 currency: 'btc'
+        #             }
+        #         ],
+        #         operation: 'trade',
+        #         details: {
+        #             tid: '72145428',
+        #             oid: 'JO5TZmMZjzjlZDyT'
+        #         }
+        #     }
+        #
+        #  fee
+        #     {
+        #         eid: 'cbbb3c8d4e41723d25d2850dcb7c3c74',
+        #         created_at: '2022-06-08T17:01:48+0000',
+        #         balance_updates: [{
+        #             amount: '-0.38488583',
+        #             currency: 'mxn'
+        #         }],
+        #         operation: 'fee',
+        #         details: {
+        #             tid: '72145428',
+        #             oid: 'JO5TZmMZjzjlZDyT'
+        #         }
+        #     }
+        operation = self.safe_string(item, 'operation')
+        type = self.parse_ledger_entry_type(operation)
+        balanceUpdates = self.safe_value(item, 'balance_updates', [])
+        firstBalance = self.safe_value(balanceUpdates, 0, {})
+        direction = None
+        fee = None
+        amount = self.safe_string(firstBalance, 'amount')
+        currencyId = self.safe_string(firstBalance, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        details = self.safe_value(item, 'details', {})
+        referenceId = self.safe_string_2(details, 'fid', 'wid')
+        if referenceId is None:
+            referenceId = self.safe_string(details, 'tid')
+        if operation == 'funding':
+            direction = 'in'
+        elif operation == 'withdrawal':
+            direction = 'out'
+        elif operation == 'trade':
+            direction = None
+        elif operation == 'fee':
+            direction = 'out'
+            cost = Precise.string_abs(amount)
+            fee = {
+                'cost': cost,
+                'currency': currency,
+            }
+        timestamp = self.parse8601(self.safe_string(item, 'created_at'))
+        return self.safe_ledger_entry({
+            'id': self.safe_string(item, 'eid'),
+            'direction': direction,
+            'account': None,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': 'ok',
+            'fee': fee,
+            'info': item,
+        }, currency)
 
     def fetch_markets(self, params={}):
         """
@@ -771,6 +933,60 @@ class bitso(Exchange):
         }
         return self.privateDeleteOrdersOid(self.extend(request, params))
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if not isinstance(ids, list):
+            raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        oids = ','.join(ids)
+        request = {
+            'oids': oids,
+        }
+        response = self.privateDeleteOrders(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "payload": ["yWTQGxDMZ0VimZgZ"]
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        orders = []
+        for i in range(0, len(payload)):
+            id = payload[i]
+            orders.append(self.parse_order(id, market))
+        return orders
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param None symbol: bitso does not support canceling orders for only a specific market
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if symbol is not None:
+            raise NotSupported(self.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.')
+        response = self.privateDeleteOrdersAll(params)
+        #
+        #     {
+        #         success: True,
+        #         payload: ['NWUZUYNT12ljwzDT', 'kZUkZmQ2TTjkkYTY']
+        #     }
+        #
+        payload = self.safe_value(response, 'payload', [])
+        canceledOrders = []
+        for i in range(0, len(payload)):
+            order = self.parse_order(payload[i])
+            canceledOrders.append(order)
+        return canceledOrders
+
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
@@ -779,7 +995,16 @@ class bitso(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = self.safe_string(order, 'oid')
+        #
+        #
+        # canceledOrder
+        # yWTQGxDMZ0VimZgZ
+        #
+        id = None
+        if isinstance(order, str):
+            id = order
+        else:
+            id = self.safe_string(order, 'oid')
         side = self.safe_string(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'book')
@@ -883,6 +1108,83 @@ class bitso(Exchange):
         }
         response = self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
+
+    def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: bitso does not support filtering by currency code and will ignore self argument
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'fid': id,
+        }
+        response = self.privateGetFundingsFid(self.extend(request, params))
+        #
+        #     {
+        #         success: True,
+        #         payload: [{
+        #             fid: '6112c6369100d6ecceb7f54f17cf0511',
+        #             status: 'complete',
+        #             created_at: '2022-06-08T12:02:49+0000',
+        #             currency: 'btc',
+        #             method: 'btc',
+        #             method_name: 'Bitcoin',
+        #             amount: '0.00080000',
+        #             asset: 'btc',
+        #             network: 'btc',
+        #             protocol: 'btc',
+        #             integration: 'bitgo-v2',
+        #             details: {
+        #                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        #                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        #                 confirmations: '4'
+        #             }
+        #         }]
+        #     }
+        #
+        transactions = self.safe_value(response, 'payload', [])
+        first = self.safe_value(transactions, 0, {})
+        return self.parse_transaction(first)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetFundings(params)
+        #
+        #     {
+        #         success: True,
+        #         payload: [{
+        #             fid: '6112c6369100d6ecceb7f54f17cf0511',
+        #             status: 'complete',
+        #             created_at: '2022-06-08T12:02:49+0000',
+        #             currency: 'btc',
+        #             method: 'btc',
+        #             method_name: 'Bitcoin',
+        #             amount: '0.00080000',
+        #             asset: 'btc',
+        #             network: 'btc',
+        #             protocol: 'btc',
+        #             integration: 'bitgo-v2',
+        #             details: {
+        #                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        #                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        #                 confirmations: '4'
+        #             }
+        #         }]
+        #     }
+        #
+        transactions = self.safe_value(response, 'payload', [])
+        return self.parse_transactions(transactions, code, since, limit, params)
 
     def fetch_deposit_address(self, code, params={}):
         """
@@ -1039,7 +1341,39 @@ class bitso(Exchange):
         first = self.safe_value(payload, 0)
         return self.parse_transaction(first, currency)
 
+    def safe_network(self, networkId):
+        if networkId is None:
+            return None
+        networkId = networkId.upper()
+        networksById = {
+            'trx': 'TRC20',
+            'erc20': 'ERC20',
+            'bsc': 'BEP20',
+            'bep2': 'BEP2',
+        }
+        return self.safe_string(networksById, networkId, networkId)
+
     def parse_transaction(self, transaction, currency=None):
+        #
+        # deposit
+        #     {
+        #         fid: '6112c6369100d6ecceb7f54f17cf0511',
+        #         status: 'complete',
+        #         created_at: '2022-06-08T12:02:49+0000',
+        #         currency: 'btc',
+        #         method: 'btc',
+        #         method_name: 'Bitcoin',
+        #         amount: '0.00080000',
+        #         asset: 'btc',
+        #         network: 'btc',
+        #         protocol: 'btc',
+        #         integration: 'bitgo-v2',
+        #         details: {
+        #             receiving_address: '3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        #             tx_hash: '327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        #             confirmations: '4'
+        #         }
+        #     }
         #
         # withdraw
         #
@@ -1056,20 +1390,28 @@ class bitso(Exchange):
         #         }
         #     }
         #
-        currency = self.safe_currency(None, currency)
+        currencyId = self.safe_string_2(transaction, 'currency', 'asset')
+        currency = self.safe_currency(currencyId, currency)
+        details = self.safe_value(transaction, 'details', {})
+        datetime = self.safe_string(transaction, 'created_at')
+        withdrawalAddress = self.safe_string(details, 'withdrawal_address')
+        receivingAddress = self.safe_string(details, 'receiving_address')
+        networkId = self.safe_string_2(transaction, 'network', 'method')
+        status = self.safe_string(transaction, 'status')
+        withdrawId = self.safe_string(transaction, 'wid')
         return {
-            'id': self.safe_string(transaction, 'wid'),
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
-            'network': None,
-            'addressFrom': None,
-            'address': None,
-            'addressTo': None,
-            'amount': None,
-            'type': None,
-            'currency': currency['code'],
-            'status': None,
+            'id': self.safe_string_2(transaction, 'wid', 'fid'),
+            'txid': self.safe_string(details, 'tx_hash'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'network': self.safe_network(networkId),
+            'addressFrom': receivingAddress,
+            'address': withdrawalAddress if (withdrawalAddress is not None) else receivingAddress,
+            'addressTo': withdrawalAddress,
+            'amount': self.safe_string(transaction, 'amount'),
+            'type': 'deposit' if (withdrawId is None) else 'withdrawal',
+            'currency': self.safe_currency_code(currencyId, currency),
+            'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
             'tag': None,
@@ -1079,10 +1421,19 @@ class bitso(Exchange):
             'info': transaction,
         }
 
+    def parse_transaction_status(self, status):
+        statuses = {
+            'pending': 'pending',
+            'in_progress': 'pending',
+            'complete': 'ok',
+            'failed': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if method == 'GET':
+        if method == 'GET' or method == 'DELETE':
             if query:
                 endpoint += '?' + self.urlencode(query)
         url = self.urls['api'] + endpoint
@@ -1090,7 +1441,7 @@ class bitso(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             request = ''.join([nonce, method, endpoint])
-            if method != 'GET':
+            if method != 'GET' and method != 'DELETE':
                 if query:
                     body = self.json(query)
                     request += body

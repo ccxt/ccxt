@@ -33,6 +33,9 @@ module.exports = class cdax extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -1523,7 +1526,7 @@ module.exports = class cdax extends Exchange {
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
-        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision']);
+        return this.decimalToPrecision (fee, 0, this.currencies[code]['precision'], this.precisionMode);
     }
 
     safeNetwork (networkId) {

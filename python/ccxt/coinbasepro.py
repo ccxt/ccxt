@@ -270,7 +270,6 @@ class coinbasepro(Exchange):
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
             details = self.safe_value(currency, 'details', {})
-            precision = self.safe_number(currency, 'max_precision')
             status = self.safe_string(currency, 'status')
             active = (status == 'online')
             result[code] = {
@@ -283,7 +282,7 @@ class coinbasepro(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'max_precision'),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(details, 'min_size'),

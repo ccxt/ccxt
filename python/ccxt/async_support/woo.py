@@ -627,7 +627,7 @@ class woo(Exchange):
             id = self.safe_string(currency, 'balance_token')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullname')
-            decimals = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             chainedTokenCode = self.safe_string(currency, 'token')
             parts = chainedTokenCode.split('_')
             chainNameId = self.safe_string(parts, 0, chainedTokenCode)
@@ -669,7 +669,7 @@ class woo(Exchange):
                     'id': id,
                     'name': name,
                     'code': code,
-                    'precision': decimals if (networkLength == 1) else None,  # will be filled down below
+                    'precision': precision if (networkLength == 1) else None,  # will be filled down below
                     'active': None,
                     'fee': resultingNetworks[firstNetworkKey]['fee'] if (networkLength == 1) else None,
                     'networks': resultingNetworks,
@@ -689,10 +689,10 @@ class woo(Exchange):
             firstNetworkKey = self.safe_string(networkKeys, 0)
             # now add the precision info from token-object
             if chainCode in result[code]['networks']:
-                result[code]['networks'][chainCode]['precision'] = decimals
+                result[code]['networks'][chainCode]['precision'] = precision
             else:
                 # else chainCode will be the only token slug, which has only 1 supported network
-                result[code]['networks'][firstNetworkKey]['precision'] = decimals
+                result[code]['networks'][firstNetworkKey]['precision'] = precision
             # now add the info object specifically for the item
             result[code]['info'][chainedTokenCode] = currency
         return result

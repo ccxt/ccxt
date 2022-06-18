@@ -50,6 +50,7 @@ class btcmarkets(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -60,6 +61,7 @@ class btcmarkets(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -361,7 +363,6 @@ class btcmarkets(Exchange):
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals')))
             minAmount = self.safe_number(market, 'minOrderAmount')
             maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
@@ -394,7 +395,7 @@ class btcmarkets(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals'))),
                     'price': pricePrecision,
                 },
                 'limits': {

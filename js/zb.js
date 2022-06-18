@@ -635,8 +635,6 @@ module.exports = class zb extends Exchange {
             const linear = swap ? true : undefined;
             let active = true;
             let symbol = base + '/' + quote;
-            const amountPrecisionString = this.safeString2 (market, 'amountScale', 'amountDecimal');
-            const pricePrecisionString = this.safeString2 (market, 'priceScale', 'priceDecimal');
             if (swap) {
                 const status = this.safeString (market, 'status');
                 active = (status === '1');
@@ -667,8 +665,8 @@ module.exports = class zb extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString2 (market, 'amountScale', 'amountDecimal'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString2 (market, 'priceScale', 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -3116,6 +3114,7 @@ module.exports = class zb extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the zb api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate to fetch
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         await this.loadMarkets ();
@@ -3133,13 +3132,10 @@ module.exports = class zb extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const till = this.safeInteger (params, 'till');
-        const endTime = this.safeString (params, 'endTime');
-        params = this.omit (params, [ 'endTime', 'till' ]);
-        if (till !== undefined) {
-            request['endTime'] = till;
-        } else if (endTime !== undefined) {
-            request['endTime'] = endTime;
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'endTime', 'till', 'until' ]);
+        if (until !== undefined) {
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
             request['limit'] = limit;

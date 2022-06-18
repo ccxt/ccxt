@@ -1253,19 +1253,20 @@ class kucoinfutures(kucoin):
         """
         fetches a list of orders placed on the exchange
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
-        :param str symbol: unified symbol for the market to retrieve orders from
-        :param int since: timestamp in ms of the earliest order to retrieve
-        :param int limit: The maximum number of orders to retrieve
+        :param str|None symbol: unified symbol for the market to retrieve orders from
+        :param int|None since: timestamp in ms of the earliest order to retrieve
+        :param int|None limit: The maximum number of orders to retrieve
         :param dict params: exchange specific parameters
-        :param bool params['stop']: set to True to retrieve untriggered stop orders
-        :param int params['till']: End time in ms
-        :param str params['side']: buy or sell
-        :param str params['type']: limit or market
+        :param bool|None params['stop']: set to True to retrieve untriggered stop orders
+        :param int|None params['until']: End time in ms
+        :param str|None params['side']: buy or sell
+        :param str|None params['type']: limit or market
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
         elif status == 'open':
@@ -1281,9 +1282,8 @@ class kucoinfutures(kucoin):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
-        till = self.safe_integer_2(params, 'till', 'endAt')
-        if till is not None:
-            request['endAt'] = till
+        if until is not None:
+            request['endAt'] = until
         method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
         response = getattr(self, method)(self.extend(request, params))
         responseData = self.safe_value(response, 'data', {})

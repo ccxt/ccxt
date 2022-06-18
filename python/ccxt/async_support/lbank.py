@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -31,6 +32,9 @@ class lbank(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -88,7 +92,7 @@ class lbank(Exchange):
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://www.lbank.info/fees.html',
-                'referral': 'https://www.lbex.io/invite?icode=7QCY',
+                'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -132,6 +136,7 @@ class lbank(Exchange):
             'options': {
                 'cacheSecretAsPem': True,
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
@@ -194,8 +199,8 @@ class lbank(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityAccuracy'),
-                    'price': self.safe_integer(market, 'priceAccuracy'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
                     'leverage': {

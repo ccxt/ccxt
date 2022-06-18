@@ -4397,10 +4397,6 @@ class huobi extends Exchange {
         return $response;
     }
 
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
-    }
-
     public function safe_network($networkId) {
         $lastCharacterIndex = strlen($networkId) - 1;
         $lastCharacter = $networkId[$lastCharacterIndex];
@@ -6470,13 +6466,14 @@ class huobi extends Exchange {
          * @param {int} $since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
          * @param {int} $limit page items, default 20, shall not exceed 50
          * @param {dict} $params exchange specific $params
-         * @param {int} $params->till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} $params->until timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} $params->page_index page index, default page 1 if not filled
+         * @param {int} $params->code unified currency $code, can be used when $symbol is null
          * @return A list of settlement history objects
          */
         $code = $this->safe_string($params, 'code');
-        $till = $this->safe_integer($params, 'till');
-        $params = $this->omit($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         $market = ($symbol === null) ? null : $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
         if ($type === 'future') {
@@ -6498,8 +6495,8 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        if ($till !== null) {
-            $request['end_at'] = $till;
+        if ($until !== null) {
+            $request['end_at'] = $until;
         }
         $method = 'contractPublicGetApiV1ContractSettlementRecords';
         if ($market['swap']) {

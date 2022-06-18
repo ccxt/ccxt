@@ -666,7 +666,6 @@ module.exports = class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision')));
             const isWithdrawEnabled = this.safeValue (entry, 'isWithdrawEnabled', false);
             const isDepositEnabled = this.safeValue (entry, 'isDepositEnabled', false);
             const fee = this.safeNumber (entry, 'withdrawalMinFee');
@@ -675,7 +674,7 @@ module.exports = class kucoin extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'precision'))),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -1373,17 +1372,17 @@ module.exports = class kucoin extends Exchange {
          * @name kucoin#fetchOrdersByStatus
          * @description fetch a list of orders
          * @param {str} status *not used for stop orders* 'open' or 'closed'
-         * @param {str} symbol unified market symbol
-         * @param {int} since timestamp in ms of the earliest order
-         * @param {int} limit max number of orders to return
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit max number of orders to return
          * @param {dict} params exchange specific params
-         * @param {int} params.till end time in ms
-         * @param {bool} params.stop true if fetching stop orders
-         * @param {str} params.side buy or sell
-         * @param {str} params.type limit, market, limit_stop or market_stop
-         * @param {str} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @param {int} params.currentPage *stop orders only* current page
-         * @param {str} params.orderIds *stop orders only* comma seperated order ID list
+         * @param {int|undefined} params.until end time in ms
+         * @param {bool|undefined} params.stop true if fetching stop orders
+         * @param {str|undefined} params.side buy or sell
+         * @param {str|undefined} params.type limit, market, limit_stop or market_stop
+         * @param {str|undefined} params.tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
+         * @param {int|undefined} params.currentPage *stop orders only* current page
+         * @param {str|undefined} params.orderIds *stop orders only* comma seperated order ID list
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1407,12 +1406,12 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const till = this.safeInteger (params, 'till');
-        if (till) {
-            request['endAt'] = till;
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until) {
+            request['endAt'] = until;
         }
         const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
