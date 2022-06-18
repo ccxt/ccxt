@@ -308,7 +308,7 @@ module.exports = class bitso extends Exchange {
                 'currency': currency,
             };
         }
-        const datetime = this.safeString (item, 'created_at');
+        const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
         return this.safeLedgerEntry ({
             'id': this.safeString (item, 'eid'),
             'direction': direction,
@@ -317,9 +317,9 @@ module.exports = class bitso extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': this.parseNumber (amount),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'before': undefined,
             'after': undefined,
             'status': 'ok',
