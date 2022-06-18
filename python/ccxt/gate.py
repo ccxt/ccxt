@@ -2325,6 +2325,41 @@ class gate(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
+        #
+        #      [
+        #          {
+        #              "id":"3711449544",
+        #              "create_time":"1655486040",
+        #              "create_time_ms":"1655486040177.599900",
+        #              "currency_pair":"SHIB_USDT",
+        #              "side":"buy",
+        #              "role":"taker",
+        #              "amount":"1360039",
+        #              "price":"0.0000081084",
+        #              "order_id":"169717399644",
+        #              "fee":"2720.078",
+        #              "fee_currency":"SHIB",
+        #              "point_fee":"0",
+        #              "gt_fee":"0"
+        #          }
+        #      ]
+        #
+        response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
+        return response
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         Fetch personal trading history
