@@ -465,6 +465,10 @@ class Exchange {
         return $ohlcvs;
     }
 
+    public static function decamelize($string) {
+        return strtolower(preg_replace(['/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/'], '$1_$2', $string));
+    }
+
     public static function capitalize($string) {
         return mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
     }
@@ -1214,6 +1218,7 @@ class Exchange {
         $camelcase_suffix = implode(array_map(get_called_class() . '::capitalize', $split_path));
         $lowercase_path = array_map('trim', array_map('strtolower', $split_path));
         $underscore_suffix = implode('_', array_filter($lowercase_path));
+        $snakecase_suffix = static::decamelize($camelcase_suffix);
         $camelcase_prefix = implode('', array_merge(
             array($paths[0]),
             array_map(get_called_class() . '::capitalize', array_slice($paths, 1))
@@ -1224,9 +1229,13 @@ class Exchange {
         ));
         $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
         $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
+        $snakecase = $underscore_prefix . '_' . $lowercase_method . '_' . $snakecase_suffix;
         $api_argument = (count($paths) > 1) ? $paths : $paths[0];
         $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
         $this->defined_rest_api[$underscore] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        if ($underscore != $snakecase) {
+            $this->defined_rest_api[$snakecase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        }
     }
 
     public function define_rest_api($api, $method_name, $paths = array()) {
