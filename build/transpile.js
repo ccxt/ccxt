@@ -920,11 +920,22 @@ class Transpiler {
         return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
+    getImplicitMethodsList (className) {
+        const targetExchange = require ('../js/'+className+'.js')
+        const exchange = new targetExchange({'saveDefinedRestApiMethods':true});
+        return exchange.definedRestApiMethods;
+    }
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
-        const methods = classBody.trim ().split (/\n\s*\n/)
+        let newClassBody = classBody;
+        const implicitMethods = this.getImplicitMethodsList(className);
+        for (const [camelCase, lower_case] of Object.entries (implicitMethods)) {
+            newClassBody = newClassBody.replace (new RegExp(camelCase + ' \\(', 'g'), lower_case + ' (');
+        }
+        const methods = newClassBody.trim ().split (/\n\s*\n/)
+         
         const {
             python2,
             python3,

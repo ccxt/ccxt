@@ -343,7 +343,11 @@ module.exports = class Exchange {
         }
         // generate implicit api
         if (this.api) {
+            this.definedRestApiMethods = {};
             this.defineRestApi (this.api, 'request')
+            if (!('saveDefinedRestApiMethods' in userConfig)) {
+                this.definedRestApiMethods = null;
+            }
         }
         // init the request rate limiter
         this.initRestRateLimiter ()
@@ -476,6 +480,7 @@ module.exports = class Exchange {
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
         this[camelcase]  = partial
         this[underscore] = partial
+        this.definedRestApiMethods[camelcase] = underscore
     }
 
     defineRestApi (api, methodName, paths = []) {
