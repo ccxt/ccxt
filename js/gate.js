@@ -2220,7 +2220,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
