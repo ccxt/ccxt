@@ -2218,7 +2218,7 @@ export default class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2439,6 +2439,45 @@ export default class gate extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        //
+        //      [
+        //          {
+        //              "id":"3711449544",
+        //              "create_time":"1655486040",
+        //              "create_time_ms":"1655486040177.599900",
+        //              "currency_pair":"SHIB_USDT",
+        //              "side":"buy",
+        //              "role":"taker",
+        //              "amount":"1360039",
+        //              "price":"0.0000081084",
+        //              "order_id":"169717399644",
+        //              "fee":"2720.078",
+        //              "fee_currency":"SHIB",
+        //              "point_fee":"0",
+        //              "gt_fee":"0"
+        //          }
+        //      ]
+        //
+        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        return response;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -378,6 +378,7 @@ class delta(Exchange):
         #             "total_count":81
         #         },
         #         "result":[
+        #             # the below response represents item from perpetual market
         #             {
         #                 "annualized_funding":"5.475000000000000000",
         #                 "is_quanto":false,
@@ -436,6 +437,180 @@ class delta(Exchange):
         #                 "funding_method":"mark_price",
         #                 "max_leverage_notional":"20000"
         #             },
+        #             # the below response represents item from spot market
+        #             {
+        #                 "position_size_limit": 10000000,
+        #                 "settlement_price": null,
+        #                 "funding_method": "mark_price",
+        #                 "settling_asset": null,
+        #                 "impact_size": 10,
+        #                 "id": 32258,
+        #                 "auction_finish_time": null,
+        #                 "description": "Solana tether spot market",
+        #                 "trading_status": "operational",
+        #                 "tick_size": "0.01",
+        #                 "liquidation_penalty_factor": "1",
+        #                 "spot_index": {
+        #                     "config": {
+        #                         "quoting_asset": "USDT",
+        #                         "service_id": 8,
+        #                         "underlying_asset": "SOL"
+        #                     },
+        #                     "constituent_exchanges": [
+        #                         {
+        #                         "exchange": "binance",
+        #                         "health_interval": 60,
+        #                         "health_priority": 1,
+        #                         "weight": 1
+        #                         },
+        #                         {
+        #                         "exchange": "huobi",
+        #                         "health_interval": 60,
+        #                         "health_priority": 2,
+        #                         "weight": 1
+        #                         }
+        #                     ],
+        #                     "constituent_indices": null,
+        #                     "description": "Solana index from binance and huobi",
+        #                     "health_interval": 300,
+        #                     "id": 105,
+        #                     "impact_size": "40.000000000000000000",
+        #                     "index_type": "spot_pair",
+        #                     "is_composite": False,
+        #                     "price_method": "ltp",
+        #                     "quoting_asset_id": 5,
+        #                     "symbol": ".DESOLUSDT",
+        #                     "tick_size": "0.000100000000000000",
+        #                     "underlying_asset_id": 66
+        #                 },
+        #                 "contract_type": "spot",
+        #                 "launch_time": "2022-02-03T10:18:11Z",
+        #                 "symbol": "SOL_USDT",
+        #                 "disruption_reason": null,
+        #                 "settlement_time": null,
+        #                 "insurance_fund_margin_contribution": "1",
+        #                 "is_quanto": False,
+        #                 "maintenance_margin": "5",
+        #                 "taker_commission_rate": "0.0005",
+        #                 "auction_start_time": null,
+        #                 "max_leverage_notional": "10000000",
+        #                 "state": "live",
+        #                 "annualized_funding": "0",
+        #                 "notional_type": "vanilla",
+        #                 "price_band": "100",
+        #                 "product_specs": {
+        #                     "kyc_required": False,
+        #                     "max_order_size": 2000,
+        #                     "min_order_size": 0.01,
+        #                     "quoting_precision": 4,
+        #                     "underlying_precision": 2
+        #                 },
+        #                 "default_leverage": "1.000000000000000000",
+        #                 "initial_margin": "10",
+        #                 "maintenance_margin_scaling_factor": "1",
+        #                 "ui_config": {
+        #                     "default_trading_view_candle": "1d",
+        #                     "leverage_slider_values": [],
+        #                     "price_clubbing_values": [
+        #                         0.01,
+        #                         0.05,
+        #                         0.1,
+        #                         0.5,
+        #                         1,
+        #                         2.5,
+        #                         5
+        #                     ],
+        #                     "show_bracket_orders": False,
+        #                     "sort_priority": 2,
+        #                     "tags": []
+        #                 },
+        #                 "basis_factor_max_limit": "10000",
+        #                 "contract_unit_currency": "SOL",
+        #                 "strike_price": null,
+        #                 "quoting_asset": {
+        #                     "base_withdrawal_fee": "10.000000000000000000",
+        #                     "deposit_status": "enabled",
+        #                     "id": 5,
+        #                     "interest_credit": False,
+        #                     "interest_slabs": null,
+        #                     "kyc_deposit_limit": "100000.000000000000000000",
+        #                     "kyc_withdrawal_limit": "10000.000000000000000000",
+        #                     "min_withdrawal_amount": "30.000000000000000000",
+        #                     "minimum_precision": 2,
+        #                     "name": "Tether",
+        #                     "networks": [
+        #                         {
+        #                           "base_withdrawal_fee": "25",
+        #                           "deposit_status": "enabled",
+        #                           "memo_required": False,
+        #                           "network": "ERC20",
+        #                           "variable_withdrawal_fee": "0",
+        #                           "withdrawal_status": "enabled"
+        #                         },
+        #                         {
+        #                           "base_withdrawal_fee": "1",
+        #                           "deposit_status": "enabled",
+        #                           "memo_required": False,
+        #                           "network": "BEP20(BSC)",
+        #                           "variable_withdrawal_fee": "0",
+        #                           "withdrawal_status": "enabled"
+        #                         },
+        #                         {
+        #                           "base_withdrawal_fee": "1",
+        #                           "deposit_status": "disabled",
+        #                           "memo_required": False,
+        #                           "network": "TRC20(TRON)",
+        #                           "variable_withdrawal_fee": "0",
+        #                           "withdrawal_status": "disabled"
+        #                         }
+        #                     ],
+        #                     "precision": 8,
+        #                     "sort_priority": 1,
+        #                     "symbol": "USDT",
+        #                     "variable_withdrawal_fee": "0.000000000000000000",
+        #                     "withdrawal_status": "enabled"
+        #                 },
+        #                 "maker_commission_rate": "0.0005",
+        #                 "initial_margin_scaling_factor": "2",
+        #                 "underlying_asset": {
+        #                     "base_withdrawal_fee": "0.000000000000000000",
+        #                     "deposit_status": "enabled",
+        #                     "id": 66,
+        #                     "interest_credit": False,
+        #                     "interest_slabs": null,
+        #                     "kyc_deposit_limit": "0.000000000000000000",
+        #                     "kyc_withdrawal_limit": "0.000000000000000000",
+        #                     "min_withdrawal_amount": "0.020000000000000000",
+        #                     "minimum_precision": 4,
+        #                     "name": "Solana",
+        #                     "networks": [
+        #                         {
+        #                           "base_withdrawal_fee": "0.01",
+        #                           "deposit_status": "enabled",
+        #                           "memo_required": False,
+        #                           "network": "SOLANA",
+        #                           "variable_withdrawal_fee": "0",
+        #                           "withdrawal_status": "enabled"
+        #                         },
+        #                         {
+        #                           "base_withdrawal_fee": "0.01",
+        #                           "deposit_status": "enabled",
+        #                           "memo_required": False,
+        #                           "network": "BEP20(BSC)",
+        #                           "variable_withdrawal_fee": "0",
+        #                           "withdrawal_status": "enabled"
+        #                         }
+        #                     ],
+        #                     "precision": 8,
+        #                     "sort_priority": 7,
+        #                     "symbol": "SOL",
+        #                     "variable_withdrawal_fee": "0.000000000000000000",
+        #                     "withdrawal_status": "enabled"
+        #                 },
+        #                 "barrier_price": null,
+        #                 "contract_value": "1",
+        #                 "short_description": "SOL-USDT spot market"
+        #             },
         #         ],
         #         "success":true
         #     }
@@ -449,6 +624,7 @@ class delta(Exchange):
             quotingAsset = self.safe_value(market, 'quoting_asset', {})
             underlyingAsset = self.safe_value(market, 'underlying_asset', {})
             settlingAsset = self.safe_value(market, 'settling_asset')
+            productSpecs = self.safe_value(market, 'product_specs', {})
             baseId = self.safe_string(underlyingAsset, 'symbol')
             quoteId = self.safe_string(quotingAsset, 'symbol')
             settleId = self.safe_string(settlingAsset, 'symbol')
@@ -468,6 +644,12 @@ class delta(Exchange):
             expiryDatetime = self.safe_string(market, 'settlement_time')
             expiry = self.parse8601(expiryDatetime)
             contractSize = self.safe_number(market, 'contract_value')
+            amountPrecision = None
+            if spot:
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(productSpecs, 'underlying_precision')))  # seems inverse of 'impact_size'
+            else:
+                # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
+                amountPrecision = self.parse_number('1')
             linear = (settle == base)
             optionType = None
             symbol = base + '/' + quote
@@ -521,7 +703,7 @@ class delta(Exchange):
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
-                    'amount': self.parse_number('1'),  # number of contracts
+                    'amount': amountPrecision,
                     'price': self.safe_number(market, 'tick_size'),
                 },
                 'limits': {

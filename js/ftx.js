@@ -929,7 +929,7 @@ export default class ftx extends Exchange {
          * @param {dict} params extra parameters specific to the ftx api endpoint
          * @param {str|undefined} params.price "index" for index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
         const [ market, marketId ] = this.getMarketParams (symbol, 'market_name', params);
@@ -1871,6 +1871,7 @@ export default class ftx extends Exchange {
          * @param {str} id order id
          * @param {str|undefined} symbol not used by ftx cancelOrder ()
          * @param {dict} params extra parameters specific to the ftx api endpoint
+         * @param {bool} params.stop true if cancelling a stop/trigger order
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1880,18 +1881,19 @@ export default class ftx extends Exchange {
         const options = this.safeValue (this.options, 'cancelOrder', {});
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
-        const type = this.safeValue (params, 'type');
+        const type = this.safeValue (params, 'type');  // Deprecated: use params.stop instead
+        const stop = this.safeValue (params, 'stop');
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
             request['order_id'] = parseInt (id);
-            if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
                 method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             request['client_order_id'] = clientOrderId;
             method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {

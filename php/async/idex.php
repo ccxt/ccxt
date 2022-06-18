@@ -34,7 +34,10 @@ class idex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -48,6 +51,7 @@ class idex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -75,6 +79,7 @@ class idex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => null,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -1354,6 +1359,44 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $this->check_required_credentials();
+        yield $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $nonce = $this->uuidv1();
+        $request = array(
+            'parameters' => array(
+                'nonce' => $nonce,
+                'wallet' => $this->walletAddress,
+            ),
+        );
+        $walletBytes = $this->remove0x_prefix($this->walletAddress);
+        $byteArray = array(
+            $this->base16_to_binary($nonce),
+            $this->base16_to_binary($walletBytes),
+        );
+        if ($market !== null) {
+            $byteArray[] = $this->encode($market['id']);
+            $request['parameters']['market'] = $market['id'];
+        }
+        $binary = $this->binary_concat_array($byteArray);
+        $hash = $this->hash($binary, 'keccak', 'hex');
+        $signature = $this->sign_message_string($hash, $this->privateKey);
+        $request['signature'] = $signature;
+        // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
+        $response = yield $this->privateDeleteOrders (array_merge($request, $params));
+        return $this->parse_orders($response, $market);
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
@@ -1404,6 +1447,25 @@ class idex extends Exchange {
         }
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @param {str} $id deposit $id
+         * @param {str|null} $code not used by idex fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        yield $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
+            'wallet' => $this->walletAddress,
+            'depositId' => $id,
+        );
+        $response = yield $this->privateGetDeposits (array_merge($request, $params));
+        return $this->parse_transaction($response, $code);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
@@ -1417,6 +1479,38 @@ class idex extends Exchange {
             'method' => 'privateGetDeposits',
         ), $params);
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
+    }
+
+    public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = yield $this->publicGetTime ($params);
+        //
+        //    array( serverTime => '1655258263236' )
+        //
+        return $this->safe_number($response, 'serverTime');
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str|null} $code not used by idex.fetchWithdrawal
+         * @param {dict} $params extra parameters specific to the idex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        yield $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
+            'wallet' => $this->walletAddress,
+            'withdrawalId' => $id,
+        );
+        $response = yield $this->privateGetWithdrawals (array_merge($request, $params));
+        return $this->parse_transaction($response, $code);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1525,7 +1619,7 @@ class idex extends Exchange {
         $code = $this->safe_currency_code($this->safe_string($transaction, 'asset'), $currency);
         $amount = $this->safe_number($transaction, 'quantity');
         $txid = $this->safe_string($transaction, 'txId');
-        $timestamp = $this->safe_integer($transaction, 'txTime');
+        $timestamp = $this->safe_integer_2($transaction, 'txTime', 'time');
         $fee = null;
         if (is_array($transaction) && array_key_exists('fee', $transaction)) {
             $fee = array(

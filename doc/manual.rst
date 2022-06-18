@@ -4021,7 +4021,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
            4240.6,        // (H)ighest price, float
            4230.0,        // (L)owest price, float
            4230.7,        // (C)losing price, float
-           37.72941911    // (V)olume (in terms of the base currency), float
+           37.72941911    // (V)olume float (usually in terms of the base currency, the exchanges docstring may list whether quote or base units are used)
        ],
        ...
    ]
@@ -4673,7 +4673,7 @@ For checking if the user has supplied all the required credentials the ``Exchang
    import ccxt
    exchange = ccxt.coinbasepro()
    print(exchange.requiredCredentials)  # prints required credentials
-   exchange.checkRequiredCredentials()  # raises AuthenticationError
+   exchange.check_required_credentials()  # raises AuthenticationError
 
 .. code-block:: PHP
 
