@@ -797,6 +797,53 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    safeLedgerEntry (entry, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        let direction = this.safeString (entry, 'direction');
+        let before = this.safeString (entry, 'before');
+        let after = this.safeString (entry, 'after');
+        const amount = this.safeString (entry, 'amount');
+        if (amount !== undefined) {
+            if (before === undefined && after !== undefined) {
+                before = Precise.stringSub (after, amount);
+            } else if (before !== undefined && after === undefined) {
+                after = Precise.stringAdd (before, amount);
+            }
+        }
+        if (before !== undefined && after !== undefined) {
+            if (direction === undefined) {
+                if (Precise.stringGt (before, after)) {
+                    direction = 'out';
+                }
+                if (Precise.stringGt (after, before)) {
+                    direction = 'in';
+                }
+            }
+        }
+        const fee = this.safeValue (entry, 'fee');
+        if (fee !== undefined) {
+            fee['cost'] = this.safeNumber (fee, 'cost');
+        }
+        const timestamp = this.safeInteger (entry, 'timestamp');
+        return {
+            'id': this.safeString (entry, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (entry, 'account'),
+            'referenceId': this.safeString (entry, 'referenceId'),
+            'referenceAccount': this.safeString (entry, 'referenceAccount'),
+            'type': this.safeString (entry, 'type'),
+            'currency': currency['code'],
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': this.safeString (entry, 'status'),
+            'fee': fee,
+            'info': entry,
+        };
+    }
+
     setMarkets (markets, currencies = undefined) {
         const values = [];
         const marketValues = this.toArray (markets);
