@@ -504,9 +504,6 @@ class Exchange(object):
         if underscore != snake_case:
             setattr(cls, snake_case, to_bind)
 
-
-        
-
     def define_rest_api(self, api, method_name, paths=[]):
         for key, value in api.items():
             uppercase_method = key.upper()
