@@ -185,7 +185,6 @@ module.exports = class mercado extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const id = quote + base;
-            const priceLimit = '1e-5';
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -211,8 +210,8 @@ module.exports = class mercado extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber ('0.00001'),
+                    'amount': this.parseNumber ('1e-8'),
+                    'price': this.parseNumber ('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -224,7 +223,7 @@ module.exports = class mercado extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': this.parseNumber ('1e-5'),
                         'max': undefined,
                     },
                     'cost': {

@@ -375,8 +375,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber ('0.00000001'),
+                    'amount': this.parseNumber ('1e-8'),
+                    'price': this.parseNumber ('1e-8'),
                 },
                 'limits': this.extend (this.limits, {
                     'leverage': {
@@ -658,10 +658,10 @@ module.exports = class poloniex extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': this.parseNumber ('1e-8'),
                 'limits': {
                     'amount': {
-                        'min': this.parseNumber ('0.00000001'),
+                        'min': this.parseNumber ('1e-8'),
                         'max': undefined,
                     },
                     'withdraw': {

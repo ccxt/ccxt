@@ -117,9 +117,9 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'precision': {
-                'price': this.parseNumber ('0.0001'),
-                'amount': this.parseNumber ('0.0001'),
-                'cost': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('1e-4'),
+                'amount': this.parseNumber ('1e-4'),
+                'cost': this.parseNumber ('1e-8'),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

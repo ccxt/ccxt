@@ -624,7 +624,7 @@ module.exports = class bybit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': this.parseNumber ('1e-8'),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -702,7 +702,6 @@ module.exports = class bybit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'showStatus');
-            const quotePrecision = this.safeNumber (market, 'quotePrecision');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -731,7 +730,7 @@ module.exports = class bybit extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.safeNumber (market, 'basePrecision'),
-                    'price': this.safeNumber (market, 'minPricePrecision', quotePrecision),
+                    'price': this.safeNumber2 (market, 'minPricePrecision', 'quotePrecision'),
                 },
                 'limits': {
                     'leverage': {

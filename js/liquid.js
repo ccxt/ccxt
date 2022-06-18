@@ -466,7 +466,7 @@ module.exports = class liquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
+                    'amount': this.parseNumber ('1e-8'),
                     'price': this.safeNumber (market, 'tick_size'),
                 },
                 'limits': {

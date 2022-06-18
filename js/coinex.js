@@ -256,10 +256,6 @@ module.exports = class coinex extends Exchange {
                     'max': undefined,
                 },
             },
-            'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
