@@ -400,44 +400,44 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
         if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured')
+            throw new Error (this.id + '.rateLimit property is not configured');
         }
         this.tokenBucket = this.extend ({
             delay: 0.001,
             capacity: 1,
             cost: 1,
             maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE
-        }, this.tokenBucket)
-        this.throttle = throttle (this.tokenBucket)
+            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
+        }, this.tokenBucket);
+        this.throttle = throttle (this.tokenBucket);
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
             // fetchImplementation cannot be called on this. in browsers:
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
-            const fetchImplementation = this.fetchImplementation
-            const params = { method, headers, body, timeout: this.timeout }
+            const fetchImplementation = this.fetchImplementation;
+            const params = { method, headers, body, timeout: this.timeout };
             if (this.agent) {
-                params['agent'] = this.agent
+                params['agent'] = this.agent;
             } else if (this.httpAgent && url.indexOf ('http://') === 0) {
-                params['agent'] = this.httpAgent
+                params['agent'] = this.httpAgent;
             } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
-                params['agent'] = this.httpsAgent
+                params['agent'] = this.httpsAgent;
             }
             const promise =
                 fetchImplementation (url, this.extend (params, this.fetchOptions))
                     .catch ((e) => {
                         if (isNode) {
-                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
+                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '));
                         }
-                        throw e // rethrow all unknown errors
+                        throw e; // rethrow all unknown errors
                     })
-                    .then ((response) => this.handleRestResponse (response, url, method, headers, body))
+                    .then ((response) => this.handleRestResponse (response, url, method, headers, body));
             return timeout (this.timeout, promise).catch ((e) => {
                 if (e instanceof TimedOut) {
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
+                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
                 }
-                throw e
+                throw e;
             })
-        }
+        };
     }
 
     setSandboxMode (enabled) {
@@ -796,6 +796,53 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    safeLedgerEntry (entry, currency = undefined) {
+        currency = this.safeCurrency (undefined, currency);
+        let direction = this.safeString (entry, 'direction');
+        let before = this.safeString (entry, 'before');
+        let after = this.safeString (entry, 'after');
+        const amount = this.safeString (entry, 'amount');
+        if (amount !== undefined) {
+            if (before === undefined && after !== undefined) {
+                before = Precise.stringSub (after, amount);
+            } else if (before !== undefined && after === undefined) {
+                after = Precise.stringAdd (before, amount);
+            }
+        }
+        if (before !== undefined && after !== undefined) {
+            if (direction === undefined) {
+                if (Precise.stringGt (before, after)) {
+                    direction = 'out';
+                }
+                if (Precise.stringGt (after, before)) {
+                    direction = 'in';
+                }
+            }
+        }
+        const fee = this.safeValue (entry, 'fee');
+        if (fee !== undefined) {
+            fee['cost'] = this.safeNumber (fee, 'cost');
+        }
+        const timestamp = this.safeInteger (entry, 'timestamp');
+        return {
+            'id': this.safeString (entry, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (entry, 'account'),
+            'referenceId': this.safeString (entry, 'referenceId'),
+            'referenceAccount': this.safeString (entry, 'referenceAccount'),
+            'type': this.safeString (entry, 'type'),
+            'currency': currency['code'],
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
+            'status': this.safeString (entry, 'status'),
+            'fee': fee,
+            'info': entry,
+        };
+    }
 
     setMarkets (markets, currencies = undefined) {
         const values = [];

@@ -45,6 +45,7 @@ module.exports = class buda extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
@@ -55,6 +56,7 @@ module.exports = class buda extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -262,7 +264,6 @@ module.exports = class buda extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
             const taker_fee = this.safeString (market, 'taker_fee');
             const maker_fee = this.safeString (market, 'maker_fee');
@@ -294,7 +295,7 @@ module.exports = class buda extends Exchange {
                 'maker': this.parseNumber (Precise.stringDiv (maker_fee, '1000')),
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (baseInfo, 'input_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (quoteInfo, 'input_decimals'))),
                 },
                 'limits': {
                     'leverage': {

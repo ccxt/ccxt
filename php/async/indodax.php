@@ -27,10 +27,16 @@ class indodax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => false,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -65,6 +71,8 @@ class indodax extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFee' => true,
+                'fetchTransactionFees' => false,
                 'fetchTransactions' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -72,6 +80,7 @@ class indodax extends Exchange {
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
@@ -246,7 +255,7 @@ class indodax extends Exchange {
                 'optionType' => null,
                 'percentage' => true,
                 'precision' => array(
-                    'amount' => intval('8'),
+                    'amount' => $this->parse_number($this->parse_precision('8')),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                     'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),
@@ -697,6 +706,38 @@ class indodax extends Exchange {
             'type' => $side,
         );
         return yield $this->privatePostCancelOrder (array_merge($request, $params));
+    }
+
+    public function fetch_transaction_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for a transaction
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the indodax api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = yield $this->privatePostWithdrawFee (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "return" => {
+        //             "server_time" => 1607923272,
+        //             "withdraw_fee" => 0.005,
+        //             "currency" => "eth"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'return', array());
+        $currencyId = $this->safe_string($data, 'currency');
+        return array(
+            'info' => $response,
+            'rate' => $this->safe_number($data, 'withdraw_fee'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+        );
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

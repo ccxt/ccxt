@@ -659,7 +659,6 @@ class kucoin extends Exchange {
             $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision')));
             $isWithdrawEnabled = $this->safe_value($entry, 'isWithdrawEnabled', false);
             $isDepositEnabled = $this->safe_value($entry, 'isDepositEnabled', false);
             $fee = $this->safe_number($entry, 'withdrawalMinFee');
@@ -668,7 +667,7 @@ class kucoin extends Exchange {
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'precision'))),
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $isDepositEnabled,
@@ -1342,17 +1341,17 @@ class kucoin extends Exchange {
         /**
          * fetch a list of $orders
          * @param {str} $status *not used for $stop $orders* 'open' or 'closed'
-         * @param {str} $symbol unified $market $symbol
-         * @param {int} $since timestamp in ms of the earliest order
-         * @param {int} $limit max number of $orders to return
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since timestamp in ms of the earliest order
+         * @param {int|null} $limit max number of $orders to return
          * @param {dict} $params exchange specific $params
-         * @param {int} $params->till end time in ms
-         * @param {bool} $params->stop true if fetching $stop $orders
-         * @param {str} $params->side buy or sell
-         * @param {str} $params->type $limit, $market, limit_stop or market_stop
-         * @param {str} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
-         * @param {int} $params->currentPage *$stop $orders only* current page
-         * @param {str} $params->orderIds *$stop $orders only* comma seperated order ID list
+         * @param {int|null} $params->until end time in ms
+         * @param {bool|null} $params->stop true if fetching $stop $orders
+         * @param {str|null} $params->side buy or sell
+         * @param {str|null} $params->type $limit, $market, limit_stop or market_stop
+         * @param {str|null} $params->tradeType TRADE for spot trading, MARGIN_TRADE for Margin Trading
+         * @param {int|null} $params->currentPage *$stop $orders only* current page
+         * @param {str|null} $params->orderIds *$stop $orders only* comma seperated order ID list
          * @return An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure array of order structures}
          */
         $this->load_markets();
@@ -1376,12 +1375,12 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $till = $this->safe_integer($params, 'till');
-        if ($till) {
-            $request['endAt'] = $till;
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        if ($until) {
+            $request['endAt'] = $until;
         }
         $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
         $method = 'privateGetOrders';
         if ($stop) {
             $method = 'privateGetStopOrder';

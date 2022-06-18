@@ -346,7 +346,6 @@ module.exports = class ndax extends Exchange {
             const name = this.safeString (currency, 'ProductFullName');
             const type = this.safeString (currency, 'ProductType');
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const precision = this.safeNumber (currency, 'TickSize');
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
             result[code] = {
@@ -354,7 +353,7 @@ module.exports = class ndax extends Exchange {
                 'name': name,
                 'code': code,
                 'type': type,
-                'precision': precision,
+                'precision': this.safeNumber (currency, 'TickSize'),
                 'info': currency,
                 'active': active,
                 'deposit': undefined,

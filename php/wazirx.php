@@ -138,7 +138,7 @@ class wazirx extends Exchange {
         /**
          * retrieves data on all $markets for wazirx
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing market data
+         * @return {[dict]} an array of objects representing $market data
          */
         $response = $this->publicGetExchangeInfo ($params);
         //
@@ -170,14 +170,14 @@ class wazirx extends Exchange {
         $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $entry = $markets[$i];
-            $id = $this->safe_string($entry, 'symbol');
-            $baseId = $this->safe_string($entry, 'baseAsset');
-            $quoteId = $this->safe_string($entry, 'quoteAsset');
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $isSpot = $this->safe_value($entry, 'isSpotTradingAllowed');
-            $filters = $this->safe_value($entry, 'filters');
+            $isSpot = $this->safe_value($market, 'isSpotTradingAllowed');
+            $filters = $this->safe_value($market, 'filters');
             $minPrice = null;
             for ($j = 0; $j < count($filters); $j++) {
                 $filter = $filters[$j];
@@ -191,7 +191,7 @@ class wazirx extends Exchange {
             $takerString = Precise::string_div($takerString, '100');
             $makerString = $this->safe_string($fee, 'maker', '0.2');
             $makerString = Precise::string_div($makerString, '100');
-            $status = $this->safe_string($entry, 'status');
+            $status = $this->safe_string($market, 'status');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -219,8 +219,8 @@ class wazirx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'baseAssetPrecision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'quoteAssetPrecision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -240,7 +240,7 @@ class wazirx extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'info' => $entry,
+                'info' => $market,
             );
         }
         return $result;

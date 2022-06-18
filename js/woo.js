@@ -642,7 +642,7 @@ module.exports = class woo extends Exchange {
             const id = this.safeString (currency, 'balance_token');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
-            const decimals = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             const chainedTokenCode = this.safeString (currency, 'token');
             const parts = chainedTokenCode.split ('_');
             const chainNameId = this.safeString (parts, 0, chainedTokenCode);
@@ -685,7 +685,7 @@ module.exports = class woo extends Exchange {
                     'id': id,
                     'name': name,
                     'code': code,
-                    'precision': (networkLength === 1) ? decimals : undefined, // will be filled down below
+                    'precision': (networkLength === 1) ? precision : undefined, // will be filled down below
                     'active': undefined,
                     'fee': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['fee'] : undefined,
                     'networks': resultingNetworks,
@@ -706,10 +706,10 @@ module.exports = class woo extends Exchange {
             const firstNetworkKey = this.safeString (networkKeys, 0);
             // now add the precision info from token-object
             if (chainCode in result[code]['networks']) {
-                result[code]['networks'][chainCode]['precision'] = decimals;
+                result[code]['networks'][chainCode]['precision'] = precision;
             } else {
                 // else chainCode will be the only token slug, which has only 1 supported network
-                result[code]['networks'][firstNetworkKey]['precision'] = decimals;
+                result[code]['networks'][firstNetworkKey]['precision'] = precision;
             }
             // now add the info object specifically for the item
             result[code]['info'][chainedTokenCode] = currency;

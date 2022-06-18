@@ -94,9 +94,13 @@ class deribit extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'test' => 'https://test.deribit.com',
+                'test' => array(
+                    'rest' => 'https://test.deribit.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api' => 'https://www.deribit.com',
+                'api' => array(
+                    'rest' => 'https://www.deribit.com',
+                ),
                 'www' => 'https://www.deribit.com',
                 'doc' => array(
                     'https://docs.deribit.com/v2',
@@ -709,11 +713,10 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($balance) {
         $result = array(
-            'info' => $response,
+            'info' => $balance,
         );
-        $balance = $this->safe_value($response, 'result', array());
         $currencyId = $this->safe_string($balance, 'currency');
         $currencyCode = $this->safe_currency_code($currencyId);
         $account = $this->account();
@@ -740,7 +743,7 @@ class deribit extends Exchange {
         //
         //     {
         //         jsonrpc => '2.0',
-        //         result => array(
+        //         $result => array(
         //             total_pl => 0,
         //             session_upl => 0,
         //             session_rpl => 0,
@@ -779,7 +782,8 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
-        return $this->parse_balance($response);
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_balance($result);
     }
 
     public function create_deposit_address($code, $params = array ()) {
@@ -2505,7 +2509,7 @@ class deribit extends Exchange {
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

@@ -933,8 +933,7 @@ module.exports = class bitrue extends Exchange {
         const tickers = {};
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
-            const parts = marketIds[i].split ('_');
-            const marketId = parts.join ('');
+            const marketId = marketIds[i].replace ('_', '');
             tickers[marketId] = data[marketIds[i]];
         }
         return this.parseTickers (tickers, symbols);

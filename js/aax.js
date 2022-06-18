@@ -632,7 +632,6 @@ module.exports = class aax extends Exchange {
             const id = this.safeString (currency, 'chain');
             const name = this.safeString (currency, 'displayName');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'withdrawPrecision');
             const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
             const enableDeposit = this.safeValue (currency, 'enableDeposit');
             const fee = this.safeNumber (currency, 'withdrawFee');
@@ -645,7 +644,7 @@ module.exports = class aax extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': this.safeNumber (currency, 'withdrawPrecision'),
                 'info': currency,
                 'active': active,
                 'deposit': deposit,
@@ -2588,6 +2587,7 @@ module.exports = class aax extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {dict} params extra parameters specific to the aax api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate to fetch
          * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
@@ -2601,13 +2601,10 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             request['startTime'] = parseInt (since / 1000);
         }
-        const till = this.safeInteger (params, 'till'); // unified in milliseconds
-        const endTime = this.safeString (params, 'endTime'); // exchange-specific in seconds
-        params = this.omit (params, [ 'endTime', 'till' ]);
+        const till = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        params = this.omit (params, [ 'till', 'until' ]);
         if (till !== undefined) {
             request['endTime'] = parseInt (till / 1000);
-        } else if (endTime !== undefined) {
-            request['endTime'] = endTime;
         }
         if (limit !== undefined) {
             request['limit'] = limit;

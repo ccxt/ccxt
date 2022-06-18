@@ -628,7 +628,6 @@ class aax extends Exchange {
             $id = $this->safe_string($currency, 'chain');
             $name = $this->safe_string($currency, 'displayName');
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_number($currency, 'withdrawPrecision');
             $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
             $enableDeposit = $this->safe_value($currency, 'enableDeposit');
             $fee = $this->safe_number($currency, 'withdrawFee');
@@ -641,7 +640,7 @@ class aax extends Exchange {
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
                 'info' => $currency,
                 'active' => $active,
                 'deposit' => $deposit,
@@ -2542,6 +2541,7 @@ class aax extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the aax api endpoint
+         * @param {int|null} $params->until timestamp in ms of the latest funding rate to fetch
          * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
@@ -2555,13 +2555,10 @@ class aax extends Exchange {
         if ($since !== null) {
             $request['startTime'] = intval($since / 1000);
         }
-        $till = $this->safe_integer($params, 'till'); // unified in milliseconds
-        $endTime = $this->safe_string($params, 'endTime'); // exchange-specific in seconds
-        $params = $this->omit($params, array( 'endTime', 'till' ));
+        $till = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+        $params = $this->omit($params, array( 'till', 'until' ));
         if ($till !== null) {
             $request['endTime'] = intval($till / 1000);
-        } elseif ($endTime !== null) {
-            $request['endTime'] = $endTime;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

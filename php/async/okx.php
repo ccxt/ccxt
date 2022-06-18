@@ -1116,7 +1116,6 @@ class okx extends Exchange {
         $result = array();
         $dataByCurrencyId = $this->group_by($data, 'ccy');
         $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
-        $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $currency = $this->safe_currency($currencyId);
@@ -1144,7 +1143,7 @@ class okx extends Exchange {
                 } elseif (!$canWithdraw) {
                     $withdrawEnabled = false;
                 }
-                if (mb_strpos($networkId, '-') !== false) {
+                if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
                     $network = $this->safe_network($chainPart);
@@ -1184,7 +1183,7 @@ class okx extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number('0.00000001'),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -1537,6 +1536,8 @@ class okx extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         yield $this->load_markets();
@@ -1564,6 +1565,11 @@ class okx extends Exchange {
             $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;
             $request['after'] = $this->sum($startTime, $durationInMilliseconds * $limit);
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['after'] = $until;
+            $params = $this->omit($params, 'until');
         }
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles
@@ -1707,6 +1713,7 @@ class okx extends Exchange {
     }
 
     public function parse_trading_fee($fee, $market = null) {
+        // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
         //
         //     {
         //         "category" => "1",
@@ -1723,8 +1730,8 @@ class okx extends Exchange {
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
             // OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
-            'maker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'maker'))),
-            'taker' => $this->parse_number(Precise::string_neg($this->safe_string($fee, 'taker'))),
+            'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
+            'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
         );
     }
 
@@ -5047,7 +5054,7 @@ class okx extends Exchange {
          * @param {int|null} $since The time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int|null} $limit Not used by okx, but parsed internally by CCXT
          * @param {dict} $params Exchange specific parameters
-         * @param {int|null} $params->till The time in ms of the latest record to retrieve as a unix timestamp
+         * @param {int|null} $params->until The time in ms of the latest record to retrieve as a unix timestamp
          * @return An array of {@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure open interest structures}
          */
         $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
@@ -5065,9 +5072,10 @@ class okx extends Exchange {
         if ($since !== null) {
             $request['begin'] = $since;
         }
-        $till = $this->safe_integer_2($params, 'till', 'end');
-        if ($till !== null) {
-            $request['end'] = $till;
+        $until = $this->safe_integer_2($params, 'till', 'until');
+        if ($until !== null) {
+            $request['end'] = $until;
+            $params = $this->omit($params, array( 'until', 'till' ));
         }
         $response = yield $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
         //

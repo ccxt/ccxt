@@ -283,7 +283,7 @@ class bitvavo(Exchange):
         })
 
     def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -344,9 +344,6 @@ class bitvavo(Exchange):
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             baseCurrency = self.safe_value(currenciesById, baseId)
-            amountPrecision = None
-            if baseCurrency is not None:
-                amountPrecision = self.safe_integer(baseCurrency, 'decimals', 8)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -372,7 +369,7 @@ class bitvavo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.safe_integer(baseCurrency, 'decimals', 8),
                     'price': self.safe_integer(market, 'pricePrecision'),
                 },
                 'limits': {
@@ -447,7 +444,6 @@ class bitvavo(Exchange):
             withdrawal = (withdrawalStatus == 'OK')
             active = deposit and withdrawal
             name = self.safe_string(currency, 'name')
-            precision = self.safe_integer(currency, 'decimals', 8)
             result[code] = {
                 'id': id,
                 'info': currency,
@@ -457,7 +453,7 @@ class bitvavo(Exchange):
                 'deposit': deposit,
                 'withdraw': withdrawal,
                 'fee': self.safe_number(currency, 'withdrawalFee'),
-                'precision': precision,
+                'precision': self.safe_integer(currency, 'decimals', 8),
                 'limits': {
                     'amount': {
                         'min': None,

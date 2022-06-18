@@ -167,14 +167,14 @@ module.exports = class wazirx extends Exchange {
         const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const id = this.safeString (entry, 'symbol');
-            const baseId = this.safeString (entry, 'baseAsset');
-            const quoteId = this.safeString (entry, 'quoteAsset');
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
-            const filters = this.safeValue (entry, 'filters');
+            const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
+            const filters = this.safeValue (market, 'filters');
             let minPrice = undefined;
             for (let j = 0; j < filters.length; j++) {
                 const filter = filters[j];
@@ -188,7 +188,7 @@ module.exports = class wazirx extends Exchange {
             takerString = Precise.stringDiv (takerString, '100');
             let makerString = this.safeString (fee, 'maker', '0.2');
             makerString = Precise.stringDiv (makerString, '100');
-            const status = this.safeString (entry, 'status');
+            const status = this.safeString (market, 'status');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -216,8 +216,8 @@ module.exports = class wazirx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -237,7 +237,7 @@ module.exports = class wazirx extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': entry,
+                'info': market,
             });
         }
         return result;

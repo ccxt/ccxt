@@ -1179,11 +1179,11 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
-          :target: https://www.lbex.io/invite?icode=7QCY
+          :target: https://www.lbank.info/invitevip?icode=7QCY
           :alt: lbank
      
      - lbank
-     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://github.com/LBank-exchange/lbank-official-api-docs
           :alt: API Version 1
@@ -1191,13 +1191,13 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
-          :target: https://www.lbex.io/invite?icode=7QCY
+          :target: https://www.lbank.info/invitevip?icode=7QCY
           :alt: lbank2
      
      - lbank2
-     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://github.com/LBank-exchange/lbank-official-api-docs
+          :target: https://www.lbank.info/en-US/docs/index.html
           :alt: API Version 2
      
      - 
@@ -4021,7 +4021,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
            4240.6,        // (H)ighest price, float
            4230.0,        // (L)owest price, float
            4230.7,        // (C)losing price, float
-           37.72941911    // (V)olume (in terms of the base currency), float
+           37.72941911    // (V)olume float (usually in terms of the base currency, the exchanges docstring may list whether quote or base units are used)
        ],
        ...
    ]
@@ -4673,7 +4673,7 @@ For checking if the user has supplied all the required credentials the ``Exchang
    import ccxt
    exchange = ccxt.coinbasepro()
    print(exchange.requiredCredentials)  # prints required credentials
-   exchange.checkRequiredCredentials()  # raises AuthenticationError
+   exchange.check_required_credentials()  # raises AuthenticationError
 
 .. code-block:: PHP
 

@@ -1183,7 +1183,7 @@ class wavesexchange extends Exchange {
             return null;
         }
         $precise = new Precise ($amount);
-        $precise->decimals = $precise->decimals . $scale;
+        $precise->decimals = $this->sum($precise->decimals, $scale);
         $precise->reduce ();
         return (string) $precise;
     }
@@ -1204,7 +1204,7 @@ class wavesexchange extends Exchange {
     public function price_from_precision($symbol, $price) {
         $market = $this->markets[$symbol];
         $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $scale = $wavesPrecision - $market['precision']['amount'] . $market['precision']['price'];
+        $scale = $wavesPrecision - $this->sum($market['precision']['amount'], $market['precision']['price']);
         return $this->from_precision($price, $scale);
     }
 

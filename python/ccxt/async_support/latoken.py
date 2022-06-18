@@ -419,7 +419,6 @@ class latoken(Exchange):
             id = self.safe_string(currency, 'id')
             tag = self.safe_string(currency, 'tag')
             code = self.safe_currency_code(tag)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
             parts = currencyType.split('_')
@@ -439,7 +438,7 @@ class latoken(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'minTransferAmount'),

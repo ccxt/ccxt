@@ -264,7 +264,6 @@ class coinbasepro extends Exchange {
             $name = $this->safe_string($currency, 'name');
             $code = $this->safe_currency_code($id);
             $details = $this->safe_value($currency, 'details', array());
-            $precision = $this->safe_number($currency, 'max_precision');
             $status = $this->safe_string($currency, 'status');
             $active = ($status === 'online');
             $result[$code] = array(
@@ -277,7 +276,7 @@ class coinbasepro extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'max_precision'),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($details, 'min_size'),

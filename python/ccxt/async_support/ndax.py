@@ -342,7 +342,6 @@ class ndax(Exchange):
             name = self.safe_string(currency, 'ProductFullName')
             type = self.safe_string(currency, 'ProductType')
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            precision = self.safe_number(currency, 'TickSize')
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled
             result[code] = {
@@ -350,7 +349,7 @@ class ndax(Exchange):
                 'name': name,
                 'code': code,
                 'type': type,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'TickSize'),
                 'info': currency,
                 'active': active,
                 'deposit': None,

@@ -703,7 +703,6 @@ class gate extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerPercent = $this->safe_string($market, 'fee');
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'precision')));
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
             $leverage = $this->safe_number($market, 'leverage');
@@ -737,7 +736,7 @@ class gate extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1239,8 +1238,6 @@ class gate extends Exchange {
         //    }
         //
         $result = array();
-        // TODO => remove magic constants
-        $amountPrecision = $this->parse_number('1e-6');
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -1260,7 +1257,7 @@ class gate extends Exchange {
                 'lowerCaseId' => $currencyIdLower,
                 'name' => null,
                 'code' => $code,
-                'precision' => $amountPrecision,
+                'precision' => $this->parse_number('1e-6'),
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $depositEnabled,
@@ -2189,12 +2186,14 @@ class gate extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the gate api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {dict} $params extra parameters specific $to the gateio api endpoint
+         * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
+         * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2220,13 +2219,26 @@ class gate extends Exchange {
             }
         }
         $limit = ($limit === null) ? $maxLimit : min ($limit, $maxLimit);
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $until = intval($until / 1000);
+            $params = $this->omit($params, 'until');
+        }
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
             $request['from'] = intval($since / 1000);
             $toTimestamp = $this->sum($request['from'], $limit * $duration - 1);
             $currentTimestamp = $this->seconds();
-            $request['to'] = min ($toTimestamp, $currentTimestamp);
+            $to = min ($toTimestamp, $currentTimestamp);
+            if ($until !== null) {
+                $request['to'] = min ($to, $until);
+            } else {
+                $request['to'] = $to;
+            }
         } else {
+            if ($until !== null) {
+                $request['to'] = $until;
+            }
             $request['limit'] = $limit;
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2400,6 +2412,43 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+        }
+        //
+        //      array(
+        //          {
+        //              "id":"3711449544",
+        //              "create_time":"1655486040",
+        //              "create_time_ms":"1655486040177.599900",
+        //              "currency_pair":"SHIB_USDT",
+        //              "side":"buy",
+        //              "role":"taker",
+        //              "amount":"1360039",
+        //              "price":"0.0000081084",
+        //              "order_id":"169717399644",
+        //              "fee":"2720.078",
+        //              "fee_currency":"SHIB",
+        //              "point_fee":"0",
+        //              "gt_fee":"0"
+        //          }
+        //      )
+        //
+        $response = $this->fetch_my_trades($symbol, $since, $limit, array( 'order_id' => $id ));
+        return $response;
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * Fetch personal trading history
@@ -2409,7 +2458,7 @@ class gate extends Exchange {
          * @param {dict} $params extra parameters specific to the gate api endpoint
          * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {str|null} $params->type 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
-         * @param {int|null} $params->till The latest timestamp, in ms, that fetched trades were made
+         * @param {int|null} $params->until The latest timestamp, in ms, that fetched trades were made
          * @param {int|null} $params->page *spot only* Page number
          * @param {str|null} $params->order_id *spot only* Filter trades with specified order ID. $symbol is also required if this field is present
          * @param {str|null} $params->order *$contract only* Futures order ID, return related data only if specified
@@ -2423,8 +2472,8 @@ class gate extends Exchange {
         $marginMode = null;
         $request = array();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $till = $this->safe_number($params, 'till');
-        $params = $this->omit($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $contract = ($type === 'swap') || ($type === 'future');
         if ($contract) {
@@ -2442,8 +2491,8 @@ class gate extends Exchange {
         if ($since !== null) {
             $request['from'] = intval($since / 1000);
         }
-        if ($till !== null) {
-            $request['to'] = intval($till / 1000);
+        if ($until !== null) {
+            $request['to'] = intval($until / 1000);
         }
         $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',
@@ -2831,7 +2880,16 @@ class gate extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $contract = $market['contract'];
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $trigger = $this->safe_value($params, 'trigger');
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLossOrder = $stopLossPrice !== null;
+        $isTakeProfitOrder = $takeProfitPrice !== null;
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        if ($isStopLossOrder && $isTakeProfitOrder) {
+            throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
+        }
         $methodTail = 'Orders';
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
@@ -2851,7 +2909,7 @@ class gate extends Exchange {
                 throw new ExchangeError($this->id . ' createOrder() does not support $timeInForce "' . $timeInForce . '"');
             }
         }
-        $params = $this->omit($params, array( 'stopPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
         if ($postOnly) {
             $tif = 'poc';
         }
@@ -2876,8 +2934,7 @@ class gate extends Exchange {
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
         }
         $request = null;
-        $trigger = $this->safe_value($params, 'trigger');
-        if ($stopPrice === null && $trigger === null) {
+        if (!$isStopOrder && ($trigger === null)) {
             if ($contract) {
                 // $contract order
                 $request = array(
@@ -2937,7 +2994,6 @@ class gate extends Exchange {
         } else {
             if ($contract) {
                 // $contract conditional order
-                $rule = ($side === 'buy') ? 1 : 2;
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
@@ -2948,19 +3004,27 @@ class gate extends Exchange {
                         // 'text' => $clientOrderId, // web, api, app
                         // 'reduce_only' => false,
                     ),
-                    'trigger' => array(
-                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
-                        // 'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
-                        'price' => $this->price_to_precision($symbol, $stopPrice), // $price or gap
-                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
-                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
-                    ),
                     'settle' => $market['settleId'],
                 );
-                $expiration = $this->safe_integer($params, 'expiration');
-                if ($expiration !== null) {
-                    $request['trigger']['expiration'] = $expiration;
-                    $params = $this->omit($params, 'expiration');
+                if ($trigger === null) {
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? 1 : 2;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? 2 : 1;
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $request['trigger'] = array(
+                        // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
+                        'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
+                        'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
+                        // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
+                    );
                 }
                 if ($reduceOnly !== null) {
                     $request['initial']['reduce_only'] = $reduceOnly;
@@ -2973,26 +3037,37 @@ class gate extends Exchange {
                 $options = $this->safe_value($this->options, 'createOrder', array());
                 $marginMode = null;
                 list($marginMode, $params) = $this->get_margin_mode(true, $params);
-                $defaultExpiration = $this->safe_integer($options, 'expiration');
-                $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
-                $rule = ($side === 'buy') ? '>=' : '<=';
-                $triggerPrice = $this->safe_value($trigger, 'price', $stopPrice);
                 $request = array(
-                    'trigger' => array(
-                        'price' => $this->price_to_precision($symbol, $triggerPrice),
-                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
-                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
-                    ),
                     'put' => array(
                         'type' => $type,
                         'side' => $side,
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        // 'time_in_force' => $tif, // gtc, ioc for taker only
+                        'time_in_force' => 'gtc', // gtc, ioc for taker only
                     ),
                     'market' => $market['id'],
                 );
+                if ($trigger === null) {
+                    $defaultExpiration = $this->safe_integer($options, 'expiration');
+                    $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
+                    $rule = null;
+                    $triggerOrderPrice = null;
+                    if ($isStopLossOrder) {
+                        // we $trigger orders be aliases for stopLoss orders because
+                        // gateio doesn't accept conventional $trigger orders for spot markets
+                        $rule = ($side === 'buy') ? '>=' : '<=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    } elseif ($isTakeProfitOrder) {
+                        $rule = ($side === 'buy') ? '<=' : '>=';
+                        $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    }
+                    $request['trigger'] = array(
+                        'price' => $this->price_to_precision($symbol, $triggerOrderPrice),
+                        'rule' => $rule, // >= triggered when $market $price larger than or equal to $price field, <= triggered when $market $price less than or equal to $price field
+                        'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
+                    );
+                }
                 if ($tif !== null) {
                     $request['put']['time_in_force'] = $tif;
                 }

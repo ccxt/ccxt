@@ -909,8 +909,7 @@ class bitrue(Exchange):
         tickers = {}
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
-            parts = marketIds[i].split('_')
-            marketId = ''.join(parts)
+            marketId = marketIds[i].replace('_', '')
             tickers[marketId] = data[marketIds[i]]
         return self.parse_tickers(tickers, symbols)
 

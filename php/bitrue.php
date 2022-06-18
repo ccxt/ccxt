@@ -918,8 +918,7 @@ class bitrue extends Exchange {
         $tickers = array();
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
-            $parts = explode('_', $marketIds[$i]);
-            $marketId = implode('', $parts);
+            $marketId = str_replace('_', '', $marketIds[$i]);
             $tickers[$marketId] = $data[$marketIds[$i]];
         }
         return $this->parse_tickers($tickers, $symbols);

@@ -91,9 +91,13 @@ module.exports = class deribit extends Exchange {
                 '1d': '1D',
             },
             'urls': {
-                'test': 'https://test.deribit.com',
+                'test': {
+                    'rest': 'https://test.deribit.com',
+                },
                 'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api': 'https://www.deribit.com',
+                'api': {
+                    'rest': 'https://www.deribit.com',
+                },
                 'www': 'https://www.deribit.com',
                 'doc': [
                     'https://docs.deribit.com/v2',
@@ -714,11 +718,10 @@ module.exports = class deribit extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (balance) {
         const result = {
-            'info': response,
+            'info': balance,
         };
-        const balance = this.safeValue (response, 'result', {});
         const currencyId = this.safeString (balance, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
@@ -786,7 +789,8 @@ module.exports = class deribit extends Exchange {
         //         testnet: false
         //     }
         //
-        return this.parseBalance (response);
+        const result = this.safeValue (response, 'result', {});
+        return this.parseBalance (result);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -2558,7 +2562,7 @@ module.exports = class deribit extends Exchange {
                 'Authorization': 'deri-hmac-sha256 id=' + this.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             };
         }
-        const url = this.urls['api'] + request;
+        const url = this.urls['api']['rest'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

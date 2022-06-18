@@ -909,7 +909,9 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param str|None params['price']: "index" for index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
@@ -925,7 +927,8 @@ class ftx(Exchange):
             'limit': limit,
         }
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         if since is not None:
             startTime = int(since / 1000)
             request['start_time'] = startTime
@@ -935,6 +938,8 @@ class ftx(Exchange):
             if duration > 86400:
                 wholeDaysInTimeframe = int(duration / 86400)
                 request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
@@ -1278,7 +1283,7 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: extra parameters specific to the ftx api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
@@ -1289,13 +1294,10 @@ class ftx(Exchange):
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
-        params = self.omit(params, ['end_time', 'till'])
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-        elif endTime is not None:
-            request['end_time'] = endTime
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         response = self.publicGetFundingRates(self.extend(request, params))
         #
         #     {
@@ -1570,12 +1572,10 @@ class ftx(Exchange):
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfit = False
-        isStopLoss = False
+        isTakeProfit = type == 'takeProfit'
+        isStopLoss = type == 'stop'
         isTriggerPrice = False
         if triggerPrice is not None:
-            isTakeProfit = type == 'takeProfit'
-            isStopLoss = type == 'stop'
             isTriggerPrice = not isTakeProfit and not isStopLoss
         elif takeProfitPrice is not None:
             isTakeProfit = True
@@ -1588,6 +1588,11 @@ class ftx(Exchange):
         isStopOrder = isTakeProfit or isStopLoss or isTriggerPrice
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isStopOrder:
+            if triggerPrice is None:
+                if isTakeProfit:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a takeProfitPrice param for a takeProfit order')
+                elif isStopLoss:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a stopLossPrice param for a stop order')
             method = 'privatePostConditionalOrders'
             request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
             if (type == 'limit') and (price is None):
@@ -1777,6 +1782,7 @@ class ftx(Exchange):
         :param str id: order id
         :param str|None symbol: not used by ftx cancelOrder()
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param bool params['stop']: True if cancelling a stop/trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1786,16 +1792,17 @@ class ftx(Exchange):
         options = self.safe_value(self.options, 'cancelOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
-        type = self.safe_value(params, 'type')
+        type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
+        stop = self.safe_value(params, 'stop')
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -2007,7 +2014,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: timestamp in ms of the latest trade
+        :param int|None params['until']: timestamp in ms of the latest trade
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
@@ -2017,13 +2024,13 @@ class ftx(Exchange):
             request['market'] = marketId
         if market is not None:
             symbol = market['symbol']
-        till = self.safe_integer(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
         if since is not None:
             request['start_time'] = int(since / 1000)
             request['end_time'] = self.seconds()
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-            params = self.omit(params, 'till')
+        if until is not None:
+            request['end_time'] = int(until / 1000)
+            params = self.omit(params, ['until', 'till'])
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
@@ -2637,7 +2644,12 @@ class ftx(Exchange):
             market = self.market(symbol)
             request['future'] = market['id']
         if since is not None:
-            request['startTime'] = since
+            request['start_time'] = int(since / 1000)
+            request['end_time'] = self.seconds()
+        till = self.safe_integer(params, 'till')
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+            params = self.omit(params, 'till')
         response = self.privateGetFundingPayments(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)

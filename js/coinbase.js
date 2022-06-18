@@ -397,7 +397,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {dict} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (limit, params);
+        const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.privateGetAccountsAccountIdSells (this.extend (request, query));
@@ -416,7 +416,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {dict} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (limit, params);
+        const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.privateGetAccountsAccountIdBuys (this.extend (request, query));
