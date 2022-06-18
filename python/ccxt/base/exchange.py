@@ -465,7 +465,7 @@ class Exchange(object):
         lowercase_path = [x.strip().lower() for x in split_path]
         camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
         underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-        snake_case_suffix = re.sub(r'(?<!^)(?=[A-Z])', '_', path)
+        snake_case_suffix = re.sub(r'(?<!^)(?=[A-Z])', '_', camelcase_suffix)
         camelcase_prefix = ''
         underscore_prefix = ''
         if len(paths):
