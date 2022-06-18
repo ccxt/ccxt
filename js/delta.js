@@ -655,7 +655,7 @@ module.exports = class delta extends Exchange {
             if (spot) {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
             } else {
-                // other markets (swap, futures, move, spread, irs) seem to be all contract
+                // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber ('1');
             }
             const linear = (settle === base);
