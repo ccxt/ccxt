@@ -68,6 +68,7 @@ class bybit(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -4468,6 +4469,69 @@ class bybit(Exchange):
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         return getattr(self, method)(self.extend(request, params))
+
+    def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+        """
+        Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+        :param str symbol: Unified market symbol
+        :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
+        :param int since: Not used by Bybit
+        :param int limit: The number of open interest structures to return. Max 200, default 50
+        :param dict params: Exchange specific parameters
+        :returns: An array of open interest structures
+        """
+        if timeframe == '1m':
+            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetV2PublicOpenInterest(self.extend(request, params))
+        #
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "OK",
+        #        "ext_code": "",
+        #        "ext_info": "",
+        #        "result": [
+        #            {
+        #                "open_interest": 805604444,
+        #                "timestamp": 1645056000,
+        #                "symbol": "BTCUSD"
+        #            },
+        #            ...
+        #        ],
+        #        "time_now": "1645085118.727358"
+        #    }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_open_interests(result, market, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    {
+        #        "open_interest": 805604444,
+        #        "timestamp": 1645056000,
+        #        "symbol": "BTCUSD"
+        #    }
+        #
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        timestamp = self.safe_timestamp(interest, 'timestamp')
+        numContracts = self.safe_string(interest, 'open_interest')
+        contractSize = self.safe_string(market, 'contractSize')
+        return {
+            'symbol': self.safe_symbol(id),
+            'baseVolume': Precise.string_mul(numContracts, contractSize),
+            'quoteVolume': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
