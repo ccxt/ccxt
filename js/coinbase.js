@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -157,6 +158,7 @@ module.exports = class coinbase extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
@@ -220,6 +222,13 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const request = {
             'limit': 100,
@@ -302,6 +311,14 @@ module.exports = class coinbase extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         let accountId = this.safeString (params, 'account_id');
         params = this.omit (params, 'account_id');
         if (accountId === undefined) {
@@ -369,8 +386,18 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMySells
+         * @description fetch sells
+         * @param {str|undefined} symbol not used by coinbase fetchMySells ()
+         * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
+         * @param {int|undefined} limit max number of sells to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (limit, params);
+        const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.privateGetAccountsAccountIdSells (this.extend (request, query));
@@ -378,8 +405,18 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMyBuys
+         * @description fetch buys
+         * @param {str|undefined} symbol not used by coinbase fetchMyBuys ()
+         * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
+         * @param {int|undefined} limit max number of buys to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (limit, params);
+        const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.privateGetAccountsAccountIdBuys (this.extend (request, query));
@@ -395,11 +432,31 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
@@ -979,6 +1036,16 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         if (code !== undefined) {

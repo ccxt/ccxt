@@ -29,6 +29,9 @@ class coinspot extends Exchange {
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -125,13 +128,14 @@ class coinspot extends Exchange {
             'options' => array(
                 'fetchBalance' => 'private_post_my_balances',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
     public function parse_balance($response) {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
-        if (gettype($balances) === 'array' && count(array_filter(array_keys($balances), 'is_string')) == 0) {
+        if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
             for ($i = 0; $i < count($balances); $i++) {
                 $currencies = $balances[$i];
                 $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
@@ -332,6 +336,16 @@ class coinspot extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} $params extra parameters specific to the coinspot api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $method = 'privatePostMy' . $this->capitalize($side);
         if ($type === 'market') {
@@ -346,6 +360,13 @@ class coinspot extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol not used by coinspot cancelOrder ()
+         * @param {dict} $params extra parameters specific to the coinspot api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $side = $this->safe_string($params, 'side');
         if ($side !== 'buy' && $side !== 'sell') {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');

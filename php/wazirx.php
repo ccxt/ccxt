@@ -111,6 +111,7 @@ class wazirx extends Exchange {
             'fees' => array(
                 'WRX' => array( 'maker' => $this->parse_number('0.0'), 'taker' => $this->parse_number('0.0') ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '-1121' => '\\ccxt\\BadSymbol', // array( "code" => -1121, "message" => "Invalid symbol." )
@@ -137,7 +138,7 @@ class wazirx extends Exchange {
         /**
          * retrieves data on all $markets for wazirx
          * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing market data
+         * @return {[dict]} an array of objects representing $market data
          */
         $response = $this->publicGetExchangeInfo ($params);
         //
@@ -169,14 +170,14 @@ class wazirx extends Exchange {
         $markets = $this->safe_value($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $entry = $markets[$i];
-            $id = $this->safe_string($entry, 'symbol');
-            $baseId = $this->safe_string($entry, 'baseAsset');
-            $quoteId = $this->safe_string($entry, 'quoteAsset');
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'baseAsset');
+            $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $isSpot = $this->safe_value($entry, 'isSpotTradingAllowed');
-            $filters = $this->safe_value($entry, 'filters');
+            $isSpot = $this->safe_value($market, 'isSpotTradingAllowed');
+            $filters = $this->safe_value($market, 'filters');
             $minPrice = null;
             for ($j = 0; $j < count($filters); $j++) {
                 $filter = $filters[$j];
@@ -190,7 +191,7 @@ class wazirx extends Exchange {
             $takerString = Precise::string_div($takerString, '100');
             $makerString = $this->safe_string($fee, 'maker', '0.2');
             $makerString = Precise::string_div($makerString, '100');
-            $status = $this->safe_string($entry, 'status');
+            $status = $this->safe_string($market, 'status');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -218,8 +219,8 @@ class wazirx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
-                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -239,7 +240,7 @@ class wazirx extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'info' => $entry,
+                'info' => $market,
             );
         }
         return $result;
@@ -539,6 +540,14 @@ class wazirx extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the wazirx api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
@@ -587,6 +596,14 @@ class wazirx extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the wazirx api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
@@ -627,6 +644,12 @@ class wazirx extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {str} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {dict} $params extra parameters specific to the wazirx api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
         }
@@ -639,6 +662,13 @@ class wazirx extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the wazirx api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
         }
@@ -653,6 +683,16 @@ class wazirx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the wazirx api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $type = strtolower($type);
         if (($type !== 'limit') && ($type !== 'stop_limit')) {
             throw new ExchangeError($this->id . ' createOrder() supports limit and stop_limit orders only');

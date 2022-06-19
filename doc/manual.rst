@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 117 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 118 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -270,11 +270,11 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
-          :target: https://www.bitfinex.com/?refcode=P61eYxFL
+          :target: https://www.bitfinex.com
           :alt: bitfinex2
      
      - bitfinex2
-     - `Bitfinex <https://www.bitfinex.com/?refcode=P61eYxFL>`__
+     - `Bitfinex <https://www.bitfinex.com>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.bitfinex.com/v2/docs/
           :alt: API Version 2
@@ -312,7 +312,7 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://bitgetlimited.github.io/apidoc/en/swap
+          :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
      - 
@@ -529,6 +529,18 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - `BtcBox <https://www.btcbox.co.jp/>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://blog.btcbox.jp/en/archives/8762
+          :alt: API Version 1
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg
+          :target: https://www.btcex.com/en-us/register?i=48biatg1
+          :alt: btcex
+     
+     - btcex
+     - `BTCEX <https://www.btcex.com/en-us/register?i=48biatg1>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.btcex.com/
           :alt: API Version 1
      
      - 
@@ -940,9 +952,9 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
-          :alt: gateio
+          :alt: gate
      
-     - gateio
+     - gate
      - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html
@@ -1167,11 +1179,11 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
-          :target: https://www.lbex.io/invite?icode=7QCY
+          :target: https://www.lbank.info/invitevip?icode=7QCY
           :alt: lbank
      
      - lbank
-     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://github.com/LBank-exchange/lbank-official-api-docs
           :alt: API Version 1
@@ -1179,13 +1191,13 @@ The CCXT library currently supports the following 117 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg
-          :target: https://www.lbex.io/invite?icode=7QCY
+          :target: https://www.lbank.info/invitevip?icode=7QCY
           :alt: lbank2
      
      - lbank2
-     - `LBank <https://www.lbex.io/invite?icode=7QCY>`__
+     - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://github.com/LBank-exchange/lbank-official-api-docs
+          :target: https://www.lbank.info/en-US/docs/index.html
           :alt: API Version 2
      
      - 
@@ -4009,7 +4021,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
            4240.6,        // (H)ighest price, float
            4230.0,        // (L)owest price, float
            4230.7,        // (C)losing price, float
-           37.72941911    // (V)olume (in terms of the base currency), float
+           37.72941911    // (V)olume float (usually in terms of the base currency, the exchanges docstring may list whether quote or base units are used)
        ],
        ...
    ]
@@ -4661,7 +4673,7 @@ For checking if the user has supplied all the required credentials the ``Exchang
    import ccxt
    exchange = ccxt.coinbasepro()
    print(exchange.requiredCredentials)  # prints required credentials
-   exchange.checkRequiredCredentials()  # raises AuthenticationError
+   exchange.check_required_credentials()  # raises AuthenticationError
 
 .. code-block:: PHP
 
@@ -6526,17 +6538,17 @@ Fees are often grouped into two categories:
 
 
  * Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
- * Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+ * Transaction fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
 
 Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
 .. code-block:: Javascript
 
    fetchFees (params = {})
-   fetchTradingFee (params = {})
+   fetchTradingFee (symbol, params = {})
    fetchTradingFees (params = {})
-   fetchFundingFee (params = {})
-   fetchFundingFees (params = {})
+   fetchTransactionFee (code, params = {})
+   fetchTransactionFees (codes  = undefined, params = {})
 
 The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
 
@@ -6544,7 +6556,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
  **DO NOT use the ``.fees`` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-``fetchFees`` will automatically call both ``fetchFundingFees`` and ``fetchTradingFees`` to get all the fee information. You can call fetchFundingFees or fetchTradingFees for more precise control over what endpoint on the exchange is requested.
+``fetchFees`` will automatically call both ``fetchTradingFees`` and ``fetchTransactionFees`` to get all the fee information. You can call ``fetchTradingFees`` or ``fetchTransactionFees`` for more precise control over what endpoint on the exchange is requested.
 
 Fee Structure
 ^^^^^^^^^^^^^
@@ -6702,45 +6714,46 @@ Trading Fee Structure
        },
    }
 
-Funding Fees
-^^^^^^^^^^^^
+Transaction Fees
+^^^^^^^^^^^^^^^^
 
-Funding fees are properties of currencies (account balance).
+Transaction fees are properties of currencies (account balance).
 
-Accessing funding fee rates should be done via the ``.currencies`` property. This aspect is not unified yet and is subject to change.
+Accessing transaction fee rates should be done via the ``.currencies`` property. This aspect is not unified yet and is subject to change.
 
 .. code-block:: Javascript
 
    exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
    exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
-Funding Fee Schedule
-~~~~~~~~~~~~~~~~~~~~
+Transaction Fee Schedule
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some exchanges have an endpoint for fetching the funding fee schedule, this is mapped to the unified methods
+Some exchanges have an endpoint for fetching the transaction fee schedule, this is mapped to the unified methods
 
 
- * ``fetchFundingFee ()`` for a single funding fee schedule
- * ``fetchFundingFees ()`` for all funding fee schedules
+ * ``fetchTransactionFee ()`` for a single transaction fee schedule
+ * ``fetchTransactionFees ()`` for all transaction fee schedules
 
 .. code-block:: Javascript
 
-   fetchFundingFee (code, params = {})
+   fetchTransactionFee (code, params = {})
 
 Parameters
 
 
  * **code** (String) *required* Unified CCXT currency code, required (e.g. ``"USDT"``\ )
  * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"type": "deposit"}``\ )
+ * **params.network** (String) Specify unified CCXT network (e.g. ``{"network": "TRC20"}``\ )
 
 Returns
 
 
- * A :ref:`funding fee structure <funding fee structure>`
+ * A :ref:`transaction fee structure <transaction fee structure>`
 
 .. code-block:: Javascript
 
-   fetchFundingFees (params = {})
+   fetchTransactionFees (codes = undefined, params = {})
 
 Parameters
 
@@ -6750,10 +6763,10 @@ Parameters
 Returns
 
 
- * An array of :ref:`funding fee structures <funding fee structure>`
+ * An array of :ref:`transaction fee structures <transaction fee structure>`
 
-Funding Fee Structure
-"""""""""""""""""""""
+Transaction Fee Structure
+"""""""""""""""""""""""""
 
 .. code-block:: JavaScript
 

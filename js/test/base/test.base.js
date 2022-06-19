@@ -2,7 +2,7 @@
 
 global.log = require ('ololog') // for easier debugging
 
-const { Exchange, index, aggregate } = require ('../../../ccxt')
+const { Exchange, index, aggregate, unCamelCase } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 require ('./functions/test.generic')
@@ -180,6 +180,18 @@ function testLegacyHasSomething () {
     equal (exchange.hasFetchDepositAddress, true)
 }
 
+function testUnCamelCase () {
+    equal (unCamelCase ('parseOHLCVs'), 'parse_ohlcvs')
+    equal (unCamelCase ('safeString2'), 'safe_string_2')
+    equal (unCamelCase ('safeStringN'), 'safe_string_n')
+    equal (unCamelCase ('convertOHLCVToTradingView'), 'convert_ohlcv_to_trading_view')
+    equal (unCamelCase ('fetchL2OrderBook'), 'fetch_l2_order_book')
+    equal (unCamelCase ('stringToBase64'), 'string_to_base64')
+    equal (unCamelCase ('base64ToString'), 'base64_to_string')
+    equal (unCamelCase ('parseHTTPResponse'), 'parse_http_response')
+    equal (unCamelCase ('hasFetchOHLCV'), 'has_fetch_ohlcv')
+}
+
 // ----------------------------------------------------------------------------
 
 function testBase () {
@@ -191,3 +203,5 @@ function testBase () {
 	testCamelCasePropertyConversion2 ()
 	testLegacyHasSomething ()
 }
+
+testUnCamelCase ()

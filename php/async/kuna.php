@@ -286,6 +286,7 @@ class kuna extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'Plair',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2002' => '\\ccxt\\InsufficientFunds',
                 '2003' => '\\ccxt\\OrderNotFound',
@@ -500,6 +501,13 @@ class kuna extends Exchange {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
+         */
         return yield $this->fetch_order_book($symbol, $limit, $params);
     }
 
@@ -654,6 +662,16 @@ class kuna extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'market' => $this->market_id($symbol),
@@ -671,6 +689,13 @@ class kuna extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open $order
+         * @param {str} $id $order $id
+         * @param {str|null} $symbol not used by kuna cancelOrder ()
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,
@@ -727,6 +752,12 @@ class kuna extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol not used by kuna fetchOrder
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => intval($id),
@@ -736,6 +767,14 @@ class kuna extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -752,6 +791,23 @@ class kuna extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the kuna api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->privateGetTradesMy (array_merge($request, $params));
         //
         //      array(
         //          array(
@@ -767,15 +823,6 @@ class kuna extends Exchange {
         //          ),
         //      )
         //
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->privateGetTradesMy (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -803,7 +850,7 @@ class kuna extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = null;
-        if (gettype($api) === 'array' && count(array_filter(array_keys($api), 'is_string')) == 0) {
+        if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             list($version, $access) = $api;
             $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
             if ($access === 'public') {
