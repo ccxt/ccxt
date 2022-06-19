@@ -83,7 +83,7 @@ module.exports = class ascendex extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
-            },parse
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
