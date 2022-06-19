@@ -406,7 +406,7 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+        # convert all properties from underscore notation foo_bar to camelcase notation fooBar. as we don't have magic __call in Python (as opposed to PHP), instead of runtime we have to predefine the functions in advance
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
@@ -480,6 +480,7 @@ class Exchange(object):
         camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
         underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
         snake_case = underscore_prefix + '_' + lowercase_method + '_' + snake_case_suffix.lower()
+        uncamelcased = self.un_camel_case(camelcase)
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
@@ -503,6 +504,8 @@ class Exchange(object):
         setattr(cls, underscore, to_bind)
         if underscore != snake_case:
             setattr(cls, snake_case, to_bind)
+        if uncamelcased != snake_case and uncamelcased != underscore:
+            setattr(cls, uncamelcased, to_bind)
 
     def define_rest_api(self, api, method_name, paths=[]):
         for key, value in api.items():
@@ -525,6 +528,15 @@ class Exchange(object):
                         raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
             else:
                 self.define_rest_api(value, method_name, paths + [key])
+
+    def un_camel_case(self, str):
+        if not re.search(r'[A-Z]', str):
+            return str
+        str = re.sub ('([a-z0-9])([A-Z])', r'\1_\2', str)
+        str = re.sub ('([A-Z0-9])([A-Z0-9])([a-z])([^$])', r'\1_\2\3\4', str)
+        str = re.sub ('([a-z])([0-9])$', r'\1_\2', str)
+        str = str.lower()
+        return str
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())

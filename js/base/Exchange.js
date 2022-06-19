@@ -480,7 +480,10 @@ module.exports = class Exchange {
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
         this[camelcase]  = partial
         this[underscore] = partial
-        this.definedRestApiMethods[camelcase] = underscore
+        const uncamelcased = unCamelCase (camelcase)
+        if (uncamelcased != underscore && uncamelcased != camelcase)
+            this[uncamelcased] = partial
+        this.definedRestApiMethods[camelcase] = {'underscore': underscore, 'uncamelcased': uncamelcased};
     }
 
     defineRestApi (api, methodName, paths = []) {

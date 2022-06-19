@@ -1230,11 +1230,16 @@ class Exchange {
         $camelcase = $camelcase_prefix . $camelcase_method . static::capitalize($camelcase_suffix);
         $underscore = $underscore_prefix . '_' . $lowercase_method . '_' . mb_strtolower($underscore_suffix);
         $snakecase = $underscore_prefix . '_' . $lowercase_method . '_' . $snakecase_suffix;
+        $uncamelcased = $this->un_camel_case($camelcase);
         $api_argument = (count($paths) > 1) ? $paths : $paths[0];
-        $this->defined_rest_api[$camelcase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
-        $this->defined_rest_api[$underscore] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        $finalArray = array($path, $api_argument, $uppercase_method, $method_name, $config);
+        $this->defined_rest_api[$camelcase] = $finalArray;
+        $this->defined_rest_api[$underscore] = $finalArray;
         if ($underscore != $snakecase) {
-            $this->defined_rest_api[$snakecase] = array($path, $api_argument, $uppercase_method, $method_name, $config);
+            $this->defined_rest_api[$snakecase] = $finalArray;
+        }
+        if ($uncamelcased != $snakecase && $uncamelcased != $underscore) {
+            $this->defined_rest_api[$uncamelcased] = $finalArray;
         }
     }
 
@@ -1713,9 +1718,9 @@ class Exchange {
             $partial[6] = $config;
             $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
             return call_user_func_array(array($this, $entry), $partial);
-        } elseif (array_key_exists($function, static::$camelcase_methods)) {
-            $underscore = static::$camelcase_methods[$function];
-            return call_user_func_array(array($this, $underscore), $params);
+        // } elseif (array_key_exists($function, static::$camelcase_methods)) {
+        //    $underscore = static::$camelcase_methods[$function];
+        //    return call_user_func_array(array($this, $underscore), $params);
         } elseif (!preg_match('/^[A-Z0-9_]+$/', $function)) {
             $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
                 return $x[0][0] . '_' . $x[0][1];
@@ -1738,7 +1743,7 @@ class Exchange {
         }
     }
 
-    public function un_camel_case ($str) {
+    public function un_camel_case($str) {
         if (!preg_match('/[A-Z]/', $str)) {
             return $str;
         }
@@ -2269,7 +2274,7 @@ class Exchange {
         return array(
             'id' => $this->safe_string($entry, 'id'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
             'account' => $this->safe_string($entry, 'account'),
             'referenceId' => $this->safe_string($entry, 'referenceId'),
