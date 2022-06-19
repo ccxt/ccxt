@@ -83,7 +83,7 @@ module.exports = class ascendex extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
-            },
+            },parse
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
@@ -2491,8 +2491,8 @@ module.exports = class ascendex extends Exchange {
             'entryPrice': this.safeNumber (position, 'avgOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'percentage': undefined,
-            'contracts': undefined,
-            'contractSize': this.safeNumber (position, 'position'),
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'side': this.safeStringLower (position, 'side'),
             'hedged': undefined,
