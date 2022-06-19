@@ -15,6 +15,7 @@ module.exports = class cryptocom extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
