@@ -1098,23 +1098,47 @@ module.exports = class okx extends Exchange {
         //
         const response = await this.privateGetAssetCurrencies (params);
         //
-        //     {
-        //         "code" :"0",
-        //         "data": [
-        //             {
-        //                 "canDep": true,
-        //                 "canInternal": true,
-        //                 "canWd": true,
-        //                 "ccy": "USDT",
-        //                 "chain": "USDT-ERC20",
-        //                 "maxFee": "40",
-        //                 "minFee": "20",
-        //                 "minWd": "2",
-        //                 "name": ""
-        //             }
-        //         ],
-        //         "msg": ""
-        //     }
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-TRC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "1.6",
+        //                "maxWd": "8852150",
+        //                "minFee": "0.8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-ERC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "16",
+        //                "maxWd": "8852150",
+        //                "minFee": "8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
@@ -1129,6 +1153,7 @@ module.exports = class okx extends Exchange {
             let currencyActive = false;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
+            let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
@@ -1160,34 +1185,41 @@ module.exports = class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
+                    const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz')));
+                    if (maxPrecision === undefined) {
+                        maxPrecision = precision;
+                    } else {
+                        maxPrecision = Math.max (maxPrecision, precision);
+                    }
                     networks[network] = {
-                        'info': chain,
                         'id': networkId,
                         'network': network,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': undefined,
+                        'precision': precision,
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber (chain, 'minWd'),
-                                'max': undefined,
+                                'max': this.safeNumber (chain, 'maxWd'),
                             },
                         },
+                        'info': chain,
                     };
                 }
             }
+            const firstChain = this.safeValue (chains, 0);
             result[code] = {
                 'info': undefined,
                 'code': code,
                 'id': currencyId,
-                'name': undefined,
+                'name': this.safeString (firstChain, 'name'),
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': maxPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
