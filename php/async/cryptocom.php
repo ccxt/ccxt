@@ -20,6 +20,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,

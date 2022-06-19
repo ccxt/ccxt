@@ -28,6 +28,7 @@ class cryptocom(Exchange):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
