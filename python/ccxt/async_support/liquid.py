@@ -209,18 +209,23 @@ class liquid(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError,  # {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
@@ -1501,7 +1506,7 @@ class liquid(Exchange):
             return
         if code == 401:
             # expected non-json response
-            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], body, body)
             return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
@@ -1514,7 +1519,8 @@ class liquid(Exchange):
             #
             #  {"message": "Order not found"}
             #
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -1527,6 +1533,6 @@ class liquid(Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         else:
             raise ExchangeError(feedback)
