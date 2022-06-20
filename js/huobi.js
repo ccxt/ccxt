@@ -107,7 +107,7 @@ module.exports = class huobi extends Exchange {
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': false,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -919,11 +919,7 @@ module.exports = class huobi extends Exchange {
                 'spot': {
                     'stopOrderTypes': {
                         'stop-limit': true,
-                        'buy-stop-limit': true,
-                        'sell-stop-limit': true,
                         'stop-limit-fok': true,
-                        'buy-stop-limit-fok': true,
-                        'sell-stop-limit-fok': true,
                     },
                     'limitOrderTypes': {
                         'limit': true,
@@ -963,6 +959,7 @@ module.exports = class huobi extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
+            'createContractOrderLoadLeverage': true,
         });
     }
 
@@ -3898,7 +3895,6 @@ module.exports = class huobi extends Exchange {
         const accountId = await this.fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
-            'account-id': accountId,
             'symbol': market['id'],
             // 'type': side + '-' + type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount': this.amountToPrecision (symbol, amount), // for buy market orders it's the order cost
@@ -3911,41 +3907,72 @@ module.exports = class huobi extends Exchange {
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
-        if (stopPrice === undefined) {
+        let operator = this.safeStringLower (params, 'operator');
+        let stopPrice = this.safeValue2 (params, 'stopPrice', 'stop-price');
+        const triggerPrice = this.safeValue (params, 'triggerPrice', stopPrice);
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
+            throw new ExchangeError (this.id + ' createOrder `stopLossPrice` and `takeProfitPrice` params cannot both be defined');
+        }
+        let method = 'spotPrivatePostV1OrderOrdersPlace';
+        let isTriggerOrder = false;
+        if (operator === undefined) {
+            if (stopLossPrice !== undefined) {
+                stopPrice = stopLossPrice;
+                operator = (side === 'buy') ? 'gte' : 'lte';
+            } else if (takeProfitPrice !== undefined) {
+                stopPrice = takeProfitPrice;
+                operator = (side === 'buy') ? 'lte' : 'gte';
+            } else if (triggerPrice !== undefined) {
+                // only stopPrice is defined
+                // hence trigger order
+                method = 'spotPrivatePostV2AlgoOrders';
+                isTriggerOrder = true;
+            }
+        }
+        if ((operator !== undefined) && (operator !== 'gte') && (operator !== 'lte')) {
+            throw new ExchangeError (this.id + ' createOrder() `operator` param must be "gte" or "lte"');
+        }
+        const accountIdField = isTriggerOrder ? 'accountId' : 'account-id';
+        const isMarketOrder = orderType === 'market';
+        request[accountIdField] = accountId;
+        if (isTriggerOrder) {
+            request['stopPrice'] = triggerPrice;
+            request['orderType'] = isMarketOrder ? 'market' : 'limit';
+            request['orderSide'] = side;
+        } else if (stopPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
             }
         } else {
-            const stopOperator = this.safeString (params, 'operator');
-            if (stopOperator === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires an operator parameter "gte" or "lte" for a stop order');
-            }
-            params = this.omit (params, [ 'stopPrice', 'stop-price' ]);
             request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
-            request['operator'] = stopOperator;
+            request['operator'] = operator;
+            request['type'] = side + '-' + orderType;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
             } else if ((orderType !== 'stop-limit') && (orderType !== 'stop-limit-fok')) {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        params = this.omit (params, [ 'stopPrice', 'stop-price', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const postOnly = this.isPostOnly (isMarketOrder, orderType === 'limit-maker', params);
         if (postOnly) {
             orderType = 'limit-maker';
         }
-        request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
+        const clientOrderIdField = isTriggerOrder ? 'clientOrderId' : 'client-order-id';
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker', {});
             const brokerId = this.safeString (broker, 'id');
-            request['client-order-id'] = brokerId + this.uuid ();
+            request[clientOrderIdField] = brokerId + this.uuid ();
         } else {
-            request['client-order-id'] = clientOrderId;
+            request[clientOrderIdField] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id', 'postOnly' ]);
-        if ((orderType === 'market') && (side === 'buy')) {
+        if (isMarketOrder && (side === 'buy')) {
+            const amountField = isTriggerOrder ? 'orderValue' : 'amount';
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
@@ -3956,25 +3983,38 @@ module.exports = class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request[amountField] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             } else {
-                request['amount'] = this.costToPrecision (symbol, amount);
+                request[amountField] = this.costToPrecision (symbol, amount);
             }
         } else {
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            const amountField = isTriggerOrder ? 'orderSize' : 'amount';
+            request[amountField] = this.amountToPrecision (symbol, amount);
         }
         const limitOrderTypes = this.safeValue (options, 'limitOrderTypes', {});
         if (orderType in limitOrderTypes) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            const orderPrice = this.priceToPrecision (symbol, price);
+            if (isTriggerOrder) {
+                request['orderPrice'] = orderPrice;
+            } else {
+                request['price'] = orderPrice;
+            }
         }
-        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
         //     {"status":"ok","data":"438398393065481"}
         //
-        const id = this.safeString (response, 'data');
+        let id = undefined;
+        let clientOrderIdResponse = undefined;
+        if (isTriggerOrder) {
+            const data = this.safeValue (response, 'data');
+            clientOrderIdResponse = this.safeString (data, 'clientOrderId');
+        } else {
+            id = this.safeString (response, 'data');
+        }
         return {
             'info': response,
             'id': id,
@@ -3992,21 +4032,48 @@ module.exports = class huobi extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': undefined,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderIdResponse,
             'average': undefined,
         };
     }
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const offset = this.safeString (params, 'offset');
-        if (offset === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
-        }
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         const market = this.market (symbol);
+        const defaultMargin = market['future'] ? 'cross' : 'isolated';
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const loadLeverage = this.safeValue (this.options, 'createContractOrderLoadLeverage', true);
+        let leverRate = 1;
+        let hedged = true;
+        if (loadLeverage) {
+            let leverageMethod = undefined;
+            // mostly copied from fetchBalance
+            if (market['linear']) {
+                if (marginMode === 'isolated') {
+                    leverageMethod = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                } else {
+                    leverageMethod = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                }
+            } else {
+                if (market['future']) {
+                    leverageMethod = 'contractPrivatePostApiV1ContractAccountInfo';
+                } else if (market['swap']) {
+                    leverageMethod = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+                }
+            }
+            const leverageRequest = {
+                'contract_code': market['id'],
+            };
+            const response = await this[leverageMethod] (leverageRequest);
+            const data = this.safeValue (response, 'data');
+            const entry = this.safeValue (data, 0);
+            leverRate = this.safeInteger (entry, 'lever_rate');
+            const positionMode = this.safeString (entry, 'position_mode');
+            hedged = positionMode !== 'single_side';
+        }
         const request = {
             // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
@@ -4015,7 +4082,6 @@ module.exports = class huobi extends Exchange {
             // 'price': this.priceToPrecision (symbol, price), // optional
             'volume': this.amountToPrecision (symbol, amount),
             'direction': side, // buy, sell
-            'offset': offset, // open, close
             //
             //     direction buy, offset open = open long
             //     direction sell, offset close = close long
@@ -4023,7 +4089,6 @@ module.exports = class huobi extends Exchange {
             //     direction buy, offset close = close short
             //
             // 'reduce_only': 0, // 1 or 0, in hedge mode it is invalid, and in one-way mode its value is 0 when not filled
-            'lever_rate': 1, // required, using leverage greater than 20x requires prior approval of high-leverage agreement
             // 'order_price_type': 'limit', // required
             //
             //     order_price_type can be:
@@ -4052,44 +4117,86 @@ module.exports = class huobi extends Exchange {
             // 'sl_order_price': this.priceToPrecision (symbol, price),
             // 'sl_order_price_type': 'limit', // limit，optimal_5，optimal_10，optimal_20
         };
-        const stopLossOrderPrice = this.safeString (params, 'sl_order_price');
-        const stopLossTriggerPrice = this.safeString (params, 'sl_trigger_price');
-        const takeProfitOrderPrice = this.safeString (params, 'tp_order_price');
-        const takeProfitTriggerPrice = this.safeString (params, 'tp_trigger_price');
-        const isOpenOrder = (offset === 'open');
+        request['lever_rate'] = leverRate;
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        let offset = this.safeString (params, 'offset');
+        if (reduceOnly !== undefined) {
+            if (hedged) {
+                // set it to params here
+                if (offset === undefined) {
+                    offset = reduceOnly ? 'close' : 'open';
+                }
+            } else {
+                request['reduce_only'] = reduceOnly ? 1 : 0;
+            }
+        }
+        if (offset === undefined) {
+            if (hedged) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter open or close, or the reduceOnly parameter for contract orders');
+            }
+        } else {
+            request['offset'] = offset;
+        }
+        const stopLossOrderPrice = this.safeValue (params, 'sl_order_price');
+        const stopLossTriggerPrice = this.safeValue (params, 'sl_trigger_price');
+        const takeProfitOrderPrice = this.safeValue (params, 'tp_order_price');
+        const takeProfitTriggerPrice = this.safeValue (params, 'tp_trigger_price');
+        // unified params
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        let triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const isTriggerPriceOrder = (triggerPrice !== undefined);
+        const isTriggerOrder = isStopLossOrder || isTakeProfitOrder || isTriggerPriceOrder;
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new ExchangeError (this.id + ' createOrder `stopLossPrice` and `takeProfitPrice` params cannot both be defined');
+        }
+        let triggerType = this.safeString (params, 'trigger_type');
+        if (isTriggerOrder) {
+            if (triggerType === undefined) {
+                if (isStopLossOrder) {
+                    triggerPrice = stopLossPrice;
+                    triggerType = (side === 'buy') ? 'ge' : 'le';
+                } else if (isTakeProfitOrder) {
+                    triggerPrice = takeProfitPrice;
+                    triggerType = (side === 'buy') ? 'le' : 'ge';
+                }
+            }
+            if ((triggerType !== 'ge') && (triggerType !== 'le')) {
+                throw new ExchangeError (this.id + ' createOrder() params `trigger_type` must be "le" or "ge"');
+            }
+            request['trigger_price'] = triggerPrice;
+            request['trigger_type'] = triggerType;
+        }
+        // linear orders can be one-way mode also
+        const isOpenOrder = (offset === 'open') || !hedged;
         let isStopOrder = false;
         if (stopLossTriggerPrice !== undefined) {
             request['sl_trigger_price'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
-            isStopOrder = true;
-            if (price !== undefined) {
-                request['sl_order_price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        if (stopLossOrderPrice !== undefined) {
-            request['sl_order_price'] = this.priceToPrecision (symbol, stopLossOrderPrice);
+            const slOrderPrice = (stopLossOrderPrice === undefined) ? price : stopLossOrderPrice;
+            request['sl_order_price'] = this.priceToPrecision (symbol, slOrderPrice);
             isStopOrder = true;
         }
         if (takeProfitTriggerPrice !== undefined) {
             request['tp_trigger_price'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
-            isStopOrder = true;
-            if (price !== undefined) {
-                request['tp_order_price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        if (takeProfitOrderPrice !== undefined) {
-            request['tp_order_price'] = this.priceToPrecision (symbol, takeProfitOrderPrice);
+            const tpOrderPrice = (takeProfitOrderPrice === undefined) ? price : takeProfitOrderPrice;
+            request['tp_order_price'] = this.priceToPrecision (symbol, tpOrderPrice);
             isStopOrder = true;
         }
         if (isStopOrder && !isOpenOrder) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
-        params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price' ]);
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let isMarketOrder = true;
+        if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
+            const priceField = isTriggerOrder ? 'order_price' : 'price';
+            request[priceField] = this.priceToPrecision (symbol, price);
+            isMarketOrder = false;
+        }
+        params = this.omit (params, [ 'sl_order_price', 'sl_trigger_price', 'tp_order_price', 'tp_trigger_price', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'reduceOnly', 'offset' ]);
+        const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
-        }
-        if (type === 'limit' || type === 'ioc' || type === 'fok' || type === 'post_only') {
-            request['price'] = this.priceToPrecision (symbol, price);
         }
         request['order_price_type'] = type;
         const broker = this.safeValue (this.options, 'broker', {});
@@ -4102,18 +4209,16 @@ module.exports = class huobi extends Exchange {
         }
         let method = undefined;
         if (market['linear']) {
-            const defaultMargin = market['future'] ? 'cross' : 'isolated';
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
             if (marginMode === 'isolated') {
-                method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
+                method = isTriggerOrder ? 'contractPrivatePostLinearSwapApiV1SwapTriggerOrder' : 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else if (marginMode === 'cross') {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
+                method = isTriggerOrder ? 'contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder' : 'contractPrivatePostLinearSwapApiV1SwapCrossOrder';
             }
         } else if (market['inverse']) {
             if (market['swap']) {
-                method = 'contractPrivatePostSwapApiV1SwapOrder';
+                method = isTriggerOrder ? 'contractPrivatePostSwapApiV1SwapTriggerOrder' : 'contractPrivatePostSwapApiV1SwapOrder';
             } else if (market['future']) {
-                method = 'contractPrivatePostApiV1ContractOrder';
+                method = isTriggerOrder ? 'contractPrivatePostApiV1ContractTriggerOrder' : 'contractPrivatePostApiV1ContractOrder';
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -5630,6 +5735,30 @@ module.exports = class huobi extends Exchange {
             request['contract_code'] = market['id'];
         }
         const response = await this[method] (this.extend (request, query));
+        return response;
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear']) {
+            throw new ExchangeError (this.id + ' setPositionMode() changing position mode is only allowed for linear futures');
+        }
+        const defaultMargin = market['future'] ? 'cross' : 'isolated';
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const method = this.getSupportedMapping (marginMode, {
+            'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchPositionMode',
+            'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode',
+        });
+        const positionMode = hedged ? 'dual_side' : 'single_side';
+        const request = {
+            'margin_account': market['id'],
+            'position_mode': positionMode,
+        };
+        const response = await this[method] (this.extend (request, params));
         return response;
     }
 
