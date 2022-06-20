@@ -1960,8 +1960,7 @@ export default class bitfinex2 extends Exchange {
         const request = {
             'op_renew': 1,
         };
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        return response;
+        return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
     async fetchDepositAddress (code, params = {}) {

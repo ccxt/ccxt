@@ -2652,7 +2652,7 @@ export default class huobi extends Exchange {
          * @param {dict} params extra parameters specific to the huobi api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.spotPublicGetV2ReferenceCurrencies ();
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
         //     {
         //       "code": 200,
         //       "data": [

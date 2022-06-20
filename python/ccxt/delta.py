@@ -371,12 +371,7 @@ class delta(Exchange):
         response = self.publicGetProducts(params)
         #
         #     {
-        #         "meta":{
-        #             "after":null,
-        #             "before":null,
-        #             "limit":100,
-        #             "total_count":81
-        #         },
+        #         "meta":{"after":null, "before":null, "limit":100, "total_count":81},
         #         "result":[
         #             # the below response represents item from perpetual market
         #             {
@@ -451,24 +446,10 @@ class delta(Exchange):
         #                 "tick_size": "0.01",
         #                 "liquidation_penalty_factor": "1",
         #                 "spot_index": {
-        #                     "config": {
-        #                         "quoting_asset": "USDT",
-        #                         "service_id": 8,
-        #                         "underlying_asset": "SOL"
-        #                     },
+        #                     "config": {"quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL"},
         #                     "constituent_exchanges": [
-        #                         {
-        #                         "exchange": "binance",
-        #                         "health_interval": 60,
-        #                         "health_priority": 1,
-        #                         "weight": 1
-        #                         },
-        #                         {
-        #                         "exchange": "huobi",
-        #                         "health_interval": 60,
-        #                         "health_priority": 2,
-        #                         "weight": 1
-        #                         }
+        #                         {"exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1},
+        #                         {"exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1}
         #                     ],
         #                     "constituent_indices": null,
         #                     "description": "Solana index from binance and huobi",
@@ -498,28 +479,14 @@ class delta(Exchange):
         #                 "annualized_funding": "0",
         #                 "notional_type": "vanilla",
         #                 "price_band": "100",
-        #                 "product_specs": {
-        #                     "kyc_required": False,
-        #                     "max_order_size": 2000,
-        #                     "min_order_size": 0.01,
-        #                     "quoting_precision": 4,
-        #                     "underlying_precision": 2
-        #                 },
+        #                 "product_specs": {"kyc_required": False, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2},
         #                 "default_leverage": "1.000000000000000000",
         #                 "initial_margin": "10",
         #                 "maintenance_margin_scaling_factor": "1",
         #                 "ui_config": {
         #                     "default_trading_view_candle": "1d",
         #                     "leverage_slider_values": [],
-        #                     "price_clubbing_values": [
-        #                         0.01,
-        #                         0.05,
-        #                         0.1,
-        #                         0.5,
-        #                         1,
-        #                         2.5,
-        #                         5
-        #                     ],
+        #                     "price_clubbing_values": [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5],
         #                     "show_bracket_orders": False,
         #                     "sort_priority": 2,
         #                     "tags": []
@@ -539,30 +506,9 @@ class delta(Exchange):
         #                     "minimum_precision": 2,
         #                     "name": "Tether",
         #                     "networks": [
-        #                         {
-        #                           "base_withdrawal_fee": "25",
-        #                           "deposit_status": "enabled",
-        #                           "memo_required": False,
-        #                           "network": "ERC20",
-        #                           "variable_withdrawal_fee": "0",
-        #                           "withdrawal_status": "enabled"
-        #                         },
-        #                         {
-        #                           "base_withdrawal_fee": "1",
-        #                           "deposit_status": "enabled",
-        #                           "memo_required": False,
-        #                           "network": "BEP20(BSC)",
-        #                           "variable_withdrawal_fee": "0",
-        #                           "withdrawal_status": "enabled"
-        #                         },
-        #                         {
-        #                           "base_withdrawal_fee": "1",
-        #                           "deposit_status": "disabled",
-        #                           "memo_required": False,
-        #                           "network": "TRC20(TRON)",
-        #                           "variable_withdrawal_fee": "0",
-        #                           "withdrawal_status": "disabled"
-        #                         }
+        #                         {"base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": False, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": False, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled"}
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 1,
@@ -584,22 +530,8 @@ class delta(Exchange):
         #                     "minimum_precision": 4,
         #                     "name": "Solana",
         #                     "networks": [
-        #                         {
-        #                           "base_withdrawal_fee": "0.01",
-        #                           "deposit_status": "enabled",
-        #                           "memo_required": False,
-        #                           "network": "SOLANA",
-        #                           "variable_withdrawal_fee": "0",
-        #                           "withdrawal_status": "enabled"
-        #                         },
-        #                         {
-        #                           "base_withdrawal_fee": "0.01",
-        #                           "deposit_status": "enabled",
-        #                           "memo_required": False,
-        #                           "network": "BEP20(BSC)",
-        #                           "variable_withdrawal_fee": "0",
-        #                           "withdrawal_status": "enabled"
-        #                         }
+        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
+        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"}
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 7,

@@ -1083,23 +1083,47 @@ class okx(Exchange):
         #
         response = self.privateGetAssetCurrencies(params)
         #
-        #     {
-        #         "code" :"0",
-        #         "data": [
-        #             {
-        #                 "canDep": True,
-        #                 "canInternal": True,
-        #                 "canWd": True,
-        #                 "ccy": "USDT",
-        #                 "chain": "USDT-ERC20",
-        #                 "maxFee": "40",
-        #                 "minFee": "20",
-        #                 "minWd": "2",
-        #                 "name": ""
-        #             }
-        #         ],
-        #         "msg": ""
-        #     }
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-TRC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "1.6",
+        #                "maxWd": "8852150",
+        #                "minFee": "0.8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-ERC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "16",
+        #                "maxWd": "8852150",
+        #                "minFee": "8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         result = {}
@@ -1114,6 +1138,7 @@ class okx(Exchange):
             currencyActive = False
             depositEnabled = None
             withdrawEnabled = None
+            maxPrecision = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
@@ -1142,32 +1167,38 @@ class okx(Exchange):
                     if mainNet and not (chainPart in layerTwo):
                         # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code
+                    precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz')))
+                    if maxPrecision is None:
+                        maxPrecision = precision
+                    else:
+                        maxPrecision = max(maxPrecision, precision)
                     networks[network] = {
-                        'info': chain,
                         'id': networkId,
                         'network': network,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': self.safe_number(chain, 'minFee'),
-                        'precision': None,
+                        'precision': precision,
                         'limits': {
                             'withdraw': {
                                 'min': self.safe_number(chain, 'minWd'),
-                                'max': None,
+                                'max': self.safe_number(chain, 'maxWd'),
                             },
                         },
+                        'info': chain,
                     }
+            firstChain = self.safe_value(chains, 0)
             result[code] = {
                 'info': None,
                 'code': code,
                 'id': currencyId,
-                'name': None,
+                'name': self.safe_string(firstChain, 'name'),
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': None,
-                'precision': self.parse_number('0.00000001'),
+                'precision': maxPrecision,
                 'limits': {
                     'amount': {
                         'min': None,

@@ -25,6 +25,7 @@ export default class hitbtc3 extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -162,6 +163,7 @@ export default class hitbtc3 extends Exchange {
                         'margin/order': 1,
                         'futures/order': 1,
                         'wallet/convert': 15,
+                        'wallet/crypto/address': 15,
                         'wallet/crypto/withdraw': 15,
                         'wallet/transfer': 15,
                         'sub-account/freeze': 15,
@@ -594,6 +596,43 @@ export default class hitbtc3 extends Exchange {
         } else {
             return networkId.toUpperCase ();
         }
+    }
+
+    async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const network = this.safeStringUpper (params, 'network');
+        if ((network !== undefined) && (code === 'USDT')) {
+            const networks = this.safeValue (this.options, 'networks');
+            const parsedNetwork = this.safeString (networks, network);
+            if (parsedNetwork !== undefined) {
+                request['currency'] = parsedNetwork;
+            }
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostWalletCryptoAddress (this.extend (request, params));
+        //
+        //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
+        //
+        const currencyId = this.safeString (response, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId),
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, 'payment_id'),
+            'network': undefined,
+            'info': response,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {

@@ -19,6 +19,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -39,6 +40,7 @@ class cryptocom extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRates' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -46,6 +48,7 @@ class cryptocom extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => true,

@@ -2637,7 +2637,7 @@ class huobi extends Exchange {
          * @param {dict} $params extra parameters specific to the huobi api endpoint
          * @return {dict} an associative dictionary of currencies
          */
-        $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
+        $response = yield $this->spotPublicGetV2ReferenceCurrencies ($params);
         //     {
         //       "code" => 200,
         //       "data" => array(

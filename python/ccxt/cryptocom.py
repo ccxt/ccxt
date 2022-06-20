@@ -28,6 +28,7 @@ class cryptocom(Exchange):
             'countries': ['MT'],
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -48,6 +49,7 @@ class cryptocom(Exchange):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRates': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -55,6 +57,7 @@ class cryptocom(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchStatus': False,
                 'fetchTicker': True,

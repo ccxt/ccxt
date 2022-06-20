@@ -1092,23 +1092,47 @@ class okx extends Exchange {
         //
         $response = $this->privateGetAssetCurrencies ($params);
         //
-        //     {
-        //         "code" :"0",
-        //         "data" => array(
-        //             {
-        //                 "canDep" => true,
-        //                 "canInternal" => true,
-        //                 "canWd" => true,
-        //                 "ccy" => "USDT",
-        //                 "chain" => "USDT-ERC20",
-        //                 "maxFee" => "40",
-        //                 "minFee" => "20",
-        //                 "minWd" => "2",
-        //                 "name" => ""
-        //             }
-        //         ),
-        //         "msg" => ""
-        //     }
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "canDep" => true,
+        //                "canInternal" => false,
+        //                "canWd" => true,
+        //                "ccy" => "USDT",
+        //                "chain" => "USDT-TRC20",
+        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet" => false,
+        //                "maxFee" => "1.6",
+        //                "maxWd" => "8852150",
+        //                "minFee" => "0.8",
+        //                "minWd" => "2",
+        //                "name" => "Tether",
+        //                "usedWdQuota" => "0",
+        //                "wdQuota" => "500",
+        //                "wdTickSz" => "3"
+        //            ),
+        //            array(
+        //                "canDep" => true,
+        //                "canInternal" => false,
+        //                "canWd" => true,
+        //                "ccy" => "USDT",
+        //                "chain" => "USDT-ERC20",
+        //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet" => false,
+        //                "maxFee" => "16",
+        //                "maxWd" => "8852150",
+        //                "minFee" => "8",
+        //                "minWd" => "2",
+        //                "name" => "Tether",
+        //                "usedWdQuota" => "0",
+        //                "wdQuota" => "500",
+        //                "wdTickSz" => "3"
+        //            ),
+        //            ...
+        //        ),
+        //        "msg" => ""
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $result = array();
@@ -1123,6 +1147,7 @@ class okx extends Exchange {
             $currencyActive = false;
             $depositEnabled = null;
             $withdrawEnabled = null;
+            $maxPrecision = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $canDeposit = $this->safe_value($chain, 'canDep');
@@ -1154,34 +1179,41 @@ class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         $network = $code;
                     }
+                    $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz')));
+                    if ($maxPrecision === null) {
+                        $maxPrecision = $precision;
+                    } else {
+                        $maxPrecision = max ($maxPrecision, $precision);
+                    }
                     $networks[$network] = array(
-                        'info' => $chain,
                         'id' => $networkId,
                         'network' => $network,
                         'active' => $active,
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
-                        'precision' => null,
+                        'precision' => $precision,
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $this->safe_number($chain, 'minWd'),
-                                'max' => null,
+                                'max' => $this->safe_number($chain, 'maxWd'),
                             ),
                         ),
+                        'info' => $chain,
                     );
                 }
             }
+            $firstChain = $this->safe_value($chains, 0);
             $result[$code] = array(
                 'info' => null,
                 'code' => $code,
                 'id' => $currencyId,
-                'name' => null,
+                'name' => $this->safe_string($firstChain, 'name'),
                 'active' => $currencyActive,
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => null,
-                'precision' => $this->parse_number('0.00000001'),
+                'precision' => $maxPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,

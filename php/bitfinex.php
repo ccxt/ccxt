@@ -1270,8 +1270,7 @@ class bitfinex extends Exchange {
         $request = array(
             'renew' => 1,
         );
-        $response = $this->fetch_deposit_address($code, array_merge($request, $params));
-        return $response;
+        return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
