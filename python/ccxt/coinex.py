@@ -13,6 +13,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -27,7 +28,15 @@ class coinex(Exchange):
             'name': 'CoinEx',
             'version': 'v1',
             'countries': ['CN'],
-            'rateLimit': 50,  # Normal limit frequency is single IP：200 times / 10 seconds
+            # IP ratelimit is 400 requests per second
+            # rateLimit = 1000ms / 400 = 2.5
+            # 200 per 2 seconds => 100 per second => weight = 4
+            # 120 per 2 seconds => 60 per second => weight = 6.667
+            # 80 per 2 seconds => 40 per second => weight = 10
+            # 60 per 2 seconds => 30 per second => weight = 13.334
+            # 40 per 2 seconds => 20 per second => weight = 20
+            # 20 per 2 seconds => 10 per second => weight = 40
+            'rateLimit': 2.5,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -140,66 +149,68 @@ class coinex(Exchange):
                 },
                 'private': {
                     'get': {
-                        'account/amm/balance': 1,
-                        'account/investment/balance': 1,
-                        'account/balance/history': 1,
-                        'account/market/fee': 1,
-                        'balance/coin/deposit': 1,
-                        'balance/coin/withdraw': 1,
-                        'balance/info': 1,
-                        'balance/deposit/address/{coin_type}': 1,
-                        'contract/transfer/history': 1,
-                        'credit/info': 1,
-                        'credit/balance': 1,
-                        'investment/transfer/history': 1,
+                        'account/amm/balance': 40,
+                        'account/investment/balance': 40,
+                        'account/balance/history': 40,
+                        'account/market/fee': 40,
+                        'balance/coin/deposit': 40,
+                        'balance/coin/withdraw': 40,
+                        'balance/info': 40,
+                        'balance/deposit/address/{coin_type}': 40,
+                        'contract/transfer/history': 40,
+                        'credit/info': 40,
+                        'credit/balance': 40,
+                        'investment/transfer/history': 40,
                         'margin/account': 1,
                         'margin/config': 1,
-                        'margin/loan/history': 1,
-                        'margin/transfer/history': 1,
-                        'order/deals': 1,
-                        'order/finished': 1,
-                        'order/pending': 1,
-                        'order/status': 1,
-                        'order/status/batch': 1,
-                        'order/user/deals': 1,
-                        'order/stop/finished': 1,
-                        'order/stop/pending': 1,
+                        'margin/loan/history': 40,
+                        'margin/transfer/history': 40,
+                        'order/deals': 40,
+                        'order/finished': 40,
+                        'order/pending': 4,
+                        'order/status': 4,
+                        'order/status/batch': 4,
+                        'order/user/deals': 40,
+                        'order/stop/finished': 40,
+                        'order/stop/pending': 4,
                         'order/user/trade/fee': 1,
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
-                        'sub_account/transfer/history': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'sub_account/transfer/history': 40,
+                        'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
-                        'balance/coin/withdraw': 1,
-                        'contract/balance/transfer': 1,
-                        'margin/flat': 1,
-                        'margin/loan': 1,
-                        'margin/transfer': 1,
-                        'order/limit/batch': 1,
-                        'order/ioc': 1,
-                        'order/limit': 1,
-                        'order/market': 1,
-                        'order/stop/limit': 1,
-                        'order/stop/market': 1,
-                        'sub_account/transfer': 1,
+                        'balance/coin/withdraw': 40,
+                        'contract/balance/transfer': 40,
+                        'margin/flat': 40,
+                        'margin/loan': 40,
+                        'margin/transfer': 40,
+                        'order/limit/batch': 13.334,
+                        'order/ioc': 6.667,
+                        'order/limit': 6.667,
+                        'order/market': 6.667,
+                        'order/modify': 6.667,
+                        'order/stop/limit': 6.667,
+                        'order/stop/market': 6.667,
+                        'order/stop/modify': 6.667,
+                        'sub_account/transfer': 40,
                         'sub_account/register': 1,
-                        'sub_account/unfrozen': 1,
-                        'sub_account/frozen': 1,
-                        'sub_account/auth/api': 1,
+                        'sub_account/unfrozen': 40,
+                        'sub_account/frozen': 40,
+                        'sub_account/auth/api': 40,
                     },
                     'put': {
-                        'balance/deposit/address/{coin_type}': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
-                        'v1/account/settings': 1,
+                        'balance/deposit/address/{coin_type}': 40,
+                        'sub_account/auth/api/{user_auth_id}': 40,
+                        'v1/account/settings': 40,
                     },
                     'delete': {
-                        'balance/coin/withdraw': 1,
-                        'order/pending/batch': 1,
-                        'order/pending': 1,
-                        'order/stop/pending': 1,
-                        'order/stop/pending/{id}': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'balance/coin/withdraw': 40,
+                        'order/pending/batch': 13.334,
+                        'order/pending': 6.667,
+                        'order/stop/pending': 13.334,
+                        'order/stop/pending/{id}': 13.334,
+                        'sub_account/auth/api/{user_auth_id}': 40,
                     },
                 },
                 'perpetualPublic': {
@@ -219,29 +230,36 @@ class coinex(Exchange):
                 },
                 'perpetualPrivate': {
                     'get': {
-                        'asset/query': 1,
-                        'order/pending': 1,
-                        'order/finished': 1,
-                        'order/stop_pending': 1,
-                        'order/status': 1,
-                        'order/stop_status': 1,
-                        'position/pending': 1,
-                        'position/funding': 1,
+                        'asset/query': 40,
+                        'order/pending': 4,
+                        'order/finished': 40,
+                        'order/stop_finished': 40,
+                        'order/stop_pending': 4,
+                        'order/status': 4,
+                        'order/stop_status': 4,
+                        'position/pending': 40,
+                        'position/funding': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
                         'market/position_expect': 1,
-                        'order/put_limit': 1,
-                        'order/put_market': 1,
-                        'order/put_stop_limit': 1,
-                        'order/put_stop_market': 1,
-                        'order/cancel': 1,
-                        'order/cancel_all': 1,
-                        'order/cancel_stop': 1,
-                        'order/cancel_stop_all': 1,
-                        'order/close_limit': 1,
-                        'order/close_market': 1,
-                        'position/adjust_margin': 1,
+                        'order/put_limit': 10,
+                        'order/put_market': 10,
+                        'order/put_stop_limit': 10,
+                        'order/put_stop_market': 10,
+                        'order/modify': 10,
+                        'order/modify_stop': 10,
+                        'order/cancel': 10,
+                        'order/cancel_all': 20,
+                        'order/cancel_batch': 20,
+                        'order/cancel_stop': 10,
+                        'order/cancel_stop_all': 20,
+                        'order/close_limit': 10,
+                        'order/close_market': 10,
+                        'position/adjust_margin': 10,
+                        'position/stop_loss': 10,
+                        'position/take_profit': 10,
+                        'position/market_close': 10,
                     },
                 },
             },
@@ -1636,13 +1654,18 @@ class coinex(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the coinex api endpoint
+        :param str params['timeInForce']: "GTC", "IOC", "FOK", "PO"
+        :param bool params.postOnly:
+        :param bool params.reduceOnly:
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
         stopPrice = self.safe_string_2(params, 'stopPrice', 'stop_price')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        option = self.safe_string(params, 'option')
+        isMarketOrder = type == 'market'
+        postOnly = self.is_post_only(isMarketOrder, option == 'MAKER_ONLY', params)
         positionId = self.safe_integer_2(params, 'position_id', 'positionId')  # Required for closing swap positions
         timeInForce = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
@@ -1671,21 +1694,16 @@ class coinex(Exchange):
                     method = 'perpetualPrivatePostOrderPutStopMarket'
                 request['amount'] = self.amount_to_precision(symbol, amount)
             if (type != 'market') or (stopPrice is not None):
-                if (timeInForce is not None) or (postOnly is not None):
-                    isMakerOrder = False
-                    if (timeInForce == 'PO') or (postOnly):
-                        isMakerOrder = True
-                    if isMakerOrder:
-                        request['option'] = 1
+                if postOnly:
+                    request['option'] = 1
+                elif timeInForce is not None:
+                    if timeInForce == 'IOC':
+                        timeInForce = 2
+                    elif timeInForce == 'FOK':
+                        timeInForce = 3
                     else:
-                        if timeInForce == 'IOC':
-                            timeInForce = 2
-                        elif timeInForce == 'FOK':
-                            timeInForce = 3
-                        else:
-                            timeInForce = 1
-                        if timeInForce is not None:
-                            request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
+                        timeInForce = 1
+                    request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
             if type == 'limit' and stopPrice is None:
                 if reduceOnly:
                     method = 'perpetualPrivatePostOrderCloseLimit'
@@ -1728,13 +1746,10 @@ class coinex(Exchange):
                     method = 'privatePostOrderStopMarket'
             if (type != 'market') or (stopPrice is not None):
                 # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
-                if (timeInForce is not None) or (postOnly is not None):
-                    isMakerOrder = False
-                    if (timeInForce == 'PO') or (postOnly):
-                        isMakerOrder = True
-                    if (isMakerOrder or (timeInForce != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
+                if (timeInForce is not None) or postOnly:
+                    if (postOnly or (timeInForce != 'IOC')) and ((type == 'limit') and (stopPrice is not None)):
                         raise InvalidOrder(self.id + ' createOrder() only supports the IOC option for stop-limit orders')
-                    if isMakerOrder:
+                    if postOnly:
                         request['option'] = 'MAKER_ONLY'
                     else:
                         if timeInForce is not None:
@@ -4026,6 +4041,7 @@ class coinex(Exchange):
                 '34': AuthenticationError,  # Access id is expires
                 '35': ExchangeNotAvailable,  # Service unavailable
                 '36': RequestTimeout,  # Service timeout
+                '213': RateLimitExceeded,  # Too many requests
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,
