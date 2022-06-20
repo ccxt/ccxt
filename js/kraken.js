@@ -26,8 +26,10 @@ module.exports = class kraken extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
@@ -157,6 +159,7 @@ module.exports = class kraken extends Exchange {
                         'Balance': 1,
                         'CancelAll': 1,
                         'CancelOrder': 0,
+                        'CancelOrderBatch': 0,
                         'ClosedOrders': 2,
                         'DepositAddresses': 1,
                         'DepositMethods': 1,
@@ -1750,6 +1753,31 @@ module.exports = class kraken extends Exchange {
             throw e;
         }
         return response;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids open orders transaction ID (txid) or user reference (userref)
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        const request = {
+            'orders': [ ids ],
+        };
+        const response = await this.privatePostCancelOrderBatch (this.extend (request, params));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //           "count": 2
+        //         }
+        //     }
+        //
+        return ;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
