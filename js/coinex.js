@@ -1758,12 +1758,8 @@ module.exports = class coinex extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
-                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
-                    let isMakerOrder = false;
-                    if ((timeInForce === 'PO') || (postOnly)) {
-                        isMakerOrder = true;
-                    }
-                    if (isMakerOrder) {
+                if ((timeInForce !== undefined) || postOnly) {
+                    if (postOnly) {
                         request['option'] = 1;
                     } else {
                         if (timeInForce === 'IOC') {
@@ -1773,9 +1769,7 @@ module.exports = class coinex extends Exchange {
                         } else {
                             timeInForce = 1;
                         }
-                        if (timeInForce !== undefined) {
-                            request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                        }
+                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
                     }
                 }
             }
@@ -1830,15 +1824,11 @@ module.exports = class coinex extends Exchange {
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
                 // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
-                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
-                    let isMakerOrder = false;
-                    if ((timeInForce === 'PO') || (postOnly)) {
-                        isMakerOrder = true;
-                    }
-                    if ((isMakerOrder || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
+                if ((timeInForce !== undefined) || postOnly) {
+                    if ((postOnly || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
                         throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
                     }
-                    if (isMakerOrder) {
+                    if (postOnly) {
                         request['option'] = 'MAKER_ONLY';
                     } else {
                         if (timeInForce !== undefined) {
