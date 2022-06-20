@@ -831,6 +831,10 @@ module.exports = class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
+                'settle': {
+                    'USDT': 'linear',
+                    'BUSD': 'linear',
+                },
                 'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-R4BD3S82',
