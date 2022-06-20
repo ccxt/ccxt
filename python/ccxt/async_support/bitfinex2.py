@@ -1835,8 +1835,7 @@ class bitfinex2(Exchange):
         request = {
             'op_renew': 1,
         }
-        response = await self.fetch_deposit_address(code, self.extend(request, params))
-        return response
+        return await self.fetch_deposit_address(code, self.extend(request, params))
 
     async def fetch_deposit_address(self, code, params={}):
         """
