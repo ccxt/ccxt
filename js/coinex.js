@@ -1758,19 +1758,17 @@ module.exports = class coinex extends Exchange {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
-                if ((timeInForce !== undefined) || postOnly) {
-                    if (postOnly) {
-                        request['option'] = 1;
+                if (postOnly) {
+                    request['option'] = 1;
+                } else if (timeInForce !== undefined) {
+                    if (timeInForce === 'IOC') {
+                        timeInForce = 2;
+                    } else if (timeInForce === 'FOK') {
+                        timeInForce = 3;
                     } else {
-                        if (timeInForce === 'IOC') {
-                            timeInForce = 2;
-                        } else if (timeInForce === 'FOK') {
-                            timeInForce = 3;
-                        } else {
-                            timeInForce = 1;
-                        }
-                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                        timeInForce = 1;
                     }
+                    request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
                 }
             }
             if (type === 'limit' && stopPrice === undefined) {
