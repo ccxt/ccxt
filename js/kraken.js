@@ -1777,7 +1777,7 @@ module.exports = class kraken extends Exchange {
         //         }
         //     }
         //
-        return ;
+        return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
