@@ -929,12 +929,7 @@ class Transpiler {
 
     transpileClass (contents) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
-        let newClassBody = classBody;
-        const implicitMethods = this.getImplicitMethodsList(className);
-        for (const [camelCase, lower_case] of Object.entries (implicitMethods)) {
-            newClassBody = newClassBody.replace (new RegExp(camelCase + ' \\(', 'g'), lower_case + ' (');
-        }
-        const methods = newClassBody.trim ().split (/\n\s*\n/)
+        const methods = classBody.trim ().split (/\n\s*\n/)
          
         const {
             python2,
