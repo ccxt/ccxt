@@ -1423,13 +1423,17 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'margin') && (type !== 'delivery')) {
+        const spot = (type === 'spot');
+        const margin = (type === 'margin');
+        const future = (type === 'future');
+        const delivery = (type === 'delivery');
+        if ((!spot) && (!margin) && (!future) && (!delivery)) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
         let method = 'publicGetExchangeInfo';
-        if (type === 'future') {
+        if (future) {
             method = 'fapiPublicGetExchangeInfo';
-        } else if (type === 'delivery') {
+        } else if (delivery) {
             method = 'dapiPublicGetExchangeInfo';
         }
         const response = await this[method] (query);
