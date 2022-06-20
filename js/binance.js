@@ -2534,12 +2534,14 @@ module.exports = class binance extends Exchange {
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
-        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         let defaultMethod = undefined;
         if (type === 'future') {
-            defaultMethod = 'fapiPublicGetAggTrades';
+            if (market['linear']) {
+                defaultMethod = 'fapiPublicGetAggTrades';
+            } else if (market['inverse']) {
+                defaultMethod = 'dapiPublicGetAggTrades';
+            }
         } else if (type === 'delivery') {
             defaultMethod = 'dapiPublicGetAggTrades';
         } else {
@@ -2548,13 +2550,21 @@ module.exports = class binance extends Exchange {
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
             if (type === 'future') {
-                method = 'fapiPublicGetAggTrades';
+                if (market['linear']) {
+                    method = 'fapiPublicGetAggTrades';
+                } else if (market['inverse']) {
+                    method = 'dapiPublicGetAggTrades';
+                }
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetAggTrades';
             }
         } else if (method === 'publicGetHistoricalTrades') {
             if (type === 'future') {
-                method = 'fapiPublicGetHistoricalTrades';
+                if (market['linear']) {
+                    method = 'fapiPublicGetHistoricalTrades';
+                } else if (market['inverse']) {
+                    method = 'dapiPublicGetHistoricalTrades';
+                }
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetHistoricalTrades';
             }
