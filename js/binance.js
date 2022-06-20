@@ -6114,7 +6114,7 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const symbolKey = market['future'] ? 'symbol' : 'pair';
+        const symbolKey = market['linear'] ? 'symbol' : 'pair';
         request[symbolKey] = market['id'];
         if (market['delivery']) {
             request['contractType'] = this.safeString (params, 'contractType', 'CURRENT_QUARTER');
@@ -6135,7 +6135,7 @@ module.exports = class binance extends Exchange {
             request['endTime'] = this.sum (since, duration * limit * 1000);
         }
         let method = 'fapiDataGetOpenInterestHist';
-        if (market['delivery']) {
+        if (market['inverse']) {
             method = 'dapiDataGetOpenInterestHist';
         }
         const response = await this[method] (this.extend (request, params));
