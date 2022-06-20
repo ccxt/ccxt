@@ -1582,12 +1582,10 @@ module.exports = class binance extends Exchange {
             await this.loadTimeDifference ();
         }
         const markets = this.safeValue (response, 'symbols', []);
+        const settleCurrencies = this.safeValue (this.options, 'settle', {});
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const spot = (type === 'spot');
-            const future = (type === 'future');
-            const delivery = (type === 'delivery');
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
@@ -1627,6 +1625,9 @@ module.exports = class binance extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
+            const linearOrInverse = this.safeString (settleCurrencies, settle, 'inverse');
+            const linear = (linearOrInverse === 'linear');
+            const inverse = (linearOrInverse === 'inverse');
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1646,8 +1647,8 @@ module.exports = class binance extends Exchange {
                 'option': false,
                 'active': active,
                 'contract': contract,
-                'linear': contract ? (settle === 'USDT') : undefined,
-                'inverse': contract ? (settle !== 'USDT') : undefined,
+                'linear': contract ? linear : undefined,
+                'inverse': contract ? inverse : undefined,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'contractSize': contractSize,
