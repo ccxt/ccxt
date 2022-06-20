@@ -4,25 +4,38 @@ const ccxt = require ('../../ccxt.js')
 
 console.log ('CCXT Version:', ccxt.version)
 
-async function loadExchange (exchangeId) {
+async function loadExchange (exchange) {
     try {
-        const exchange = new ccxt[exchangeId]()
-        if (exchange.has['swap'] || exchange.has['future'] || exchange.has['option']) {
-            await exchange.loadMarkets ()
-            exchange.symbols.map (symbol => {
-                const market = exchange.market (symbol)
+        await exchange.loadMarkets ()
+        exchange.symbols.map (symbol => {
+            const market = exchange.market (symbol)
+            if (market['contract']) {
                 console.log (exchange.id, 'loaded', market['type'], symbol, 'market')
-            })
-        } else {
-        }
+            }
+        })
+    } catch (e) {
+        console.log (e.constructor.name, e.message)
+    }
+}
+
+async function loadAllExchanges (exchangeId) {
+    try {
+
+        const exchanges = [];
+        [ 'swap', 'future', 'options' ].forEach (defaultType => {
+            const exchange = new ccxt[exchangeId]()
+            if (exchange.has[defaultType]) {
+                exchanges.push (exchange);
+            }
+        })
+        await Promise.all (exchanges.map (exchange => loadExchange (exchange)))
     } catch (e) {
         console.log (e.constructor.name, e.message)
     }
 }
 
 async function main () {
-
-    await Promise.all (ccxt.exchanges.map (exchangeId => loadExchange (exchangeId)))
+    await Promise.all (ccxt.exchanges.map (exchangeId => loadAllExchanges (exchangeId)))
 }
 
 main ()
