@@ -2271,6 +2271,7 @@ module.exports = class deribit extends Exchange {
             code = this.codeFromOptions ('fetchPositions', params);
         } else if (typeof symbols === 'string') {
             code = symbols;
+            symbols = undefined; // fix https://github.com/ccxt/ccxt/issues/13961
         } else {
             if (Array.isArray (symbols)) {
                 const length = symbols.length;
