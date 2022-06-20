@@ -337,13 +337,6 @@ module.exports = class woo extends Exchange {
                 settle = this.safeCurrencyCode (settleId);
                 symbol = base + '/' + quote + ':' + settle;
             }
-            const minQuote = this.safeNumber (market, 'quote_min');
-            const maxQuote = this.safeNumber (market, 'quote_max');
-            const minBase = this.safeNumber (market, 'base_min');
-            const maxBase = this.safeNumber (market, 'base_max');
-            const priceScale = this.safeNumber (market, 'quote_tick');
-            const quantityScale = this.safeNumber (market, 'base_tick');
-            const minCost = this.safeNumber (market, 'min_notional');
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
