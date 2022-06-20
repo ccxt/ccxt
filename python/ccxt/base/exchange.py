@@ -465,7 +465,6 @@ class Exchange(object):
         lowercase_path = [x.strip().lower() for x in split_path]
         camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
         underscore_suffix = '_'.join([x for x in lowercase_path if len(x)])
-        snake_case_suffix = re.sub(r'(?<!^)(?=[A-Z])', '_', camelcase_suffix)
         camelcase_prefix = ''
         underscore_prefix = ''
         if len(paths):
@@ -479,7 +478,6 @@ class Exchange(object):
                 api_argument = paths[0]
         camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
         underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
-        snake_case = underscore_prefix + '_' + lowercase_method + '_' + snake_case_suffix.lower()
         uncamelcased = self.un_camel_case(camelcase)
 
         def partialer():
@@ -502,9 +500,7 @@ class Exchange(object):
         to_bind = partialer()
         setattr(cls, camelcase, to_bind)
         setattr(cls, underscore, to_bind)
-        if underscore != snake_case:
-            setattr(cls, snake_case, to_bind)
-        if uncamelcased != snake_case and uncamelcased != underscore:
+        if uncamelcased != underscore:
             setattr(cls, uncamelcased, to_bind)
 
     def define_rest_api(self, api, method_name, paths=[]):
@@ -532,9 +528,9 @@ class Exchange(object):
     def un_camel_case(self, str):
         if not re.search(r'[A-Z]', str):
             return str
-        str = re.sub ('([a-z0-9])([A-Z])', r'\1_\2', str)
-        str = re.sub ('([A-Z0-9])([A-Z0-9])([a-z])([^$])', r'\1_\2\3\4', str)
-        str = re.sub ('([a-z])([0-9])$', r'\1_\2', str)
+        str = re.sub('([a-z0-9])([A-Z])', r'\1_\2', str)
+        str = re.sub('([A-Z0-9])([A-Z0-9])([a-z])([^$])', r'\1_\2\3\4', str)
+        str = re.sub('([a-z])([0-9])$', r'\1_\2', str)
         str = str.lower()
         return str
 
