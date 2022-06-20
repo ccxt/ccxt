@@ -498,14 +498,14 @@ class okcoin extends Exchange {
                     '32038' => '\\ccxt\\AuthenticationError', // User does not exist
                     '32040' => '\\ccxt\\ExchangeError', // User have open contract orders or position
                     '32044' => '\\ccxt\\ExchangeError', // array( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
-                    '32045' => '\\ccxt\\ExchangeError', // String of commission over 1 million
+                    '32045' => '\\ccxt\\ExchangeError', // 'strval' of commission over 1 million
                     '32046' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 trade plans at the same time
                     '32047' => '\\ccxt\\ExchangeError', // system error
                     '32048' => '\\ccxt\\InvalidOrder', // Order strategy track range error
                     '32049' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 track plans at the same time
                     '32050' => '\\ccxt\\InvalidOrder', // Order strategy rang error
                     '32051' => '\\ccxt\\InvalidOrder', // Order strategy ice depth error
-                    '32052' => '\\ccxt\\ExchangeError', // String of commission over 100 thousand
+                    '32052' => '\\ccxt\\ExchangeError', // 'strval' of commission over 100 thousand
                     '32053' => '\\ccxt\\ExchangeError', // Each user can hold up to 6 ice plans at the same time
                     '32057' => '\\ccxt\\ExchangeError', // The order price is zero. Market-close-all function cannot be executed
                     '32054' => '\\ccxt\\ExchangeError', // Trade not allow
@@ -1134,7 +1134,6 @@ class okcoin extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'currency');
                 $code = $this->safe_currency_code($id);
-                $precision = 0.00000001; // default $precision, todo => fix "magic constants"
                 $name = $this->safe_string($currency, 'name');
                 $canDeposit = $this->safe_integer($currency, 'can_deposit');
                 $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
@@ -1151,7 +1150,7 @@ class okcoin extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => null, // todo => redesign
-                    'precision' => $precision,
+                    'precision' => $this->parse_number('0.00000001'),
                     'limits' => array(
                         'amount' => array( 'min' => null, 'max' => null ),
                         'withdraw' => array(
@@ -1523,7 +1522,7 @@ class okcoin extends Exchange {
         //         725179.26172331,
         //     )
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             $numElements = is_array($ohlcv) ? count($ohlcv) : 0;
             $volumeIndex = ($numElements > 6) ? 6 : 5;
             $timestamp = $this->safe_value($ohlcv, 0);
@@ -2072,6 +2071,16 @@ class okcoin extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2130,8 +2139,7 @@ class okcoin extends Exchange {
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $precision = $market['precision']['price'];
-                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+                    $request['notional'] = $this->cost_to_precision($symbol, $notional);
                 } else {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
@@ -2156,6 +2164,13 @@ class okcoin extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -2381,6 +2396,12 @@ class okcoin extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -2573,6 +2594,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // '-2' => failed,
         // '-1' => cancelled,
         //  '0' => open ,
@@ -2586,6 +2615,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         // '-2' => failed,
         // '-1' => cancelled,
         //  '0' => open ,
@@ -2624,6 +2661,12 @@ class okcoin extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $parts = explode('-', $code);
         $currency = $this->currency($parts[0]);
@@ -2648,6 +2691,15 @@ class okcoin extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
@@ -2735,6 +2787,15 @@ class okcoin extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
@@ -2751,7 +2812,7 @@ class okcoin extends Exchange {
             'to_address' => $address,
             'destination' => '4', // 2 = OKCoin International, 3 = OKEx 4 = others
             'amount' => $this->number_to_string($amount),
-            'fee' => $fee, // String. Network transaction $fee ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set as 0. Withdrawal to external digital asset $address requires network transaction $fee->
+            'fee' => $fee, // 'strval'. Network transaction $fee ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set as 0. Withdrawal to external digital asset $address requires network transaction $fee->
         );
         if (is_array($params) && array_key_exists('password', $params)) {
             $request['trade_pwd'] = $params['password'];
@@ -2777,6 +2838,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $method = 'accountGetDepositHistory';
@@ -2791,6 +2860,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array();
         $method = 'accountGetWithdrawalHistory';
@@ -3092,6 +3169,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         // okex actually returns ledger entries instead of fills here, so each fill in the order
         // is represented by two trades with opposite buy/sell sides, not one :\
         // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
@@ -3190,6 +3275,15 @@ class okcoin extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $request = array(
             // 'instrument_id' => market['id'],
             'order_id' => $id,
@@ -3201,6 +3295,12 @@ class okcoin extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
+        /**
+         * fetch data on a single open contract trade position
+         * @param {str} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $method = null;
@@ -3403,6 +3503,12 @@ class okcoin extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols not used by okcoin fetchPositions
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $method = null;
         $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
@@ -3472,6 +3578,14 @@ class okcoin extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the okcoin api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $defaultType = $this->safe_string_2($this->options, 'fetchLedger', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
@@ -3677,7 +3791,7 @@ class okcoin extends Exchange {
         if ($responseLength < 1) {
             return array();
         }
-        $isArray = gettype($response[0]) === 'array' && count(array_filter(array_keys($response[0]), 'is_string')) == 0;
+        $isArray = gettype($response[0]) === 'array' && array_keys($response[0]) === array_keys(array_keys($response[0]));
         $isMargin = ($type === 'margin');
         $entries = ($isMargin && $isArray) ? $response[0] : $response;
         if ($type === 'swap') {
@@ -3819,7 +3933,7 @@ class okcoin extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $isArray = gettype($params) === 'array' && count(array_filter(array_keys($params), 'is_string')) == 0;
+        $isArray = gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params));
         $request = '/api/' . $api . '/' . $this->version . '/';
         $request .= $isArray ? $path : $this->implode_params($path, $params);
         $query = $isArray ? $params : $this->omit($params, $this->extract_params($path));
