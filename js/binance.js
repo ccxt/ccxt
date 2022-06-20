@@ -1419,16 +1419,28 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if ((type !== 'spot') && (type !== 'future') && (type !== 'margin') && (type !== 'delivery')) {
+        const spot = (type === 'spot');
+        const margin = (type === 'margin');
+        const future = (type === 'future');
+        const delivery = (type === 'delivery');
+        if ((!spot) && (!margin) && (!future) && (!delivery)) {
             throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         }
-        let method = 'publicGetExchangeInfo';
-        if (type === 'future') {
-            method = 'fapiPublicGetExchangeInfo';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetExchangeInfo';
+        let markets = undefined;
+        if (spot || margin) {
+            const response = await this.publicGetExchangeInfo (this.extend (query, params));
+            markets = this.safeValue (response, 'symbols', []);
+        } else {
+            let promises = [
+                this.fapiPublicGetExchangeInfo (this.extend (query, params)),
+                this.dapiPublicGetExchangeInfo (this.extend (query, params)),
+            ];
+            promises = await Promise.all (promises);
+            const [ usdmResponse, coinmResponse ] = promises;
+            const usdmMarkets = this.safeValue (usdmResponse, 'symbols', []);
+            const coinmMarkets = this.safeValue (coinmResponse, 'symbols', []);
+            markets = this.arrayConcat (usdmMarkets, coinmMarkets);
         }
-        const response = await this[method] (query);
         //
         // spot / margin
         //
@@ -1581,13 +1593,9 @@ module.exports = class binance extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const spot = (type === 'spot');
-            const future = (type === 'future');
-            const delivery = (type === 'delivery');
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
