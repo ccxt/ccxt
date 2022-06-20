@@ -6054,7 +6054,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async createMarginLoan (code, symbol, amount, params = {}) {
+    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
