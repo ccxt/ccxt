@@ -4194,7 +4194,7 @@ module.exports = class coinex extends Exchange {
         };
     }
 
-    async createMarginLoan (code, symbol, amount, params = {}) {
+    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -4221,7 +4221,7 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    async repayMarginLoan (code, symbol, amount, params = {}) {
+    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
