@@ -125,6 +125,7 @@ class kucoin(Exchange, ccxt.kucoin):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         negotiation = await self.negotiate()
         options = self.safe_value(self.options, 'watchTicker', {})
         channel = self.safe_string(options, 'topic', 'market/snapshot')
@@ -207,13 +208,14 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         period = self.timeframes[timeframe]
         topic = '/market/candles:' + market['id'] + '_' + period
         messageHash = topic
-        trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
+        ohlcv = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client, message):
         #
@@ -260,6 +262,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = '/market/match:' + market['id']
         messageHash = topic
         trades = await self.subscribe(negotiation, topic, messageHash, None, symbol, params)
@@ -322,6 +325,7 @@ class kucoin(Exchange, ccxt.kucoin):
         await self.load_markets()
         negotiation = await self.negotiate()
         market = self.market(symbol)
+        symbol = market['symbol']
         topic = '/market/level2:' + market['id']
         messageHash = topic
         orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
@@ -535,6 +539,7 @@ class kucoin(Exchange, ccxt.kucoin):
         messageHash = topic
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             messageHash = messageHash + ':' + market['symbol']
         orders = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:
@@ -545,7 +550,7 @@ class kucoin(Exchange, ccxt.kucoin):
         statuses = {
             'open': 'open',
             'filled': 'closed',
-            'match': 'closed',
+            'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
         }
@@ -641,6 +646,7 @@ class kucoin(Exchange, ccxt.kucoin):
         messageHash = topic
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             messageHash = messageHash + ':' + market['symbol']
         trades = await self.subscribe(negotiation, topic, messageHash, None, None, self.extend(request, params))
         if self.newUpdates:

@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,19 +15,23 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'ws': true,
                 'watchTicker': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-manager-compress.{hostname}?protocol=1.1',
+                    'ws': {
+                        'public': 'wss://ws-manager-compress.{hostname}/api?protocol=1.1',
+                        'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
+                    },
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'watchOrderBook': {
                     'depth': 'depth5', // depth5, depth400
                 },
-                // 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
                     'inflate': true,
                 },
@@ -56,8 +60,21 @@ module.exports = class bitmart extends ccxt.bitmart {
     async subscribe (channel, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.implodeHostname (this.urls['api']['ws']);
+        const url = this.implodeHostname (this.urls['api']['ws']['public']);
         const messageHash = market['type'] + '/' + channel + ':' + market['id'];
+        const request = {
+            'op': 'subscribe',
+            'args': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async subscribePrivate (channel, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.implodeHostname (this.urls['api']['ws']['private']);
+        const messageHash = channel + ':' + market['id'];
+        await this.authenticate ();
         const request = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -75,6 +92,132 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     async watchTicker (symbol, params = {}) {
         return await this.subscribe ('ticker', symbol, params);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'spot') {
+            throw new ArgumentsRequired (this.id + ' watchOrders supports spot markets only');
+        }
+        const channel = 'spot/user/order';
+        const orders = await this.subscribePrivate (channel, symbol, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message) {
+        //
+        // {
+        //     "data":[
+        //         {
+        //             symbol: 'LTC_USDT',
+        //             notional: '',
+        //             side: 'buy',
+        //             last_fill_time: '0',
+        //             ms_t: '1646216634000',
+        //             type: 'limit',
+        //             filled_notional: '0.000000000000000000000000000000',
+        //             last_fill_price: '0',
+        //             size: '0.500000000000000000000000000000',
+        //             price: '50.000000000000000000000000000000',
+        //             last_fill_count: '0',
+        //             filled_size: '0.000000000000000000000000000000',
+        //             margin_trading: '0',
+        //             state: '8',
+        //             order_id: '24807076628',
+        //             order_type: '0'
+        //           }
+        //     ],
+        //     "table":"spot/user/order"
+        // }
+        //
+        const channel = this.safeString (message, 'table');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = [];
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.parseWsOrder (orders[i]);
+                stored.append (order);
+                const symbol = order['symbol'];
+                const market = this.market (symbol);
+                marketIds.push (market['id']);
+            }
+            for (let i = 0; i < marketIds.length; i++) {
+                const messageHash = channel + ':' + marketIds[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // {
+        //     symbol: 'LTC_USDT',
+        //     notional: '',
+        //     side: 'buy',
+        //     last_fill_time: '0',
+        //     ms_t: '1646216634000',
+        //     type: 'limit',
+        //     filled_notional: '0.000000000000000000000000000000',
+        //     last_fill_price: '0',
+        //     size: '0.500000000000000000000000000000',
+        //     price: '50.000000000000000000000000000000',
+        //     last_fill_count: '0',
+        //     filled_size: '0.000000000000000000000000000000',
+        //     margin_trading: '0',
+        //     state: '8',
+        //     order_id: '24807076628',
+        //     order_type: '0'
+        //   }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const id = this.safeString (order, 'order_id');
+        const clientOrderId = this.safeString (order, 'clientOid');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filled_size');
+        const amount = this.safeString (order, 'size');
+        const type = this.safeString (order, 'type');
+        const rawState = this.safeString (order, 'state');
+        const status = this.parseOrderStatusByType (market['type'], rawState);
+        const timestamp = this.safeInteger (order, 'ms_t');
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': timestamp,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     handleTrade (client, message) {
@@ -305,22 +448,21 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.implodeHostname (this.urls['api']['ws']['private']);
         const messageHash = 'login';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
-            const timestamp = this.seconds ().toString ();
-            const method = 'GET';
-            const path = '/users/self/verify';
-            const auth = timestamp + method + path;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const timestamp = this.milliseconds ().toString ();
+            const memo = this.uid;
+            const path = 'bitmart.WebSocket';
+            const auth = timestamp + '#' + memo + '#' + path;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'op': messageHash,
                 'args': [
                     this.apiKey,
-                    this.password,
                     timestamp,
                     signature,
                 ],
@@ -330,69 +472,10 @@ module.exports = class bitmart extends ccxt.bitmart {
         return await future;
     }
 
-    async subscribeToUserAccount (negotiation, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        await this.loadMarkets ();
-        const currencyId = this.safeString (params, 'currency');
-        const code = this.safeString (params, 'code', this.safeCurrencyCode (currencyId));
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const marketId = this.safeString (params, 'instrument_id');
-        const symbol = this.safeString (params, 'symbol');
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        const marketUndefined = (market === undefined);
-        const currencyUndefined = (currency === undefined);
-        if (type === 'spot') {
-            if (currencyUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + ' accounts');
-            }
-        } else if ((type === 'margin') || (type === 'swap') || (type === 'option')) {
-            if (marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + ' accounts');
-            }
-        } else if (type === 'futures') {
-            if (currencyUndefined && marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + ' accounts');
-            }
-        }
-        let suffix = undefined;
-        if (!currencyUndefined) {
-            suffix = currency['id'];
-        } else if (!marketUndefined) {
-            suffix = market['id'];
-        }
-        const accountType = (type === 'margin') ? 'spot' : type;
-        const account = (type === 'margin') ? 'margin_account' : 'account';
-        const messageHash = accountType + '/' + account;
-        const subscriptionHash = messageHash + ':' + suffix;
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [ subscriptionHash ],
-        };
-        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
-        return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
-    }
-
     handleSubscriptionStatus (client, message) {
         //
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //
-        // const channel = this.safeString (message, 'channel');
-        // client.subscriptions[channel] = message;
         return message;
     }
 
@@ -459,6 +542,8 @@ module.exports = class bitmart extends ccxt.bitmart {
         //         ]
         //     }
         //
+        //     { data: '', table: 'spot/user/order' }
+        //
         const table = this.safeString (message, 'table');
         if (table === undefined) {
             const event = this.safeString (message, 'event');
@@ -490,6 +575,10 @@ module.exports = class bitmart extends ccxt.bitmart {
             let method = this.safeValue (methods, name);
             if (name.indexOf ('kline') >= 0) {
                 method = this.handleOHLCV;
+            }
+            const privateName = this.safeString (parts, 2);
+            if (privateName === 'order') {
+                method = this.handleOrders;
             }
             if (method === undefined) {
                 return message;

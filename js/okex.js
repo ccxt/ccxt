@@ -10,7 +10,7 @@ module.exports = class okex extends okx {
     describe () {
         return this.deepExtend (super.describe (), {
             'alias': true,
-            'id': 'huobipro',
+            'id': 'okex',
         });
     }
 };

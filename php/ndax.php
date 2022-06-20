@@ -393,9 +393,9 @@ class ndax extends \ccxt\async\ndax {
             // 0 new, 1 update, 2 remove
             if ($type === 0) {
                 $orderbookSide->store ($price, $amount);
-            } else if ($type === 1) {
+            } elseif ($type === 1) {
                 $orderbookSide->store ($price, $amount);
-            } else if ($type === 2) {
+            } elseif ($type === 2) {
                 $orderbookSide->store ($price, 0);
             }
         }

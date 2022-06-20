@@ -851,7 +851,7 @@ class kraken extends \ccxt\async\kraken {
                 );
                 if (mb_strpos($flags, 'fciq') !== false) {
                     $fee['currency'] = $market['quote'];
-                } else if (mb_strpos($flags, 'fcib') !== false) {
+                } elseif (mb_strpos($flags, 'fcib') !== false) {
                     $fee['currency'] = $market['base'];
                 }
             }
@@ -959,7 +959,7 @@ class kraken extends \ccxt\async\kraken {
     }
 
     public function handle_message($client, $message) {
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $channelId = $this->safe_string($message, 0);
             $subscription = $this->safe_value($client->subscriptions, $channelId, array());
             $info = $this->safe_value($subscription, 'subscription', array());

@@ -809,6 +809,7 @@ module.exports = class bittrex extends ccxt.bittrex {
             'orderBook': this.handleOrderBook,
             'heartbeat': this.handleHeartbeat,
             'ticker': this.handleTicker,
+            'execution': this.handleMyTrades,
         };
         const M = this.safeValue (message, 'M', []);
         for (let i = 0; i < M.length; i++) {

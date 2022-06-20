@@ -560,10 +560,10 @@ class huobijp extends \ccxt\async\huobijp {
             //
             if (is_array($message) && array_key_exists('id', $message)) {
                 $this->handle_subscription_status($client, $message);
-            } else if (is_array($message) && array_key_exists('ch', $message)) {
+            } elseif (is_array($message) && array_key_exists('ch', $message)) {
                 // route by channel aka topic aka subject
                 $this->handle_subject($client, $message);
-            } else if (is_array($message) && array_key_exists('ping', $message)) {
+            } elseif (is_array($message) && array_key_exists('ping', $message)) {
                 $this->handle_ping($client, $message);
             }
         }

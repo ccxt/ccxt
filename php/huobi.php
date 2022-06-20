@@ -645,7 +645,7 @@ class huobi extends \ccxt\async\huobi {
             } else {
                 $channel = $marginPrefix . '.' . '*';
             }
-        } else if ($type === 'future') {
+        } elseif ($type === 'future') {
             // inverse futures Example => BCH/USD:BCH-220408
             if ($baseId !== null) {
                 $channel = $prefix . '.' . $baseId;
@@ -1147,7 +1147,7 @@ class huobi extends \ccxt\async\huobi {
                         $channel = $prefix . '.' . '*';
                     }
                 }
-            } else if ($type === 'future') {
+            } elseif ($type === 'future') {
                 // inverse futures account
                 if ($currencyCode !== null) {
                     $messageHash .= '.' . $currencyCode['id'];

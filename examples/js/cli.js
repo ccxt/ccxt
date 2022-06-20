@@ -18,6 +18,10 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , newUpdates = process.argv.includes ('--newUpdates')
+    , testnet =
+        process.argv.includes ('--test') ||
+        process.argv.includes ('--testnet') ||
+        process.argv.includes ('--sandbox')
 
 //-----------------------------------------------------------------------------
 
@@ -94,6 +98,10 @@ try {
                 exchange[credential] = credentialValue
             }
         }
+    }
+
+    if (testnet) {
+        exchange.setSandboxMode (true)
     }
 
 } catch (e) {

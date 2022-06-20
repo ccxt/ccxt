@@ -150,6 +150,78 @@ module.exports = class hollaex extends ccxt.hollaex {
         client.resolve (stored, channel);
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let messageHash = 'usertrade';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + market['id'];
+        }
+        const trades = await this.watchPrivate (messageHash, 'watchOrders', params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client, message, subscription = undefined) {
+        //
+        // {
+        //     "topic":"usertrade",
+        //     "action":"insert",
+        //     "user_id":"103",
+        //     "symbol":"xht-usdt",
+        //     "data":[
+        //        {
+        //           "size":1,
+        //           "side":"buy",
+        //           "price":0.24,
+        //           "symbol":"xht-usdt",
+        //           "timestamp":"2022-05-13T09:30:15.014Z",
+        //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
+        //           "fee":0.001,
+        //           "fee_coin":"xht",
+        //           "is_same":true
+        //        }
+        //     ],
+        //     "time":1652434215
+        // }
+        //
+        const channel = this.safeString (message, 'topic');
+        const rawTrades = this.safeValue (message, 'data');
+        // usually the first message is an empty array
+        // when the user does not have any trades yet
+        const dataLength = rawTrades.length;
+        if (dataLength === 0) {
+            return 0;
+        }
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCache (limit);
+        }
+        const stored = this.myTrades;
+        const marketIds = {};
+        for (let i = 0; i < rawTrades.length; i++) {
+            const trade = rawTrades[i];
+            const parsed = this.parseTrade (trade);
+            stored.append (parsed);
+            const symbol = trade['symbol'];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            marketIds[marketId] = true;
+        }
+        // non-symbol specific
+        client.resolve (this.myTrades, channel);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const messageHash = channel + ':' + marketId;
+            client.resolve (this.myTrades, messageHash);
+        }
+    }
+
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let messageHash = 'order';
@@ -192,26 +264,74 @@ module.exports = class hollaex extends ccxt.hollaex {
         //         time: 1649686140
         //     }
         //
+        //    {
+        //        "topic":"order",
+        //        "action":"partial",
+        //        "user_id":155328,
+        //        "data":[
+        //           {
+        //              "created_at":"2022-05-13T08:19:07.694Z",
+        //              "fee":0,
+        //              "meta":{
+        //
+        //              },
+        //              "symbol":"ltc-usdt",
+        //              "side":"buy",
+        //              "size":0.1,
+        //              "type":"limit",
+        //              "price":55,
+        //              "fee_structure":{
+        //                 "maker":0.1,
+        //                 "taker":0.1
+        //              },
+        //              "fee_coin":"ltc",
+        //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
+        //              "created_by":155328,
+        //              "filled":0,
+        //              "status":"new",
+        //              "updated_at":"2022-05-13T08:19:07.694Z",
+        //              "stop":null
+        //           }
+        //        ],
+        //        "time":1652430035
+        //       }
+        //
         const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
         const data = this.safeValue (message, 'data', {});
         // usually the first message is an empty array
         const dataLength = data.length;
         if (dataLength === 0) {
             return 0;
         }
-        const parsed = this.parseOrder (data);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const orders = this.orders;
-        orders.append (parsed);
-        client.resolve (orders);
+        const stored = this.orders;
+        let rawOrders = undefined;
+        if (!Array.isArray (data)) {
+            rawOrders = [ data ];
+        } else {
+            rawOrders = data;
+        }
+        const marketIds = {};
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = rawOrders[i];
+            const parsed = this.parseOrder (order);
+            stored.append (parsed);
+            const symbol = order['symbol'];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            marketIds[marketId] = true;
+        }
         // non-symbol specific
-        client.resolve (orders, channel);
-        const messageHash = channel + ':' + marketId;
-        client.resolve (orders, messageHash);
+        client.resolve (this.orders, channel);
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const messageHash = channel + ':' + marketId;
+            client.resolve (this.orders, messageHash);
+        }
     }
 
     async watchBalance (params = {}) {
@@ -411,6 +531,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             'orderbook': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
+            'usertrade': this.handleMyTrades,
         };
         const topic = this.safeValue (message, 'topic');
         const method = this.safeValue (methods, topic);

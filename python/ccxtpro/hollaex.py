@@ -145,6 +145,70 @@ class hollaex(Exchange, ccxt.hollaex):
         client.resolve(stored, messageHash)
         client.resolve(stored, channel)
 
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        messageHash = 'usertrade'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash += ':' + market['id']
+        trades = await self.watch_private(messageHash, 'watchOrders', params)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def handle_my_trades(self, client, message, subscription=None):
+        #
+        # {
+        #     "topic":"usertrade",
+        #     "action":"insert",
+        #     "user_id":"103",
+        #     "symbol":"xht-usdt",
+        #     "data":[
+        #        {
+        #           "size":1,
+        #           "side":"buy",
+        #           "price":0.24,
+        #           "symbol":"xht-usdt",
+        #           "timestamp":"2022-05-13T09:30:15.014Z",
+        #           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
+        #           "fee":0.001,
+        #           "fee_coin":"xht",
+        #           "is_same":true
+        #        }
+        #     ],
+        #     "time":1652434215
+        # }
+        #
+        channel = self.safe_string(message, 'topic')
+        rawTrades = self.safe_value(message, 'data')
+        # usually the first message is an empty array
+        # when the user does not have any trades yet
+        dataLength = len(rawTrades)
+        if dataLength == 0:
+            return 0
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCache(limit)
+        stored = self.myTrades
+        marketIds = {}
+        for i in range(0, len(rawTrades)):
+            trade = rawTrades[i]
+            parsed = self.parse_trade(trade)
+            stored.append(parsed)
+            symbol = trade['symbol']
+            market = self.market(symbol)
+            marketId = market['id']
+            marketIds[marketId] = True
+        # non-symbol specific
+        client.resolve(self.myTrades, channel)
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            marketId = keys[i]
+            messageHash = channel + ':' + marketId
+            client.resolve(self.myTrades, messageHash)
+
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         messageHash = 'order'
@@ -184,24 +248,69 @@ class hollaex(Exchange, ccxt.hollaex):
         #         time: 1649686140
         #     }
         #
+        #    {
+        #        "topic":"order",
+        #        "action":"partial",
+        #        "user_id":155328,
+        #        "data":[
+        #           {
+        #              "created_at":"2022-05-13T08:19:07.694Z",
+        #              "fee":0,
+        #              "meta":{
+        #
+        #              },
+        #              "symbol":"ltc-usdt",
+        #              "side":"buy",
+        #              "size":0.1,
+        #              "type":"limit",
+        #              "price":55,
+        #              "fee_structure":{
+        #                 "maker":0.1,
+        #                 "taker":0.1
+        #              },
+        #              "fee_coin":"ltc",
+        #              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
+        #              "created_by":155328,
+        #              "filled":0,
+        #              "status":"new",
+        #              "updated_at":"2022-05-13T08:19:07.694Z",
+        #              "stop":null
+        #           }
+        #        ],
+        #        "time":1652430035
+        #       }
+        #
         channel = self.safe_string(message, 'topic')
-        marketId = self.safe_string(message, 'symbol')
         data = self.safe_value(message, 'data', {})
         # usually the first message is an empty array
         dataLength = len(data)
         if dataLength == 0:
             return 0
-        parsed = self.parse_order(data)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
-        orders = self.orders
-        orders.append(parsed)
-        client.resolve(orders)
+        stored = self.orders
+        rawOrders = None
+        if not isinstance(data, list):
+            rawOrders = [data]
+        else:
+            rawOrders = data
+        marketIds = {}
+        for i in range(0, len(rawOrders)):
+            order = rawOrders[i]
+            parsed = self.parse_order(order)
+            stored.append(parsed)
+            symbol = order['symbol']
+            market = self.market(symbol)
+            marketId = market['id']
+            marketIds[marketId] = True
         # non-symbol specific
-        client.resolve(orders, channel)
-        messageHash = channel + ':' + marketId
-        client.resolve(orders, messageHash)
+        client.resolve(self.orders, channel)
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            marketId = keys[i]
+            messageHash = channel + ':' + marketId
+            client.resolve(self.orders, messageHash)
 
     async def watch_balance(self, params={}):
         messageHash = 'wallet'
@@ -388,6 +497,7 @@ class hollaex(Exchange, ccxt.hollaex):
             'orderbook': self.handle_order_book,
             'order': self.handle_order,
             'wallet': self.handle_balance,
+            'usertrade': self.handle_my_trades,
         }
         topic = self.safe_value(message, 'topic')
         method = self.safe_value(methods, topic)
