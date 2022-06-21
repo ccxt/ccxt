@@ -2182,33 +2182,33 @@ module.exports = class deribit extends Exchange {
         side = (side === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const notionalString = this.safeString (position, 'size_currency');
-        const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMarginString), '100');
         const currentTime = this.milliseconds ();
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'initialMargin': this.parseNumber (initialMarginString),
-            'initialMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (initialMarginString, notionalString), '100')),
-            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
-            'maintenanceMarginPercentage': this.parseNumber (Precise.stringMul (Precise.stringDiv (maintenanceMarginString, notionalString), '100')),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
+            'maintenanceMarginPercentage': undefined,
             'entryPrice': this.safeNumber (position, 'average_price'),
-            'notional': this.parseNumber (notionalString),
+            'notional': undefined,
             'leverage': this.safeInteger (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': undefined,
+            'hedged': undefined,
             'contracts': undefined,
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': undefined,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async fetchPosition (symbol, params = {}) {
