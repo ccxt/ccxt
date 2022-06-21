@@ -178,7 +178,6 @@ from ccxt.probit import probit                              # noqa: F401
 from ccxt.qtrade import qtrade                              # noqa: F401
 from ccxt.ripio import ripio                                # noqa: F401
 from ccxt.stex import stex                                  # noqa: F401
-from ccxt.scallop import scallop                                  # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
@@ -302,7 +301,6 @@ exchanges = [
     'qtrade',
     'ripio',
     'stex',
-    'scallop',
     'therock',
     'tidebit',
     'tidex',
