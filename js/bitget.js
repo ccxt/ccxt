@@ -2712,7 +2712,7 @@ module.exports = class bitget extends Exchange {
         if (liquidation === 0) {
             liquidation = undefined;
         }
-        return {
+        return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
@@ -2721,10 +2721,12 @@ module.exports = class bitget extends Exchange {
             'liquidationPrice': liquidation,
             'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
+            'realizedPnl': this.safeNumber (position, 'achievedProfits'),
             'percentage': undefined,
             'contracts': contracts,
             'contractSize': this.safeNumber (position, 'total'),
             'markPrice': undefined,
+            'lastPrice': undefined,
             'side': this.safeString (position, 'holdSide'),
             'hedged': hedged,
             'timestamp': timestamp,
@@ -2736,7 +2738,7 @@ module.exports = class bitget extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
-        };
+        });
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
