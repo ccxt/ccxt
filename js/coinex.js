@@ -2974,11 +2974,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'market');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const positionId = this.safeInteger (position, 'position_id');
         const marginModeInteger = this.safeInteger (position, 'type');
-        const marginMode = (marginModeInteger === 1) ? 'isolated' : 'cross';
         const liquidationPrice = this.safeString (position, 'liq_price');
         const entryPrice = this.safeString (position, 'open_price');
         const unrealizedPnl = this.safeString (position, 'profit_unreal');
@@ -2992,10 +2988,10 @@ module.exports = class coinex extends Exchange {
         const leverage = this.safeNumber (position, 'leverage');
         return {
             'info': position,
-            'id': positionId,
-            'symbol': symbol,
+            'id': this.safeInteger (position, 'position_id'),
+            'symbol': this.safeSymbol (marketId, market),
             'notional': undefined,
-            'marginMode': marginMode,
+            'marginMode': (marginModeInteger === 1) ? 'isolated' : 'cross',
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
