@@ -2384,63 +2384,37 @@ module.exports = class ftx extends Exchange {
         //     "estimatedLiquidationPrice": null
         //   }
         //
-        const contractsString = this.safeString (position, 'size');
         const rawSide = this.safeString (position, 'side');
-        const side = (rawSide === 'buy') ? 'long' : 'short';
         const marketId = this.safeString (position, 'future');
-        const symbol = this.safeSymbol (marketId, market);
-        const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
-        const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
-        // on ftx the entryPrice is actually the mark price
-        const markPriceString = this.safeString (position, 'entryPrice');
-        const notionalString = Precise.stringMul (contractsString, markPriceString);
-        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
-        const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
-        const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const unrealizedPnlString = this.safeString (position, 'recentPnl');
-        const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
-        const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
-        let difference = undefined;
-        let collateral = undefined;
-        let marginRatio = undefined;
-        if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
-            // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
-            if (side === 'long') {
-                difference = Precise.stringSub (markPriceString, liquidationPriceString);
-            } else {
-                difference = Precise.stringSub (liquidationPriceString, markPriceString);
-            }
-            const loss = Precise.stringMul (difference, contractsString);
-            collateral = Precise.stringAdd (loss, maintenanceMarginString);
-            marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
-        }
         // ftx has a weird definition of realizedPnl
         // it keeps the historical record of the realizedPnl per contract forever
         // so we cannot use this data
-        return {
+        return this.safePosition ({
             'info': position,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market),
             'timestamp': undefined,
             'datetime': undefined,
-            'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
-            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
-            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentageString),
-            'entryPrice': this.parseNumber (entryPriceString),
-            'notional': this.parseNumber (notionalString),
-            'leverage': leverage,
-            'unrealizedPnl': this.parseNumber (unrealizedPnlString),
-            'contracts': this.parseNumber (contractsString),
-            'contractSize': this.safeValue (market, 'contractSize'),
-            'marginRatio': marginRatio,
-            'liquidationPrice': this.parseNumber (liquidationPriceString),
-            'markPrice': this.parseNumber (markPriceString),
-            'collateral': this.parseNumber (collateral),
+            'initialMargin': undefined,
+            'initialMarginPercentage': this.safeNumber (position, 'initialMarginRequirement'),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintenanceMarginRequirement'),
+            'entryPrice': this.safeNumber (position, 'recentAverageOpenPrice'),
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'recentPnl'),
+            'realizedPnl': undefined,
+            'contracts': this.safeNumber (position, 'size'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'estimatedLiquidationPrice'),
+            'markPrice': this.safeNumber (position, 'entryPrice'), // on ftx the entryPrice is actually the mark price
+            'lastPrice': undefined,
             'marginMode': 'cross',
-            'side': side,
-            'percentage': percentage,
-        };
+            'collateral': undefined,
+            'side': (rawSide === 'buy') ? 'long' : 'short',
+            'hedged': undefined,
+            'percentage': undefined,
+        });
     }
 
     async fetchDepositAddress (code, params = {}) {
