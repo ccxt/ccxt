@@ -4280,9 +4280,10 @@ module.exports = class zb extends Exchange {
         //         "message": "操作成功"
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency['id']);
+        const transaction = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
+            'symbol': symbol,
         });
     }
 
@@ -4295,8 +4296,9 @@ module.exports = class zb extends Exchange {
         //
         return {
             'id': undefined,
-            'currency': currency,
+            'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
+            'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'info': info,
