@@ -2905,7 +2905,7 @@ module.exports = class aax extends Exchange {
         const collateral = this.safeString (position, 'posMargin');
         const percentage = Precise.stringDiv (unrealisedPnl, initialMargin);
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
@@ -2927,7 +2927,7 @@ module.exports = class aax extends Exchange {
             'marginMode': 'isolated',
             'side': side,
             'percentage': this.parseNumber (percentage),
-        };
+        });
     }
 
     async fetchPosition (symbol = undefined, params = {}) {
