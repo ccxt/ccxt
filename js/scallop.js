@@ -33,7 +33,6 @@ module.exports = class scallop extends Exchange {
                 'fetchMarginOrder': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -848,42 +847,6 @@ module.exports = class scallop extends Exchange {
             this.safeNumber (ohlcv, 2), // close
             this.safeNumber (ohlcv, 1), // volume
         ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'period': this.timeframes[timeframe],
-            // 'start_time': 1564520003, // starting timestamp, 200 candles before end_time by default
-            // 'end_time': 1564520003, // ending timestamp, current timestamp by default
-        };
-        if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
-            request['start_time'] = startTime;
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe (timeframe);
-                request['end_time'] = this.sum (startTime, limit * duration);
-            }
-        } else if (limit !== undefined) {
-            const endTime = this.seconds ();
-            const duration = this.parseTimeframe (timeframe);
-            request['startTime'] = this.sum (endTime, -limit * duration);
-        }
-        const response = await this.publicGetKline (this.extend (request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
-        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
-        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
