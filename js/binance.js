@@ -6057,6 +6057,7 @@ module.exports = class binance extends Exchange {
             'amount': amount,
         };
         const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
+        params = this.omit (params, 'marginMode');
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
