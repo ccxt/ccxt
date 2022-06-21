@@ -2182,12 +2182,12 @@ module.exports = class deribit extends Exchange {
         side = (side === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const currentTime = this.milliseconds ();
+        const timestamp = undefined;
         return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': undefined,
             'maintenanceMargin': this.safeNumber (position, 'maintenance_margin'),
