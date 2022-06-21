@@ -1713,6 +1713,10 @@ module.exports = class coinex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @param {float} triggerPrice price at which to triger stop orders
+         * @param {float} stopPrice price at which to triger stop orders
+         * @param {float} stopLossPrice price at which to trigger stop-loss orders
+         * @param {float} takeProfitPrice price at which to trigger take-profit orders
          * @param {str} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
