@@ -5675,41 +5675,37 @@ module.exports = class huobi extends Exchange {
 
     parsePosition (position, market = undefined) {
         //
-        //     {
-        //       symbol: 'BTC',
-        //       contract_code: 'BTC-USDT',
-        //       volume: '1.000000000000000000',
-        //       available: '1.000000000000000000',
-        //       frozen: '0E-18',
-        //       cost_open: '47162.000000000000000000',
-        //       cost_hold: '47151.300000000000000000',
-        //       profit_unreal: '0.007300000000000000',
-        //       profit_rate: '-0.000144183876850008',
-        //       lever_rate: '2',
-        //       position_margin: '23.579300000000000000',
-        //       direction: 'buy',
-        //       profit: '-0.003400000000000000',
-        //       last_price: '47158.6',
-        //       margin_asset: 'USDT',
-        //       margin_mode: 'isolated',
-        //       margin_account: 'BTC-USDT',
-        //       margin_balance: '24.973020070000000000',
-        //       margin_position: '23.579300000000000000',
-        //       margin_frozen: '0',
-        //       margin_available: '1.393720070000000000',
-        //       profit_real: '0E-18',
-        //       risk_rate: '1.044107779705080303',
-        //       withdraw_available: '1.386420070000000000000000000000000000',
-        //       liquidation_price: '22353.229148614609571788',
-        //       adjust_factor: '0.015000000000000000',
-        //       margin_static: '24.965720070000000000'
-        //     }
+        // fetchPositions
+        //
+        //         {
+        //             "symbol": 'BTC',
+        //             "contract_code": 'BTC-USDT',
+        //             "volume": '1.000000000000000000',
+        //             "available": '1.000000000000000000',
+        //             "frozen": '0E-18',
+        //             "cost_open": '47162.000000000000000000',
+        //             "cost_hold": '47162.000000000000000000',
+        //             "profit_unreal": '0.047300000000000000',
+        //             "profit_rate": '0.002005852169119206',
+        //             "lever_rate": '2',
+        //             "position_margin": '23.604650000000000000',
+        //             "direction": 'buy',
+        //             "profit": '0.047300000000000000',
+        //             "last_price": '47209.3',
+        //             "contract_type": "swap", // present in Linear (both Swap & Futures) with cross-mode and also in Inverse (Futures)
+        //             "margin_asset": 'USDT', // present in Linear (both) with cross-mode
+        //             "margin_mode": 'isolated', // present in Linear (both) with cross-mode
+        //             "margin_account": 'BTC-USDT' // present in Linear (both) with cross-mode
+        //             "trade_partition": 'USDT', // present in Linear (both) with cross-mode
+        //             "position_mode": 'dual_side', // present in Linear (both) with cross-mode
+        //             "pair": "BTT-USDT", // present in Linear (both) with cross-mode
+        //             "business_type": "swap", // present in Linear (both) with cross-mode
+        //         }
         //
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
-        const contractSize = this.safeValue (market, 'contractSize');
-        const contractSizeString = this.numberToString (contractSize);
+        const contractSize = this.safeNumber (market, 'contractSize');
         const entryPrice = this.safeNumber (position, 'cost_open');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');
@@ -5719,22 +5715,14 @@ module.exports = class huobi extends Exchange {
         const leverage = this.safeString (position, 'lever_rate');
         const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
         const lastPrice = this.safeString (position, 'last_price');
-        const faceValue = Precise.stringMul (contracts, contractSizeString);
-        let notional = undefined;
-        if (market['linear']) {
-            notional = Precise.stringMul (faceValue, lastPrice);
-        } else {
-            notional = Precise.stringDiv (faceValue, lastPrice);
+        if (!market['linear']) {
             marginMode = 'cross';
         }
-        const intialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         const collateral = this.safeString (position, 'margin_balance');
         const liquidationPrice = this.safeNumber (position, 'liquidation_price');
         const adjustmentFactor = this.safeString (position, 'adjust_factor');
         const maintenanceMarginPercentage = Precise.stringDiv (adjustmentFactor, leverage);
-        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
-        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
@@ -5742,21 +5730,24 @@ module.exports = class huobi extends Exchange {
             'entryPrice': entryPrice,
             'collateral': this.parseNumber (collateral),
             'side': side,
-            'unrealizedProfit': unrealizedProfit,
+            'hedged': undefined,
+            'unrealizedPnl': unrealizedProfit,
+            'realizedPnl': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': this.parseNumber (percentage),
             'marginMode': marginMode,
-            'notional': this.parseNumber (notional),
+            'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': lastPrice,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (intialMarginPercentage),
-            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
-            'marginRatio': this.parseNumber (marginRatio),
+            'marginRatio': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        });
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -5782,90 +5773,39 @@ module.exports = class huobi extends Exchange {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
             });
-            //
-            //     {
-            //       status: 'ok',
-            //       data: [
-            //         {
-            //           symbol: 'BTC',
-            //           contract_code: 'BTC-USDT',
-            //           volume: '1.000000000000000000',
-            //           available: '1.000000000000000000',
-            //           frozen: '0E-18',
-            //           cost_open: '47162.000000000000000000',
-            //           cost_hold: '47162.000000000000000000',
-            //           profit_unreal: '0.047300000000000000',
-            //           profit_rate: '0.002005852169119206',
-            //           lever_rate: '2',
-            //           position_margin: '23.604650000000000000',
-            //           direction: 'buy',
-            //           profit: '0.047300000000000000',
-            //           last_price: '47209.3',
-            //           margin_asset: 'USDT',
-            //           margin_mode: 'isolated',
-            //           margin_account: 'BTC-USDT'
-            //         }
-            //       ],
-            //       ts: '1641108676768'
-            //     }
-            //
         } else {
             method = this.getSupportedMapping (marketType, {
                 'future': 'contractPrivatePostApiV1ContractPositionInfo',
                 'swap': 'contractPrivatePostSwapApiV1SwapPositionInfo',
             });
-            //
-            // future
-            //     {
-            //       status: 'ok',
-            //       data: [
-            //         {
-            //           symbol: 'BTC',
-            //           contract_code: 'BTC220624',
-            //           contract_type: 'next_quarter',
-            //           volume: '1.000000000000000000',
-            //           available: '1.000000000000000000',
-            //           frozen: '0E-18',
-            //           cost_open: '49018.880000000009853343',
-            //           cost_hold: '49018.880000000009853343',
-            //           profit_unreal: '-8.62360608500000000000000000000000000000000000000E-7',
-            //           profit_rate: '-0.000845439023678622',
-            //           lever_rate: '2',
-            //           position_margin: '0.001019583964880634',
-            //           direction: 'sell',
-            //           profit: '-8.62360608500000000000000000000000000000000000000E-7',
-            //           last_price: '49039.61'
-            //         }
-            //       ],
-            //       ts: '1641109895199'
-            //     }
-            //
-            // swap
-            //     {
-            //       status: 'ok',
-            //       data: [
-            //         {
-            //           symbol: 'BTC',
-            //           contract_code: 'BTC-USD',
-            //           volume: '1.000000000000000000',
-            //           available: '1.000000000000000000',
-            //           frozen: '0E-18',
-            //           cost_open: '47150.000000000012353300',
-            //           cost_hold: '47150.000000000012353300',
-            //           profit_unreal: '0E-54',
-            //           profit_rate: '-7.86E-16',
-            //           lever_rate: '3',
-            //           position_margin: '0.000706963591375044',
-            //           direction: 'buy',
-            //           profit: '0E-54',
-            //           last_price: '47150'
-            //         }
-            //       ],
-            //       ts: '1641109636572'
-            //     }
-            //
         }
         const response = await this[method] (params);
+        //
+        //         {
+        //             "symbol": 'BTC',
+        //             "contract_code": 'BTC-USDT',
+        //             "volume": '1.000000000000000000',
+        //             "available": '1.000000000000000000',
+        //             "frozen": '0E-18',
+        //             "cost_open": '47162.000000000000000000',
+        //             "cost_hold": '47162.000000000000000000',
+        //             "profit_unreal": '0.047300000000000000',
+        //             "profit_rate": '0.002005852169119206',
+        //             "lever_rate": '2',
+        //             "position_margin": '23.604650000000000000',
+        //             "direction": 'buy',
+        //             "profit": '0.047300000000000000',
+        //             "last_price": '47209.3',
+        //             "contract_type": "swap", // present in Linear (both Swap & Futures) with cross-mode and also in Inverse (only Futures)
+        //             "margin_asset": 'USDT', // present in Linear (both) with cross-mode
+        //             "margin_mode": 'isolated', // present in Linear (both) with cross-mode
+        //             "margin_account": 'BTC-USDT' // present in Linear (both) with cross-mode
+        //             "trade_partition": 'USDT', // present in Linear (both) with cross-mode
+        //             "position_mode": 'dual_side', // present in Linear (both) with cross-mode
+        //             "pair": "BTT-USDT", // present in Linear (both) with cross-mode
+        //             "business_type": "swap", // present in Linear (both) with cross-mode
+        //         }
+        //
         const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = [];
