@@ -2903,30 +2903,28 @@ module.exports = class aax extends Exchange {
             maintenanceMargin = initialMargin;
         }
         const collateral = this.safeString (position, 'posMargin');
-        const percentage = Precise.stringDiv (unrealisedPnl, initialMargin);
-        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'initialMarginPercentage': undefined,
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
-            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMargin, notional)),
+            'maintenanceMarginPercentage': undefined,
             'entryPrice': this.parseNumber (avgEntryPrice),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
-            'marginRatio': this.parseNumber (marginRatio),
+            'marginRatio': undefined,
             'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.parseNumber (collateral),
             'marginMode': 'isolated',
             'side': side,
-            'percentage': this.parseNumber (percentage),
+            'percentage': undefined,
         });
     }
 
