@@ -4247,8 +4247,8 @@ module.exports = class okx extends Exchange {
         const fromAccountId = this.safeString (transfer, 'from');
         const toAccountId = this.safeString (transfer, 'to');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
-        const fromAccount = this.safeString (accountsById, fromAccountId);
-        const toAccount = this.safeString (accountsById, toAccountId);
+        let fromAccount = this.safeString (accountsById, fromAccountId);
+        let toAccount = this.safeString (accountsById, toAccountId);
         const timestamp = this.safeInteger (transfer, 'ts', this.milliseconds ());
         const status = this.safeString (transfer, 'state');
         // from fetchTransfers (ledger)
