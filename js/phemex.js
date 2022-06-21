@@ -2928,6 +2928,7 @@ module.exports = class phemex extends Exchange {
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
             'unrealizedPnl': undefined,
+            'realizedPnl': undefined,
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
             'collateral': this.parseNumber (collateral),
