@@ -6074,6 +6074,7 @@ module.exports = class binance extends Exchange {
             request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
         }
+        params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginLoan (this.extend (request, params));
         //
         //     {
