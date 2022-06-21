@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.88.24';
+$version = '1.88.25';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.88.24';
+    const VERSION = '1.88.25';
 
     public static $loop;
     public static $kernel;
@@ -2103,5 +2103,22 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function handle_time_in_force($params = array ()) {
+        /**
+         * @ignore
+         * * Must add $timeInForce to $this->options to use this method
+         * @return {str} returns the exchange specific value for $timeInForce
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        if ($timeInForce !== null) {
+            $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
+            if ($exchangeValue === null) {
+                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+            }
+            return $exchangeValue;
+        }
+        return null;
     }
 }

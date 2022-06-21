@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.88.24'
+__version__ = '1.88.25'
 
 # -----------------------------------------------------------------------------
 
@@ -3274,3 +3274,17 @@ class Exchange(object):
             return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchPremiumIndexOHLCV() is not supported yet')
+
+    def handle_time_in_force(self, params={}):
+        """
+         * @ignore
+         * * Must add timeInForce to self.options to use self method
+        :return str returns: the exchange specific value for timeInForce
+        """
+        timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
+        if timeInForce is not None:
+            exchangeValue = self.safe_string(self.options['timeInForce'], timeInForce)
+            if exchangeValue is None:
+                raise ExchangeError(self.id + ' does not support timeInForce "' + timeInForce + '"')
+            return exchangeValue
+        return None

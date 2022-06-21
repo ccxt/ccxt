@@ -422,6 +422,12 @@ class gate(Exchange):
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
+                'timeInForce': {
+                    'GTC': 'gtc',
+                    'IOC': 'ioc',
+                    'PO': 'poc',
+                    'POC': 'poc',
+                },
                 'accountsByType': {
                     'funding': 'spot',
                     'spot': 'spot',
@@ -2748,20 +2754,20 @@ class gate(Exchange):
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float|None price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param str params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
-        :param int params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-        :param str params['text']: User defined information
-        :param str params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
-        :param bool params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-        :param str params['settle']: *contract only* Unified Currency Code for settle currency
-        :param bool params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool params['close']: *contract only* Set as True to close the position, with size set to 0
-        :param bool params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-        :returns dict: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param float|None params['stopPrice']: The price at which a trigger order is triggered at
+        :param str|None params['timeInForce']: "GTC", "IOC", or "PO"
+        :param str|None params['marginMode']: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
+        :param int|None params['iceberg']: Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+        :param str|None params['text']: User defined information
+        :param str|None params['account']: *spot and margin only* "spot", "margin" or "cross_margin"
+        :param bool|None params['auto_borrow']: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+        :param str|None params['settle']: *contract only* Unified Currency Code for settle currency
+        :param bool|None params['reduceOnly']: *contract only* Indicates if self order is to reduce the size of a position
+        :param bool|None params['close']: *contract only* Set as True to close the position, with size set to 0
+        :param bool|None params['auto_size']: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+        :returns dict|None: `An order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2779,22 +2785,12 @@ class gate(Exchange):
         reduceOnly = self.safe_value(params, 'reduceOnly')
         exchangeSpecificTimeInForce = self.safe_string_lower_2(params, 'time_in_force', 'tif')
         postOnly = self.is_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
+        timeInForce = self.handle_time_in_force(params)
         # we only omit the unified params here
         # self is because the other params will get extended into the request
-        timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
-        tif = None
-        if timeInForce is not None:
-            timeInForceMapping = {
-                'GTC': 'gtc',
-                'IOC': 'ioc',
-                'PO': 'poc',
-            }
-            tif = self.safe_string(timeInForceMapping, timeInForce)
-            if tif is None:
-                raise ExchangeError(self.id + ' createOrder() does not support timeInForce "' + timeInForce + '"')
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
         if postOnly:
-            tif = 'poc'
+            timeInForce = 'poc'
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
@@ -2804,9 +2800,9 @@ class gate(Exchange):
             signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
             amount = int(signedAmount)
             if isMarketOrder:
-                if (tif == 'poc') or (tif == 'gtc'):
+                if (timeInForce == 'poc') or (timeInForce == 'gtc'):
                     raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
-                tif = 'ioc'
+                timeInForce = 'ioc'
                 price = 0
         elif not isLimitOrder:
             # exchange doesn't have market orders for spot
@@ -2830,7 +2826,7 @@ class gate(Exchange):
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
-                    request['tif'] = tif
+                    request['tif'] = timeInForce
             else:
                 marginMode = None
                 marginMode, params = self.get_margin_mode(False, params)
@@ -2848,8 +2844,8 @@ class gate(Exchange):
                     # 'auto_borrow': False,  # used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     # 'auto_repay': False,  # automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 }
-                if tif is not None:
-                    request['time_in_force'] = tif
+                if timeInForce is not None:
+                    request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
@@ -2897,8 +2893,8 @@ class gate(Exchange):
                     }
                 if reduceOnly is not None:
                     request['initial']['reduce_only'] = reduceOnly
-                if tif is not None:
-                    request['initial']['tif'] = tif
+                if timeInForce is not None:
+                    request['initial']['tif'] = timeInForce
             else:
                 # spot conditional order
                 options = self.safe_value(self.options, 'createOrder', {})
@@ -2933,8 +2929,8 @@ class gate(Exchange):
                         'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration,  # required, how long(in seconds) to wait for the condition to be triggered before cancelling the order
                     }
-                if tif is not None:
-                    request['put']['time_in_force'] = tif
+                if timeInForce is not None:
+                    request['put']['time_in_force'] = timeInForce
             methodTail = 'PriceOrders'
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotPost' + methodTail,
