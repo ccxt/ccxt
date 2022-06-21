@@ -973,19 +973,17 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
         const initialMargin = this.safeString (position, 'posInit');
-        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
-        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
         const crossMode = this.safeValue (position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         const marginMode = crossMode ? 'cross' : 'isolated';
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMargin),
-            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'initialMarginPercentage': undefined,
             'maintenanceMargin': this.safeNumber (position, 'posMaint'),
             'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
@@ -994,15 +992,17 @@ module.exports = class kucoinfutures extends kucoin {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
+            'realizedPnl': undefined,
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'collateral': this.safeNumber (position, 'maintMargin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
-        };
+            'hedged': undefined,
+            'percentage': undefined,
+        });
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
