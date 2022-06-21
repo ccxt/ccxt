@@ -6081,10 +6081,10 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency['id']);
+        const transaction = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
-            'currency': currency['id'],
+            'symbol': symbol,
         });
     }
 
@@ -6097,8 +6097,9 @@ module.exports = class binance extends Exchange {
         //
         return {
             'id': this.safeInteger (info, 'tranId'),
-            'currency': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
+            'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'info': info,
