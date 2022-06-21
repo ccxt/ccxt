@@ -1721,7 +1721,9 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
+        const stopPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'stop_price' ]);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
@@ -1738,55 +1740,75 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
         };
         if (swap) {
-            method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
-            side = (side === 'buy') ? 2 : 1;
-            if (stopPrice !== undefined) {
+            if (stopLossPrice || takeProfitPrice) {
+                if (positionId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
+                }
+                // TODO default stopType to 1
                 const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (stopType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter');
+                    request['stop_type'] = 1;
                 }
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                request['stop_type'] = this.priceToPrecision (symbol, stopType);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-                request['side'] = side;
-                if (type === 'limit') {
-                    method = 'perpetualPrivatePostOrderPutStopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
-                } else if (type === 'market') {
-                    method = 'perpetualPrivatePostOrderPutStopMarket';
+                request['stop_type'] = stopType;
+                request['position_id'] = positionId;
+                if (stopLossPrice) {
+                    method = 'perpetualPrivatePostPositionStopLoss';
+                    request['stop_loss_price'] = stopLossPrice;
+                } else if (takeProfitPrice) {
+                    method = 'perpetualPrivatePostPositionTakeProfit';
+                    request['take_profit_price'] = takeProfitPrice;
                 }
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            }
-            if ((type !== 'market') || (stopPrice !== undefined)) {
-                if (postOnly) {
-                    request['option'] = 1;
-                } else if (timeInForce !== undefined) {
-                    if (timeInForce === 'IOC') {
-                        timeInForce = 2;
-                    } else if (timeInForce === 'FOK') {
-                        timeInForce = 3;
-                    } else {
-                        timeInForce = 1;
+            } else {
+                method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
+                side = (side === 'buy') ? 2 : 1;
+                if (stopPrice !== undefined) {
+                    const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
+                    if (stopType === undefined) {
+                        throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter, 1: Transaction price, 3: Mark price');
                     }
-                    request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                }
-            }
-            if (type === 'limit' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseLimit';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
-                }
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            } else if (type === 'market' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseMarket';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
+                    request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['stop_type'] = this.priceToPrecision (symbol, stopType);
                     request['amount'] = this.amountToPrecision (symbol, amount);
+                    request['side'] = side;
+                    if (type === 'limit') {
+                        method = 'perpetualPrivatePostOrderPutStopLimit';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    } else if (type === 'market') {
+                        method = 'perpetualPrivatePostOrderPutStopMarket';
+                    }
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+                if ((type !== 'market') || (stopPrice !== undefined)) {
+                    if (postOnly) {
+                        request['option'] = 1;
+                    } else if (timeInForce !== undefined) {
+                        if (timeInForce === 'IOC') {
+                            timeInForce = 2;
+                        } else if (timeInForce === 'FOK') {
+                            timeInForce = 3;
+                        } else {
+                            timeInForce = 1;
+                        }
+                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+                if (type === 'limit' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseLimit';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                    }
+                    request['price'] = this.priceToPrecision (symbol, price);
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                } else if (type === 'market' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseMarket';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                        request['amount'] = this.amountToPrecision (symbol, amount);
+                    }
                 }
             }
         } else {
@@ -1844,7 +1866,7 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
