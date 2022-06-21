@@ -2142,7 +2142,6 @@ module.exports = class bitmex extends Exchange {
         const symbol = market['symbol'];
         const datetime = this.safeString (position, 'timestamp');
         const crossMargin = this.safeValue (position, 'crossMargin');
-        const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
         if (market['quote'] === 'USDT') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
@@ -2150,7 +2149,7 @@ module.exports = class bitmex extends Exchange {
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
         const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
-        return {
+        return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'account'),
             'symbol': symbol,
@@ -2162,6 +2161,7 @@ module.exports = class bitmex extends Exchange {
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
@@ -2170,11 +2170,12 @@ module.exports = class bitmex extends Exchange {
             'maintenanceMargin': this.convertValue (maintenanceMargin, market),
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
+            'realizedPnl': this.safeNumber (position, 'realisedPnl'),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
-            'marginMode': marginMode,
+            'marginMode': (crossMargin === true) ? 'cross' : 'isolated',
             'marginRatio': undefined,
             'percentage': this.safeNumber (position, 'unrealisedPnlPcnt'),
-        };
+        });
     }
 
     convertValue (value, market = undefined) {
