@@ -2224,6 +2224,7 @@ class deribit extends Exchange {
             $code = $this->code_from_options('fetchPositions', $params);
         } elseif (gettype($symbols) === 'string') {
             $code = $symbols;
+            $symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
         } else {
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $length = is_array($symbols) ? count($symbols) : 0;

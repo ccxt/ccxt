@@ -2148,6 +2148,7 @@ export default class bitmex extends Exchange {
         }
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
+        const contracts = this.omitZero (this.safeNumber (position, 'currentQty'));
         return {
             'info': position,
             'id': this.safeString (position, 'account'),
@@ -2156,7 +2157,7 @@ export default class bitmex extends Exchange {
             'datetime': datetime,
             'hedged': undefined,
             'side': undefined,
-            'contracts': undefined,
+            'contracts': this.convertValue (contracts, market),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),

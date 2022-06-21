@@ -2705,4 +2705,22 @@ export class Exchange {
             throw new NotSupported (this.id + ' fetchPremiumIndexOHLCV () is not supported yet');
         }
     }
+
+    handleTimeInForce (params = {}) {
+        /**
+         * @ignore
+         * @method
+         * * Must add timeInForce to this.options to use this method
+         * @return {str} returns the exchange specific value for timeInForce
+         */
+        const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
+        if (timeInForce !== undefined) {
+            const exchangeValue = this.safeString (this.options['timeInForce'], timeInForce);
+            if (exchangeValue === undefined) {
+                throw new ExchangeError (this.id + ' does not support timeInForce "' + timeInForce + '"');
+            }
+            return exchangeValue;
+        }
+        return undefined;
+    }
 }
