@@ -2185,7 +2185,7 @@ module.exports = class deribit extends Exchange {
         const timestamp = undefined;
         return this.safePosition ({
             'info': position,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
