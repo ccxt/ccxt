@@ -32,19 +32,35 @@ class ArrayCache extends BaseCache {
             value: {},
             writable: true,
         })
+        Object.defineProperty (this, 'allNewUpdates', {
+            __proto__: null, // make it invisible
+            value: 0,
+            writable: true,
+        })
+        Object.defineProperty (this, 'clearAllUpdates', {
+            __proto__: null, // make it invisible
+            value: false,
+            writable: true,
+        })
     }
 
     getLimit (symbol, limit) {
+        let newUpdatesValue = undefined
+
         if (symbol === undefined) {
-            symbol = 'all';
-        }
-        this.clearUpdatesBySymbol[symbol] = true
-        if (limit === undefined) {
-            return this.newUpdatesBySymbol[symbol]
-        } else if (this.newUpdatesBySymbol[symbol] === undefined) {
-            return limit
+            newUpdatesValue =  this.allNewUpdates
+            this.clearAllUpdates = true
         } else {
-            return Math.min (this.newUpdates, limit)
+            newUpdatesValue = this.newUpdatesBySymbol[symbol];
+            this.clearUpdatesBySymbol[symbol] = true
+        }
+
+        if (newUpdatesValue === undefined) {
+            return limit
+        } else if (limit !== undefined) {
+            return Math.min (newUpdatesValue, limit)
+        } else {
+            return newUpdatesValue;
         }
     }
 
@@ -58,12 +74,12 @@ class ArrayCache extends BaseCache {
             this.clearUpdatesBySymbol[item.symbol] = false
             this.newUpdatesBySymbol[item.symbol] = 0
         }
-        if (this.clearUpdatesBySymbol['all']) {
-            this.clearUpdatesBySymbol['all'] = false
-            this.newUpdatesBySymbol['all'] = 0
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false
+            this.allNewUpdates = 0
         }
         this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
-        this.newUpdatesBySymbol['all'] = (this.newUpdatesBySymbol['all'] || 0) + 1
+        this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
 }
 
@@ -162,12 +178,12 @@ class ArrayCacheBySymbolById extends ArrayCache {
             this.clearUpdatesBySymbol[item.symbol] = false
             this.newUpdatesBySymbol[item.symbol] = 0
         }
-        if (this.clearUpdatesBySymbol['all']) {
-            this.clearUpdatesBySymbol['all'] = false
-            this.newUpdatesBySymbol['all'] = 0
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false
+            this.allNewUpdates = 0
         }
         this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
-        this.newUpdatesBySymbol['all'] = (this.newUpdatesBySymbol['all'] || 0) + 1
+        this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
 }
 

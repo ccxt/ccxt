@@ -424,7 +424,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                         // update the newUpdates count
                         $orders->append ($previousOrder);
                         $client->resolve ($orders, $messageHash);
-                    } else if (($type === 'received') || ($type === 'done')) {
+                    } elseif (($type === 'received') || ($type === 'done')) {
                         $info = array_merge($previousOrder['info'], $message);
                         $order = $this->parse_ws_order($info);
                         $keys = is_array($order) ? array_keys($order) : array();
@@ -462,7 +462,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
             $filled = $amount - $remaining;
-        } else if ($type === 'received') {
+        } elseif ($type === 'received') {
             $filled = 0;
             if ($amount !== null) {
                 $remaining = $amount - $filled;
@@ -635,7 +635,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $orderbook['timestamp'] = null;
             $orderbook['datetime'] = null;
             $client->resolve ($orderbook, $messageHash);
-        } else if ($type === 'l2update') {
+        } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->parse8601($this->safe_string($message, 'time'));
             $changes = $this->safe_value($message, 'changes', array());

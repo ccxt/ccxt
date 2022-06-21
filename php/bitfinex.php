@@ -106,7 +106,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 $stored = new ArrayCache ($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
-            if (gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0) {
+            if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
                 $trades = $this->parse_trades($data, $market);
                 for ($i = 0; $i < count($trades); $i++) {
                     $stored->append ($trades[$i]);
@@ -141,7 +141,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //     // channel $id, update type, $seq, $trade $id, time, $price, $amount
         //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
         //
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) != 0) {
+        if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
             return parent::parse_trade($trade, $market);
         }
         $tradeLength = is_array($trade) ? count($trade) : 0;
@@ -294,7 +294,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
-        if (gettype($message[1]) === 'array' && count(array_filter(array_keys($message[1]), 'is_string')) == 0) {
+        if (gettype($message[1]) === 'array' && array_keys($message[1]) === array_keys(array_keys($message[1]))) {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
@@ -548,7 +548,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $type = $this->safe_string($order, 4);
         if (mb_strpos($type, 'LIMIT') > -1) {
             $type = 'limit';
-        } else if (mb_strpos($type, 'MARKET') > -1) {
+        } elseif (mb_strpos($type, 'MARKET') > -1) {
             $type = 'market';
         }
         $status = $this->parse_ws_order_status($this->safe_string($order, 5));
@@ -587,7 +587,7 @@ class bitfinex extends \ccxt\async\bitfinex {
     }
 
     public function handle_message($client, $message) {
-        if (gettype($message) === 'array' && count(array_filter(array_keys($message), 'is_string')) == 0) {
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $channelId = $this->safe_string($message, 0);
             //
             //     array(

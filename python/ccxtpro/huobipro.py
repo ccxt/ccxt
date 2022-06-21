@@ -10,5 +10,6 @@ class huobipro(huobi):
 
     def describe(self):
         return self.deep_extend(super(huobipro, self).describe(), {
+            'alias': True,
             'id': 'huobipro',
         })

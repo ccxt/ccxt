@@ -21,7 +21,7 @@ class zb(Exchange, ccxt.zb):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.zb.work/websocket',
+                    'ws': 'wss://api.{hostname}/websocket',
                 },
             },
             'options': {
@@ -35,7 +35,7 @@ class zb(Exchange, ccxt.zb):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = market['baseId'] + market['quoteId'] + '_' + name
-        url = self.urls['api']['ws']
+        url = self.implode_hostname(self.urls['api']['ws'])
         request = {
             'event': 'addChannel',
             'channel': messageHash,

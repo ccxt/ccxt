@@ -5,8 +5,8 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.errors import NotSupported
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.precise import Precise
 
 
@@ -19,6 +19,8 @@ class phemex(Exchange, ccxt.phemex):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchMyTrades': True,
+                'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': True,
             },
@@ -181,7 +183,62 @@ class phemex(Exchange, ccxt.phemex):
 
     async def watch_balance(self, params={}):
         await self.load_markets()
-        raise NotSupported(self.id + ' watchBalance() not implemented yet')
+        type, query = self.handle_market_type_and_params('watchBalance', None, params)
+        messageHash = type + ':balance'
+        return await self.subscribe_private(type, messageHash, query)
+
+    def handle_balance(self, type, client, message):
+        # spot
+        #  [
+        #     {
+        #         balanceEv: 0,
+        #         currency: 'BTC',
+        #         lastUpdateTimeNs: '1650442638722099092',
+        #         lockedTradingBalanceEv: 0,
+        #         lockedWithdrawEv: 0,
+        #         userID: 2647224
+        #       },
+        #       {
+        #         balanceEv: 1154232337,
+        #         currency: 'USDT',
+        #         lastUpdateTimeNs: '1650442617610017597',
+        #         lockedTradingBalanceEv: 0,
+        #         lockedWithdrawEv: 0,
+        #         userID: 2647224
+        #       }
+        #    ]
+        #
+        # swap
+        #  [
+        #       {
+        #         accountBalanceEv: 0,
+        #         accountID: 26472240001,
+        #         bonusBalanceEv: 0,
+        #         currency: 'BTC',
+        #         totalUsedBalanceEv: 0,
+        #         userID: 2647224
+        #       }
+        #  ]
+        #
+        for i in range(0, len(message)):
+            balance = message[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            currency = self.safe_value(self.currencies, code, {})
+            scale = self.safe_integer(currency, 'valueScale', 8)
+            account = self.account()
+            usedEv = self.safe_string(balance, 'totalUsedBalanceEv')
+            if usedEv is None:
+                lockedTradingBalanceEv = self.safe_string(balance, 'lockedTradingBalanceEv')
+                lockedWithdrawEv = self.safe_string(balance, 'lockedWithdrawEv')
+                usedEv = Precise.string_add(lockedTradingBalanceEv, lockedWithdrawEv)
+            totalEv = self.safe_string_2(balance, 'accountBalanceEv', 'balanceEv')
+            account['used'] = self.from_en(usedEv, scale)
+            account['total'] = self.from_en(totalEv, scale)
+            self.balance[code] = account
+            self.balance = self.safe_balance(self.balance)
+        messageHash = type + ':balance'
+        client.resolve(self.balance, messageHash)
 
     def handle_trades(self, client, message):
         #
@@ -385,7 +442,446 @@ class phemex(Exchange, ccxt.phemex):
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
 
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        messageHash = 'trades'
+        market = None
+        type = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = messageHash + ':' + market['symbol']
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
+        if symbol is None:
+            messageHash = messageHash + ':' + type
+        trades = await self.subscribe_private(type, messageHash, params)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    def handle_my_trades(self, client, message):
+        #
+        # [
+        #    {
+        #       "avgPriceEp":4138763000000,
+        #       "baseCurrency":"BTC",
+        #       "baseQtyEv":0,
+        #       "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        #       "execBaseQtyEv":30100,
+        #       "execFeeEv":31,
+        #       "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        #       "execPriceEp":4138763000000,
+        #       "execQuoteQtyEv":1245767663,
+        #       "feeCurrency":"BTC",
+        #       "lastLiquidityInd":"RemovedLiquidity",
+        #       "ordType":"Market",
+        #       "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        #       "priceEp":4549022000000,
+        #       "qtyType":"ByQuote",
+        #       "quoteCurrency":"USDT",
+        #       "quoteQtyEv":1248000000,
+        #       "side":"Buy",
+        #       "symbol":"sBTCUSDT",
+        #       "tradeType":"Trade",
+        #       "transactTimeNs":"1650442617609928764",
+        #       "userID":2647224
+        #    }
+        #  ]
+        #
+        channel = 'trades'
+        tradesLength = len(message)
+        if tradesLength == 0:
+            return
+        cachedTrades = self.myTrades
+        if cachedTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            cachedTrades = ArrayCacheBySymbolById(limit)
+        parsed = self.parse_trades(message)
+        marketIds = {}
+        type = None
+        for i in range(0, len(parsed)):
+            trade = parsed[i]
+            cachedTrades.append(trade)
+            symbol = trade['symbol']
+            market = self.market(symbol)
+            if type is None:
+                type = market['type']
+            marketIds[symbol] = True
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            market = keys[i]
+            hash = channel + ':' + market
+            client.resolve(cachedTrades, hash)
+        # generic subscription
+        messageHash = channel + ':' + type
+        client.resolve(cachedTrades, messageHash)
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        messageHash = 'orders'
+        market = None
+        type = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = messageHash + ':' + market['symbol']
+        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        if symbol is None:
+            messageHash = messageHash + ':' + type
+        orders = await self.subscribe_private(type, messageHash, params)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client, message):
+        # spot update
+        # {
+        #        "closed":[
+        #           {
+        #              "action":"New",
+        #              "avgPriceEp":4138763000000,
+        #              "baseCurrency":"BTC",
+        #              "baseQtyEv":0,
+        #              "bizError":0,
+        #              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        #              "createTimeNs":"1650442617606017583",
+        #              "cumBaseQtyEv":30100,
+        #              "cumFeeEv":31,
+        #              "cumQuoteQtyEv":1245767663,
+        #              "cxlRejReason":0,
+        #              "feeCurrency":"BTC",
+        #              "leavesBaseQtyEv":0,
+        #              "leavesQuoteQtyEv":0,
+        #              "ordStatus":"Filled",
+        #              "ordType":"Market",
+        #              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        #              "pegOffsetValueEp":0,
+        #              "priceEp":4549022000000,
+        #              "qtyType":"ByQuote",
+        #              "quoteCurrency":"USDT",
+        #              "quoteQtyEv":1248000000,
+        #              "side":"Buy",
+        #              "stopPxEp":0,
+        #              "symbol":"sBTCUSDT",
+        #              "timeInForce":"ImmediateOrCancel",
+        #              "tradeType":"Trade",
+        #              "transactTimeNs":"1650442617609928764",
+        #              "triggerTimeNs":0,
+        #              "userID":2647224
+        #           }
+        #        ],
+        #        "fills":[
+        #           {
+        #              "avgPriceEp":4138763000000,
+        #              "baseCurrency":"BTC",
+        #              "baseQtyEv":0,
+        #              "clOrdID":"7956e0be-e8be-93a0-2887-ca504d85cda2",
+        #              "execBaseQtyEv":30100,
+        #              "execFeeEv":31,
+        #              "execID":"d3b10cfa-84e3-5752-828e-78a79617e598",
+        #              "execPriceEp":4138763000000,
+        #              "execQuoteQtyEv":1245767663,
+        #              "feeCurrency":"BTC",
+        #              "lastLiquidityInd":"RemovedLiquidity",
+        #              "ordType":"Market",
+        #              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
+        #              "priceEp":4549022000000,
+        #              "qtyType":"ByQuote",
+        #              "quoteCurrency":"USDT",
+        #              "quoteQtyEv":1248000000,
+        #              "side":"Buy",
+        #              "symbol":"sBTCUSDT",
+        #              "tradeType":"Trade",
+        #              "transactTimeNs":"1650442617609928764",
+        #              "userID":2647224
+        #           }
+        #        ],
+        #        "open":[
+        #           {
+        #              "action":"New",
+        #              "avgPriceEp":0,
+        #              "baseCurrency":"LTC",
+        #              "baseQtyEv":0,
+        #              "bizError":0,
+        #              "clOrdID":"2c0e5eb5-efb7-60d3-2e5f-df175df412ef",
+        #              "createTimeNs":"1650446670073853755",
+        #              "cumBaseQtyEv":0,
+        #              "cumFeeEv":0,
+        #              "cumQuoteQtyEv":0,
+        #              "cxlRejReason":0,
+        #              "feeCurrency":"LTC",
+        #              "leavesBaseQtyEv":0,
+        #              "leavesQuoteQtyEv":1000000000,
+        #              "ordStatus":"New",
+        #              "ordType":"Limit",
+        #              "orderID":"d2aad92f-50f5-441a-957b-8184b146e3fb",
+        #              "pegOffsetValueEp":0,
+        #              "priceEp":5000000000,
+        #              "qtyType":"ByQuote",
+        #              "quoteCurrency":"USDT",
+        #              "quoteQtyEv":1000000000,
+        #              "side":"Buy",
+        #            }
+        #        ]
+        #  },
+        #
+        trades = []
+        parsedOrders = []
+        if ('closed' in message) or ('fills' in message) or ('open' in message):
+            closed = self.safe_value(message, 'closed', [])
+            open = self.safe_value(message, 'open', [])
+            orders = self.array_concat(open, closed)
+            fills = self.safe_value(message, 'fills', [])
+            trades = fills
+            parsedOrders = self.parse_orders(orders)
+        else:
+            for i in range(0, len(message)):
+                update = message[i]
+                action = self.safe_string(update, 'action')
+                if (action is not None) and (action != 'Cancel'):
+                    # order + trade info together
+                    trades.append(update)
+                parsedOrder = self.parse_ws_swap_order(update)
+                parsedOrders.append(parsedOrder)
+        self.handle_my_trades(client, trades)
+        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+        marketIds = {}
+        if self.orders is None:
+            self.orders = ArrayCacheBySymbolById(limit)
+        type = None
+        stored = self.orders
+        for i in range(0, len(parsedOrders)):
+            parsed = parsedOrders[i]
+            stored.append(parsed)
+            symbol = parsed['symbol']
+            market = self.market(symbol)
+            if type is None:
+                type = market['type']
+            marketIds[symbol] = True
+        keys = list(marketIds.keys())
+        for i in range(0, len(keys)):
+            messageHash = 'orders' + ':' + keys[i]
+            client.resolve(self.orders, messageHash)
+        # resolve generic subscription(spot or swap)
+        messageHash = 'orders:' + type
+        client.resolve(self.orders, messageHash)
+
+    def parse_ws_swap_order(self, order, market=None):
+        #
+        # {
+        #     "accountID":26472240002,
+        #     "action":"Cancel",
+        #     "actionBy":"ByUser",
+        #     "actionTimeNs":"1650450096104760797",
+        #     "addedSeq":26975849309,
+        #     "bonusChangedAmountEv":0,
+        #     "clOrdID":"d9675963-5e4e-6fc8-898a-ec8b934c1c61",
+        #     "closedPnlEv":0,
+        #     "closedSize":0,
+        #     "code":0,
+        #     "cumQty":0,
+        #     "cumValueEv":0,
+        #     "curAccBalanceEv":400079,
+        #     "curAssignedPosBalanceEv":0,
+        #     "curBonusBalanceEv":0,
+        #     "curLeverageEr":0,
+        #     "curPosSide":"None",
+        #     "curPosSize":0,
+        #     "curPosTerm":1,
+        #     "curPosValueEv":0,
+        #     "curRiskLimitEv":5000000000,
+        #     "currency":"USD",
+        #     "cxlRejReason":0,
+        #     "displayQty":0,
+        #     "execFeeEv":0,
+        #     "execID":"00000000-0000-0000-0000-000000000000",
+        #     "execPriceEp":0,
+        #     "execQty":1,
+        #     "execSeq":26975862338,
+        #     "execStatus":"Canceled",
+        #     "execValueEv":0,
+        #     "feeRateEr":0,
+        #     "leavesQty":0,
+        #     "leavesValueEv":0,
+        #     "message":"No error",
+        #     "ordStatus":"Canceled",
+        #     "ordType":"Limit",
+        #     "orderID":"8141deb9-8f94-48f6-9421-a4e3a791537b",
+        #     "orderQty":1,
+        #     "pegOffsetValueEp":0,
+        #     "priceEp":9521,
+        #     "relatedPosTerm":1,
+        #     "relatedReqNum":4,
+        #     "side":"Buy",
+        #     "slTrigger":"ByMarkPrice",
+        #     "stopLossEp":0,
+        #     "stopPxEp":0,
+        #     "symbol":"ADAUSD",
+        #     "takeProfitEp":0,
+        #     "timeInForce":"GoodTillCancel",
+        #     "tpTrigger":"ByLastPrice",
+        #     "transactTimeNs":"1650450096108143014",
+        #     "userID":2647224
+        #  }
+        #
+        id = self.safe_string(order, 'orderID')
+        clientOrderId = self.safe_string(order, 'clOrdID')
+        if (clientOrderId is not None) and (len(clientOrderId) < 1):
+            clientOrderId = None
+        marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
+        side = self.safe_string_lower(order, 'side')
+        type = self.parseOrderType(self.safe_string(order, 'ordType'))
+        price = self.parse_number(self.from_ep(self.safe_string(order, 'priceEp'), market))
+        amount = self.safe_string(order, 'orderQty')
+        filled = self.safe_string(order, 'cumQty')
+        remaining = self.safe_string(order, 'leavesQty')
+        timestamp = self.safe_integer_product(order, 'actionTimeNs', 0.000001)
+        costEv = self.safe_string(order, 'cumValueEv')
+        cost = self.from_ev(costEv, market)
+        lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
+        if lastTradeTimestamp == 0:
+            lastTradeTimestamp = None
+        timeInForce = self.parseTimeInForce(self.safe_string(order, 'timeInForce'))
+        stopPrice = self.safe_string(order, 'stopPx')
+        postOnly = (timeInForce == 'PO')
+        return self.safe_order({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': None,
+            'status': status,
+            'fee': None,
+            'trades': None,
+        }, market)
+
     def handle_message(self, client, message):
+        # private spot update
+        # {
+        #     orders: {closed: [], fills: [], open: []},
+        #     sequence: 40435835,
+        #     timestamp: '1650443245600839241',
+        #     type: 'snapshot',
+        #     wallets: [
+        #       {
+        #         balanceEv: 0,
+        #         currency: 'BTC',
+        #         lastUpdateTimeNs: '1650442638722099092',
+        #         lockedTradingBalanceEv: 0,
+        #         lockedWithdrawEv: 0,
+        #         userID: 2647224
+        #       },
+        #       {
+        #         balanceEv: 1154232337,
+        #         currency: 'USDT',
+        #         lastUpdateTimeNs: '1650442617610017597',
+        #         lockedTradingBalanceEv: 0,
+        #         lockedWithdrawEv: 0,
+        #         userID: 2647224
+        #       }
+        #     ]
+        # }
+        # private swap update
+        # {
+        #     sequence: 83839628,
+        #     timestamp: '1650382581827447829',
+        #     type: 'snapshot',
+        #     accounts: [
+        #       {
+        #         accountBalanceEv: 0,
+        #         accountID: 26472240001,
+        #         bonusBalanceEv: 0,
+        #         currency: 'BTC',
+        #         totalUsedBalanceEv: 0,
+        #         userID: 2647224
+        #       }
+        #     ],
+        #     orders: [],
+        #     positions: [
+        #       {
+        #         accountID: 26472240001,
+        #         assignedPosBalanceEv: 0,
+        #         avgEntryPriceEp: 0,
+        #         bankruptCommEv: 0,
+        #         bankruptPriceEp: 0,
+        #         buyLeavesQty: 0,
+        #         buyLeavesValueEv: 0,
+        #         buyValueToCostEr: 1150750,
+        #         createdAtNs: 0,
+        #         crossSharedBalanceEv: 0,
+        #         cumClosedPnlEv: 0,
+        #         cumFundingFeeEv: 0,
+        #         cumTransactFeeEv: 0,
+        #         curTermRealisedPnlEv: 0,
+        #         currency: 'BTC',
+        #         dataVer: 2,
+        #         deleveragePercentileEr: 0,
+        #         displayLeverageEr: 10000000000,
+        #         estimatedOrdLossEv: 0,
+        #         execSeq: 0,
+        #         freeCostEv: 0,
+        #         freeQty: 0,
+        #         initMarginReqEr: 1000000,
+        #         lastFundingTime: '1640601827712091793',
+        #         lastTermEndTime: 0,
+        #         leverageEr: 0,
+        #         liquidationPriceEp: 0,
+        #         maintMarginReqEr: 500000,
+        #         makerFeeRateEr: 0,
+        #         markPriceEp: 507806777,
+        #         orderCostEv: 0,
+        #         posCostEv: 0,
+        #         positionMarginEv: 0,
+        #         positionStatus: 'Normal',
+        #         riskLimitEv: 10000000000,
+        #         sellLeavesQty: 0,
+        #         sellLeavesValueEv: 0,
+        #         sellValueToCostEr: 1149250,
+        #         side: 'None',
+        #         size: 0,
+        #         symbol: 'BTCUSD',
+        #         takerFeeRateEr: 0,
+        #         term: 1,
+        #         transactTimeNs: 0,
+        #         unrealisedPnlEv: 0,
+        #         updatedAtNs: 0,
+        #         usedBalanceEv: 0,
+        #         userID: 2647224,
+        #         valueEv: 0
+        #       }
+        #     ]
+        # }
+        id = self.safe_integer(message, 'id')
+        if id is not None:
+            # not every method stores its subscription
+            # as an object so we can't do indeById here
+            subs = client.subscriptions
+            values = list(subs.values())
+            for i in range(0, len(values)):
+                subscription = values[i]
+                if subscription is not True:
+                    subId = self.safe_integer(subscription, 'id')
+                    if (subId is not None) and (subId == id):
+                        method = self.safe_value(subscription, 'method')
+                        if method is not None:
+                            method(client, message)
+                            return
         if ('market24h' in message) or ('spot_market24h' in message):
             return self.handle_ticker(client, message)
         elif 'trades' in message:
@@ -394,8 +890,67 @@ class phemex(Exchange, ccxt.phemex):
             return self.handle_ohlcv(client, message)
         elif 'book' in message:
             return self.handle_order_book(client, message)
-        else:
-            #
-            #     {error: null, id: 1, result: {status: 'success'}}
-            #
-            return message
+        if 'orders' in message:
+            orders = self.safe_value(message, 'orders', {})
+            self.handle_orders(client, orders)
+        if ('accounts' in message) or ('wallets' in message):
+            type = 'swap' if ('accounts' in message) else 'spot'
+            accounts = self.safe_value_2(message, 'accounts', 'wallets', [])
+            self.handle_balance(type, client, accounts)
+
+    def handle_authenticate(self, client, message):
+        #
+        # {
+        #     "error": null,
+        #     "id": 1234,
+        #     "result": {
+        #       "status": "success"
+        #     }
+        # }
+        #
+        future = client.futures['authenticated']
+        future.resolve(1)
+        return message
+
+    async def subscribe_private(self, type, messageHash, params={}):
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']
+        requestId = self.seconds()
+        channel = 'wo.subscribe' if (type == 'spot') else 'aop.subscribe'
+        request = {
+            'id': requestId,
+            'method': channel,
+            'params': [],
+        }
+        request = self.extend(request, params)
+        subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+        }
+        return await self.watch(url, messageHash, request, channel, subscription)
+
+    async def authenticate(self, params={}):
+        self.check_required_credentials()
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        time = self.seconds()
+        messageHash = 'authenticated'
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
+            expiryDelta = self.safe_integer(self.options, 'expires', 120)
+            expiration = self.seconds() + expiryDelta
+            payload = self.apiKey + str(expiration)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
+            request = {
+                'method': 'user.auth',
+                'params': ['API', self.apiKey, signature, expiration],
+                'id': time,
+            }
+            subscription = {
+                'id': time,
+                'method': self.handle_authenticate,
+            }
+            self.spawn(self.watch, url, messageHash, request, messageHash, subscription)
+        return await future

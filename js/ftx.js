@@ -114,9 +114,11 @@ module.exports = class ftx extends ccxt.ftx {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const trades = await this.watchPublic (symbol, 'trades');
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const trades = await this.watchPublic (market['symbol'], 'trades');
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
@@ -400,6 +402,11 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const orders = await this.watchPrivate ('orders', symbol);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -476,6 +483,11 @@ module.exports = class ftx extends ccxt.ftx {
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const trades = await this.watchPrivate ('fills', symbol);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);

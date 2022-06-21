@@ -185,3 +185,113 @@ assert (equals (cache, [
     { 'symbol': 'BTC/USDT', 'id': '8', 'i': 38 },
     { 'symbol': 'BTC/USDT', 'id': '30', 'i': 50 },
 ]));
+
+// ----------------------------------------------------------------------------
+
+// test ArrayCacheBySymbolById limit with symbol set
+let symbol = 'BTC/USDT';
+cache = new ArrayCacheBySymbolById ();
+let initialLength = 5;
+for (let i = 0; i < initialLength; i++) {
+    cache.append ({
+        'symbol': symbol,
+        'id': i.toString (),
+        'i': i,
+    });
+}
+
+let limited = cache.getLimit (symbol, undefined);
+
+assert (initialLength === limited);
+
+let appendItemsLength = 3;
+for (let i = 0; i < appendItemsLength; i++) {
+    cache.append ({
+        'symbol': symbol,
+        'id': i.toString (),
+        'i': i,
+    });
+}
+let outsideLimit = 5;
+limited = cache.getLimit (symbol, outsideLimit);
+
+assert (appendItemsLength === limited);
+
+outsideLimit = 2; // if limit < newsUpdate that should be returned
+limited = cache.getLimit (symbol, outsideLimit);
+
+assert (outsideLimit === limited);
+
+// ----------------------------------------------------------------------------
+
+// test ArrayCacheBySymbolById limit with symbol undefined
+symbol = undefined;
+cache = new ArrayCacheBySymbolById ();
+initialLength = 5;
+for (let i = 0; i < initialLength; i++) {
+    cache.append ({
+        'symbol': symbol,
+        'id': i.toString (),
+        'i': i,
+    });
+}
+
+limited = cache.getLimit (symbol, undefined);
+
+assert (initialLength === limited);
+
+appendItemsLength = 3;
+for (let i = 0; i < appendItemsLength; i++) {
+    cache.append ({
+        'symbol': symbol,
+        'id': i.toString (),
+        'i': i,
+    });
+}
+outsideLimit = 5;
+limited = cache.getLimit (symbol, outsideLimit);
+
+assert (appendItemsLength === limited);
+
+outsideLimit = 2; // if limit < newsUpdate that should be returned
+limited = cache.getLimit (symbol, outsideLimit);
+
+assert (outsideLimit === limited);
+
+// ----------------------------------------------------------------------------
+// test testLimitArrayCacheByTimestamp limit
+
+cache = new ArrayCacheByTimestamp ();
+
+initialLength = 5;
+for (let i = 0; i < initialLength; i++) {
+    cache.append ([
+        i * 10,
+        i * 10,
+        i * 10,
+        i * 10
+    ]);
+}
+
+limited = cache.getLimit (undefined, undefined);
+
+assert (initialLength === limited);
+
+appendItemsLength = 3;
+for (let i = 0; i < appendItemsLength; i++) {
+    cache.append ([
+        i * 4,
+        i * 4,
+        i * 4,
+        i * 4
+    ]);
+}
+outsideLimit = 5;
+limited = cache.getLimit (undefined, outsideLimit);
+
+assert (appendItemsLength === limited);
+
+outsideLimit = 2; // if limit < newsUpdate that should be returned
+limited = cache.getLimit (undefined, outsideLimit);
+
+assert (outsideLimit === limited);

@@ -111,9 +111,11 @@ class ftx(Exchange, ccxt.ftx):
         return await self.watch_public(symbol, 'ticker')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        trades = await self.watch_public(symbol, 'trades')
+        await self.load_markets()
+        market = self.market(symbol)
+        trades = await self.watch_public(market['symbol'], 'trades')
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -364,6 +366,10 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         orders = await self.watch_private('orders', symbol)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -436,6 +442,10 @@ class ftx(Exchange, ccxt.ftx):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         trades = await self.watch_private('fills', symbol)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)

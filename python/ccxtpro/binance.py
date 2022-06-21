@@ -140,7 +140,7 @@ class binance(Exchange, ccxt.binance):
             'id': str(requestId),
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'method': self.handle_order_book_subscription,
             'limit': limit,
             'type': type,

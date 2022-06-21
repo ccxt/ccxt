@@ -84,7 +84,7 @@ class OrderBookSide extends \ArrayObject implements \JsonSerializable {
         return $this;
     }
 
-    public function JsonSerialize () {
+    public function JsonSerialize() : array {
         return $this->getArrayCopy();
     }
 }

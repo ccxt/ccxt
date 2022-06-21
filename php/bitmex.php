@@ -756,7 +756,6 @@ class bitmex extends \ccxt\async\bitmex {
         //         )
         //     }
         //
-        // console.dir ($message, array( depth => null ));
         $data = $this->safe_value($message, 'data', array());
         $messageHash = 'order';
         // initial subscription response with multiple orders
@@ -902,9 +901,9 @@ class bitmex extends \ccxt\async\bitmex {
         $table = null;
         if ($limit === null) {
             $table = $this->safe_string($this->options, 'watchOrderBookLevel', 'orderBookL2');
-        } else if ($limit === 25) {
+        } elseif ($limit === 25) {
             $table = 'orderBookL2_25';
-        } else if ($limit === 10) {
+        } elseif ($limit === 10) {
             $table = 'orderBookL10';
         } else {
             throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null (L2), 25 (L2) or 10 (L3)');
@@ -1102,9 +1101,9 @@ class bitmex extends \ccxt\async\bitmex {
             $symbol = $market['symbol'];
             if ($table === 'orderBookL2') {
                 $this->orderbooks[$symbol] = $this->indexed_order_book();
-            } else if ($table === 'orderBookL2_25') {
+            } elseif ($table === 'orderBookL2_25') {
                 $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 25);
-            } else if ($table === 'orderBook10') {
+            } elseif ($table === 'orderBook10') {
                 $this->orderbooks[$symbol] = $this->indexed_order_book(array(), 10);
             }
             $orderbook = $this->orderbooks[$symbol];

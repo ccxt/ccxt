@@ -687,7 +687,6 @@ class bittrex(Exchange, ccxt.bittrex):
         return message
 
     def handle_message(self, client, message):
-        # console.dir(message, {depth: null})
         #
         # subscription confirmation
         #
@@ -742,6 +741,7 @@ class bittrex(Exchange, ccxt.bittrex):
             'orderBook': self.handle_order_book,
             'heartbeat': self.handle_heartbeat,
             'ticker': self.handle_ticker,
+            'execution': self.handle_my_trades,
         }
         M = self.safe_value(message, 'M', [])
         for i in range(0, len(M)):

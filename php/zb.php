@@ -22,7 +22,7 @@ class zb extends \ccxt\async\zb {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://api.zb.work/websocket',
+                    'ws' => 'wss://api.{hostname}/websocket',
                 ),
             ),
             'options' => array(
@@ -37,7 +37,7 @@ class zb extends \ccxt\async\zb {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
-        $url = $this->urls['api']['ws'];
+        $url = $this->implode_hostname($this->urls['api']['ws']);
         $request = array(
             'event' => 'addChannel',
             'channel' => $messageHash,

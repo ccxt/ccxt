@@ -21,8 +21,8 @@ module.exports = class zb extends ccxt.zb {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://api.zb.work/websocket',
-                        'contract': 'wss://fapi.zb.com/ws/public/v1',
+                        'spot': 'wss://api.{hostname}/websocket',
+                        'contract': 'wss://fapi.{hostname}/ws/public/v1',
                     },
                 },
             },
@@ -79,7 +79,7 @@ module.exports = class zb extends ccxt.zb {
         } else {
             messageHash = market['id'] + '.' + 'Ticker';
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.implodeHostname (this.urls['api']['ws'][type]);
         return await this.watchPublic (url, messageHash, symbol, this.handleTicker, undefined, params);
     }
 
@@ -190,7 +190,7 @@ module.exports = class zb extends ccxt.zb {
         }
         const interval = this.timeframes[timeframe];
         const messageHash = market['id'] + '.KLine' + '_' + interval;
-        const url = this.urls['api']['ws']['contract'];
+        const url = this.implodeHostname (this.urls['api']['ws']['contract']);
         const ohlcv = await this.watchPublic (url, messageHash, symbol, this.handleOHLCV, limit, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
@@ -255,7 +255,7 @@ module.exports = class zb extends ccxt.zb {
         } else {
             messageHash = market['id'] + '.' + 'Trade';
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.implodeHostname (this.urls['api']['ws'][type]);
         const trades = await this.watchPublic (url, messageHash, symbol, this.handleTrades, limit, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -342,7 +342,7 @@ module.exports = class zb extends ccxt.zb {
         const market = this.market (symbol);
         const type = market['spot'] ? 'spot' : 'contract';
         let messageHash = undefined;
-        let url = this.urls['api']['ws'][type];
+        let url = this.implodeHostname (this.urls['api']['ws'][type]);
         if (type === 'spot') {
             url += '/' + market['baseId'];
             messageHash = market['baseId'] + market['quoteId'] + '_' + 'quick_depth';
