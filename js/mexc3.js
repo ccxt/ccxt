@@ -3663,7 +3663,7 @@ module.exports = class mexc3 extends Exchange {
         const leverage = this.safeNumber (position, 'leverage');
         const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
         const timestamp = this.safeNumber (position, 'updateTime');
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
@@ -3672,11 +3672,14 @@ module.exports = class mexc3 extends Exchange {
             'collateral': undefined,
             'side': side,
             'unrealizedProfit': undefined,
-            'leverage': this.parseNumber (leverage),
+            'realizedPnl': undefined,
+            'hedged': undefined,
+            'leverage': leverage,
             'percentage': undefined,
-            'marginType': marginType,
+            'marginMode': marginType,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined,
@@ -3685,7 +3688,7 @@ module.exports = class mexc3 extends Exchange {
             'marginRatio': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
