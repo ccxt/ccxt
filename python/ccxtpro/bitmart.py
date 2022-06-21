@@ -5,7 +5,7 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -19,19 +19,23 @@ class bitmart(Exchange, ccxt.bitmart):
                 'ws': True,
                 'watchTicker': True,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTrades': True,
                 'watchOHLCV': True,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-manager-compress.{hostname}?protocol=1.1',
+                    'ws': {
+                        'public': 'wss://ws-manager-compress.{hostname}/api?protocol=1.1',
+                        'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
+                    },
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'watchOrderBook': {
                     'depth': 'depth5',  # depth5, depth400
                 },
-                # 'watchBalance': 'spot',  # margin, futures, swap
                 'ws': {
                     'inflate': True,
                 },
@@ -59,8 +63,20 @@ class bitmart(Exchange, ccxt.bitmart):
     async def subscribe(self, channel, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        url = self.implode_hostname(self.urls['api']['ws'])
+        url = self.implode_hostname(self.urls['api']['ws']['public'])
         messageHash = market['type'] + '/' + channel + ':' + market['id']
+        request = {
+            'op': 'subscribe',
+            'args': [messageHash],
+        }
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+
+    async def subscribe_private(self, channel, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        url = self.implode_hostname(self.urls['api']['ws']['private'])
+        messageHash = channel + ':' + market['id']
+        await self.authenticate()
         request = {
             'op': 'subscribe',
             'args': [messageHash],
@@ -75,6 +91,122 @@ class bitmart(Exchange, ccxt.bitmart):
 
     async def watch_ticker(self, symbol, params={}):
         return await self.subscribe('ticker', symbol, params)
+
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['type'] != 'spot':
+            raise ArgumentsRequired(self.id + ' watchOrders supports spot markets only')
+        channel = 'spot/user/order'
+        orders = await self.subscribe_private(channel, symbol, params)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client, message):
+        #
+        # {
+        #     "data":[
+        #         {
+        #             symbol: 'LTC_USDT',
+        #             notional: '',
+        #             side: 'buy',
+        #             last_fill_time: '0',
+        #             ms_t: '1646216634000',
+        #             type: 'limit',
+        #             filled_notional: '0.000000000000000000000000000000',
+        #             last_fill_price: '0',
+        #             size: '0.500000000000000000000000000000',
+        #             price: '50.000000000000000000000000000000',
+        #             last_fill_count: '0',
+        #             filled_size: '0.000000000000000000000000000000',
+        #             margin_trading: '0',
+        #             state: '8',
+        #             order_id: '24807076628',
+        #             order_type: '0'
+        #           }
+        #     ],
+        #     "table":"spot/user/order"
+        # }
+        #
+        channel = self.safe_string(message, 'table')
+        orders = self.safe_value(message, 'data', [])
+        ordersLength = len(orders)
+        if ordersLength > 0:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            if self.orders is None:
+                self.orders = ArrayCacheBySymbolById(limit)
+            stored = self.orders
+            marketIds = []
+            for i in range(0, len(orders)):
+                order = self.parse_ws_order(orders[i])
+                stored.append(order)
+                symbol = order['symbol']
+                market = self.market(symbol)
+                marketIds.append(market['id'])
+            for i in range(0, len(marketIds)):
+                messageHash = channel + ':' + marketIds[i]
+                client.resolve(self.orders, messageHash)
+
+    def parse_ws_order(self, order, market=None):
+        #
+        # {
+        #     symbol: 'LTC_USDT',
+        #     notional: '',
+        #     side: 'buy',
+        #     last_fill_time: '0',
+        #     ms_t: '1646216634000',
+        #     type: 'limit',
+        #     filled_notional: '0.000000000000000000000000000000',
+        #     last_fill_price: '0',
+        #     size: '0.500000000000000000000000000000',
+        #     price: '50.000000000000000000000000000000',
+        #     last_fill_count: '0',
+        #     filled_size: '0.000000000000000000000000000000',
+        #     margin_trading: '0',
+        #     state: '8',
+        #     order_id: '24807076628',
+        #     order_type: '0'
+        #   }
+        #
+        marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        id = self.safe_string(order, 'order_id')
+        clientOrderId = self.safe_string(order, 'clientOid')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'filled_size')
+        amount = self.safe_string(order, 'size')
+        type = self.safe_string(order, 'type')
+        rawState = self.safe_string(order, 'state')
+        status = self.parseOrderStatusByType(market['type'], rawState)
+        timestamp = self.safe_integer(order, 'ms_t')
+        symbol = market['symbol']
+        side = self.safe_string_lower(order, 'side')
+        return self.safe_order({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': timestamp,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': None,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': filled,
+            'remaining': None,
+            'status': status,
+            'fee': None,
+            'trades': None,
+        }, market)
 
     def handle_trade(self, client, message):
         #
@@ -286,22 +418,21 @@ class bitmart(Exchange, ccxt.bitmart):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        url = self.urls['api']['ws']
+        url = self.implode_hostname(self.urls['api']['ws']['private'])
         messageHash = 'login'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
             future = client.future('authenticated')
-            timestamp = str(self.seconds())
-            method = 'GET'
-            path = '/users/self/verify'
-            auth = timestamp + method + path
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            timestamp = str(self.milliseconds())
+            memo = self.uid
+            path = 'bitmart.WebSocket'
+            auth = timestamp + '#' + memo + '#' + path
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             request = {
                 'op': messageHash,
                 'args': [
                     self.apiKey,
-                    self.password,
                     timestamp,
                     signature,
                 ],
@@ -309,59 +440,10 @@ class bitmart(Exchange, ccxt.bitmart):
             self.spawn(self.watch, url, messageHash, request, messageHash, future)
         return await future
 
-    async def subscribe_to_user_account(self, negotiation, params={}):
-        defaultType = self.safe_string_2(self.options, 'watchBalance', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " watchBalance requires a type parameter(one of 'spot', 'margin', 'futures', 'swap')")
-        await self.load_markets()
-        currencyId = self.safe_string(params, 'currency')
-        code = self.safe_string(params, 'code', self.safe_currency_code(currencyId))
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-        marketId = self.safe_string(params, 'instrument_id')
-        symbol = self.safe_string(params, 'symbol')
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        elif marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        marketUndefined = (market is None)
-        currencyUndefined = (currency is None)
-        if type == 'spot':
-            if currencyUndefined:
-                raise ArgumentsRequired(self.id + " watchBalance requires a 'currency'(id) or a unified 'code' parameter for " + type + ' accounts')
-        elif (type == 'margin') or (type == 'swap') or (type == 'option'):
-            if marketUndefined:
-                raise ArgumentsRequired(self.id + " watchBalance requires a 'instrument_id'(id) or a unified 'symbol' parameter for " + type + ' accounts')
-        elif type == 'futures':
-            if currencyUndefined and marketUndefined:
-                raise ArgumentsRequired(self.id + " watchBalance requires a 'currency'(id), or unified 'code', or 'instrument_id'(id), or unified 'symbol' parameter for " + type + ' accounts')
-        suffix = None
-        if not currencyUndefined:
-            suffix = currency['id']
-        elif not marketUndefined:
-            suffix = market['id']
-        accountType = 'spot' if (type == 'margin') else type
-        account = 'margin_account' if (type == 'margin') else 'account'
-        messageHash = accountType + '/' + account
-        subscriptionHash = messageHash + ':' + suffix
-        url = self.urls['api']['ws']
-        request = {
-            'op': 'subscribe',
-            'args': [subscriptionHash],
-        }
-        query = self.omit(params, ['currency', 'code', 'instrument_id', 'symbol', 'type'])
-        return await self.watch(url, messageHash, self.deep_extend(request, query), subscriptionHash)
-
     def handle_subscription_status(self, client, message):
         #
         #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         #
-        # channel = self.safe_string(message, 'channel')
-        # client.subscriptions[channel] = message
         return message
 
     def handle_authenticate(self, client, message):
@@ -419,6 +501,8 @@ class bitmart(Exchange, ccxt.bitmart):
         #         ]
         #     }
         #
+        #     {data: '', table: 'spot/user/order'}
+        #
         table = self.safe_string(message, 'table')
         if table is None:
             event = self.safe_string(message, 'event')
@@ -448,6 +532,9 @@ class bitmart(Exchange, ccxt.bitmart):
             method = self.safe_value(methods, name)
             if name.find('kline') >= 0:
                 method = self.handle_ohlcv
+            privateName = self.safe_string(parts, 2)
+            if privateName == 'order':
+                method = self.handle_orders
             if method is None:
                 return message
             else:

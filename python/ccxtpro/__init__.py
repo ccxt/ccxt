@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.52'
+__version__ = '1.1.74'
 
 # -----------------------------------------------------------------------------
 
@@ -78,6 +78,7 @@ from ccxt.async_support.bl3p import bl3p                                  # noqa
 from ccxt.async_support.blockchaincom import blockchaincom                # noqa: F401
 from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
+from ccxt.async_support.btcex import btcex                                # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
@@ -87,13 +88,11 @@ from ccxt.async_support.bytetrade import bytetrade                        # noqa
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
-from ccxt.async_support.coinex import coinex                              # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                      # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
-from ccxt.async_support.cryptocom import cryptocom                        # noqa: F401
 from ccxt.async_support.delta import delta                                # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
@@ -158,10 +157,13 @@ from ccxtpro.bybit import bybit                                           # noqa
 from ccxtpro.cdax import cdax                                             # noqa: F401
 from ccxtpro.coinbaseprime import coinbaseprime                           # noqa: F401
 from ccxtpro.coinbasepro import coinbasepro                               # noqa: F401
+from ccxtpro.coinex import coinex                                         # noqa: F401
 from ccxtpro.coinflex import coinflex                                     # noqa: F401
+from ccxtpro.cryptocom import cryptocom                                   # noqa: F401
 from ccxtpro.currencycom import currencycom                               # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.ftxus import ftxus                                           # noqa: F401
+from ccxtpro.gate import gate                                             # noqa: F401
 from ccxtpro.gateio import gateio                                         # noqa: F401
 from ccxtpro.hitbtc import hitbtc                                         # noqa: F401
 from ccxtpro.hollaex import hollaex                                       # noqa: F401
