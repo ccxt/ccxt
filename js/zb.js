@@ -3658,7 +3658,7 @@ module.exports = class zb extends Exchange {
         const notional = this.safeNumber (position, 'nominalValue');
         const percentage = Precise.stringMul (this.safeString (position, 'returnRate'), '100');
         const timestamp = this.safeNumber (position, 'createTime');
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
@@ -3667,11 +3667,14 @@ module.exports = class zb extends Exchange {
             'collateral': undefined,
             'side': side,
             'unrealizedProfit': unrealizedProfit,
+            'realizedProfit': unrealizedProfit,
+            'hedged': undefined,
             'leverage': this.parseNumber (leverage),
             'percentage': percentage,
             'marginMode': marginMode,
             'notional': notional,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': liquidationPrice,
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': undefined,
@@ -3680,7 +3683,7 @@ module.exports = class zb extends Exchange {
             'marginRatio': marginRatio,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     parseLedgerEntryType (type) {
