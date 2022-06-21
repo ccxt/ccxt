@@ -4710,16 +4710,13 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['settle'] === 'USDC') {
-            throw new NotSupported (this.id + ' setPositionMode() does not support market ' + symbol + '');
+            throw new NotSupported (this.id + ' setPositionMode() does not support market ' + symbol);
         }
         if (market['inverse'] && !market['future']) {
             throw new BadRequest (this.id + ' setPositionMode() must be inverse future');
         }
-        const request = {
-            'symbol': market['id'],
-        };
         let method = undefined;
-        let mode = '';
+        let mode = undefined;
         if (market['future']) {
             method = 'privatePostFuturesPrivatePositionSwitchMode';
             if (hedged) {
@@ -4736,7 +4733,10 @@ module.exports = class bybit extends Exchange {
                 mode = 'MergedSingle';
             }
         }
-        request['mode'] = mode;
+        const request = {
+            'symbol': market['id'],
+            'mode': mode,
+        };
         const response = await this[method] (this.extend (request, params));
         //
         //     {
