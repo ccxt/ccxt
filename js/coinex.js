@@ -597,10 +597,9 @@ module.exports = class coinex extends ccxt.coinex {
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate (params);
-        let messageHash = 'someorders';
+        let messageHash = 'orders';
         let market = undefined;
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const message = {
             'method': 'order.subscribe',
             'id': this.requestId (),
@@ -611,11 +610,12 @@ module.exports = class coinex extends ccxt.coinex {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
+            // deprecated usage of markets_by_id...
             const markets = Object.keys (this.markets_by_id);
             message['params'] = markets;
         }
         const url = this.urls['api']['ws'][type];
-        const request = this.deepExtend (message, params);
+        const request = this.deepExtend (message, query);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -718,7 +718,7 @@ module.exports = class coinex extends ccxt.coinex {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         this.orders.append (parsedOrder);
-        let messageHash = 'someorders';
+        let messageHash = 'orders';
         client.resolve (this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve (this.orders, messageHash);

@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const Precise = require ('ccxt/js/base/Precise');
 const { NotSupported } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
@@ -19,7 +18,7 @@ module.exports = class exmo extends ccxt.exmo {
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchMyTrades': true,
-                'watchOrders': true,
+                'watchOrders': false, // TODO
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
@@ -33,13 +32,6 @@ module.exports = class exmo extends ccxt.exmo {
                 },
             },
             'options': {
-                'account': 'spot',
-                'watchOrderBook': {
-                    'limits': [5, 10, 20, 50],
-                    'defaultLimit': 50,
-                    'aggregations': ['10', '1', '0', '0.1', '0.01'],
-                    'defaultAggregation': '0',
-                },
             },
             'streaming': {
             },
@@ -63,16 +55,15 @@ module.exports = class exmo extends ccxt.exmo {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.authenticate (params);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
         const url = this.urls['api']['ws'][type];
         const subscribe = {
             'method': 'subscribe',
-            'topics': [type + '/wallet'],
+            'topics': [ type + '/wallet' ],
             'id': this.requestId (),
         };
-        const request = this.deepExtend (subscribe, params);
+        const request = this.deepExtend (subscribe, query);
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
@@ -131,17 +122,16 @@ module.exports = class exmo extends ccxt.exmo {
         const topic = this.safeString (message, 'topic');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
-        const data = this.safeValue (message, 'data', {});
         if (type === 'spot') {
-            this.parseSpotBalance (data);
+            this.parseSpotBalance (message);
         } else if (type === 'margin') {
-            this.parseMarginBalance (data);
+            this.parseMarginBalance (message);
         }
         const messageHash = 'balance:' + type;
         client.resolve (this.balance, messageHash);
     }
 
-    parseSpotBalance (data) {
+    parseSpotBalance (message) {
         //
         //     {
         //         "balances": {
@@ -156,25 +146,34 @@ module.exports = class exmo extends ccxt.exmo {
         //         }
         //     }
         //
-        const balances = this.safeValue (data, 'balances', {});
-        const reserved = this.safeValue (data, 'reserved', {});
-        const currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
+        const event = this.safeString (message, 'event');
+        const data = this.safeValue (message, 'data');
+        if (event === 'snapshot') {
+            const balances = this.safeValue (data, 'balances', {});
+            const reserved = this.safeValue (data, 'reserved', {});
+            const currencies = Object.keys (balances);
+            for (let i = 0; i < currencies.length; i++) {
+                const currencyId = currencies[i];
+                const code = this.safeCurrencyCode (currencyId);
+                const free = balances[currencyId];
+                const used = reserved[currencyId];
+                const account = this.account ();
+                account['free'] = this.parseNumber (free);
+                account['used'] = this.parseNumber (used);
+                this.balance[code] = account;
+            }
+        } else if (event === 'update') {
+            const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const free = balances[currencyId];
-            const used = reserved[currencyId];
-            const total = Precise.stringAdd (free, used);
             const account = this.account ();
-            account['free'] = this.parseNumber (free);
-            account['used'] = this.parseNumber (used);
-            account['total'] = this.parseNumber (total);
+            account['free'] = this.safeNumber (data, 'balance');
+            account['used'] = this.safeNumber (data, 'reserved');
             this.balance[code] = account;
-            this.balance = this.safeBalance (this.balance);
         }
+        this.balance = this.safeBalance (this.balance);
     }
 
-    parseMarginBalance (data) {
+    parseMarginBalance (message) {
         //
         //     {
         //         "RUB": {
@@ -189,6 +188,7 @@ module.exports = class exmo extends ccxt.exmo {
         //         }
         //     }
         //
+        const data = this.safeValue (message, 'data');
         const currencies = Object.keys (data);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
@@ -335,11 +335,17 @@ module.exports = class exmo extends ccxt.exmo {
          * @param {dict} params extra parameters specific to the exmo api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
         await this.authenticate (params);
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'mytrades:' + type;
+        let messageHash = undefined;
+        if (symbol === undefined) {
+            messageHash = 'myTrades:' + type;
+        } else {
+            const market = this.market (symbol);
+            messageHash = 'myTrades:' + market['symbol'];
+        }
         const message = {
             'method': 'subscribe',
             'topics': [
@@ -347,7 +353,7 @@ module.exports = class exmo extends ccxt.exmo {
             ],
             'id': this.requestId (),
         };
-        const request = this.deepExtend (message, params);
+        const request = this.deepExtend (message, query);
         const trades = await this.watch (url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
@@ -413,12 +419,16 @@ module.exports = class exmo extends ccxt.exmo {
         const topic = this.safeString (message, 'topic');
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
-        const messageHash = 'mytrades:' + type;
+        const messageHash = 'myTrades:' + type;
         const event = this.safeString (message, 'event');
         let rawTrades = [];
-        if (this.myTrades === undefined || event === 'snapshot') {
+        let myTrades = undefined;
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            this.myTrades = new ArrayCacheBySymbolById (limit);
+            myTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = myTrades;
+        } else {
+            myTrades = this.myTrades;
         }
         if (event === 'snapshot') {
             rawTrades = this.safeValue (message, 'data', []);
@@ -430,11 +440,16 @@ module.exports = class exmo extends ccxt.exmo {
         const symbols = {};
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
-            const symbol = trade['symbol'];
-            this.myTrades.append (trade);
-            symbols[symbol] = trade;
+            myTrades.append (trade);
+            symbols[trade['symbol']] = true;
         }
-        client.resolve (this.myTrades, messageHash);
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = 'myTrades:' + symbol;
+            client.resolve (myTrades, symbolSpecificMessageHash);
+        }
+        client.resolve (myTrades, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -502,31 +517,27 @@ module.exports = class exmo extends ccxt.exmo {
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        let orderBook = this.safeValue (message, 'data', {});
+        const orderBook = this.safeValue (message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeNumber (message, 'ts');
-        const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        if (storedOrderBook === undefined) {
+            storedOrderBook = this.orderBook ({});
+            this.orderbooks[symbol] = storedOrderBook;
+        }
         const event = this.safeString (message, 'event');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'bid', 'ask');
-            if (currentOrderBook === undefined) {
-                orderBook = this.orderBook (snapshot);
-                this.orderbooks[symbol] = orderBook;
-            } else {
-                orderBook = this.orderbooks[symbol];
-                orderBook.reset (snapshot);
-            }
+            storedOrderBook.reset (snapshot);
         } else {
             const asks = this.safeValue (orderBook, 'ask', []);
             const bids = this.safeValue (orderBook, 'bid', []);
-            this.handleDeltas (currentOrderBook['asks'], asks);
-            this.handleDeltas (currentOrderBook['bids'], bids);
-            currentOrderBook['nonce'] = timestamp;
-            currentOrderBook['timestamp'] = timestamp;
-            currentOrderBook['datetime'] = this.iso8601 (timestamp);
-            this.orderbooks[symbol] = currentOrderBook;
+            this.handleDeltas (storedOrderBook['asks'], asks);
+            this.handleDeltas (storedOrderBook['bids'], bids);
+            storedOrderBook['timestamp'] = timestamp;
+            storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
-        client.resolve (this.orderbooks[symbol], messageHash);
+        client.resolve (storedOrderBook, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -538,272 +549,6 @@ module.exports = class exmo extends ccxt.exmo {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
-    }
-
-    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.authenticate (params);
-        const market = undefined;
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const messageHash = 'someorders:' + type;
-        const message = {
-            'method': 'subscribe',
-            'id': this.requestId (),
-            'topics': [type + '/orders'],
-        };
-        const url = this.urls['api']['ws'][type];
-        const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
-        if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
-    }
-
-    handleOrders (client, message) {
-        //
-        //  spot
-        //     {
-        //         "ts": 1574427585174,
-        //         "event": "snapshot",
-        //         "topic": "spot/orders",
-        //         "data": [{
-        //                 "order_id": "14",
-        //                 "client_id": "100500",
-        //                 "created": "1574427585",
-        //                 "pair": "BTC_USD",
-        //                 "price": "7750",
-        //                 "quantity": "0.1",
-        //                 "amount": "775",
-        //                 "original_quantity": "0.1",
-        //                 "original_amount": "775",
-        //                 "type": "sell",
-        //                 "status": "open"
-        //             },
-        //             {
-        //                 "parent_order_id": "6216512412",
-        //                 "client_id": "100501",
-        //                 "created": "1574427585",
-        //                 "type": "stop_market_sell",
-        //                 "pair": "BTC_USD",
-        //                 "quantity": "1",
-        //                 "trigger_price": "7727",
-        //                 "amount": "7727",
-        //                 "status": "open"
-        //             }
-        //         ]
-        //     }
-        //     {
-        //         "ts": 1574427585174,
-        //         "event": "update",
-        //         "topic": "spot/orders",
-        //         "data": {
-        //             "order_id": "15",
-        //             "client_id": "100502",
-        //             "created": "1574427585",
-        //             "pair": "BTC_USD",
-        //             "quantity": "0",
-        //             "original_quantity": "0.1",
-        //             "type": "market_sell",
-        //             "status": "cancelled",
-        //             "last_trade_id": "51",
-        //             "last_trade_price": "7728",
-        //             "last_trade_quantity": "0.002"
-        //         }
-        //     }
-        //
-        //  margin
-        //     {
-        //         "ts":1624371221620,
-        //         "event":"update",
-        //         "topic":"margin/orders",
-        //         "data":{
-        //            "order_id":"692844278081168599",
-        //            "created":"1624371221546858900",
-        //            "type":"market_buy",
-        //            "previous_type":"market_buy",
-        //            "pair":"BTC_USD",
-        //            "leverage":"2",
-        //            "price":"0",
-        //            "stop_price":"0",
-        //            "distance":"0",
-        //            "trigger_price":"36638.5",
-        //            "init_quantity":"0.1",
-        //            "quantity":"0",
-        //            "funding_currency":"USD",
-        //            "funding_quantity":"0",
-        //            "funding_rate":"0",
-        //            "client_id":"111111",
-        //            "expire":0,
-        //            "src":1,
-        //            "comment":"comment1",
-        //            "updated":1624371221627390400,
-        //            "status":"executed"
-        //         }
-        //     }
-        //
-        const event = this.safeString (message, 'event');
-        const topic = this.safeString (message, 'topic');
-        const parts = topic.split ('/');
-        const type = this.safeString (parts, 0);
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        if (this.orders === undefined || event === 'snapshot') {
-            this.orders = new ArrayCacheBySymbolById (limit);
-        }
-        let orders = [];
-        if (event === 'snapshot') {
-            orders = this.safeValue (message, 'data', []);
-        } else if (event === 'update') {
-            const order = this.safeValue (message, 'data', {});
-            orders = [order];
-        }
-        for (let i = 0; i < orders.length; i++) {
-            const parsedOrder = this.parseWSOrder (orders[i]);
-            this.orders.append (parsedOrder);
-        }
-        const messageHash = 'someorders:' + type;
-        client.resolve (this.orders, messageHash);
-    }
-
-    parseWSOrder (order, market = undefined) {
-        //
-        //  spot
-        //     {
-        //         "order_id": "14",
-        //         "client_id": "100500",
-        //         "created": "1574427585",
-        //         "pair": "BTC_USD",
-        //         "price": "7750",
-        //         "quantity": "0.1",
-        //         "amount": "775",
-        //         "original_quantity": "0.1",
-        //         "original_amount": "775",
-        //         "type": "sell",
-        //         "status": "open"
-        //     }
-        //     {
-        //         "parent_order_id": "6216512412",
-        //         "client_id": "100501",
-        //         "created": "1574427585",
-        //         "type": "stop_market_sell",
-        //         "pair": "BTC_USD",
-        //         "quantity": "1",
-        //         "trigger_price": "7727",
-        //         "amount": "7727",
-        //         "status": "open"
-        //     }
-        //     {
-        //         "order_id": "15",
-        //         "client_id": "100502",
-        //         "created": "1574427585",
-        //         "pair": "BTC_USD",
-        //         "quantity": "0",
-        //         "original_quantity": "0.1",
-        //         "type": "market_sell",
-        //         "status": "cancelled",
-        //         "last_trade_id": "51",
-        //         "last_trade_price": "7728",
-        //         "last_trade_quantity": "0.002"
-        //     }
-        //
-        //  margin
-        //     {
-        //         "order_id": "692844278081168599",
-        //         "created": "1624371221546858900",
-        //         "type": "market_buy",
-        //         "previous_type": "market_buy",
-        //         "pair": "BTC_USD",
-        //         "leverage": "2",
-        //         "price": "0",
-        //         "stop_price": "0",
-        //         "distance": "0",
-        //         "trigger_price": "36638.5",
-        //         "init_quantity": "0.1",
-        //         "quantity": "0",
-        //         "funding_currency": "USD",
-        //         "funding_quantity": "0",
-        //         "funding_rate": "0",
-        //         "client_id": "111111",
-        //         "expire": 0,
-        //         "src": 1,
-        //         "comment": "comment1",
-        //         "updated": 1624371221627390400,
-        //         "status": "executed"
-        //     }
-        //
-        const timestamp = this.safeTimestamp2 (order, 'updated', 'created');
-        const marketId = this.safeString (order, 'pair');
-        const typeString = this.safeString (order, 'type');
-        const type = this.getSupportedMapping (typeString, {
-            'sell': 'limit',
-            'buy': 'limit',
-            'market_buy': 'market',
-            'market_sell': 'market',
-            'stop_market_sell': 'stopMarket',
-            'stop_market_buy': 'stopMarket',
-            'stop_buy': 'stop',
-            'stop_sell': 'stop',
-            'stop_limit_buy': 'stopLimit',
-            'stop_limit_sell': 'stopLimit',
-            'trailing_stop_buy': 'stop',
-            'trailing_stop_sell': 'stop',
-        });
-        const side = this.getSupportedMapping (typeString, {
-            'sell': 'sell',
-            'buy': 'buy',
-            'market_sell': 'sell',
-            'market_buy': 'buy',
-            'stop_market_sell': 'sell',
-            'stop_market_buy': 'buy',
-            'stop_buy': 'buy',
-            'stop_sell': 'sell',
-            'stop_limit_buy': 'buy',
-            'stop_limit_sell': 'sell',
-            'trailing_stop_buy': 'buy',
-            'trailing_stop_sell': 'sell',
-        });
-        const status = this.safeString (order, 'status');
-        let amount = this.safeNumber (order, 'quantity');
-        const filled = undefined;
-        let remaining = undefined;
-        if ('original_quantity' in order) {
-            remaining = this.safeNumber (order, 'quantity');
-            amount = this.safeNumber (order, 'original_quantity');
-        }
-        return this.safeOrder ({
-            'info': order,
-            'id': this.safeString2 (order, 'order_id', 'id'),
-            'clientOrderId': this.safeString (order, 'client_id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'symbol': this.safeSymbol (marketId),
-            'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': this.safeNumber (order, 'price'),
-            'stopPrice': this.safeNumber (order, 'trigger_price'),
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'cost': this.safeNumber (order, 'amount'),
-            'average': undefined,
-            'status': this.parseWSOrderStatus (status),
-            'fee': {},
-            'trades': undefined,
-        }, this.safeMarket (marketId));
-    }
-
-    parseWSOrderStatus (status) {
-        const statuses = {
-            'cancelled': 'canceled',
-            'executing': 'open',
-            'open': 'open',
-            'executed': 'closed',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     handleMessage (client, message) {
@@ -824,9 +569,9 @@ module.exports = class exmo extends ccxt.exmo {
         // }
         const event = this.safeString (message, 'event');
         if (event === 'logged_in') {
-            return this.handleSubscriptionStatus (client, message);
+            return this.handleAuthenticationMessage (client, message);
         }
-        if (event === 'update' || event === 'snapshot') {
+        if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
             if (topic !== undefined) {
                 const parts = topic.split (':');
@@ -897,28 +642,10 @@ module.exports = class exmo extends ccxt.exmo {
         if (future !== undefined) {
             future.resolve (true);
         }
-        return message;
-    }
-
-    handleSubscriptionStatus (client, message) {
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
-        if (subscription !== undefined) {
-            const method = this.safeValue (subscription, 'callmethod');
-            if (method !== undefined) {
-                return method.call (this, client, message, subscription);
-            }
-            if (id in client.subscriptions) {
-                delete client.subscriptions[id];
-            }
-        }
-        return message;
     }
 
     async authenticate (params = {}) {
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
@@ -928,11 +655,7 @@ module.exports = class exmo extends ccxt.exmo {
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
-            const subscribe = {
-                'id': requestId,
-                'callmethod': this.handleAuthenticationMessage,
-            };
-            const signData = this.apiKey + this.numberToString (time);
+            const signData = this.apiKey + time.toString ();
             const sign = this.hmac (this.encode (signData), this.encode (this.secret), 'sha512', 'base64');
             const request = {
                 'method': 'login',
@@ -941,7 +664,7 @@ module.exports = class exmo extends ccxt.exmo {
                 'sign': sign,
                 'nonce': time,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscribe);
+            this.spawn (this.watch, url, messageHash, this.extend (request, query), messageHash);
         }
         return await future;
     }
