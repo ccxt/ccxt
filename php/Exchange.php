@@ -167,6 +167,7 @@ class Exchange {
         'qtrade',
         'ripio',
         'stex',
+        'scallop',
         'therock',
         'tidebit',
         'tidex',
