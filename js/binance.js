@@ -6057,7 +6057,6 @@ module.exports = class binance extends Exchange {
             'amount': amount,
         };
         const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
-        params = this.omit (params, 'marginMode');
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
@@ -6066,6 +6065,7 @@ module.exports = class binance extends Exchange {
             request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
         }
+        params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
         //
         //     {
