@@ -4214,10 +4214,10 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const transaction = this.parseMarginLoan (data, currency['id']);
+        const transaction = this.parseMarginLoan (data, currency);
         return this.extend (transaction, {
             'amount': amount,
-            'currency': currency['id'],
+            'symbol': symbol,
         });
     }
 
@@ -4242,10 +4242,10 @@ module.exports = class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency['id']);
+        const transaction = this.parseMarginLoan (response, currency);
         return this.extend (transaction, {
             'amount': amount,
-            'currency': currency['id'],
+            'symbol': symbol,
         });
     }
 
@@ -4267,8 +4267,9 @@ module.exports = class coinex extends Exchange {
         //
         return {
             'id': this.safeInteger (info, 'loan_id'),
-            'currency': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
+            'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'info': info,
