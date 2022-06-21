@@ -1730,7 +1730,6 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'marketCode');
-        market = this.safeMarket (marketId, market);
         const contractsString = this.safeString (position, 'position');
         const timestamp = undefined; // this.safeInteger (position, 'lastUpdatedAt');
         const side = Precise.stringGt (contractsString, '0') ? 'long' : 'short';
@@ -1738,9 +1737,9 @@ module.exports = class coinflex extends Exchange {
         const entryPriceString = this.safeString (position, 'entryPrice');
         const unrealizedPnlString = this.safeString (position, 'positionPnl');
         const markPriceString = this.safeString (position, 'markPrice');
-        return {
+        return this.safePosition ({
             'id': undefined,
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol (marketId, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': undefined,
@@ -1751,17 +1750,19 @@ module.exports = class coinflex extends Exchange {
             'notional': undefined,
             'leverage': undefined,
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
+            'realizedPnl': undefined,
             'contracts': this.parseNumber (contractsString),
             'contractSize': undefined,
             'marginRatio': undefined,
             'liquidationPrice': this.parseNumber (liquidationPriceString),
             'markPrice': this.parseNumber (markPriceString),
+            'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross', // each account is cross : https://coinflex.com/support/3-4-margin-and-risk-management/
             'side': side,
             'percentage': undefined,
             'info': position,
-        };
+        });
     }
 
     async fetchDepositAddress (code, params = {}) {
