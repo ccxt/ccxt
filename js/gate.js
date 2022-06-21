@@ -2905,20 +2905,20 @@ module.exports = class gate extends Exchange {
          * @param {str} type 'limit' or 'market' *"market" is contract only*
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float|undefined} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {str} params.timeInForce "GTC", "IOC", or "PO"
-         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-         * @param {str} params.text User defined information
-         * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
-         * @param {bool} params.auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-         * @param {str} params.settle *contract only* Unified Currency Code for settle currency
-         * @param {bool} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool} params.close *contract only* Set as true to close the position, with size set to 0
-         * @param {bool} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns {dict} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {float|undefined} params.stopPrice The price at which a trigger order is triggered at
+         * @param {str|undefined} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {int|undefined} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {str|undefined} params.text User defined information
+         * @param {str|undefined} params.account *spot and margin only* "spot", "margin" or "cross_margin"
+         * @param {bool|undefined} params.auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+         * @param {str|undefined} params.settle *contract only* Unified Currency Code for settle currency
+         * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
+         * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
+         * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+         * @returns {dict|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
