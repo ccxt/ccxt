@@ -1872,8 +1872,7 @@ module.exports = class currencycom extends Exchange {
         const entryPrice = this.safeNumber (position, 'openPrice');
         const unrealizedProfit = this.safeNumber (position, 'upl');
         const marginCoeff = this.safeString (position, 'margin');
-        const leverage = Precise.stringDiv ('1', marginCoeff);
-        return {
+        return this.safePosition ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1882,13 +1881,14 @@ module.exports = class currencycom extends Exchange {
             'entryPrice': entryPrice,
             'collateral': undefined,
             'side': side,
-            // 'realizedProfit': this.safeNumber (position, 'rpl'),
-            'unrealizedProfit': unrealizedProfit,
-            'leverage': leverage,
+            'unrealizedPln': unrealizedProfit,
+            'realizedPln': this.safeNumber (position, 'rpl'),
+            'leverage': undefined,
             'percentage': undefined,
             'marginMode': undefined,
             'notional': undefined,
             'markPrice': undefined,
+            'lastPrice': undefined,
             'liquidationPrice': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1896,7 +1896,7 @@ module.exports = class currencycom extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
             'info': position,
-        };
+        });
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
