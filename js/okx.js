@@ -4096,7 +4096,6 @@ module.exports = class okx extends Exchange {
         let collateralString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'imr');
-            collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
             collateralString = this.safeString (position, 'margin');
@@ -4104,19 +4103,12 @@ module.exports = class okx extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         let maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
-        if (initialMarginPercentage === undefined) {
-            initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
-        } else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
-        }
         const rounder = '0.00005'; // round to closest 0.01%
         maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
-        const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
         const timestamp = this.safeInteger (position, 'uTime');
-        const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
             'notional': notional,
@@ -4124,10 +4116,11 @@ module.exports = class okx extends Exchange {
             'liquidationPrice': liquidationPrice,
             'entryPrice': this.parseNumber (entryPriceString),
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
-            'percentage': percentage,
+            'percentage': this.parseNumber (Precise.stringMul (percentageString, '100')),
             'contracts': contracts,
             'contractSize': contractSize,
             'markPrice': this.parseNumber (markPriceString),
+            'lastPrice': undefined,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -4138,8 +4131,8 @@ module.exports = class okx extends Exchange {
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverageString),
-            'marginRatio': marginRatio,
-        };
+            'marginRatio': undefined,
+        });
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
