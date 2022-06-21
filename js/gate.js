@@ -2943,7 +2943,7 @@ module.exports = class gate extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
         const postOnly = this.isPostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
-        let timeInForce = this.timeInForce (params);
+        let timeInForce = this.handleTimeInForce (params);
         // we only omit the unified params here
         // this is because the other params will get extended into the request
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);

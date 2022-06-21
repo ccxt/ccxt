@@ -2637,7 +2637,7 @@ module.exports = class Exchange {
         }
     }
 
-    timeInForce (params = {}) {
+    handleTimeInForce (params = {}) {
         /**
          * @ignore
          * @method
