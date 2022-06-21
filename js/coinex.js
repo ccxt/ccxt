@@ -1721,7 +1721,7 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeStringN (params, [ 'stopPrice', 'triggerPrice', 'stop_price' ]);
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
@@ -1741,15 +1741,13 @@ module.exports = class coinex extends Exchange {
         };
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
-                if (positionId === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
-                }
-                // TODO default stopType to 1
                 const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (stopType === undefined) {
                     request['stop_type'] = 1;
                 }
-                request['stop_type'] = stopType;
+                if (positionId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
+                }
                 request['position_id'] = positionId;
                 if (stopLossPrice) {
                     method = 'perpetualPrivatePostPositionStopLoss';
@@ -1764,7 +1762,7 @@ module.exports = class coinex extends Exchange {
                 if (stopPrice !== undefined) {
                     const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                     if (stopType === undefined) {
-                        throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter, 1: Transaction price, 3: Mark price');
+                        request['stop_type'] = 1;
                     }
                     request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
                     request['stop_type'] = this.priceToPrecision (symbol, stopType);
@@ -1866,7 +1864,7 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
