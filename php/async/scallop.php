@@ -36,7 +36,6 @@ class scallop extends Exchange {
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -833,72 +832,6 @@ class scallop extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
-    }
-
-    public function parse_ohlcv($ohlcv, $market = null) {
-        //
-        //     array(
-        //         1556712900,
-        //         2205.899,
-        //         0.029967,
-        //         0.02997,
-        //         0.029871,
-        //         0.029927
-        //     )
-        //
-        return array(
-            $this->safe_timestamp($ohlcv, 0),
-            $this->safe_number($ohlcv, 5), // open
-            $this->safe_number($ohlcv, 3), // high
-            $this->safe_number($ohlcv, 4), // low
-            $this->safe_number($ohlcv, 2), // close
-            $this->safe_number($ohlcv, 1), // volume
-        );
-    }
-
-    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {str} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the scallop api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
-            // 'start_time' => 1564520003, // starting timestamp, 200 candles before end_time by default
-            // 'end_time' => 1564520003, // ending timestamp, current timestamp by default
-        );
-        if ($since !== null) {
-            $startTime = intval($since / 1000);
-            $request['start_time'] = $startTime;
-            if ($limit !== null) {
-                $duration = $this->parse_timeframe($timeframe);
-                $request['end_time'] = $this->sum($startTime, $limit * $duration);
-            }
-        } else if ($limit !== null) {
-            $endTime = $this->seconds();
-            $duration = $this->parse_timeframe($timeframe);
-            $request['startTime'] = $this->sum($endTime, -$limit * $duration);
-        }
-        $response = yield $this->publicGetKline (array_merge($request, $params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
-        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
-        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
-        //         ]
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
