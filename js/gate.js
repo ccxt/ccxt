@@ -4057,30 +4057,31 @@ module.exports = class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
             'initialMargin': this.parseNumber (initialMarginString),
-            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            // 'realisedPnl': position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
+            'lastPrice': undefined,
             'collateral': this.safeNumber (position, 'margin'),
             'marginMode': marginMode,
             'side': side,
-            'percentage': this.parseNumber (percentage),
+            'hedged': undefined,
+            'percentage': undefined,
         };
     }
 
