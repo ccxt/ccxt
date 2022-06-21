@@ -29,6 +29,7 @@ class coinflex(Exchange):
             'certified': False,
             'pro': True,
             'userAgent': self.userAgents['chrome100'],
+            'hostname': 'coinflex.com',
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -76,6 +77,7 @@ class coinflex(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverageTiers': None,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': None,
@@ -90,6 +92,7 @@ class coinflex(Exchange):
                 'fetchOrderTrades': None,
                 'fetchPermissions': None,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': None,
@@ -131,8 +134,7 @@ class coinflex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg',
                 'api': {
-                    'public': 'https://v2api.coinflex.com',
-                    'private': 'https://v2api.coinflex.com',
+                    'rest': 'https://v2api.{hostname}',
                 },
                 'www': 'https://coinflex.com/',
                 'doc': [
@@ -142,8 +144,7 @@ class coinflex(Exchange):
                     'https://coinflex.com/fees/',
                 ],
                 'test': {
-                    'public': 'https://v2stgapi.coinflex.com',
-                    'private': 'https://v2stgapi.coinflex.com',
+                    'rest': 'https://v2stgapi.{hostname}',
                 },
                 'referral': 'https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P',
             },
@@ -250,7 +251,6 @@ class coinflex(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'baseApiDomain': 'v2api.coinflex.com',
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
                     # 'SOLANA': 'SPL',
@@ -508,7 +508,7 @@ class coinflex(Exchange):
             fees = {}
             networks = {}
             networkList = self.safe_value(entry, 'networkList', [])
-            precision = None
+            precisionString = None
             for j in range(0, len(networkList)):
                 networkItem = networkList[j]
                 networkId = self.safe_string(networkItem, 'network')
@@ -518,8 +518,11 @@ class coinflex(Exchange):
                 isDepositEnabled = isDepositEnabled or depositEnable
                 isWithdrawEnabled = isWithdrawEnabled or withdrawEnable
                 fees[networkId] = None
-                precision = self.safe_string(networkItem, 'transactionPrecision')
-                precision = self.parse_number(self.parse_precision(precision))
+                networkPrecisionString = self.safe_string(networkItem, 'transactionPrecision')
+                if precisionString is None:
+                    precisionString = networkPrecisionString
+                else:
+                    precisionString = Precise.string_min(precisionString, networkPrecisionString)
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -527,7 +530,7 @@ class coinflex(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': None,
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(networkPrecisionString)),
                     'limits': {
                         'deposit': {
                             'min': self.safe_number(networkItem, 'minDeposit'),
@@ -544,7 +547,7 @@ class coinflex(Exchange):
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': precision,  # TODO: self need codebase changes, as precision is network specific, but currencyToPrecision bugs in that case
+                'precision': self.parse_number(self.parse_precision(precisionString)),
                 'info': entry,
                 'active': isWithdrawEnabled and isDepositEnabled,
                 'deposit': isDepositEnabled,
@@ -611,6 +614,14 @@ class coinflex(Exchange):
         return self.parse_trades(trades, market, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
@@ -904,6 +915,14 @@ class coinflex(Exchange):
         }, market)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -952,6 +971,12 @@ class coinflex(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         # TODO: self can be moved as emulated into base
         if self.has['fetchFundingRates']:
             response = await self.fetch_funding_rates([symbol], params)
@@ -960,6 +985,12 @@ class coinflex(Exchange):
             raise NotSupported(self.id + ' fetchFundingRate() not supported yet')
 
     async def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetch the funding rate for multiple markets
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -1211,6 +1242,11 @@ class coinflex(Exchange):
         return self.safe_value(response, 'data', [])
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         await self.load_markets()
         data = await self.get_account_data(params)
         result = []
@@ -1261,6 +1297,12 @@ class coinflex(Exchange):
         return self.safe_balance(result)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         request = {
@@ -1273,6 +1315,14 @@ class coinflex(Exchange):
         return order
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {}
         market = None
@@ -1326,6 +1376,14 @@ class coinflex(Exchange):
         return self.parse_orders(data, market, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
         response = await self.privateGetV2Orders(params)
@@ -1513,12 +1571,24 @@ class coinflex(Exchange):
         }, market)
 
     async def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         positions = await self.fetch_positions(None, params)
         array = self.filter_by_symbol(positions, symbol)
         return self.safe_value(array, 0)  # exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         data = await self.get_account_data(params)
         # response sample inside `getAccountData` method
         self.targetAccount = self.safe_value(data, 0)
@@ -1588,6 +1658,12 @@ class coinflex(Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1621,6 +1697,14 @@ class coinflex(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {}
@@ -1677,6 +1761,14 @@ class coinflex(Exchange):
         return self.parse_transactions(data, currency, since, limit, params)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {}
@@ -1726,6 +1818,13 @@ class coinflex(Exchange):
         return self.parse_transactions(data, currency, since, limit, params)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: unified currency code of the currency withdrawn, default is None
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'id': id,
         }
@@ -1822,6 +1921,14 @@ class coinflex(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = None
         request = {}
@@ -1946,6 +2053,16 @@ class coinflex(Exchange):
             raise ExchangeError(body)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = self.market(symbol)
         self.check_order_arguments(market, type, side, amount, price, params)
         request, query = await self.build_order_request(market, type, side, amount, price, params)
@@ -2048,6 +2165,13 @@ class coinflex(Exchange):
         return self.parse_order(firstOrder, market)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         market = self.market(symbol)
@@ -2103,10 +2227,23 @@ class coinflex(Exchange):
         return self.parse_orders(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         orders = await self.cancel_orders([id], symbol, params)
         return self.safe_value(orders, 0)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = None
         request = {}
@@ -2133,6 +2270,15 @@ class coinflex(Exchange):
         return response
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -2158,6 +2304,15 @@ class coinflex(Exchange):
         return self.parse_transfer(data, currency)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         twoFaCode = self.safe_string(params, 'code')
@@ -2198,6 +2353,14 @@ class coinflex(Exchange):
         return self.parse_transaction(data, currency)
 
     async def fetch_transaction_fee(self, code, params={}):
+        """
+        fetch the fee for a transaction
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the coinflex api endpoint
+        :param str params['networkName']: the protocol for a transaction
+        :param str params['address']: withdrawal address
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         networkName = self.safe_string_upper(params, 'network')
         if networkName is None:
             raise ArgumentsRequired(self.id + ' fetchTransactionFee() requires "network"  parameter')
@@ -2245,7 +2408,8 @@ class coinflex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         finalPath, query = self.resolve_path(path, params)
-        url = self.urls['api'][api] + '/' + finalPath
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
+        url = baseUrl + '/' + finalPath
         encodedParams = ''
         isGetRequest = (method == 'GET')
         if query:
@@ -2256,7 +2420,8 @@ class coinflex(Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             datetime = self.ymdhms(self.milliseconds(), 'T')
-            auth = datetime + "\n" + nonce + "\n" + method + "\n" + self.options['baseApiDomain'] + "\n" + '/' + finalPath + "\n"  # eslint-disable-line quotes
+            baseUrlTrimmed = baseUrl.replace('https://', '')
+            auth = datetime + "\n" + nonce + "\n" + method + "\n" + baseUrlTrimmed + "\n" + '/' + finalPath + "\n"  # eslint-disable-line quotes
             if isGetRequest:
                 auth += encodedParams
             else:

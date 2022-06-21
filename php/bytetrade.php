@@ -34,6 +34,9 @@ class bytetrade extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
@@ -52,6 +55,7 @@ class bytetrade extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -62,6 +66,7 @@ class bytetrade extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -530,7 +535,7 @@ class bytetrade extends Exchange {
         //         }
         //     )
         //
-        if (gettype($response) === 'array' && count(array_filter(array_keys($response), 'is_string')) == 0) {
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             $ticker = $this->safe_value($response, 0);
             if ($ticker === null) {
                 throw new BadResponse($this->id . ' fetchTicker() returned an empty response');
@@ -719,6 +724,11 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->publicGetSymbols ($params);
         //
@@ -835,6 +845,16 @@ class bytetrade extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->check_required_dependencies();
         if ($this->apiKey === null) {
             throw new ArgumentsRequired('createOrder() requires $this->apiKey or userid in params');
@@ -1029,6 +1049,12 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchOrder() requires $this->apiKey or userid argument');
         }
@@ -1047,6 +1073,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchOpenOrders() requires $this->apiKey or userid argument');
         }
@@ -1070,6 +1104,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchClosedOrders() requires $this->apiKey or userid argument');
         }
@@ -1093,6 +1135,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchOrders() requires $this->apiKey or userid argument');
         }
@@ -1116,6 +1166,13 @@ class bytetrade extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($this->apiKey === null) {
             throw new ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully');
         }
@@ -1216,6 +1273,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchMyTrades() requires $this->apiKey or userid argument');
         }
@@ -1238,6 +1303,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchDeposits() requires $this->apiKey or userid argument');
@@ -1261,6 +1334,14 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchWithdrawals() requires $this->apiKey or userid argument');
@@ -1345,6 +1426,12 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the bytetrade api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
             throw new ArgumentsRequired('fetchDepositAddress() requires $this->apiKey or userid argument');

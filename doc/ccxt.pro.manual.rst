@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 43 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 44 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -368,6 +368,21 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg
+          :target: https://crypto.com/exch/5835vstech
+          :alt: cryptocom
+     
+     - cryptocom
+     - `Crypto.com <https://crypto.com/exch/5835vstech>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://exchange-docs.crypto.com/
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg
           :target: https://currency.com/trading/signup?c=362jaimv&pid=referral
           :alt: currencycom
@@ -451,9 +466,9 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
-          :alt: gateio
+          :alt: gate
      
-     - gateio
+     - gate
      - `Gate.io <https://www.gate.io/ref/2436035>`__
      - .. image:: https://img.shields.io/badge/4-lightgray
           :target: https://www.gate.io/docs/apiv4/en/index.html

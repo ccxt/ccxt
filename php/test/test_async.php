@@ -304,7 +304,7 @@ function test_accounts($exchange) {
         dump(green($exchange->id), 'executing ' . $method . '()');
         $accounts = yield $exchange->{$method}();
         foreach ($accounts as $account) {
-            test_account($exchange, $account);
+            test_account($exchange, $account, $method);
         }
         dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
     } else {
