@@ -1567,9 +1567,8 @@ module.exports = class btcex extends Exchange {
         const notionalString = Precise.stringMul (markPrice, size);
         const unrealisedPnl = this.safeString (position, 'floating_profit_loss');
         const initialMarginString = this.safeString (position, 'initial_margin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         const marginType = this.safeString (position, 'margin_type');
-        return {
+        return this.safePosition ({
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
@@ -1577,7 +1576,7 @@ module.exports = class btcex extends Exchange {
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notionalString)),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
-            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMarginString, notionalString)),
+            'maintenanceMarginPercentage': undefined,
             'entryPrice': this.safeNumber (position, 'average_price'),
             'notional': this.parseNumber (notionalString),
             'leverage': this.safeNumber (position, 'leverage'),
@@ -1590,8 +1589,8 @@ module.exports = class btcex extends Exchange {
             'collateral': this.parseNumber (collateral),
             'marginType': marginType,
             'side': side,
-            'percentage': this.parseNumber (percentage),
-        };
+            'percentage': undefined,
+        });
     }
 
     async fetchPosition (symbol, params = {}) {
