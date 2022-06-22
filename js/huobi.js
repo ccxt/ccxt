@@ -31,11 +31,11 @@ module.exports = class huobi extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
-                'createMarginLoan': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -106,7 +106,7 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
-                'repayMarginLoan': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -6535,24 +6535,19 @@ module.exports = class huobi extends Exchange {
         };
     }
 
-    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (symbol !== undefined) {
-            amount = this.amountToPrecision (symbol, amount);
-        } else {
-            amount = this.safeString (params, amount);
-        }
         const request = {
             'currency': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
         let method = undefined;
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' createMarginLoan() requires a symbol argument for isolated margin');
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
             }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -6583,18 +6578,13 @@ module.exports = class huobi extends Exchange {
         });
     }
 
-    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountId = await this.fetchAccountIdByType ('spot', params);
-        if (symbol !== undefined) {
-            amount = this.amountToPrecision (symbol, amount);
-        } else {
-            amount = this.safeString (params, amount);
-        }
         const request = {
             'currency': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
             'accountId': accountId,
         };
         const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
@@ -6620,20 +6610,20 @@ module.exports = class huobi extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
-        // createMarginLoan cross
+        // borrowMargin cross
         //
         //     {
         //         "status": "ok",
         //         "data": null
         //     }
         //
-        // createMarginLoan isolated
+        // borrowMargin isolated
         //
         //     {
         //         "data": 1000
         //     }
         //
-        // repayMarginLoan
+        // repayMargin
         //
         //     {
         //         "repayId":1174424,
