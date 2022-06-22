@@ -27,11 +27,11 @@ module.exports = class okx extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
-                'createMarginLoan': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
                 'createStopLimitOrder': true,
@@ -100,7 +100,7 @@ module.exports = class okx extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': true,
-                'repayMarginLoan': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -5168,15 +5168,12 @@ module.exports = class okx extends Exchange {
         };
     }
 
-    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (symbol !== undefined) {
-            amount = this.amountToPrecision (symbol, amount);
-        }
         const request = {
             'ccy': currency['id'],
-            'amt': amount,
+            'amt': this.currencyToPrecision (code, amount),
             'side': 'borrow',
         };
         const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
@@ -5205,15 +5202,12 @@ module.exports = class okx extends Exchange {
         });
     }
 
-    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (symbol !== undefined) {
-            amount = this.amountToPrecision (symbol, amount);
-        }
         const request = {
             'ccy': currency['id'],
-            'amt': amount,
+            'amt': this.currencyToPrecision (code, amount),
             'side': 'repay',
         };
         const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
