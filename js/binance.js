@@ -98,7 +98,7 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
-                'repayMarginLoan': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -6045,7 +6045,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -6054,10 +6054,10 @@ module.exports = class binance extends Exchange {
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
