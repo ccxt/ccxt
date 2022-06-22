@@ -35,6 +35,7 @@ module.exports = class huobi extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
+                'createMarginLoan': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -105,6 +106,7 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
+                'repayMarginLoan': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -6530,6 +6532,123 @@ module.exports = class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (symbol !== undefined) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else {
+            amount = this.safeString (params, amount);
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+        };
+        const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        let method = undefined;
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' createMarginLoan() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            method = 'privatePostMarginOrders';
+        } else if (marginMode === 'cross') {
+            method = 'privatePostCrossMarginOrders';
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "data": 1000
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountId = await this.fetchAccountIdByType ('spot', params);
+        if (symbol !== undefined) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else {
+            amount = this.safeString (params, amount);
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'accountId': accountId,
+        };
+        const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "Data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'Data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // createMarginLoan cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        // createMarginLoan isolated
+        //
+        //     {
+        //         "data": 1000
+        //     }
+        //
+        // repayMarginLoan
+        //
+        //     {
+        //         "repayId":1174424,
+        //         "repayTime":1600747722018
+        //     }
+        //
+        const timestamp = this.safeInteger (info, 'repayTime');
+        return {
+            'id': this.safeInteger2 (info, 'repayId', 'data'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 
