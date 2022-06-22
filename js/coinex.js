@@ -24,11 +24,11 @@ module.exports = class coinex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
-                'createMarginLoan': true,
                 'createReduceOnlyOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
@@ -74,7 +74,7 @@ module.exports = class coinex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'repayMarginLoan': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -4194,14 +4194,17 @@ module.exports = class coinex extends Exchange {
         };
     }
 
-    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
             'market': market['id'],
             'coin_type': currency['id'],
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.currencyToPrecision (code, amount),
         };
         const response = await this.privatePostMarginLoan (this.extend (request, params));
         //
@@ -4221,14 +4224,17 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
             'market': market['id'],
             'coin_type': currency['id'],
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.currencyToPrecision (code, amount),
         };
         const loanId = this.safeInteger (params, 'loan_id');
         if (loanId !== undefined) {
@@ -4251,13 +4257,13 @@ module.exports = class coinex extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
-        // createMarginLoan
+        // borrowMargin
         //
         //     {
         //         "loan_id": 1670
         //     }
         //
-        // repayMarginLoan
+        // repayMargin
         //
         //     {
         //         "code": 0,
