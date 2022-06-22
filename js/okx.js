@@ -31,6 +31,7 @@ module.exports = class okx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
+                'createMarginLoan': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
                 'createStopLimitOrder': true,
@@ -99,6 +100,7 @@ module.exports = class okx extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': true,
+                'repayMarginLoan': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -5162,6 +5164,104 @@ module.exports = class okx extends Exchange {
             'amountBorrowed': this.safeNumber (info, 'liab'),
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (symbol !== undefined) {
+            amount = this.amountToPrecision (symbol, amount);
+        }
+        const request = {
+            'ccy': currency['id'],
+            'amt': amount,
+            'side': 'borrow',
+        };
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "102",
+        //                 "availLoan": "97",
+        //                 "ccy": "USDT",
+        //                 "loanQuota": "6000000",
+        //                 "posLoan": "0",
+        //                 "side": "borrow",
+        //                 "usedLoan": "97"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+        });
+    }
+
+    async repayMarginLoan (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (symbol !== undefined) {
+            amount = this.amountToPrecision (symbol, amount);
+        }
+        const request = {
+            'ccy': currency['id'],
+            'amt': amount,
+            'side': 'repay',
+        };
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "102",
+        //                 "availLoan": "97",
+        //                 "ccy": "USDT",
+        //                 "loanQuota": "6000000",
+        //                 "posLoan": "0",
+        //                 "side": "repay",
+        //                 "usedLoan": "97"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "amt": "102",
+        //         "availLoan": "97",
+        //         "ccy": "USDT",
+        //         "loanQuota": "6000000",
+        //         "posLoan": "0",
+        //         "side": "repay",
+        //         "usedLoan": "97"
+        //     }
+        //
+        const currencyId = this.safeString (info, 'ccy');
+        return {
+            'id': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amt'),
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
