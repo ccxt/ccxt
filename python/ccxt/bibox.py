@@ -878,7 +878,7 @@ class bibox(Exchange):
         address = self.safe_string(transaction, 'to_address')
         currencyId = self.safe_string(transaction, 'coin_symbol')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_string(transaction, 'createdAt')
+        timestamp = self.safe_integer(transaction, 'createdAt')
         tag = self.safe_string(transaction, 'addr_remark')
         type = self.safe_string(transaction, 'type')
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
