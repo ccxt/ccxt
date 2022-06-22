@@ -396,8 +396,8 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -405,7 +405,7 @@ class coinbasepro(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
-                        'max': self.safe_number(market, 'max_market_funds'),
+                        'max': None,
                     },
                 },
                 'info': market,
