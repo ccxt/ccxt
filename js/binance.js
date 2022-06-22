@@ -6060,7 +6060,7 @@ module.exports = class binance extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + 'repayMarginLoan() requires a symbol argument for isolated margin');
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
             }
             request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
