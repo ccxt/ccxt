@@ -27,12 +27,12 @@ module.exports = class binance extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': false,
                 'createOrder': true,
-                'createMarginLoan': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
@@ -6054,7 +6054,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
