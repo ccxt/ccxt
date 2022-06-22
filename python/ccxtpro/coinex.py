@@ -559,10 +559,9 @@ class coinex(Exchange, ccxt.coinex):
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         await self.authenticate(params)
-        messageHash = 'someorders'
+        messageHash = 'orders'
         market = None
-        type = None
-        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        type, query = self.handle_market_type_and_params('watchOrders', market, params)
         message = {
             'method': 'order.subscribe',
             'id': self.request_id(),
@@ -573,10 +572,11 @@ class coinex(Exchange, ccxt.coinex):
             message['params'] = [market['id']]
             messageHash += ':' + symbol
         else:
+            # deprecated usage of markets_by_id...
             markets = list(self.markets_by_id.keys())
             message['params'] = markets
         url = self.urls['api']['ws'][type]
-        request = self.deep_extend(message, params)
+        request = self.deep_extend(message, query)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -676,7 +676,7 @@ class coinex(Exchange, ccxt.coinex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         self.orders.append(parsedOrder)
-        messageHash = 'someorders'
+        messageHash = 'orders'
         client.resolve(self.orders, messageHash)
         messageHash += ':' + parsedOrder['symbol']
         client.resolve(self.orders, messageHash)

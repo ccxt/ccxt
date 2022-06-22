@@ -591,10 +591,9 @@ class coinex extends \ccxt\async\coinex {
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         yield $this->authenticate($params);
-        $messageHash = 'someorders';
+        $messageHash = 'orders';
         $market = null;
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+        list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
         $message = array(
             'method' => 'order.subscribe',
             'id' => $this->request_id(),
@@ -605,11 +604,12 @@ class coinex extends \ccxt\async\coinex {
             $message['params'] = [ $market['id'] ];
             $messageHash .= ':' . $symbol;
         } else {
+            // deprecated usage of markets_by_id...
             $markets = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
             $message['params'] = $markets;
         }
         $url = $this->urls['api']['ws'][$type];
-        $request = $this->deep_extend($message, $params);
+        $request = $this->deep_extend($message, $query);
         $orders = yield $this->watch($url, $messageHash, $request, $messageHash, $request);
         if ($this->newUpdates) {
             $limit = $orders->getLimit ($symbol, $limit);
@@ -712,7 +712,7 @@ class coinex extends \ccxt\async\coinex {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $this->orders.append ($parsedOrder);
-        $messageHash = 'someorders';
+        $messageHash = 'orders';
         $client->resolve ($this->orders, $messageHash);
         $messageHash .= ':' . $parsedOrder['symbol'];
         $client->resolve ($this->orders, $messageHash);

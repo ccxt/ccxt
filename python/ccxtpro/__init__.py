@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.1.74'
+__version__ = '1.1.75'
 
 # -----------------------------------------------------------------------------
 
@@ -97,7 +97,6 @@ from ccxt.async_support.delta import delta                                # noqa
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.eqonex import eqonex                              # noqa: F401
-from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                              # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
@@ -161,6 +160,7 @@ from ccxtpro.coinex import coinex                                         # noqa
 from ccxtpro.coinflex import coinflex                                     # noqa: F401
 from ccxtpro.cryptocom import cryptocom                                   # noqa: F401
 from ccxtpro.currencycom import currencycom                               # noqa: F401
+from ccxtpro.exmo import exmo                                             # noqa: F401
 from ccxtpro.ftx import ftx                                               # noqa: F401
 from ccxtpro.ftxus import ftxus                                           # noqa: F401
 from ccxtpro.gate import gate                                             # noqa: F401
