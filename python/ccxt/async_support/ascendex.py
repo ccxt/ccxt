@@ -672,10 +672,11 @@ class ascendex(Exchange):
         ]
 
     def parse_balance(self, response):
+        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -727,7 +728,7 @@ class ascendex(Exchange):
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         })
-        if accountCategory == 'cash':
+        if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
         response = await getattr(self, method)(self.extend(request, query))
         #

@@ -679,10 +679,11 @@ module.exports = class ascendex extends Exchange {
     }
 
     parseBalance (response) {
+        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -740,7 +741,7 @@ module.exports = class ascendex extends Exchange {
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         });
-        if (accountCategory === 'cash') {
+        if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
         const response = await this[method] (this.extend (request, query));

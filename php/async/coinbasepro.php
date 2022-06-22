@@ -44,6 +44,7 @@ class coinbasepro extends Exchange {
                 'fetchDepositAddress' => null, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -52,6 +53,7 @@ class coinbasepro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -392,8 +394,8 @@ class coinbasepro extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'base_min_size'),
-                        'max' => $this->safe_number($market, 'base_max_size'),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'price' => array(
                         'min' => null,
@@ -401,7 +403,7 @@ class coinbasepro extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_market_funds'),
-                        'max' => $this->safe_number($market, 'max_market_funds'),
+                        'max' => null,
                     ),
                 ),
                 'info' => $market,
