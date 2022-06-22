@@ -584,8 +584,8 @@ module.exports = class exmo extends ccxt.exmo {
                     'spot/trades': this.handleTrades,
                     'margin/trades': this.handleTrades,
                     'spot/order_book_updates': this.handleOrderBook,
-                    'spot/orders': this.handleOrders,
-                    'margin/orders': this.handleOrders,
+                    // 'spot/orders': this.handleOrders,
+                    // 'margin/orders': this.handleOrders,
                     'spot/user_trades': this.handleMyTrades,
                     'margin/user_trades': this.handleMyTrades,
                 };
