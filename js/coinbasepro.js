@@ -39,8 +39,8 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchDepositAddress': undefined, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
                 'fetchLedger': true,
-                'fetchMarkets': true,
                 'fetchMarginMode': false,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
