@@ -45,6 +45,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -76,6 +77,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1322,6 +1324,25 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrders (orders, market);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchWithdrawal
+         * @description fetch data on a currency deposit via the deposit id
+         * @param {str} id deposit id
+         * @param {str|undefined} code filter by currency code
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        return this.safeValue (transactions, 0);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1355,6 +1376,25 @@ module.exports = class bittrex extends Exchange {
         // see https://github.com/ccxt/ccxt/issues/4067
         // return this.parseTransactions (response, currency, since, limit);
         return this.parseTransactions (response, currency, undefined, limit);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code filter by currency code
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        return this.safeValue (transactions, 0);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
