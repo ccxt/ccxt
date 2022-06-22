@@ -34,11 +34,11 @@ module.exports = class zb extends Exchange {
                 'future': undefined,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'createMarginLoan': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -4246,23 +4246,21 @@ module.exports = class zb extends Exchange {
         return rates;
     }
 
-    async createMarginLoan (code, amount, symbol = undefined, params = {}) {
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createMarginLoan', market, params);
-        const password = this.safeString (query, 'safePwd', this.password);
-        const margin = (marketType === 'margin');
-        let method = undefined;
-        const defaultMargin = margin ? 'isolated' : 'cross';
-        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', defaultMargin);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        const password = this.safeString (params, 'safePwd', this.password);
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
-            'amount': amount,
+            'amount': this.currencyToPrecision (code, amount),
         };
+        let method = undefined;
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + 'createMarginLoan() requires a symbol argument for isolated margin');
@@ -4273,7 +4271,7 @@ module.exports = class zb extends Exchange {
             method = 'spotV1PrivateGetDoCrossLoan';
             request['safePwd'] = password; // transaction password
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
