@@ -577,8 +577,8 @@ class exmo extends \ccxt\async\exmo {
                     'spot/trades' => array($this, 'handle_trades'),
                     'margin/trades' => array($this, 'handle_trades'),
                     'spot/order_book_updates' => array($this, 'handle_order_book'),
-                    'spot/orders' => $this->handleOrders,
-                    'margin/orders' => $this->handleOrders,
+                    // 'spot/orders' => $this->handleOrders,
+                    // 'margin/orders' => $this->handleOrders,
                     'spot/user_trades' => array($this, 'handle_my_trades'),
                     'margin/user_trades' => array($this, 'handle_my_trades'),
                 );

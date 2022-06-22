@@ -546,8 +546,8 @@ class exmo(Exchange, ccxt.exmo):
                     'spot/trades': self.handle_trades,
                     'margin/trades': self.handle_trades,
                     'spot/order_book_updates': self.handle_order_book,
-                    'spot/orders': self.handleOrders,
-                    'margin/orders': self.handleOrders,
+                    # 'spot/orders': self.handleOrders,
+                    # 'margin/orders': self.handleOrders,
                     'spot/user_trades': self.handle_my_trades,
                     'margin/user_trades': self.handle_my_trades,
                 }
