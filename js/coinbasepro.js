@@ -391,8 +391,8 @@ module.exports = class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'base_min_size'),
-                        'max': this.safeNumber (market, 'base_max_size'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
                         'min': undefined,
@@ -400,7 +400,7 @@ module.exports = class coinbasepro extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_market_funds'),
-                        'max': this.safeNumber (market, 'max_market_funds'),
+                        'max': undefined,
                     },
                 },
                 'info': market,
