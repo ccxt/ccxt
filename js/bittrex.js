@@ -1331,6 +1331,9 @@ module.exports = class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1340,6 +1343,12 @@ module.exports = class bittrex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         const response = await this.privateGetDepositsClosed (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
@@ -1357,6 +1366,9 @@ module.exports = class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1366,6 +1378,12 @@ module.exports = class bittrex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         const response = await this.privateGetWithdrawalsClosed (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
