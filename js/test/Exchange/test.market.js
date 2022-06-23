@@ -1,8 +1,10 @@
 'use strict'
 
 const assert = require ('assert')
+const { TICK_SIZE, DECIMAL_PLACES } = require('../../base/functions/number')
 
 function testMarket (exchange, market, method) {
+    const precisionValue = exchange.precisionMode === TICK_SIZE ? '1e-8' : '8' // integer or fraction
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -30,9 +32,9 @@ function testMarket (exchange, market, method) {
         'settle': undefined,
         'settleId': undefined,
         'precision': {
-            'price': exchange.parseNumber ('1e-8'), // integer or fraction
-            'amount': exchange.parseNumber ('1e-8'), // integer or fraction
-            'cost': exchange.parseNumber ('1e-8'), // integer or fraction
+            'price': exchange.parseNumber (precisionValue),
+            'amount': exchange.parseNumber (precisionValue),
+            'cost': exchange.parseNumber (precisionValue),
         },
         // value limits when placing orders on this market
         'limits': {
