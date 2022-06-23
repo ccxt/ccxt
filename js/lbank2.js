@@ -1076,7 +1076,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const id = this.safeString2 (order, 'orderId', 'order_id');
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'custom_id');
-        const timestamp = this.safeString2 (order, 'time', 'create_time');
+        const timestamp = this.safeInteger2 (order, 'time', 'create_time');
         const rawStatus = this.safeString (order, 'status');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
