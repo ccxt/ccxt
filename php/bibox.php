@@ -42,12 +42,14 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -122,6 +124,7 @@ class bibox extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '2011' => '\\ccxt\\AccountSuspended', // Account is locked
                 '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
@@ -262,8 +265,8 @@ class bibox extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_scale'),
-                    'price' => $this->safe_integer($market, 'decimal'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_scale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -348,6 +351,7 @@ class bibox extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
@@ -549,7 +553,7 @@ class bibox extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name'); // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
-            $precision = $this->safe_integer($currency, 'valid_decimals');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'valid_decimals')));
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
             $active = ($deposit && $withdraw);
@@ -565,7 +569,7 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -647,7 +651,7 @@ class bibox extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $name = $currency['name']; // contains hieroglyphs causing python ASCII bug
             $code = $this->safe_currency_code($id);
-            $precision = 8;
+            $precision = $this->parse_number('0.00000001');
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
             $active = ($deposit && $withdraw);
@@ -661,12 +665,12 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -900,7 +904,7 @@ class bibox extends Exchange {
         $address = $this->safe_string($transaction, 'to_address');
         $currencyId = $this->safe_string($transaction, 'coin_symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->safe_string($transaction, 'createdAt');
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
@@ -957,7 +961,7 @@ class bibox extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bibox api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1146,6 +1150,14 @@ class bibox extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bibox api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $pair = null;
@@ -1203,6 +1215,14 @@ class bibox extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = 200, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bibox api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
         }

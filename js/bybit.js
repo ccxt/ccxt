@@ -54,6 +54,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -176,6 +177,7 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
                         // account
                         'asset/v1/public/deposit/allowed-deposit-list': 1,
+                        'contract/v3/public/copytrading/symbol/list': 1,
                     },
                 },
                 'private': {
@@ -237,6 +239,9 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'contract/v3/private/copytrading/order/list': 1,
+                        'contract/v3/private/copytrading/position/list': 1,
+                        'contract/v3/private/copytrading/wallet/balance': 1,
                     },
                     'post': {
                         // inverse swap
@@ -328,6 +333,12 @@ module.exports = class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
                         // 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
+                        'contract/v3/private/copytrading/order/create': 2.5,
+                        'contract/v3/private/copytrading/order/cancel': 2.5,
+                        'contract/v3/private/copytrading/order/close': 2.5,
+                        'contract/v3/private/copytrading/position/close': 2.5,
+                        'contract/v3/private/copytrading/position/set-leverage': 2.5,
+                        'contract/v3/private/copytrading/wallet/transfer': 2.5,
                     },
                     'delete': {
                         // spot
@@ -445,6 +456,7 @@ module.exports = class bybit extends Exchange {
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
+                    '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
@@ -572,7 +584,6 @@ module.exports = class bybit extends Exchange {
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
         const result = {};
-        const precision = this.parseNumber ('0.00000001');
         for (let i = 0; i < rows.length; i++) {
             const currency = rows[i];
             const currencyId = this.safeString (currency, 'coin');
@@ -614,7 +625,7 @@ module.exports = class bybit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber ('0.00000001'),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -646,8 +657,10 @@ module.exports = class bybit extends Exchange {
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
         }
-        const contractMarkets = await this.fetchSwapAndFutureMarkets (params);
-        const usdcMarkets = await this.fetchUSDCMarkets (params);
+        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        promises = await Promise.all (promises);
+        const contractMarkets = promises[0];
+        const usdcMarkets = promises[1];
         let markets = contractMarkets;
         markets = this.arrayConcat (markets, usdcMarkets);
         return markets;
@@ -862,7 +875,7 @@ module.exports = class bybit extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
             const inverse = !linear;
-            const contractSize = inverse ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : undefined;
+            const contractSize = inverse ? this.safeNumber (lotSizeFilter, 'min_trading_qty') : this.parseNumber ('1');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -1071,9 +1084,9 @@ module.exports = class bybit extends Exchange {
                 'contract': true,
                 'linear': linear,
                 'inverse': !linear,
-                'taker': this.safeNumber (market, 'taker_fee'),
-                'maker': this.safeNumber (market, 'maker_fee'),
-                'contractSize': undefined,
+                'taker': this.safeNumber2 (market, 'taker_fee', 'takerFeeRate'),
+                'maker': this.safeNumber2 (market, 'maker_fee', 'makerFeeRate'),
+                'contractSize': this.parseNumber ('1'),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': strike,
@@ -2686,12 +2699,16 @@ module.exports = class bybit extends Exchange {
             params[orderKey] = id;
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
-            throw NotSupported (this.id + 'fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
+            throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
             const orders = await this.fetchOrders (symbol, undefined, undefined, params);
-            return this.safeValue (orders, 0);
+            const order = this.safeValue (orders, 0);
+            if (order === undefined) {
+                throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+            }
+            return order;
         }
     }
 
@@ -2704,7 +2721,7 @@ module.exports = class bybit extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bybit api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2736,25 +2753,30 @@ module.exports = class bybit extends Exchange {
                 }
             }
         }
+        const upperCaseType = type.toUpperCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'type': type.toUpperCase (), // limit, market or limit_maker
+            'type': upperCaseType, // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
             'qty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
-        if (type === 'limit' || type === 'limit_maker') {
+        if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
+        const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
+        if (isPostOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'orderLinkId', 'postOnly' ]);
         const brokerId = this.safeString (this.options, 'brokerId');
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
@@ -2794,10 +2816,11 @@ module.exports = class bybit extends Exchange {
         if (price === undefined && type === 'limit') {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
         }
+        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderType': this.capitalize (type), // limit or market
+            'orderType': this.capitalize (lowerCaseType), // limit or market
             'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'orderQty': this.amountToPrecision (symbol, amount),
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
@@ -2814,34 +2837,50 @@ module.exports = class bybit extends Exchange {
             // 'orderFilter': 'Order' or 'StopOrder'
             // 'mmp': false // market maker protection
         };
-        if (price !== undefined) {
+        const isMarket = lowerCaseType === 'market';
+        const isLimit = lowerCaseType === 'limit';
+        if (isLimit !== undefined) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['time_in_force'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['time_in_force'] = 'GoodTillCancel';
+        } else if (timeInForce === 'fok') {
+            request['time_in_force'] = 'FillOrKill';
+        } else if (timeInForce === 'ioc') {
+            request['time_in_force'] = 'ImmediateOrCancel';
+        }
         if (market['swap']) {
-            const stopPx = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-            if (stopPx !== undefined) {
-                const basePrice = this.safeValue (params, 'basePrice');
-                if (basePrice === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires both the triggerPrice and basePrice params for a conditional ' + type + ' order');
-                }
+            const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+            const isStopLossOrder = stopLossPrice !== undefined;
+            const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+            const isTakeProfitOrder = takeProfitPrice !== undefined;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+            if (isStopOrder) {
                 request['orderFilter'] = 'StopOrder';
-                request['triggerPrice'] = this.priceToPrecision (symbol, stopPx);
+                request['trigger_by'] = 'LastPrice';
+                const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+                request['triggerPrice'] = preciseStopPrice;
+                const delta = this.numberToString (market['precision']['price']);
+                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
             } else {
                 request['orderFilter'] = 'Order';
             }
         }
-        const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-        request['reduceOnly'] = reduceOnly;
-        params = this.omit (params, [ 'reduce_only', 'reduceOnly' ]);
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['orderLinkId'] = clientOrderId;
         } else if (market['option']) {
             // mandatory field for options
             request['orderLinkId'] = this.uuid16 ();
         }
-        params = this.omit (params, [ 'clientOrderId', 'orderLinkId' ]);
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
         const method = market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
         const response = await this[method] (this.extend (request, params));
         //
@@ -2881,10 +2920,11 @@ module.exports = class bybit extends Exchange {
         }
         amount = this.amountToPrecision (symbol, amount);
         amount = market['linear'] ? parseFloat (amount) : parseInt (amount);
+        const lowerCaseType = type.toLowerCase ();
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'order_type': this.capitalize (type), // limit
+            'order_type': this.capitalize (lowerCaseType), // limit
             'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
             'qty': amount,
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
@@ -2911,41 +2951,57 @@ module.exports = class bybit extends Exchange {
             params = this.omit (params, 'position_idx');
         }
         if (market['linear']) {
-            const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-            const closeOnTrigger = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
-            request['reduce_only'] = reduceOnly;
-            request['close_on_trigger'] = closeOnTrigger;
+            request['reduce_only'] = this.safeValue2 (params, 'reduce_only', 'reduceOnly', false);
+            request['close_on_trigger'] = false;
         }
-        if (price !== undefined) {
+        const isMarket = lowerCaseType === 'market';
+        const isLimit = lowerCaseType === 'limit';
+        if (isLimit) {
+            if (price === undefined) {
+                throw new ExchangeError (this.id + ' createOrder() requires price argument for limit orders');
+            }
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
         }
-        const stopPx = this.safeValue2 (params, 'stop_px', 'stopPrice');
-        const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
-        let isConditionalOrder = false;
-        if (stopPx !== undefined) {
-            isConditionalOrder = true;
-            if (basePrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
-            }
-            request['stop_px'] = parseFloat (this.priceToPrecision (symbol, stopPx));
-            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
-            const triggerBy = this.safeString2 (params, 'trigger_by', 'triggerBy', 'LastPrice');
-            request['trigger_by'] = triggerBy;
-            params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'triggerBy', 'trigger_by' ]);
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['time_in_force'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['time_in_force'] = 'GoodTillCancel';
+        } else if (timeInForce === 'fok') {
+            request['time_in_force'] = 'FillOrKill';
+        } else if (timeInForce === 'ioc') {
+            request['time_in_force'] = 'ImmediateOrCancel';
         }
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'order_link_id');
+        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopOrder) {
+            request['trigger_by'] = 'LastPrice';
+            const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+            request['stop_px'] = parseFloat (preciseStopPrice);
+            const delta = this.numberToString (market['precision']['price']);
+            const basePriceString = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
+            request['base_price'] = parseFloat (basePriceString);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'order_link_id' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
-            method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+            method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
         } else if (market['linear']) {
-            method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+            method = isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+            method = isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3331,6 +3387,16 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -3462,6 +3528,16 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3524,6 +3600,16 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let market = undefined;
         let isUsdcSettled = undefined;
         if (symbol !== undefined) {
@@ -3819,6 +3905,14 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDepositAddressesByNetwork (code, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchDepositAddressesByNetwork
+         * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
+         */
         await this.loadMarkets ();
         let currency = this.currency (code);
         const request = {
@@ -4116,6 +4210,16 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the bybit api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
@@ -4478,37 +4582,49 @@ module.exports = class bybit extends Exchange {
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
         const notional = this.safeString2 (position, 'position_value', 'positionValue');
-        const unrealisedPnl = this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl');
-        const initialMarginString = this.safeString2 (position, 'position_margin', 'orderMargin');
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl'));
+        let initialMarginString = this.safeString (position, 'positionIM');
+        const maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (timestamp === undefined) {
             timestamp = this.safeInteger (position, 'createdAt');
-            if (timestamp === undefined) {
-                timestamp = this.milliseconds ();
-            }
         }
         const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
+        let collateralString = this.safeString (position, 'position_margin');
+        const entryPrice = this.omitZero (this.safeString2 (position, 'entry_price', 'entryPrice'));
+        const liquidationPrice = this.omitZero (this.safeString2 (position, 'liq_price', 'liqPrice'));
+        const leverage = this.safeString (position, 'leverage');
+        if (market['settle'] === 'USDT') {
+            // Initial Margin = Contract size x Entry Price / Leverage
+            initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+        } else if (market['inverse']) {
+            // Initial Margin = Contracts / ( Entry Price x Leverage )
+            initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+            if (!isIsolated) {
+                collateralString = this.safeString (position, 'wallet_balance');
+            }
+        }
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': maintenanceMarginString,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber2 (position, 'entry_price', 'entryPrice'),
+            'entryPrice': this.parseNumber (entryPrice),
             'notional': this.parseNumber (notional),
-            'leverage': this.safeNumber (position, 'leverage'),
+            'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size), // in USD for inverse swaps
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber2 (position, 'liq_price', 'liqPrice'),
+            'liquidationPrice': this.parseNumber (liquidationPrice),
             'markPrice': this.safeNumber (position, 'markPrice'),
-            'collateral': undefined,
+            'collateral': this.parseNumber (collateralString),
             'marginMode': marginMode,
             'side': side,
             'percentage': this.parseNumber (percentage),
@@ -4639,6 +4755,75 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterestHistory
+         * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @param {str} symbol Unified market symbol
+         * @param {str} timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {int} since Not used by Bybit
+         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {dict} params Exchange specific parameters
+         * @returns An array of open interest structures
+         */
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": [
+        //            {
+        //                "open_interest": 805604444,
+        //                "timestamp": 1645056000,
+        //                "symbol": "BTCUSD"
+        //            },
+        //            ...
+        //        ],
+        //        "time_now": "1645085118.727358"
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOpenInterests (result, market, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    {
+        //        "open_interest": 805604444,
+        //        "timestamp": 1645056000,
+        //        "symbol": "BTCUSD"
+        //    }
+        //
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const timestamp = this.safeTimestamp (interest, 'timestamp');
+        const numContracts = this.safeString (interest, 'open_interest');
+        const contractSize = this.safeString (market, 'contractSize');
+        return {
+            'symbol': this.safeSymbol (id),
+            'baseVolume': Precise.stringMul (numContracts, contractSize),
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

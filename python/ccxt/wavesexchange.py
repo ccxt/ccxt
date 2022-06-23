@@ -739,13 +739,7 @@ class wavesexchange(Exchange):
         symbol = None
         if (baseId is not None) and (quoteId is not None):
             marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
+            market = self.safe_market(marketId, market, '/')
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
         last = self.safe_string(data, 'lastPrice')
@@ -817,6 +811,41 @@ class wavesexchange(Exchange):
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
         return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetPairs(params)
+        #
+        #     {
+        #         "__type":"list",
+        #         "data":[
+        #             {
+        #                 "__type":"pair",
+        #                 "data":{
+        #                     "firstPrice":0.00012512,
+        #                     "lastPrice":0.00012441,
+        #                     "low":0.00012167,
+        #                     "high":0.00012768,
+        #                     "weightedAveragePrice":0.000124710697407246,
+        #                     "volume":209554.26356614,
+        #                     "quoteVolume":26.1336583539951,
+        #                     "volumeWaves":209554.26356614,
+        #                     "txsCount":6655
+        #                 },
+        #                 "amountAsset":"WAVES",
+        #                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_tickers(data, symbols)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -1096,7 +1125,7 @@ class wavesexchange(Exchange):
         if amount is None:
             return None
         precise = Precise(amount)
-        precise.decimals = precise.decimals + scale
+        precise.decimals = self.sum(precise.decimals, scale)
         precise.reduce()
         return str(precise)
 
@@ -1114,7 +1143,7 @@ class wavesexchange(Exchange):
     def price_from_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
+        scale = self.sum(wavesPrecision, market['precision']['price']) - market['precision']['amount']
         return self.from_precision(price, scale)
 
     def safe_get_dynamic(self, settings):
@@ -1137,7 +1166,7 @@ class wavesexchange(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the wavesexchange api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1354,6 +1383,14 @@ class wavesexchange(Exchange):
         return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.check_required_dependencies()
         self.check_required_keys()
         if symbol is None:
@@ -1395,6 +1432,14 @@ class wavesexchange(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         self.sign_in()
         market = None
@@ -1409,6 +1454,14 @@ class wavesexchange(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         self.sign_in()
         market = None
@@ -1727,13 +1780,15 @@ class wavesexchange(Exchange):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
-        market = self.market(symbol)
         address = self.get_waves_address()
         request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['amountAsset'] = market['baseId']
+            request['priceAsset'] = market['quoteId']
         response = self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
         #

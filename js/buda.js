@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -44,6 +45,7 @@ module.exports = class buda extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
@@ -54,6 +56,7 @@ module.exports = class buda extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -169,6 +172,7 @@ module.exports = class buda extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }
                 'forbidden': PermissionDenied,  // { message: 'You dont have access to this resource', code: 'forbidden' }
@@ -224,6 +228,30 @@ module.exports = class buda extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const marketsResponse = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "markets": [
+        //           {
+        //             "id": "BTC-CLP",
+        //             "name": "btc-clp",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "CLP",
+        //             "minimum_order_amount": [
+        //               "0.00002",
+        //               "BTC"
+        //             ],
+        //             "disabled": false,
+        //             "illiquid": false,
+        //             "rpo_disabled": null,
+        //             "taker_fee": "0.8",
+        //             "maker_fee": "0.4",
+        //             "max_orders_per_minute": 50,
+        //             "maker_discount_percentage": "0.0",
+        //             "taker_discount_percentage": "0.0"
+        //           },
+        //         ]
+        //     }
+        //
         const markets = this.safeValue (marketsResponse, 'markets', []);
         const currenciesResponse = await this.publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
@@ -236,8 +264,9 @@ module.exports = class buda extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
+            const taker_fee = this.safeString (market, 'taker_fee');
+            const maker_fee = this.safeString (market, 'maker_fee');
             result.push ({
                 'id': this.safeString (market, 'id'),
                 'symbol': base + '/' + quote,
@@ -262,9 +291,11 @@ module.exports = class buda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'taker': this.parseNumber (Precise.stringDiv (taker_fee, '1000')),
+                'maker': this.parseNumber (Precise.stringDiv (maker_fee, '1000')),
                 'precision': {
-                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                    'price': parseInt (pricePrecisionString),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (baseInfo, 'input_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (quoteInfo, 'input_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -330,8 +361,7 @@ module.exports = class buda extends Exchange {
             }
             const id = this.safeString (currency, 'id');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'input_decimals');
-            const minimum = Math.pow (10, -precision);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'input_decimals')));
             const depositMinimum = this.safeValue (currency, 'deposit_minimum', []);
             const withdrawalMinimum = this.safeValue (currency, 'withdrawal_minimum', []);
             const minDeposit = this.safeNumber (depositMinimum, 0);
@@ -348,7 +378,7 @@ module.exports = class buda extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': minimum,
+                        'min': precision,
                         'max': undefined,
                     },
                     'deposit': {
@@ -668,6 +698,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -683,6 +723,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'state': 'pending',
         };
@@ -690,6 +740,16 @@ module.exports = class buda extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name buda#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'state': 'traded',
         };
@@ -705,7 +765,7 @@ module.exports = class buda extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the buda api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -887,6 +947,14 @@ module.exports = class buda extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name buda#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the buda api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         if (this.isFiat (code)) {

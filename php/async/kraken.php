@@ -312,6 +312,7 @@ class kraken extends Exchange {
                     'ZRX' => '0x (ZRX)',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
@@ -338,12 +339,8 @@ class kraken extends Exchange {
         ));
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
     public function fee_to_precision($symbol, $fee) {
-        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array ()) {
@@ -428,7 +425,7 @@ class kraken extends Exchange {
             }
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
             $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
-            $precisionPrice = $this->safe_string($market, 'pair_decimals');
+            $precisionPrice = $this->parse_number($this->parse_precision($this->safe_string($market, 'pair_decimals')));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $darkpool ? $altname : ($base . '/' . $quote),
@@ -458,8 +455,8 @@ class kraken extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'lot_decimals'),
-                    'price' => $this->safe_integer($market, 'pair_decimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals'))),
+                    'price' => $precisionPrice,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -471,7 +468,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($this->parse_precision($precisionPrice)),
+                        'min' => $precisionPrice,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -504,10 +501,13 @@ class kraken extends Exchange {
 
     public function append_inactive_markets($result) {
         // $result should be an array to append to
-        $precision = array( 'amount' => 8, 'price' => 8 );
-        $costLimits = array( 'min' => 0, 'max' => null );
-        $priceLimits = array( 'min' => pow(10, -$precision['price']), 'max' => null );
-        $amountLimits = array( 'min' => pow(10, -$precision['amount']), 'max' => pow(10, $precision['amount']) );
+        $precision = array(
+            'amount' => $this->parse_number('0.00000001'),
+            'price' => $this->parse_number('0.00000001'),
+        );
+        $costLimits = array( 'min' => null, 'max' => null );
+        $priceLimits = array( 'min' => $precision['price'], 'max' => null );
+        $amountLimits = array( 'min' => $precision['amount'], 'max' => null );
         $limits = array( 'amount' => $amountLimits, 'price' => $priceLimits, 'cost' => $costLimits );
         $defaults = array(
             'darkpool' => false,
@@ -555,7 +555,7 @@ class kraken extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->safe_currency_code($this->safe_string($currency, 'altname'));
-            $precision = $this->safe_integer($currency, 'decimals');
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
             // assumes all $currencies are $active except those listed above
             $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
             $result[$code] = array(
@@ -570,12 +570,12 @@ class kraken extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => $precision,
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
@@ -945,6 +945,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest $ledger entry, default is null
+         * @param {int|null} $limit max number of $ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
+         */
         // https://www.kraken.com/features/api#get-ledgers-info
         yield $this->load_markets();
         $request = array();
@@ -1053,7 +1061,7 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($trade[3] === 's') ? 'sell' : 'buy';
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
@@ -1214,7 +1222,7 @@ class kraken extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the kraken api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1736,6 +1744,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -1758,6 +1774,14 @@ class kraken extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -2040,6 +2064,12 @@ class kraken extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @param {str} $code unified currency $code of the currency for the deposit address
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
         $request = array(
             'new' => 'true',
         );

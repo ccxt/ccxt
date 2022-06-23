@@ -63,7 +63,7 @@ class lbank2 extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
@@ -92,9 +92,9 @@ class lbank2 extends Exchange {
                 'api' => 'https://api.lbank.info',
                 'api2' => 'https://api.lbkex.com',
                 'www' => 'https://www.lbank.info',
-                'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
+                'doc' => 'https://www.lbank.info/en-US/docs/index.html',
                 'fees' => 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
-                'referral' => 'https://www.lbex.io/invite?icode=7QCY',
+                'referral' => 'https://www.lbank.info/invitevip?icode=7QCY',
             ),
             'api' => array(
                 'public' => array(
@@ -104,7 +104,7 @@ class lbank2 extends Exchange {
                         'usdToCny' => 2.5,
                         'withdrawConfigs' => 2.5,
                         'timestamp' => 2.5,
-                        'ticker/24h' => 2.5, // down
+                        'ticker/24hr' => 2.5,
                         'ticker' => 2.5,
                         'depth' => 2.5,
                         'incrDepth' => 2.5,
@@ -336,7 +336,7 @@ class lbank2 extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->safe_integer($market, 'minTranQua'),
+                        'min' => $this->safe_number($market, 'minTranQua'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -409,8 +409,7 @@ class lbank2 extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        // preferred ticker/24h endpoint is down
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
+        $response = yield $this->publicGetTicker24hr (array_merge($request, $params));
         //
         //      {
         //          "result":"true",
@@ -434,6 +433,22 @@ class lbank2 extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
         return $this->parse_ticker($first, $market);
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the lbank api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        yield $this->load_markets();
+        $request = array(
+            'symbol' => 'all',
+        );
+        $response = yield $this->publicGetTicker24hr (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -798,7 +813,7 @@ class lbank2 extends Exchange {
             return $this->safe_balance($result);
         }
         // from privatePostSupplementUserInfo
-        $isArray = gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0;
+        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
         if ($isArray === true) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $data[$i];
@@ -885,7 +900,7 @@ class lbank2 extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the lbank2 api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -964,11 +979,11 @@ class lbank2 extends Exchange {
 
     public function parse_order_status($status) {
         $statuses = array(
-            '-1' => 'cancelled', // cancelled
+            '-1' => 'canceled', // canceled
             '0' => 'open', // not traded
             '1' => 'open', // partial deal
             '2' => 'closed', // complete deal
-            '3' => 'closed', // filled partially and cancelled
+            '3' => 'canceled', // filled partially and cancelled
             '4' => 'closed', // disposal processing
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1216,12 +1231,12 @@ class lbank2 extends Exchange {
         $params = $this->omit($params, 'start_date');
         $request = array(
             'symbol' => $market['id'],
-            // 'start_date' => String Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date' => String Finish time yyyy-mm-dd, the maximum is today, the default is today
+            // 'start_date' => 'strval' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+            // 'end_date' => 'strval' Finish time yyyy-mm-dd, the maximum is today, the default is today
             // 'The start' => and end date of the query window is up to 2 days
-            // 'from' => String Initial transaction number inquiring
-            // 'direct' => String inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size' => String Query the number of defaults to 100
+            // 'from' => 'strval' Initial transaction number inquiring
+            // 'direct' => 'strval' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+            // 'size' => 'strval' Query the number of defaults to 100
         );
         if ($limit !== null) {
             $request['size'] = $limit;
@@ -1255,7 +1270,15 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // default query is for cancelled and completely filled $orders
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the lbank2 api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
+        // default query is for canceled and completely filled $orders
         // does not return open $orders unless specified explicitly
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1305,6 +1328,14 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the lbank2 api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -1588,25 +1619,23 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function parse_deposit_status($status) {
+    public function parse_transaction_status($status, $type) {
         $statuses = array(
-            '1' => 'pending',
-            '2' => 'ok',
-            '3' => 'failed',
-            '4' => 'cancelled',
-            '5' => 'transfer',   // Transfer
+            'deposit' => array(
+                '1' => 'pending',
+                '2' => 'ok',
+                '3' => 'failed',
+                '4' => 'canceled',
+                '5' => 'transfer',
+            ),
+            'withdrawal' => array(
+                '1' => 'pending',
+                '2' => 'canceled',
+                '3' => 'failed',
+                '4' => 'ok',
+            ),
         );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function parse_withdrawal_status($status) {
-        $statuses = array(
-            '1' => 'pending',
-            '2' => 'cancelled',
-            '3' => 'failed',
-            '4' => 'ok',
-        );
-        return $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
     }
 
     public function parse_transaction($transaction, $currency = null) {
@@ -1647,7 +1676,7 @@ class lbank2 extends Exchange {
             $type = 'withdrawal';
         }
         $txid = $this->safe_string($transaction, 'txId');
-        $timestamp = $this->safe_string_2($transaction, 'insertTime', 'applyTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
         $networks = $this->safe_value($this->options, 'inverse-networks', array());
         $networkId = $this->safe_string($transaction, 'networkName');
         $network = $this->safe_string($networks, $networkId, $networkId);
@@ -1662,13 +1691,7 @@ class lbank2 extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $currencyId = $this->safe_string_2($transaction, 'coin', 'coid');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $statusId = $this->safe_string($transaction, 'status');
-        $status = null;
-        if ($type === 'deposit') {
-            $status = $this->parse_deposit_status($statusId);
-        } else {
-            $status = $this->parse_withdrawal_status($statusId);
-        }
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'), $type);
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
@@ -1942,7 +1965,8 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $sign = $this->binary_to_base64($this->rsa($this->encode($uppercaseHash), $this->encode($pem), 'RS256'));
+                $encodedPem = $this->encode($pem);
+                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }

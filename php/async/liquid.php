@@ -203,18 +203,23 @@ class liquid extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
-                'API Authentication failed' => '\\ccxt\\AuthenticationError',
-                'Nonce is too small' => '\\ccxt\\InvalidNonce',
-                'Order not found' => '\\ccxt\\OrderNotFound',
-                'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
-                'Can not update non-live order' => '\\ccxt\\OrderNotFound',
-                'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
-                'must_be_positive' => '\\ccxt\\InvalidOrder',
-                'less_than_order_size' => '\\ccxt\\InvalidOrder',
-                'price_too_high' => '\\ccxt\\InvalidOrder',
-                'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
-                'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                'exact' => array(
+                    'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
+                    'API Authentication failed' => '\\ccxt\\AuthenticationError',
+                    'Nonce is too small' => '\\ccxt\\InvalidNonce',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
+                    'Can not update non-live order' => '\\ccxt\\OrderNotFound',
+                    'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
+                    'must_be_positive' => '\\ccxt\\InvalidOrder',
+                    'less_than_order_size' => '\\ccxt\\InvalidOrder',
+                    'price_too_high' => '\\ccxt\\InvalidOrder',
+                    'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
+                    'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                ),
+                'broad' => array(
+                    'is not in your IP whitelist' => '\\ccxt\\AuthenticationError', // array("message":"95.145.188.43 is not in your IP whitelist")
+                ),
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'BIFIF',
@@ -285,7 +290,6 @@ class liquid extends Exchange {
             $withdrawable = $this->safe_value($currency, 'withdrawable');
             $active = $depositable && $withdrawable;
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'assets_precision')));
-            $assetPrecisionInteger = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -299,7 +303,7 @@ class liquid extends Exchange {
                 'limits' => array(
                     'amount' => array(
                         'min' => $amountPrecision,
-                        'max' => pow(10, $assetPrecisionInteger),
+                        'max' => null,
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minimum_withdrawal'),
@@ -945,7 +949,7 @@ class liquid extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} $params extra parameters specific to the liquid api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1202,6 +1206,14 @@ class liquid extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $market = null;
         $request = array(
@@ -1278,11 +1290,27 @@ class liquid extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array( 'status' => 'live' );
         return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the liquid api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array( 'status' => 'filled' );
         return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
@@ -1540,7 +1568,7 @@ class liquid extends Exchange {
         }
         if ($code === 401) {
             // expected non-json $response
-            $this->throw_exactly_matched_exception($this->exceptions, $body, $body);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $body, $body);
             return;
         }
         if ($code === 429) {
@@ -1556,7 +1584,8 @@ class liquid extends Exchange {
             //
             //  array( "message" => "Order not found" )
             //
-            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         } elseif ($errors !== null) {
             //
             //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
@@ -1569,7 +1598,7 @@ class liquid extends Exchange {
                 $errorMessages = $errors[$type];
                 for ($j = 0; $j < count($errorMessages); $j++) {
                     $message = $errorMessages[$j];
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 }
             }
         } else {

@@ -198,18 +198,23 @@ module.exports = class liquid extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError, // {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
@@ -282,7 +287,6 @@ module.exports = class liquid extends Exchange {
             const withdrawable = this.safeValue (currency, 'withdrawable');
             const active = depositable && withdrawable;
             const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'assets_precision')));
-            const assetPrecisionInteger = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -296,7 +300,7 @@ module.exports = class liquid extends Exchange {
                 'limits': {
                     'amount': {
                         'min': amountPrecision,
-                        'max': Math.pow (10, assetPrecisionInteger),
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
@@ -962,7 +966,7 @@ module.exports = class liquid extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1223,6 +1227,16 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -1299,11 +1313,31 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = { 'status': 'live' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the liquid api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = { 'status': 'filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1565,7 +1599,7 @@ module.exports = class liquid extends Exchange {
         }
         if (code === 401) {
             // expected non-json response
-            this.throwExactlyMatchedException (this.exceptions, body, body);
+            this.throwExactlyMatchedException (this.exceptions['exact'], body, body);
             return;
         }
         if (code === 429) {
@@ -1581,7 +1615,8 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -1594,7 +1629,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 }
             }
         } else {

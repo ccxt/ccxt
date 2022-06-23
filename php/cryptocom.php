@@ -19,6 +19,7 @@ class cryptocom extends Exchange {
             'countries' => array( 'MT' ),
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -39,6 +40,7 @@ class cryptocom extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRates' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -46,6 +48,7 @@ class cryptocom extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -143,6 +146,12 @@ class cryptocom extends Exchange {
                             'private/subaccount/get-sub-accounts' => 10 / 3,
                             'private/subaccount/get-transfer-history' => 10 / 3,
                             'private/subaccount/transfer' => 10 / 3,
+                            'private/otc/get-otc-user' => 10 / 3,
+                            'private/otc/get-instruments' => 10 / 3,
+                            'private/otc/request-quote' => 100,
+                            'private/otc/accept-quote' => 100,
+                            'private/otc/get-quote-history' => 10 / 3,
+                            'private/otc/get-trade-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -226,6 +235,7 @@ class cryptocom extends Exchange {
             'commonCurrencies' => array(
                 'USD_STABLE_COIN' => 'USDC',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '10001' => '\\ccxt\\ExchangeError',
@@ -346,8 +356,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
-                    'price' => intval($priceDecimals),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($priceDecimals)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -448,8 +458,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'quote_decimals'),
-                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_decimals'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -541,6 +551,14 @@ class cryptocom extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the cryptocom api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -948,7 +966,7 @@ class cryptocom extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the cryptocom api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1051,6 +1069,14 @@ class cryptocom extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the cryptocom api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
         $request = array();
@@ -1231,6 +1257,12 @@ class cryptocom extends Exchange {
     }
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        /**
+         * fetch a dictionary of $addresses for a $currency, indexed by $network
+         * @param {str} $code unified $currency $code of the $currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the cryptocom api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures} indexed by the $network
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1447,6 +1479,14 @@ class cryptocom extends Exchange {
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         * @param {str|null} $code unified $currency $code of the $currency transferred
+         * @param {int|null} $since the earliest time in ms to fetch transfers for
+         * @param {int|null} $limit the maximum number of  transfers structures to retrieve
+         * @param {dict} $params extra parameters specific to the cryptocom api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         */
         if (!(is_array($params) && array_key_exists('direction', $params))) {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
         }

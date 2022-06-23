@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -31,6 +32,9 @@ module.exports = class bitstamp extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -46,6 +50,7 @@ module.exports = class bitstamp extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -55,6 +60,7 @@ module.exports = class bitstamp extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -129,6 +135,17 @@ module.exports = class bitstamp extends Exchange {
                         'sell/{pair}/': 1,
                         'sell/market/{pair}/': 1,
                         'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        // individual coins
                         'btc_withdrawal/': 1,
                         'btc_address/': 1,
                         'ripple_withdrawal/': 1,
@@ -271,16 +288,10 @@ module.exports = class bitstamp extends Exchange {
                         'mana_address/': 1,
                         'lrc_withdrawal/': 1,
                         'lrc_address/': 1,
-                        'transfer-to-main/': 1,
-                        'transfer-from-main/': 1,
-                        'withdrawal-requests/': 1,
-                        'withdrawal/open/': 1,
-                        'withdrawal/status/': 1,
-                        'withdrawal/cancel/': 1,
-                        'liquidation_address/new/': 1,
-                        'liquidation_address/info/': 1,
-                        'btc_unconfirmed/': 1,
-                        'websockets_token/': 1,
+                        'ape_withdrawal/': 1,
+                        'ape_address/': 1,
+                        'mpl_withdrawal/': 1,
+                        'mpl_address/': 1,
                     },
                 },
             },
@@ -348,6 +359,7 @@ module.exports = class bitstamp extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'UST': 'USTC',
             },
@@ -439,8 +451,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'base_decimals'),
-                    'price': this.safeInteger (market, 'counter_decimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -472,6 +484,7 @@ module.exports = class bitstamp extends Exchange {
         if (this.isFiat (code)) {
             currencyType = 'fiat';
         }
+        const tickSize = this.parseNumber (this.parsePrecision (this.numberToString (precision)));
         return {
             'id': id,
             'code': code,
@@ -482,14 +495,14 @@ module.exports = class bitstamp extends Exchange {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': this.safeNumber (description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': Math.pow (10, -precision),
+                    'min': tickSize,
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision),
+                    'min': tickSize,
                     'max': undefined,
                 },
                 'cost': {
@@ -1147,7 +1160,7 @@ module.exports = class bitstamp extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bitstamp api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1729,6 +1742,16 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the bitstamp api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (limit !== undefined) {
@@ -1743,6 +1766,16 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let market = undefined;
         await this.loadMarkets ();
         if (symbol !== undefined) {

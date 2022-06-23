@@ -27,9 +27,8 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'createDepositAddress': false,
                 'createMarketOrder': false,
@@ -312,13 +311,6 @@ module.exports = class woo extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const minQuote = this.safeNumber (market, 'quote_min');
-            const maxQuote = this.safeNumber (market, 'quote_max');
-            const minBase = this.safeNumber (market, 'base_min');
-            const maxBase = this.safeNumber (market, 'base_max');
-            const priceScale = this.safeNumber (market, 'quote_tick');
-            const quantityScale = this.safeNumber (market, 'base_tick');
-            const minCost = this.safeNumber (market, 'min_notional');
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
@@ -344,8 +336,8 @@ module.exports = class woo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': quantityScale,
-                    'price': priceScale,
+                    'amount': this.safeNumber (market, 'base_tick'),
+                    'price': this.safeNumber (market, 'quote_tick'),
                 },
                 'limits': {
                     'leverage': {
@@ -353,15 +345,15 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': minBase,
-                        'max': maxBase,
+                        'min': this.safeNumber (market, 'base_min'),
+                        'max': this.safeNumber (market, 'base_max'),
                     },
                     'price': {
-                        'min': minQuote,
-                        'max': maxQuote,
+                        'min': this.safeNumber (market, 'quote_min'),
+                        'max': this.safeNumber (market, 'quote_max'),
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': this.safeNumber (market, 'min_notional'),
                         'max': undefined,
                     },
                 },
@@ -650,7 +642,7 @@ module.exports = class woo extends Exchange {
             const id = this.safeString (currency, 'balance_token');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
-            const decimals = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
             const chainedTokenCode = this.safeString (currency, 'token');
             const parts = chainedTokenCode.split ('_');
             const chainNameId = this.safeString (parts, 0, chainedTokenCode);
@@ -693,7 +685,7 @@ module.exports = class woo extends Exchange {
                     'id': id,
                     'name': name,
                     'code': code,
-                    'precision': (networkLength === 1) ? decimals : undefined, // will be filled down below
+                    'precision': (networkLength === 1) ? precision : undefined, // will be filled down below
                     'active': undefined,
                     'fee': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['fee'] : undefined,
                     'networks': resultingNetworks,
@@ -714,10 +706,10 @@ module.exports = class woo extends Exchange {
             const firstNetworkKey = this.safeString (networkKeys, 0);
             // now add the precision info from token-object
             if (chainCode in result[code]['networks']) {
-                result[code]['networks'][chainCode]['precision'] = decimals;
+                result[code]['networks'][chainCode]['precision'] = precision;
             } else {
                 // else chainCode will be the only token slug, which has only 1 supported network
-                result[code]['networks'][firstNetworkKey]['precision'] = decimals;
+                result[code]['networks'][firstNetworkKey]['precision'] = precision;
             }
             // now add the info object specifically for the item
             result[code]['info'][chainedTokenCode] = currency;
@@ -734,7 +726,7 @@ module.exports = class woo extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the woo api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -841,7 +833,15 @@ module.exports = class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
         }
@@ -923,6 +923,16 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1228,9 +1238,9 @@ module.exports = class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchAccounts
-         * @description query to fetchAccounts
+         * @description fetch all the accounts associated with a profile
          * @param {dict} params extra parameters specific to the woo api endpoint
-         * @returns {dict} a [account structure]{@link https://docs.ccxt.com/en/latest/manual.html?#account-structure}
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         const response = await this.v1PrivateGetSubAccountAssets (params);
         //
@@ -1429,6 +1439,16 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
@@ -1620,6 +1640,16 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         const request = {
             'type': 'COLLATERAL',
         };

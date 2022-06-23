@@ -25,6 +25,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -162,6 +163,7 @@ module.exports = class hitbtc3 extends Exchange {
                         'margin/order': 1,
                         'futures/order': 1,
                         'wallet/convert': 15,
+                        'wallet/crypto/address': 15,
                         'wallet/crypto/withdraw': 15,
                         'wallet/transfer': 15,
                         'sub-account/freeze': 15,
@@ -594,6 +596,43 @@ module.exports = class hitbtc3 extends Exchange {
         } else {
             return networkId.toUpperCase ();
         }
+    }
+
+    async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the hitbtc api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const network = this.safeStringUpper (params, 'network');
+        if ((network !== undefined) && (code === 'USDT')) {
+            const networks = this.safeValue (this.options, 'networks');
+            const parsedNetwork = this.safeString (networks, network);
+            if (parsedNetwork !== undefined) {
+                request['currency'] = parsedNetwork;
+            }
+            params = this.omit (params, 'network');
+        }
+        const response = await this.privatePostWalletCryptoAddress (this.extend (request, params));
+        //
+        //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
+        //
+        const currencyId = this.safeString (response, 'currency');
+        return {
+            'currency': this.safeCurrencyCode (currencyId),
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, 'payment_id'),
+            'network': undefined,
+            'info': response,
+        };
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1145,6 +1184,15 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOrderBooks
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+         * @param {int|undefined} limit max number of entries per orderbook to return, default is undefined
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {dict} a dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbol
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
@@ -1367,6 +1415,16 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1507,6 +1565,16 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1660,7 +1728,7 @@ module.exports = class hitbtc3 extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

@@ -28,8 +28,8 @@ class blockchaincom extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -48,6 +48,7 @@ class blockchaincom extends Exchange {
                 'fetchL2OrderBook' => true,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -56,6 +57,7 @@ class blockchaincom extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -228,13 +230,11 @@ class blockchaincom extends Exchange {
             $minPriceIncrementScaleString = $this->safe_string($market, 'min_price_increment_scale');
             $minPriceScalePrecisionString = $this->parse_precision($minPriceIncrementScaleString);
             $pricePrecisionString = Precise::string_mul($minPriceIncrementString, $minPriceScalePrecisionString);
-            $pricePrecision = $this->parse_number($pricePrecisionString);
             // amount precision
             $lotSizeString = $this->safe_string($market, 'lot_size');
             $lotSizeScaleString = $this->safe_string($market, 'lot_size_scale');
             $lotSizeScalePrecisionString = $this->parse_precision($lotSizeScaleString);
             $amountPrecisionString = Precise::string_mul($lotSizeString, $lotSizeScalePrecisionString);
-            $amountPrecision = $this->parse_number($amountPrecisionString);
             // minimum order size
             $minOrderSizeString = $this->safe_string($market, 'min_order_size');
             $minOrderSizeScaleString = $this->safe_string($market, 'min_order_size_scale');
@@ -279,8 +279,8 @@ class blockchaincom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => $pricePrecision,
+                    'amount' => $this->parse_number($amountPrecisionString),
+                    'price' => $this->parse_number($pricePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -317,6 +317,13 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
+         */
         yield $this->load_markets();
         $request = array(
             'symbol' => $this->market_id($symbol),
@@ -482,7 +489,7 @@ class blockchaincom extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -553,7 +560,13 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // cancels all open orders if no $symbol specified
         // cancels all open orders of specified $symbol, if $symbol is specified
         yield $this->load_markets();
@@ -602,16 +615,40 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $state = 'CANCELED';
         return yield $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $state = 'FILLED';
         return yield $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $state = 'OPEN';
         return yield $this->fetch_orders_by_state($state, $symbol, $since, $limit, $params);
     }
@@ -946,6 +983,13 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a $deposit
+         * @param {str} $id $deposit $id
+         * @param {str|null} $code not used by blockchaincom fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $depositId = $this->safe_string($params, 'depositId', $id);
         $request = array(

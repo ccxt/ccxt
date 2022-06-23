@@ -1703,7 +1703,7 @@ class huobi extends Exchange {
         $ask = null;
         $askVolume = null;
         if (is_array($ticker) && array_key_exists('bid', $ticker)) {
-            if (gettype($ticker['bid']) === 'array' && count(array_filter(array_keys($ticker['bid']), 'is_string')) == 0) {
+            if (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid']))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
             } else {
@@ -1712,7 +1712,7 @@ class huobi extends Exchange {
             }
         }
         if (is_array($ticker) && array_key_exists('ask', $ticker)) {
-            if (gettype($ticker['ask']) === 'array' && count(array_filter(array_keys($ticker['ask']), 'is_string')) == 0) {
+            if (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask']))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
             } else {
@@ -2361,7 +2361,7 @@ class huobi extends Exchange {
         //     }
         //
         $trades = $this->safe_value($response, 'data');
-        if (gettype($trades) === 'array' && count(array_filter(array_keys($trades), 'is_string')) != 0) {
+        if (gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades))) {
             $trades = $this->safe_value($trades, 'trades');
         }
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -2579,6 +2579,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         yield $this->load_markets();
         $response = yield $this->spotPrivateGetV1AccountAccounts ($params);
         //
@@ -2632,7 +2637,7 @@ class huobi extends Exchange {
          * @param {dict} $params extra parameters specific to the huobi api endpoint
          * @return {dict} an associative dictionary of currencies
          */
-        $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
+        $response = yield $this->spotPublicGetV2ReferenceCurrencies ($params);
         //     {
         //       "code" => 200,
         //       "data" => array(
@@ -3177,7 +3182,7 @@ class huobi extends Exchange {
         //         "ts" => 1603703678477
         //     }
         $order = $this->safe_value($response, 'data');
-        if (gettype($order) === 'array' && count(array_filter(array_keys($order), 'is_string')) == 0) {
+        if (gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order))) {
             $order = $this->safe_value($order, 0);
         }
         return $this->parse_order($order);
@@ -3367,6 +3372,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', null, $params);
@@ -3386,6 +3399,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', null, $params);
@@ -3401,6 +3422,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', null, $params);
@@ -3542,7 +3571,7 @@ class huobi extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'data');
-        if (gettype($orders) === 'array' && count(array_filter(array_keys($orders), 'is_string')) != 0) {
+        if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
             $orders = $this->safe_value($orders, 'orders', array());
         }
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -3816,7 +3845,7 @@ class huobi extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the huobi api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -4170,6 +4199,13 @@ class huobi extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol unified $market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', null, $params);
@@ -4361,10 +4397,6 @@ class huobi extends Exchange {
         return $response;
     }
 
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        return $this->decimal_to_precision($fee, 0, $this->currencies[$code]['precision']);
-    }
-
     public function safe_network($networkId) {
         $lastCharacterIndex = strlen($networkId) - 1;
         $lastCharacter = $networkId[$lastCharacterIndex];
@@ -4407,6 +4439,12 @@ class huobi extends Exchange {
     }
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        /**
+         * fetch a dictionary of addresses for a $currency, indexed by network
+         * @param {str} $code unified $currency $code of the $currency for the deposit address
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -4812,35 +4850,42 @@ class huobi extends Exchange {
     }
 
     public function fetch_borrow_rates_per_symbol($params = array ()) {
+        /**
+         * fetch borrow $rates for $currencies within individual markets
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by $market $symbol
+         */
         yield $this->load_markets();
         $response = yield $this->spotPrivateGetV1MarginLoanInfo ($params);
-        // {
-        //     "status" => "ok",
-        //     "data" => array(
-        //         {
-        //             "symbol" => "1inchusdt",
-        //             "currencies" => array(
-        //                 array(
-        //                     "currency" => "1inch",
-        //                     "interest-$rate" => "0.00098",
-        //                     "min-loan-amt" => "90.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-$rate" => "0.00098"
-        //                 ),
-        //                 array(
-        //                     "currency" => "usdt",
-        //                     "interest-$rate" => "0.00098",
-        //                     "min-loan-amt" => "100.000000000000000000",
-        //                     "max-loan-amt" => "1000.000000000000000000",
-        //                     "loanable-amt" => "0.0",
-        //                     "actual-$rate" => "0.00098"
-        //                 }
-        //             )
-        //         ),
-        //         ...
-        //     )
-        // }
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "1inchusdt",
+        //                "currencies" => array(
+        //                    array(
+        //                        "currency" => "1inch",
+        //                        "interest-$rate" => "0.00098",
+        //                        "min-loan-amt" => "90.000000000000000000",
+        //                        "max-loan-amt" => "1000.000000000000000000",
+        //                        "loanable-amt" => "0.0",
+        //                        "actual-$rate" => "0.00098"
+        //                    ),
+        //                    array(
+        //                        "currency" => "usdt",
+        //                        "interest-$rate" => "0.00098",
+        //                        "min-loan-amt" => "100.000000000000000000",
+        //                        "max-loan-amt" => "1000.000000000000000000",
+        //                        "loanable-amt" => "0.0",
+        //                        "actual-$rate" => "0.00098"
+        //                    }
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
         $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data', array());
         $rates = array(
@@ -4870,6 +4915,11 @@ class huobi extends Exchange {
     }
 
     public function fetch_borrow_rates($params = array ()) {
+        /**
+         * fetch the borrow interest $rates of all $currencies
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         */
         yield $this->load_markets();
         $response = yield $this->spotPrivateGetV1MarginLoanInfo ($params);
         // {
@@ -4990,7 +5040,7 @@ class huobi extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         // {
         //      "status" => "ok",
@@ -5006,13 +5056,13 @@ class huobi extends Exchange {
         //     "ts" => 1639085854775
         // }
         //
-        $nextFundingRate = $this->safe_number($fundingRate, 'estimated_rate');
-        $fundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
-        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
-        $marketId = $this->safe_string($fundingRate, 'contract_code');
+        $nextFundingRate = $this->safe_number($contract, 'estimated_rate');
+        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
+        $nextFundingTimestamp = $this->safe_integer($contract, 'next_funding_time');
+        $marketId = $this->safe_string($contract, 'contract_code');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
             'markPrice' => null,
             'indexPrice' => null,
@@ -5020,7 +5070,7 @@ class huobi extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $nextFundingRate,
@@ -6080,6 +6130,14 @@ class huobi extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         yield $this->load_markets();
         $accountId = yield $this->fetch_account_id_by_type('spot', $params);
         $request = array(
@@ -6233,7 +6291,7 @@ class huobi extends Exchange {
         return $this->safe_value($tiers, $symbol);
     }
 
-    public function parse_leverage_tiers($response, $symbols, $marketIdKey) {
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
@@ -6408,13 +6466,14 @@ class huobi extends Exchange {
          * @param {int} $since timestamp in ms, value range = current time - 90 days，default = current time - 90 days
          * @param {int} $limit page items, default 20, shall not exceed 50
          * @param {dict} $params exchange specific $params
-         * @param {int} $params->till timestamp in ms, value range = start_time -> current time，default = current time
+         * @param {int} $params->until timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} $params->page_index page index, default page 1 if not filled
+         * @param {int} $params->code unified currency $code, can be used when $symbol is null
          * @return A list of settlement history objects
          */
         $code = $this->safe_string($params, 'code');
-        $till = $this->safe_integer($params, 'till');
-        $params = $this->omit($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         $market = ($symbol === null) ? null : $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
         if ($type === 'future') {
@@ -6436,8 +6495,8 @@ class huobi extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        if ($till !== null) {
-            $request['end_at'] = $till;
+        if ($until !== null) {
+            $request['end_at'] = $until;
         }
         $method = 'contractPublicGetApiV1ContractSettlementRecords';
         if ($market['swap']) {

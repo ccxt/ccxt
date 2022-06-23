@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -23,7 +22,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -321,6 +320,7 @@ class kraken(Exchange):
                     'ZRX': '0x(ZRX)',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'EQuery:Invalid asset pair': BadSymbol,  # {"error":["EQuery:Invalid asset pair"]}
                 'EAPI:Invalid key': AuthenticationError,
@@ -346,11 +346,8 @@ class kraken(Exchange):
             },
         })
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
-
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     async def fetch_markets(self, params={}):
         """
@@ -432,7 +429,7 @@ class kraken(Exchange):
                 taker = float(firstTakerFeeRate) / 100
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
-            precisionPrice = self.safe_string(market, 'pair_decimals')
+            precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
             result.append({
                 'id': id,
                 'symbol': altname if darkpool else (base + '/' + quote),
@@ -462,8 +459,8 @@ class kraken(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'lot_decimals'),
-                    'price': self.safe_integer(market, 'pair_decimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'lot_decimals'))),
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {
@@ -475,7 +472,7 @@ class kraken(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(self.parse_precision(precisionPrice)),
+                        'min': precisionPrice,
                         'max': None,
                     },
                     'cost': {
@@ -501,10 +498,13 @@ class kraken(Exchange):
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
-        precision = {'amount': 8, 'price': 8}
-        costLimits = {'min': 0, 'max': None}
-        priceLimits = {'min': math.pow(10, -precision['price']), 'max': None}
-        amountLimits = {'min': math.pow(10, -precision['amount']), 'max': math.pow(10, precision['amount'])}
+        precision = {
+            'amount': self.parse_number('0.00000001'),
+            'price': self.parse_number('0.00000001'),
+        }
+        costLimits = {'min': None, 'max': None}
+        priceLimits = {'min': precision['price'], 'max': None}
+        amountLimits = {'min': precision['amount'], 'max': None}
         limits = {'amount': amountLimits, 'price': priceLimits, 'cost': costLimits}
         defaults = {
             'darkpool': False,
@@ -550,7 +550,7 @@ class kraken(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.safe_currency_code(self.safe_string(currency, 'altname'))
-            precision = self.safe_integer(currency, 'decimals')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             # assumes all currencies are active except those listed above
             active = not self.in_array(code, self.options['inactiveCurrencies'])
             result[code] = {
@@ -565,12 +565,12 @@ class kraken(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'withdraw': {
                         'min': None,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }
@@ -916,6 +916,14 @@ class kraken(Exchange):
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         # https://www.kraken.com/features/api#get-ledgers-info
         await self.load_markets()
         request = {}
@@ -1163,7 +1171,7 @@ class kraken(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1637,6 +1645,14 @@ class kraken(Exchange):
         return await self.privatePostCancelAll(params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {}
         if since is not None:
@@ -1655,6 +1671,14 @@ class kraken(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = {}
         if since is not None:
@@ -1921,6 +1945,12 @@ class kraken(Exchange):
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         request = {
             'new': 'true',
         }

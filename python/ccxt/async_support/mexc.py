@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -455,8 +454,6 @@ class mexc(Exchange):
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
-                precisionDigits = self.safe_integer(chain, 'precision')
-                precision = 1 / math.pow(10, precisionDigits)
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
                 withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
                 currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
@@ -477,7 +474,7 @@ class mexc(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -690,8 +687,6 @@ class mexc(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            priceScale = self.safe_string(market, 'price_scale')
-            quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
             active = False
             for j in range(0, len(symbols)):
@@ -726,8 +721,8 @@ class mexc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(quantityScale)),
-                    'price': self.parse_number(self.parse_precision(priceScale)),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1396,6 +1391,12 @@ class mexc(Exchange):
         }
 
     async def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1780,7 +1781,7 @@ class mexc(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mexc api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2219,6 +2220,14 @@ class mexc(Exchange):
         }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -2446,6 +2455,14 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
         await self.load_markets()
@@ -2459,6 +2476,14 @@ class mexc(Exchange):
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
@@ -2714,6 +2739,14 @@ class mexc(Exchange):
         return self.parse_transfer(data)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         await self.load_markets()
         request = {}
         currency = None
@@ -2986,7 +3019,7 @@ class mexc(Exchange):
             })
         return result
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -2998,14 +3031,14 @@ class mexc(Exchange):
         #         "timestamp": 1643240373359
         #     }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextSettleTime')
-        marketId = self.safe_string(fundingRate, 'symbol')
+        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
+        marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(fundingRate, 'timestamp')
+        timestamp = self.safe_integer(contract, 'timestamp')
         datetime = self.iso8601(timestamp)
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,

@@ -632,6 +632,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $market = null;
         $request = array();
@@ -657,6 +665,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'filter' => array(
                 'open' => true,
@@ -666,6 +682,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         // Bitmex barfs if you set 'open' => false in the filter...
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
@@ -870,6 +894,14 @@ class bitmex extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $currency = null;
         if ($code !== null) {
@@ -1593,7 +1625,7 @@ class bitmex extends Exchange {
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'transactTime'));
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'orderQty');
-        $filled = $this->safe_string($order, 'cumQty', 0.0);
+        $filled = $this->safe_string($order, 'cumQty');
         $average = $this->safe_string($order, 'avgPx');
         $id = $this->safe_string($order, 'orderID');
         $type = $this->safe_string_lower($order, 'ordType');
@@ -1602,7 +1634,10 @@ class bitmex extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
-        $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        $postOnly = null;
+        if ($execInst !== null) {
+            $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1690,7 +1725,7 @@ class bitmex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitmex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1787,7 +1822,26 @@ class bitmex extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        return $this->cancel_order($ids, $symbol, $params);
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol not used by bitmex cancelOrders ()
+         * @param {dict} $params extra parameters specific to the bitmex api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        // return $this->cancel_order($ids, $symbol, $params);
+        $this->load_markets();
+        // https://github.com/ccxt/ccxt/issues/6507
+        $clientOrderId = $this->safe_value_2($params, 'clOrdID', 'clientOrderId');
+        $request = array();
+        if ($clientOrderId === null) {
+            $request['orderID'] = $ids;
+        } else {
+            $request['clOrdID'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+        }
+        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        return $this->parse_orders($response);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
@@ -2063,6 +2117,7 @@ class bitmex extends Exchange {
         }
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
+        $contracts = $this->omit_zero($this->safe_number($position, 'currentQty'));
         return array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
@@ -2071,7 +2126,7 @@ class bitmex extends Exchange {
             'datetime' => $datetime,
             'hedged' => null,
             'side' => null,
-            'contracts' => null,
+            'contracts' => $this->convert_value($contracts, $market),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
@@ -2277,7 +2332,7 @@ class bitmex extends Exchange {
         return $this->parse_funding_rates($filteredResponse, $symbols);
     }
 
-    public function parse_funding_rate($premiumIndex, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //    {
         //        "symbol" => "LTCUSDT",
@@ -2387,22 +2442,22 @@ class bitmex extends Exchange {
         //        "timestamp" => "2022-01-14T17:49:55.000Z"
         //    }
         //
-        $datetime = $this->safe_string($premiumIndex, 'timestamp');
-        $marketId = $this->safe_string($premiumIndex, 'symbol');
-        $fundingDatetime = $this->safe_string($premiumIndex, 'fundingTimestamp');
+        $datetime = $this->safe_string($contract, 'timestamp');
+        $marketId = $this->safe_string($contract, 'symbol');
+        $fundingDatetime = $this->safe_string($contract, 'fundingTimestamp');
         return array(
-            'info' => $premiumIndex,
+            'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
-            'markPrice' => $this->safe_number($premiumIndex, 'markPrice'),
+            'markPrice' => $this->safe_number($contract, 'markPrice'),
             'indexPrice' => null,
             'interestRate' => null,
-            'estimatedSettlePrice' => $this->safe_number($premiumIndex, 'indicativeSettlePrice'),
+            'estimatedSettlePrice' => $this->safe_number($contract, 'indicativeSettlePrice'),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'fundingRate' => $this->safe_number($premiumIndex, 'fundingRate'),
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $this->iso8601($fundingDatetime),
             'fundingDatetime' => $fundingDatetime,
-            'nextFundingRate' => $this->safe_number($premiumIndex, 'indicativeFundingRate'),
+            'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
@@ -2418,7 +2473,7 @@ class bitmex extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
          * @param {dict} $params extra parameters specific to the bitmex api endpoint
-         * @param {int|null} $params->till timestamp in ms for ending date filter
+         * @param {int|null} $params->until timestamp in ms for ending date filter
          * @param {bool|null} $params->reverse if true, will sort results newest first
          * @param {int|null} $params->start starting point for results
          * @param {str|null} $params->columns array of column names to fetch in info, if omitted, will return all columns
@@ -2450,10 +2505,10 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $till = $this->safe_integer($params, 'till');
-        $params = $this->omit($params, array( 'till' ));
-        if ($till !== null) {
-            $request['endTime'] = $this->iso8601($till);
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
+        if ($until !== null) {
+            $request['endTime'] = $this->iso8601($until);
         }
         $response = $this->publicGetFunding (array_merge($request, $params));
         //

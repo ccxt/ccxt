@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } = require ('./base/errors');
-const { TRUNCATE } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -43,6 +43,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
@@ -50,6 +51,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPositionMode': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -242,6 +244,7 @@ module.exports = class bitrue extends Exchange {
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
             },
+            'precisionMode': TICK_SIZE,
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
@@ -486,16 +489,21 @@ module.exports = class bitrue extends Exchange {
         //             },
         //         ],
         //         "coins":[
-        //             {
-        //                 "coin":"sbr",
-        //                 "coinFulName":"Saber",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "chains":["SOLANA"],
-        //                 "withdrawFee":"2.0",
-        //                 "minWithdraw":"5.0",
-        //                 "maxWithdraw":"1000000000000000",
-        //             },
+        //           {
+        //               coin: "near",
+        //               coinFulName: "NEAR Protocol",
+        //               chains: [ "BEP20", ],
+        //               chainDetail: [
+        //                 {
+        //                     chain: "BEP20",
+        //                     enableWithdraw: true,
+        //                     enableDeposit: true,
+        //                     withdrawFee: "0.2000",
+        //                     minWithdraw: "5.0000",
+        //                     maxWithdraw: "1000000000000000.0000",
+        //                 },
+        //               ],
+        //           },
         //         ],
         //     }
         //
@@ -508,7 +516,6 @@ module.exports = class bitrue extends Exchange {
             const code = this.safeCurrencyCode (id);
             const enableDeposit = this.safeValue (currency, 'enableDeposit');
             const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
-            const precision = undefined;
             const networkIds = this.safeValue (currency, 'chains', []);
             const networks = {};
             for (let j = 0; j < networkIds.length; j++) {
@@ -534,7 +541,7 @@ module.exports = class bitrue extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': undefined,
                 'info': currency,
                 'active': active,
                 'deposit': enableDeposit,
@@ -619,10 +626,12 @@ module.exports = class bitrue extends Exchange {
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const status = this.safeString (market, 'status');
-            const priceDefault = this.safeInteger (market, 'pricePrecision');
-            const amountDefault = this.safeInteger (market, 'quantityPrecision');
             const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
             const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const defaultPricePrecision = this.safeString (market, 'pricePrecision');
+            const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
+            const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
+            const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -649,10 +658,10 @@ module.exports = class bitrue extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (amountFilter, 'volumeScale', amountDefault),
-                    'price': this.safeInteger (priceFilter, 'priceScale', priceDefault),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quotePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -918,19 +927,16 @@ module.exports = class bitrue extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const ids = Object.keys (data);
-        const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const [ baseId, quoteId ] = id.split ('_');
-            const marketId = baseId + quoteId;
-            const market = this.safeMarket (marketId);
-            const rawTicker = this.safeValue (data, id);
-            const ticker = this.parseTicker (rawTicker, market);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        // the exchange returns market ids with an underscore from the tickers endpoint
+        // the market ids do not have an underscore, so it has to be removed
+        // https://github.com/ccxt/ccxt/issues/13856
+        const tickers = {};
+        const marketIds = Object.keys (data);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i].replace ('_', '');
+            tickers[marketId] = data[marketIds[i]];
         }
-        return result;
+        return this.parseTickers (tickers, symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1207,7 +1213,7 @@ module.exports = class bitrue extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bitrue api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1286,6 +1292,16 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bitrue api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1331,6 +1347,16 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bitrue api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }

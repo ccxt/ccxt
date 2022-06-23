@@ -7,7 +7,9 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
 use \ccxt\Precise;
 
 class bitso extends Exchange {
@@ -27,22 +29,31 @@ class bitso extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -53,15 +64,19 @@ class bitso extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => false,
+                'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => true,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'reduceMargin' => false,
@@ -149,6 +164,7 @@ class bitso extends Exchange {
                         'litecoin_withdrawal',
                     ),
                     'delete' => array(
+                        'orders',
                         'orders/{oid}',
                         'orders/all',
                     ),
@@ -160,6 +176,160 @@ class bitso extends Exchange {
                 '0304' => '\\ccxt\\BadRequest', // array("success":false,"error":array("code":"0304","message":"The field time_bucket () is either invalid or missing"))
             ),
         ));
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
+        $request = array();
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetLedger (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         $payload => [{
+        //             eid => '2510b3e2bc1c87f584500a18084f35ed',
+        //             created_at => '2022-06-08T12:21:42+0000',
+        //             balance_updates => [array(
+        //                 amount => '0.00080000',
+        //                 currency => 'btc'
+        //             )],
+        //             operation => 'funding',
+        //             details => array(
+        //                 network => 'btc',
+        //                 method => 'btc',
+        //                 method_name => 'Bitcoin',
+        //                 asset => 'btc',
+        //                 protocol => 'btc',
+        //                 integration => 'bitgo-v2',
+        //                 fid => '6112c6369100d6ecceb7f54f17cf0511'
+        //             }
+        //         )]
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        return $this->parse_ledger($payload, $code, $since, $limit);
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'funding' => 'transaction',
+            'withdrawal' => 'transaction',
+            'trade' => 'trade',
+            'fee' => 'fee',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     {
+        //         eid => '2510b3e2bc1c87f584500a18084f35ed',
+        //         created_at => '2022-06-08T12:21:42+0000',
+        //         balance_updates => [array(
+        //             $amount => '0.00080000',
+        //             $currency => 'btc'
+        //         )],
+        //         $operation => 'funding',
+        //         $details => {
+        //             network => 'btc',
+        //             method => 'btc',
+        //             method_name => 'Bitcoin',
+        //             asset => 'btc',
+        //             protocol => 'btc',
+        //             integration => 'bitgo-v2',
+        //             fid => '6112c6369100d6ecceb7f54f17cf0511'
+        //         }
+        //     }
+        //
+        //  trade
+        //     {
+        //         eid => '8976c6053f078f704f037d82a813678a',
+        //         created_at => '2022-06-08T17:01:48+0000',
+        //         balance_updates => [array(
+        //                 $amount => '59.21320500',
+        //                 $currency => 'mxn'
+        //             ),
+        //             {
+        //                 $amount => '-0.00010000',
+        //                 $currency => 'btc'
+        //             }
+        //         ],
+        //         $operation => 'trade',
+        //         $details => {
+        //             tid => '72145428',
+        //             oid => 'JO5TZmMZjzjlZDyT'
+        //         }
+        //     }
+        //
+        //  $fee
+        //     {
+        //         eid => 'cbbb3c8d4e41723d25d2850dcb7c3c74',
+        //         created_at => '2022-06-08T17:01:48+0000',
+        //         balance_updates => [array(
+        //             $amount => '-0.38488583',
+        //             $currency => 'mxn'
+        //         )],
+        //         $operation => 'fee',
+        //         $details => {
+        //             tid => '72145428',
+        //             oid => 'JO5TZmMZjzjlZDyT'
+        //         }
+        //     }
+        $operation = $this->safe_string($item, 'operation');
+        $type = $this->parse_ledger_entry_type($operation);
+        $balanceUpdates = $this->safe_value($item, 'balance_updates', array());
+        $firstBalance = $this->safe_value($balanceUpdates, 0, array());
+        $direction = null;
+        $fee = null;
+        $amount = $this->safe_string($firstBalance, 'amount');
+        $currencyId = $this->safe_string($firstBalance, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $details = $this->safe_value($item, 'details', array());
+        $referenceId = $this->safe_string_2($details, 'fid', 'wid');
+        if ($referenceId === null) {
+            $referenceId = $this->safe_string($details, 'tid');
+        }
+        if ($operation === 'funding') {
+            $direction = 'in';
+        } elseif ($operation === 'withdrawal') {
+            $direction = 'out';
+        } elseif ($operation === 'trade') {
+            $direction = null;
+        } elseif ($operation === 'fee') {
+            $direction = 'out';
+            $cost = Precise::string_abs($amount);
+            $fee = array(
+                'cost' => $cost,
+                'currency' => $currency,
+            );
+        }
+        $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
+        return $this->safe_ledger_entry(array(
+            'id' => $this->safe_string($item, 'eid'),
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $referenceId,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => null,
+            'status' => 'ok',
+            'fee' => $fee,
+            'info' => $item,
+        ), $currency);
     }
 
     public function fetch_markets($params = array ()) {
@@ -243,6 +413,7 @@ class bitso extends Exchange {
                 'maker' => $makerFees,
             );
             $fee['tiers'] = $tiers;
+            // TODO => precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
             $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
             $result[] = array_merge(array(
                 'id' => $id,
@@ -757,7 +928,7 @@ class bitso extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} $params extra parameters specific to the bitso api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -794,6 +965,67 @@ class bitso extends Exchange {
         return yield $this->privateDeleteOrdersOid (array_merge($request, $params));
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple $orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        if (gettype($ids) !== 'array' || array_keys($ids) !== array_keys(array_keys($ids))) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() $ids argument should be an array');
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $oids = implode(',', $ids);
+        $request = array(
+            'oids' => $oids,
+        );
+        $response = yield $this->privateDeleteOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $orders = array();
+        for ($i = 0; $i < count($payload); $i++) {
+            $id = $payload[$i];
+            $orders[] = $this->parse_order($id, $market);
+        }
+        return $orders;
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {null} $symbol bitso does not support canceling orders for only a specific market
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structures}
+         */
+        if ($symbol !== null) {
+            throw new NotSupported($this->id . ' cancelAllOrders() deletes all orders for user, it does not support filtering by $symbol->');
+        }
+        $response = yield $this->privateDeleteOrdersAll ($params);
+        //
+        //     {
+        //         success => true,
+        //         $payload => ['NWUZUYNT12ljwzDT', 'kZUkZmQ2TTjkkYTY']
+        //     }
+        //
+        $payload = $this->safe_value($response, 'payload', array());
+        $canceledOrders = array();
+        for ($i = 0; $i < count($payload); $i++) {
+            $order = $this->parse_order($payload[$i]);
+            $canceledOrders[] = $order;
+        }
+        return $canceledOrders;
+    }
+
     public function parse_order_status($status) {
         $statuses = array(
             'partial-fill' => 'open', // this is a common substitution in ccxt
@@ -803,7 +1035,17 @@ class bitso extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $id = $this->safe_string($order, 'oid');
+        //
+        //
+        // canceledOrder
+        // yWTQGxDMZ0VimZgZ
+        //
+        $id = null;
+        if (gettype($order) === 'string') {
+            $id = $order;
+        } else {
+            $id = $this->safe_string($order, 'oid');
+        }
         $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'book');
@@ -840,6 +1082,14 @@ class bitso extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 25, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         // the don't support fetching trades starting from a date yet
@@ -880,7 +1130,7 @@ class bitso extends Exchange {
             'oid' => $id,
         ));
         $payload = $this->safe_value($response, 'payload');
-        if (gettype($payload) === 'array' && count(array_filter(array_keys($payload), 'is_string')) == 0) {
+        if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
             $numOrders = is_array($response['payload']) ? count($response['payload']) : 0;
             if ($numOrders === 1) {
                 return $this->parse_order($payload[0]);
@@ -906,6 +1156,85 @@ class bitso extends Exchange {
         );
         $response = yield $this->privateGetOrderTradesOid (array_merge($request, $params));
         return $this->parse_trades($response['payload'], $market);
+    }
+
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @param {str} $id deposit $id
+         * @param {str|null} $code bitso does not support filtering by currency $code and will ignore this argument
+         * @param {dict} $params extra parameters specific to the bitso api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        yield $this->load_markets();
+        $request = array(
+            'fid' => $id,
+        );
+        $response = yield $this->privateGetFundingsFid (array_merge($request, $params));
+        //
+        //     {
+        //         success => true,
+        //         payload => [{
+        //             fid => '6112c6369100d6ecceb7f54f17cf0511',
+        //             status => 'complete',
+        //             created_at => '2022-06-08T12:02:49+0000',
+        //             currency => 'btc',
+        //             method => 'btc',
+        //             method_name => 'Bitcoin',
+        //             amount => '0.00080000',
+        //             asset => 'btc',
+        //             network => 'btc',
+        //             protocol => 'btc',
+        //             integration => 'bitgo-v2',
+        //             details => array(
+        //                 receiving_address => '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //                 tx_hash => '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //                 confirmations => '4'
+        //             }
+        //         )]
+        //     }
+        //
+        $transactions = $this->safe_value($response, 'payload', array());
+        $first = $this->safe_value($transactions, 0, array());
+        return $this->parse_transaction($first);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        yield $this->load_markets();
+        $response = yield $this->privateGetFundings ($params);
+        //
+        //     {
+        //         success => true,
+        //         payload => [{
+        //             fid => '6112c6369100d6ecceb7f54f17cf0511',
+        //             status => 'complete',
+        //             created_at => '2022-06-08T12:02:49+0000',
+        //             currency => 'btc',
+        //             method => 'btc',
+        //             method_name => 'Bitcoin',
+        //             amount => '0.00080000',
+        //             asset => 'btc',
+        //             network => 'btc',
+        //             protocol => 'btc',
+        //             integration => 'bitgo-v2',
+        //             details => array(
+        //                 receiving_address => '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //                 tx_hash => '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //                 confirmations => '4'
+        //             }
+        //         )]
+        //     }
+        //
+        $transactions = $this->safe_value($response, 'payload', array());
+        return $this->parse_transactions($transactions, $code, $since, $limit, $params);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1070,7 +1399,41 @@ class bitso extends Exchange {
         return $this->parse_transaction($first, $currency);
     }
 
+    public function safe_network($networkId) {
+        if ($networkId === null) {
+            return null;
+        }
+        $networkId = strtoupper($networkId);
+        $networksById = array(
+            'trx' => 'TRC20',
+            'erc20' => 'ERC20',
+            'bsc' => 'BEP20',
+            'bep2' => 'BEP2',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
+    }
+
     public function parse_transaction($transaction, $currency = null) {
+        //
+        // deposit
+        //     {
+        //         fid => '6112c6369100d6ecceb7f54f17cf0511',
+        //         $status => 'complete',
+        //         created_at => '2022-06-08T12:02:49+0000',
+        //         $currency => 'btc',
+        //         method => 'btc',
+        //         method_name => 'Bitcoin',
+        //         amount => '0.00080000',
+        //         asset => 'btc',
+        //         network => 'btc',
+        //         protocol => 'btc',
+        //         integration => 'bitgo-v2',
+        //         $details => {
+        //             receiving_address => '3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
+        //             tx_hash => '327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
+        //             confirmations => '4'
+        //         }
+        //     }
         //
         // withdraw
         //
@@ -1087,20 +1450,28 @@ class bitso extends Exchange {
         //         }
         //     }
         //
-        $currency = $this->safe_currency(null, $currency);
+        $currencyId = $this->safe_string_2($transaction, 'currency', 'asset');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $details = $this->safe_value($transaction, 'details', array());
+        $datetime = $this->safe_string($transaction, 'created_at');
+        $withdrawalAddress = $this->safe_string($details, 'withdrawal_address');
+        $receivingAddress = $this->safe_string($details, 'receiving_address');
+        $networkId = $this->safe_string_2($transaction, 'network', 'method');
+        $status = $this->safe_string($transaction, 'status');
+        $withdrawId = $this->safe_string($transaction, 'wid');
         return array(
-            'id' => $this->safe_string($transaction, 'wid'),
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'network' => null,
-            'addressFrom' => null,
-            'address' => null,
-            'addressTo' => null,
-            'amount' => null,
-            'type' => null,
-            'currency' => $currency['code'],
-            'status' => null,
+            'id' => $this->safe_string_2($transaction, 'wid', 'fid'),
+            'txid' => $this->safe_string($details, 'tx_hash'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'network' => $this->safe_network($networkId),
+            'addressFrom' => $receivingAddress,
+            'address' => ($withdrawalAddress !== null) ? $withdrawalAddress : $receivingAddress,
+            'addressTo' => $withdrawalAddress,
+            'amount' => $this->safe_string($transaction, 'amount'),
+            'type' => ($withdrawId === null) ? 'deposit' : 'withdrawal',
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
             'tag' => null,
@@ -1111,10 +1482,20 @@ class bitso extends Exchange {
         );
     }
 
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'pending' => 'pending',
+            'in_progress' => 'pending',
+            'complete' => 'ok',
+            'failed' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($method === 'GET') {
+        if ($method === 'GET' || $method === 'DELETE') {
             if ($query) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
@@ -1124,7 +1505,7 @@ class bitso extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $request = implode('', array($nonce, $method, $endpoint));
-            if ($method !== 'GET') {
+            if ($method !== 'GET' && $method !== 'DELETE') {
                 if ($query) {
                     $body = $this->json($query);
                     $request .= $body;

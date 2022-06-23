@@ -199,7 +199,7 @@ class bithumb extends Exchange {
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
                 $active = true;
-                if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
+                if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
                     $numElements = is_array($market) ? count($market) : 0;
                     if ($numElements === 0) {
                         $active = false;
@@ -422,7 +422,7 @@ class bithumb extends Exchange {
                 $symbol = $market['symbol'];
             }
             $ticker = $tickers[$id];
-            $isArray = gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0;
+            $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
             if (!$isArray) {
                 $ticker['date'] = $timestamp;
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -653,7 +653,7 @@ class bithumb extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bithumb api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -865,6 +865,14 @@ class bithumb extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bithumb api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }

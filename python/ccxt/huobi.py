@@ -2485,6 +2485,11 @@ class huobi(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         self.load_markets()
         response = self.spotPrivateGetV1AccountAccounts(params)
         #
@@ -2534,7 +2539,7 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.spotPublicGetV2ReferenceCurrencies()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
         #     {
         #       "code": 200,
         #       "data": [
@@ -3225,6 +3230,14 @@ class huobi(Exchange):
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrders', None, params)
@@ -3241,6 +3254,14 @@ class huobi(Exchange):
         return getattr(self, method)(symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchClosedOrders', None, params)
@@ -3254,6 +3275,14 @@ class huobi(Exchange):
         return getattr(self, method)(symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
@@ -3650,7 +3679,7 @@ class huobi(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3967,6 +3996,13 @@ class huobi(Exchange):
         })
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelOrders', None, params)
@@ -4141,9 +4177,6 @@ class huobi(Exchange):
         #
         return response
 
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
-
     def safe_network(self, networkId):
         lastCharacterIndex = len(networkId) - 1
         lastCharacter = networkId[lastCharacterIndex]
@@ -4183,6 +4216,12 @@ class huobi(Exchange):
         }
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4551,35 +4590,42 @@ class huobi(Exchange):
         })
 
     def fetch_borrow_rates_per_symbol(self, params={}):
+        """
+        fetch borrow rates for currencies within individual markets
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by market symbol
+        """
         self.load_markets()
         response = self.spotPrivateGetV1MarginLoanInfo(params)
-        # {
-        #     "status": "ok",
-        #     "data": [
-        #         {
-        #             "symbol": "1inchusdt",
-        #             "currencies": [
-        #                 {
-        #                     "currency": "1inch",
-        #                     "interest-rate": "0.00098",
-        #                     "min-loan-amt": "90.000000000000000000",
-        #                     "max-loan-amt": "1000.000000000000000000",
-        #                     "loanable-amt": "0.0",
-        #                     "actual-rate": "0.00098"
-        #                 },
-        #                 {
-        #                     "currency": "usdt",
-        #                     "interest-rate": "0.00098",
-        #                     "min-loan-amt": "100.000000000000000000",
-        #                     "max-loan-amt": "1000.000000000000000000",
-        #                     "loanable-amt": "0.0",
-        #                     "actual-rate": "0.00098"
-        #                 }
-        #             ]
-        #         },
-        #         ...
-        #     ]
-        # }
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": [
+        #            {
+        #                "symbol": "1inchusdt",
+        #                "currencies": [
+        #                    {
+        #                        "currency": "1inch",
+        #                        "interest-rate": "0.00098",
+        #                        "min-loan-amt": "90.000000000000000000",
+        #                        "max-loan-amt": "1000.000000000000000000",
+        #                        "loanable-amt": "0.0",
+        #                        "actual-rate": "0.00098"
+        #                    },
+        #                    {
+        #                        "currency": "usdt",
+        #                        "interest-rate": "0.00098",
+        #                        "min-loan-amt": "100.000000000000000000",
+        #                        "max-loan-amt": "1000.000000000000000000",
+        #                        "loanable-amt": "0.0",
+        #                        "actual-rate": "0.00098"
+        #                    }
+        #                ]
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         timestamp = self.milliseconds()
         data = self.safe_value(response, 'data', [])
         rates = {
@@ -4606,6 +4652,11 @@ class huobi(Exchange):
         return rates
 
     def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         self.load_markets()
         response = self.spotPrivateGetV1MarginLoanInfo(params)
         # {
@@ -4719,7 +4770,7 @@ class huobi(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         # {
         #      "status": "ok",
@@ -4735,13 +4786,13 @@ class huobi(Exchange):
         #     "ts": 1639085854775
         # }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'estimated_rate')
-        fundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
-        marketId = self.safe_string(fundingRate, 'contract_code')
+        nextFundingRate = self.safe_number(contract, 'estimated_rate')
+        fundingTimestamp = self.safe_integer(contract, 'funding_time')
+        nextFundingTimestamp = self.safe_integer(contract, 'next_funding_time')
+        marketId = self.safe_string(contract, 'contract_code')
         symbol = self.safe_symbol(marketId, market)
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,
@@ -4749,7 +4800,7 @@ class huobi(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': nextFundingRate,
@@ -5753,6 +5804,14 @@ class huobi(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         accountId = self.fetch_account_id_by_type('spot', params)
         request = {
@@ -5898,7 +5957,7 @@ class huobi(Exchange):
         tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
         return self.safe_value(tiers, symbol)
 
-    def parse_leverage_tiers(self, response, symbols, marketIdKey):
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
         result = {}
         for i in range(0, len(response)):
             item = response[i]
@@ -6062,13 +6121,14 @@ class huobi(Exchange):
         :param int since: timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         :param int limit: page items, default 20, shall not exceed 50
         :param dict params: exchange specific params
-        :param int params['till']: timestamp in ms, value range = start_time -> current time，default = current time
+        :param int params['until']: timestamp in ms, value range = start_time -> current time，default = current time
         :param int params['page_index']: page index, default page 1 if not filled
+        :param int params['code']: unified currency code, can be used when symbol is None
         :returns: A list of settlement history objects
         """
         code = self.safe_string(params, 'code')
-        till = self.safe_integer(params, 'till')
-        params = self.omit(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['until', 'till'])
         market = None if (symbol is None) else self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type == 'future':
@@ -6085,8 +6145,8 @@ class huobi(Exchange):
             request['start_at'] = since
         if limit is not None:
             request['page_size'] = limit
-        if till is not None:
-            request['end_at'] = till
+        if until is not None:
+            request['end_at'] = until
         method = 'contractPublicGetApiV1ContractSettlementRecords'
         if market['swap']:
             if market['linear']:

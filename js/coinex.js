@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, BadSymbol, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +16,15 @@ module.exports = class coinex extends Exchange {
             'name': 'CoinEx',
             'version': 'v1',
             'countries': [ 'CN' ],
-            'rateLimit': 50, // Normal limit frequency is single IP：200 times / 10 seconds
+            // IP ratelimit is 400 requests per second
+            // rateLimit = 1000ms / 400 = 2.5
+            // 200 per 2 seconds => 100 per second => weight = 4
+            // 120 per 2 seconds => 60 per second => weight = 6.667
+            // 80 per 2 seconds => 40 per second => weight = 10
+            // 60 per 2 seconds => 30 per second => weight = 13.334
+            // 40 per 2 seconds => 20 per second => weight = 20
+            // 20 per 2 seconds => 10 per second => weight = 40
+            'rateLimit': 2.5,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -128,66 +137,68 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'account/amm/balance': 1,
-                        'account/investment/balance': 1,
-                        'account/balance/history': 1,
-                        'account/market/fee': 1,
-                        'balance/coin/deposit': 1,
-                        'balance/coin/withdraw': 1,
-                        'balance/info': 1,
-                        'balance/deposit/address/{coin_type}': 1,
-                        'contract/transfer/history': 1,
-                        'credit/info': 1,
-                        'credit/balance': 1,
-                        'investment/transfer/history': 1,
+                        'account/amm/balance': 40,
+                        'account/investment/balance': 40,
+                        'account/balance/history': 40,
+                        'account/market/fee': 40,
+                        'balance/coin/deposit': 40,
+                        'balance/coin/withdraw': 40,
+                        'balance/info': 40,
+                        'balance/deposit/address/{coin_type}': 40,
+                        'contract/transfer/history': 40,
+                        'credit/info': 40,
+                        'credit/balance': 40,
+                        'investment/transfer/history': 40,
                         'margin/account': 1,
                         'margin/config': 1,
-                        'margin/loan/history': 1,
-                        'margin/transfer/history': 1,
-                        'order/deals': 1,
-                        'order/finished': 1,
-                        'order/pending': 1,
-                        'order/status': 1,
-                        'order/status/batch': 1,
-                        'order/user/deals': 1,
-                        'order/stop/finished': 1,
-                        'order/stop/pending': 1,
+                        'margin/loan/history': 40,
+                        'margin/transfer/history': 40,
+                        'order/deals': 40,
+                        'order/finished': 40,
+                        'order/pending': 4,
+                        'order/status': 4,
+                        'order/status/batch': 4,
+                        'order/user/deals': 40,
+                        'order/stop/finished': 40,
+                        'order/stop/pending': 4,
                         'order/user/trade/fee': 1,
                         'order/market/trade/info': 1,
                         'sub_account/balance': 1,
-                        'sub_account/transfer/history': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'sub_account/transfer/history': 40,
+                        'sub_account/auth/api/{user_auth_id}': 40,
                     },
                     'post': {
-                        'balance/coin/withdraw': 1,
-                        'contract/balance/transfer': 1,
-                        'margin/flat': 1,
-                        'margin/loan': 1,
-                        'margin/transfer': 1,
-                        'order/limit/batch': 1,
-                        'order/ioc': 1,
-                        'order/limit': 1,
-                        'order/market': 1,
-                        'order/stop/limit': 1,
-                        'order/stop/market': 1,
-                        'sub_account/transfer': 1,
+                        'balance/coin/withdraw': 40,
+                        'contract/balance/transfer': 40,
+                        'margin/flat': 40,
+                        'margin/loan': 40,
+                        'margin/transfer': 40,
+                        'order/limit/batch': 13.334,
+                        'order/ioc': 6.667,
+                        'order/limit': 6.667,
+                        'order/market': 6.667,
+                        'order/modify': 6.667,
+                        'order/stop/limit': 6.667,
+                        'order/stop/market': 6.667,
+                        'order/stop/modify': 6.667,
+                        'sub_account/transfer': 40,
                         'sub_account/register': 1,
-                        'sub_account/unfrozen': 1,
-                        'sub_account/frozen': 1,
-                        'sub_account/auth/api': 1,
+                        'sub_account/unfrozen': 40,
+                        'sub_account/frozen': 40,
+                        'sub_account/auth/api': 40,
                     },
                     'put': {
-                        'balance/deposit/address/{coin_type}': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
-                        'v1/account/settings': 1,
+                        'balance/deposit/address/{coin_type}': 40,
+                        'sub_account/auth/api/{user_auth_id}': 40,
+                        'v1/account/settings': 40,
                     },
                     'delete': {
-                        'balance/coin/withdraw': 1,
-                        'order/pending/batch': 1,
-                        'order/pending': 1,
-                        'order/stop/pending': 1,
-                        'order/stop/pending/{id}': 1,
-                        'sub_account/auth/api/{user_auth_id}': 1,
+                        'balance/coin/withdraw': 40,
+                        'order/pending/batch': 13.334,
+                        'order/pending': 6.667,
+                        'order/stop/pending': 13.334,
+                        'order/stop/pending/{id}': 13.334,
+                        'sub_account/auth/api/{user_auth_id}': 40,
                     },
                 },
                 'perpetualPublic': {
@@ -207,29 +218,36 @@ module.exports = class coinex extends Exchange {
                 },
                 'perpetualPrivate': {
                     'get': {
-                        'asset/query': 1,
-                        'order/pending': 1,
-                        'order/finished': 1,
-                        'order/stop_pending': 1,
-                        'order/status': 1,
-                        'order/stop_status': 1,
-                        'position/pending': 1,
-                        'position/funding': 1,
+                        'asset/query': 40,
+                        'order/pending': 4,
+                        'order/finished': 40,
+                        'order/stop_finished': 40,
+                        'order/stop_pending': 4,
+                        'order/status': 4,
+                        'order/stop_status': 4,
+                        'position/pending': 40,
+                        'position/funding': 40,
                     },
                     'post': {
                         'market/adjust_leverage': 1,
                         'market/position_expect': 1,
-                        'order/put_limit': 1,
-                        'order/put_market': 1,
-                        'order/put_stop_limit': 1,
-                        'order/put_stop_market': 1,
-                        'order/cancel': 1,
-                        'order/cancel_all': 1,
-                        'order/cancel_stop': 1,
-                        'order/cancel_stop_all': 1,
-                        'order/close_limit': 1,
-                        'order/close_market': 1,
-                        'position/adjust_margin': 1,
+                        'order/put_limit': 10,
+                        'order/put_market': 10,
+                        'order/put_stop_limit': 10,
+                        'order/put_stop_market': 10,
+                        'order/modify': 10,
+                        'order/modify_stop': 10,
+                        'order/cancel': 10,
+                        'order/cancel_all': 20,
+                        'order/cancel_batch': 20,
+                        'order/cancel_stop': 10,
+                        'order/cancel_stop_all': 20,
+                        'order/close_limit': 10,
+                        'order/close_market': 10,
+                        'position/adjust_margin': 10,
+                        'position/stop_loss': 10,
+                        'position/take_profit': 10,
+                        'position/market_close': 10,
                     },
                 },
             },
@@ -256,8 +274,8 @@ module.exports = class coinex extends Exchange {
                 },
             },
             'precision': {
-                'amount': 8,
-                'price': 8,
+                'amount': this.parseNumber ('0.00000001'),
+                'price': this.parseNumber ('0.00000001'),
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
@@ -274,6 +292,7 @@ module.exports = class coinex extends Exchange {
             'commonCurrencies': {
                 'ACM': 'Actinium',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -317,7 +336,7 @@ module.exports = class coinex extends Exchange {
                     'deposit': this.safeValue (currency, 'can_deposit'),
                     'withdraw': this.safeValue (currency, 'can_withdraw'),
                     'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                    'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                    'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -358,7 +377,7 @@ module.exports = class coinex extends Exchange {
                 'deposit': this.safeValue (currency, 'can_deposit'),
                 'withdraw': this.safeValue (currency, 'can_withdraw'),
                 'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                'precision': this.safeNumber (currency, 'withdrawal_precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
@@ -448,8 +467,8 @@ module.exports = class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'trading_decimal'),
-                    'price': this.safeInteger (market, 'pricing_decimal'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'trading_decimal'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricing_decimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -544,8 +563,8 @@ module.exports = class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (entry, 'stock_prec'),
-                    'price': this.safeInteger (entry, 'money_prec'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'stock_prec'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'money_prec'))),
                 },
                 'limits': {
                     'leverage': {
@@ -969,6 +988,7 @@ module.exports = class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
@@ -1691,15 +1711,26 @@ module.exports = class coinex extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @param {float} triggerPrice price at which to triger stop orders
+         * @param {float} stopPrice price at which to triger stop orders
+         * @param {float} stopLossPrice price at which to trigger stop-loss orders
+         * @param {float} takeProfitPrice price at which to trigger take-profit orders
+         * @param {str} params.timeInForce "GTC", "IOC", "FOK", "PO"
+         * @param {bool} params.postOnly
+         * @param {bool} params.reduceOnly
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const option = this.safeString (params, 'option');
+        const isMarketOrder = type === 'market';
+        const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
         const positionId = this.safeInteger2 (params, 'position_id', 'positionId'); // Required for closing swap positions
         let timeInForce = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue (params, 'reduceOnly');
@@ -1713,34 +1744,46 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
         };
         if (swap) {
-            method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
-            side = (side === 'buy') ? 2 : 1;
-            if (stopPrice !== undefined) {
+            if (stopLossPrice || takeProfitPrice) {
                 const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (stopType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter');
+                    request['stop_type'] = 1;
                 }
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                request['stop_type'] = this.priceToPrecision (symbol, stopType);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-                request['side'] = side;
-                if (type === 'limit') {
-                    method = 'perpetualPrivatePostOrderPutStopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
-                } else if (type === 'market') {
-                    method = 'perpetualPrivatePostOrderPutStopMarket';
+                if (positionId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            }
-            if ((type !== 'market') || (stopPrice !== undefined)) {
-                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
-                    let isMakerOrder = false;
-                    if ((timeInForce === 'PO') || (postOnly)) {
-                        isMakerOrder = true;
+                request['position_id'] = positionId;
+                if (stopLossPrice) {
+                    method = 'perpetualPrivatePostPositionStopLoss';
+                    request['stop_loss_price'] = stopLossPrice;
+                } else if (takeProfitPrice) {
+                    method = 'perpetualPrivatePostPositionTakeProfit';
+                    request['take_profit_price'] = takeProfitPrice;
+                }
+            } else {
+                method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
+                side = (side === 'buy') ? 2 : 1;
+                if (stopPrice !== undefined) {
+                    const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
+                    if (stopType === undefined) {
+                        request['stop_type'] = 1;
                     }
-                    if (isMakerOrder) {
+                    request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['stop_type'] = this.priceToPrecision (symbol, stopType);
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                    request['side'] = side;
+                    if (type === 'limit') {
+                        method = 'perpetualPrivatePostOrderPutStopLimit';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    } else if (type === 'market') {
+                        method = 'perpetualPrivatePostOrderPutStopMarket';
+                    }
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+                if ((type !== 'market') || (stopPrice !== undefined)) {
+                    if (postOnly) {
                         request['option'] = 1;
-                    } else {
+                    } else if (timeInForce !== undefined) {
                         if (timeInForce === 'IOC') {
                             timeInForce = 2;
                         } else if (timeInForce === 'FOK') {
@@ -1748,28 +1791,26 @@ module.exports = class coinex extends Exchange {
                         } else {
                             timeInForce = 1;
                         }
-                        if (timeInForce !== undefined) {
-                            request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                        }
+                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
                     }
                 }
-            }
-            if (type === 'limit' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseLimit';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
-                }
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            } else if (type === 'market' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseMarket';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
+                if (type === 'limit' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseLimit';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                    }
+                    request['price'] = this.priceToPrecision (symbol, price);
                     request['amount'] = this.amountToPrecision (symbol, amount);
+                } else if (type === 'market' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseMarket';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                        request['amount'] = this.amountToPrecision (symbol, amount);
+                    }
                 }
             }
         } else {
@@ -1805,15 +1846,11 @@ module.exports = class coinex extends Exchange {
             }
             if ((type !== 'market') || (stopPrice !== undefined)) {
                 // following options cannot be applied to vanilla market orders (but can be applied to stop-market orders)
-                if ((timeInForce !== undefined) || (postOnly !== undefined)) {
-                    let isMakerOrder = false;
-                    if ((timeInForce === 'PO') || (postOnly)) {
-                        isMakerOrder = true;
-                    }
-                    if ((isMakerOrder || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
+                if ((timeInForce !== undefined) || postOnly) {
+                    if ((postOnly || (timeInForce !== 'IOC')) && ((type === 'limit') && (stopPrice !== undefined))) {
                         throw new InvalidOrder (this.id + ' createOrder() only supports the IOC option for stop-limit orders');
                     }
-                    if (isMakerOrder) {
+                    if (postOnly) {
                         request['option'] = 'MAKER_ONLY';
                     } else {
                         if (timeInForce !== undefined) {
@@ -1831,7 +1868,7 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
@@ -2451,14 +2488,42 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name coinex#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -2579,17 +2644,12 @@ module.exports = class coinex extends Exchange {
          * @param {dict} params extra parameters specific to the coinex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const swap = market['swap'];
+        let market = undefined;
         if (limit === undefined) {
             limit = 100;
         }
         const request = {
-            'market': market['id'], // SPOT and SWAP
             'limit': limit, // SPOT and SWAP
             'offset': 0, // SWAP, means query from a certain record
             // 'page': 1, // SPOT
@@ -2597,6 +2657,16 @@ module.exports = class coinex extends Exchange {
             // 'start_time': since, // SWAP
             // 'end_time': 1524228297, // SWAP
         };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type !== 'spot' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        }
+        const swap = (type === 'swap');
         let method = undefined;
         if (swap) {
             method = 'perpetualPublicGetMarketUserDeals';
@@ -3768,6 +3838,16 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         const request = {
@@ -4042,6 +4122,13 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetMarginConfig (params);
         //
@@ -4245,6 +4332,7 @@ module.exports = class coinex extends Exchange {
                 '34': AuthenticationError, // Access id is expires
                 '35': ExchangeNotAvailable, // Service unavailable
                 '36': RequestTimeout, // Service timeout
+                '213': RateLimitExceeded, // Too many requests
                 '107': InsufficientFunds,
                 '600': OrderNotFound,
                 '601': InvalidOrder,

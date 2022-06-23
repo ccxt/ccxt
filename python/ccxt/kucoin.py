@@ -581,12 +581,6 @@ class kucoin(Exchange):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            baseMaxSize = self.safe_number(market, 'baseMaxSize')
-            baseMinSizeString = self.safe_string(market, 'baseMinSize')
-            quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
-            baseMinSize = self.parse_number(baseMinSizeString)
-            quoteMaxSize = self.parse_number(quoteMaxSizeString)
-            quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
@@ -629,16 +623,16 @@ class kucoin(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
+                        'min': self.safe_number(market, 'baseMinSize'),
+                        'max': self.safe_number(market, 'baseMaxSize'),
                     },
                     'price': {
                         'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
+                        'min': self.safe_number(market, 'quoteMinSize'),
+                        'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,
@@ -674,7 +668,6 @@ class kucoin(Exchange):
             id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
-            precision = self.parse_number(self.parse_precision(self.safe_string(entry, 'precision')))
             isWithdrawEnabled = self.safe_value(entry, 'isWithdrawEnabled', False)
             isDepositEnabled = self.safe_value(entry, 'isDepositEnabled', False)
             fee = self.safe_number(entry, 'withdrawalMinFee')
@@ -683,7 +676,7 @@ class kucoin(Exchange):
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'precision'))),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -694,6 +687,11 @@ class kucoin(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         response = self.privateGetAccounts(params)
         #
         #     {
@@ -1018,6 +1016,12 @@ class kucoin(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {'currency': currency['id']}
@@ -1202,9 +1206,9 @@ class kucoin(Exchange):
             amountString = self.amount_to_precision(symbol, amount)
             request['size'] = amountString
             request['price'] = self.price_to_precision(symbol, price)
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # default is take profit
-        takeProfitPrice = self.safe_string_2(params, 'takeProfitPrice', 'stopPrice')
+        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'stopPrice')
         isStopLoss = stopLossPrice is not None
         isTakeProfit = takeProfitPrice is not None
         if isStopLoss and isTakeProfit:
@@ -1306,17 +1310,17 @@ class kucoin(Exchange):
         """
         fetch a list of orders
         :param str status: *not used for stop orders* 'open' or 'closed'
-        :param str symbol: unified market symbol
-        :param int since: timestamp in ms of the earliest order
-        :param int limit: max number of orders to return
+        :param str|None symbol: unified market symbol
+        :param int|None since: timestamp in ms of the earliest order
+        :param int|None limit: max number of orders to return
         :param dict params: exchange specific params
-        :param int params['till']: end time in ms
-        :param bool params['stop']: True if fetching stop orders
-        :param str params['side']: buy or sell
-        :param str params['type']: limit, market, limit_stop or market_stop
-        :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :param int params['currentPage']: *stop orders only* current page
-        :param str params['orderIds']: *stop orders only* comma seperated order ID list
+        :param int|None params['until']: end time in ms
+        :param bool|None params['stop']: True if fetching stop orders
+        :param str|None params['side']: buy or sell
+        :param str|None params['type']: limit, market, limit_stop or market_stop
+        :param str|None params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :param int|None params['currentPage']: *stop orders only* current page
+        :param str|None params['orderIds']: *stop orders only* comma seperated order ID list
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1336,11 +1340,11 @@ class kucoin(Exchange):
             request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        till = self.safe_integer(params, 'till')
-        if till:
-            request['endAt'] = till
+        until = self.safe_integer_2(params, 'until', 'till')
+        if until:
+            request['endAt'] = until
         stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        params = self.omit(params, ['stop', 'till', 'until'])
         method = 'privateGetOrders'
         if stop:
             method = 'privateGetStopOrder'
@@ -1394,26 +1398,26 @@ class kucoin(Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetch a list of orders
-        :param str symbol: unified market symbol
-        :param int since: timestamp in ms of the earliest order
-        :param int limit: max number of orders to return
-        :param dict params: exchange specific params
-        :param int params['till']: end time in ms
-        :param str params['side']: buy or sell
-        :param str params['type']: limit, market, limit_stop or market_stop
-        :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
-        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :param int|None params['till']: end time in ms
+        :param str|None params['side']: buy or sell
+        :param str|None params['type']: limit, market, limit_stop or market_stop
+        :param str|None params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetch a list of orders
-        :param str symbol: unified market symbol
-        :param int since: timestamp in ms of the earliest order
-        :param int limit: max number of orders to return
-        :param dict params: exchange specific params
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
         :param int params['till']: end time in ms
         :param bool params['stop']: True if fetching stop orders
         :param str params['side']: buy or sell
@@ -1421,7 +1425,7 @@ class kucoin(Exchange):
         :param str params['tradeType']: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int params['currentPage']: *stop orders only* current page
         :param str params['orderIds']: *stop orders only* comma seperated order ID list
-        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return self.fetch_orders_by_status('active', symbol, since, limit, params)
 
@@ -2291,11 +2295,11 @@ class kucoin(Exchange):
         timestamp = self.safe_integer(transfer, 'createdAt')
         currencyId = self.safe_string(transfer, 'currency')
         rawStatus = self.safe_string(transfer, 'status')
-        accountFromRaw = self.safe_string(transfer, 'payAccountType')
-        accountToRaw = self.safe_string(transfer, 'recAccountType')
+        accountFromRaw = self.safe_string_lower(transfer, 'payAccountType')
+        accountToRaw = self.safe_string_lower(transfer, 'recAccountType')
         accountsByType = self.safe_value(self.options, 'accountsByType')
-        accountFrom = self.safe_string(accountsByType, accountFromRaw.lower())
-        accountTo = self.safe_string(accountsByType, accountToRaw.lower())
+        accountFrom = self.safe_string(accountsByType, accountFromRaw, accountFromRaw)
+        accountTo = self.safe_string(accountsByType, accountToRaw, accountToRaw)
         return {
             'id': self.safe_string_2(transfer, 'applyId', 'orderId'),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -2434,6 +2438,14 @@ class kucoin(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         request = {

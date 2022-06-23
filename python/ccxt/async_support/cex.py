@@ -17,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -56,6 +57,7 @@ class cex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -64,6 +66,7 @@ class cex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -167,6 +170,7 @@ class cex(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -290,7 +294,6 @@ class cex(Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'code')
             code = self.safe_currency_code(id)
-            precision = self.safe_integer(currency, 'precision')
             active = True
             result[code] = {
                 'id': id,
@@ -299,7 +302,7 @@ class cex(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -365,14 +368,15 @@ class cex(Exchange):
             quote = self.safe_currency_code(quoteId)
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
-            pricePrecision = self.safe_integer(quoteCurrency, 'precision', 8)
+            pricePrecisionString = self.safe_string(quoteCurrency, 'precision', '8')
             for j in range(0, len(pairs)):
                 pair = pairs[j]
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
-                    pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
-            baseCcyPrecision = self.safe_string(baseCurrency, 'precision', '8')
-            baseCcyScale = self.safe_string(baseCurrency, 'scale', '0')
+                    pricePrecisionString = self.safe_string(pair, 'pricePrecision', pricePrecisionString)
+            baseCurrencyPrecision = self.safe_string(baseCurrency, 'precision', '8')
+            baseCurrencyScale = self.safe_string(baseCurrency, 'scale', '0')
+            amountPrecisionString = Precise.string_sub(baseCurrencyPrecision, baseCurrencyScale)
             result.append({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -398,8 +402,8 @@ class cex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(Precise.string_sub(baseCcyPrecision, baseCcyScale)),
-                    'price': pricePrecision,
+                    'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -691,7 +695,7 @@ class cex(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the cex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1009,6 +1013,14 @@ class cex(Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {}
         method = 'privatePostOpenOrders'
@@ -1023,6 +1035,14 @@ class cex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
@@ -1148,6 +1168,14 @@ class cex(Exchange):
         return self.parse_order(data)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

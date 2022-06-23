@@ -36,6 +36,7 @@ class hitbtc3 extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -173,6 +174,7 @@ class hitbtc3 extends Exchange {
                         'margin/order' => 1,
                         'futures/order' => 1,
                         'wallet/convert' => 15,
+                        'wallet/crypto/address' => 15,
                         'wallet/crypto/withdraw' => 15,
                         'wallet/transfer' => 15,
                         'sub-account/freeze' => 15,
@@ -601,6 +603,41 @@ class hitbtc3 extends Exchange {
         } else {
             return strtoupper($networkId);
         }
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a $currency deposit address
+         * @param {str} $code unified $currency $code of the $currency for the deposit address
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $network = $this->safe_string_upper($params, 'network');
+        if (($network !== null) && ($code === 'USDT')) {
+            $networks = $this->safe_value($this->options, 'networks');
+            $parsedNetwork = $this->safe_string($networks, $network);
+            if ($parsedNetwork !== null) {
+                $request['currency'] = $parsedNetwork;
+            }
+            $params = $this->omit($params, 'network');
+        }
+        $response = yield $this->privatePostWalletCryptoAddress (array_merge($request, $params));
+        //
+        //  array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")
+        //
+        $currencyId = $this->safe_string($response, 'currency');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId),
+            'address' => $this->safe_string($response, 'address'),
+            'tag' => $this->safe_string($response, 'payment_id'),
+            'network' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1134,6 +1171,13 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[str]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+         * @param {int|null} $limit max number of entries per $orderbook to return, default is null
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+         */
         yield $this->load_markets();
         $request = array();
         if ($symbols !== null) {
@@ -1348,6 +1392,14 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $market = null;
         $request = array();
@@ -1484,6 +1536,14 @@ class hitbtc3 extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $market = null;
         $request = array();
@@ -1629,7 +1689,7 @@ class hitbtc3 extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the hitbtc3 api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

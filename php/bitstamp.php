@@ -35,6 +35,9 @@ class bitstamp extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -50,6 +53,7 @@ class bitstamp extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -59,6 +63,7 @@ class bitstamp extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -133,6 +138,17 @@ class bitstamp extends Exchange {
                         'sell/{pair}/' => 1,
                         'sell/market/{pair}/' => 1,
                         'sell/instant/{pair}/' => 1,
+                        'transfer-to-main/' => 1,
+                        'transfer-from-main/' => 1,
+                        'withdrawal-requests/' => 1,
+                        'withdrawal/open/' => 1,
+                        'withdrawal/status/' => 1,
+                        'withdrawal/cancel/' => 1,
+                        'liquidation_address/new/' => 1,
+                        'liquidation_address/info/' => 1,
+                        'btc_unconfirmed/' => 1,
+                        'websockets_token/' => 1,
+                        // individual coins
                         'btc_withdrawal/' => 1,
                         'btc_address/' => 1,
                         'ripple_withdrawal/' => 1,
@@ -275,16 +291,10 @@ class bitstamp extends Exchange {
                         'mana_address/' => 1,
                         'lrc_withdrawal/' => 1,
                         'lrc_address/' => 1,
-                        'transfer-to-main/' => 1,
-                        'transfer-from-main/' => 1,
-                        'withdrawal-requests/' => 1,
-                        'withdrawal/open/' => 1,
-                        'withdrawal/status/' => 1,
-                        'withdrawal/cancel/' => 1,
-                        'liquidation_address/new/' => 1,
-                        'liquidation_address/info/' => 1,
-                        'btc_unconfirmed/' => 1,
-                        'websockets_token/' => 1,
+                        'ape_withdrawal/' => 1,
+                        'ape_address/' => 1,
+                        'mpl_withdrawal/' => 1,
+                        'mpl_address/' => 1,
                     ),
                 ),
             ),
@@ -352,6 +362,7 @@ class bitstamp extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
                 'UST' => 'USTC',
             ),
@@ -441,8 +452,8 @@ class bitstamp extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'base_decimals'),
-                    'price' => $this->safe_integer($market, 'counter_decimals'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_decimals'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'counter_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -474,6 +485,7 @@ class bitstamp extends Exchange {
         if ($this->is_fiat($code)) {
             $currencyType = 'fiat';
         }
+        $tickSize = $this->parse_number($this->parse_precision($this->number_to_string($precision)));
         return array(
             'id' => $id,
             'code' => $code,
@@ -484,14 +496,14 @@ class bitstamp extends Exchange {
             'deposit' => null,
             'withdraw' => null,
             'fee' => $this->safe_number($description['fees']['funding']['withdraw'], $code),
-            'precision' => $precision,
+            'precision' => $tickSize,
             'limits' => array(
                 'amount' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -$precision),
+                    'min' => $tickSize,
                     'max' => null,
                 ),
                 'cost' => array(
@@ -1129,7 +1141,7 @@ class bitstamp extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitstamp api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
@@ -1699,6 +1711,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -1713,6 +1733,14 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $market = null;
         $this->load_markets();
         if ($symbol !== null) {
@@ -1881,7 +1909,7 @@ class bitstamp extends Exchange {
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);
-                    if (gettype($value) === 'array' && count(array_filter(array_keys($value), 'is_string')) == 0) {
+                    if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
                         $errors = $this->array_concat($errors, $value);
                     } else {
                         $errors[] = $value;

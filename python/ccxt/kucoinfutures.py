@@ -315,6 +315,11 @@ class kucoinfutures(kucoin):
         })
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         raise BadRequest(self.id + ' fetchAccounts() is not supported yet')
 
     def fetch_status(self, params={}):
@@ -438,12 +443,8 @@ class kucoinfutures(kucoin):
             if future:
                 symbol = symbol + '-' + self.yymmdd(expiry, '')
                 type = 'future'
-            baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
-            baseMinSize = self.parse_number(baseMinSizeString)
-            quoteMaxSize = self.parse_number(quoteMaxSizeString)
-            quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
             multiplier = self.safe_string(market, 'multiplier')
@@ -483,16 +484,16 @@ class kucoinfutures(kucoin):
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
+                        'min': self.parse_number(baseMinSizeString),
+                        'max': self.safe_number(market, 'baseMaxSize'),
                     },
                     'price': {
                         'min': None,
                         'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
+                        'min': self.safe_number(market, 'quoteMinSize'),
+                        'max': self.parse_number(quoteMaxSizeString),
                     },
                 },
                 'info': market,
@@ -578,6 +579,12 @@ class kucoinfutures(kucoin):
         ]
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         raise BadRequest(self.id + ' createDepositAddress() is not supported yet')
 
     def fetch_deposit_address(self, code, params={}):
@@ -1246,19 +1253,20 @@ class kucoinfutures(kucoin):
         """
         fetches a list of orders placed on the exchange
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
-        :param str symbol: unified symbol for the market to retrieve orders from
-        :param int since: timestamp in ms of the earliest order to retrieve
-        :param int limit: The maximum number of orders to retrieve
+        :param str|None symbol: unified symbol for the market to retrieve orders from
+        :param int|None since: timestamp in ms of the earliest order to retrieve
+        :param int|None limit: The maximum number of orders to retrieve
         :param dict params: exchange specific parameters
-        :param bool params['stop']: set to True to retrieve untriggered stop orders
-        :param int params['till']: End time in ms
-        :param str params['side']: buy or sell
-        :param str params['type']: limit or market
+        :param bool|None params['stop']: set to True to retrieve untriggered stop orders
+        :param int|None params['until']: End time in ms
+        :param str|None params['side']: buy or sell
+        :param str|None params['type']: limit or market
         :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['stop', 'until', 'till'])
         if status == 'closed':
             status = 'done'
         elif status == 'open':
@@ -1274,9 +1282,8 @@ class kucoinfutures(kucoin):
             request['symbol'] = market['id']
         if since is not None:
             request['startAt'] = since
-        till = self.safe_integer_2(params, 'till', 'endAt')
-        if till is not None:
-            request['endAt'] = till
+        if until is not None:
+            request['endAt'] = until
         method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
         response = getattr(self, method)(self.extend(request, params))
         responseData = self.safe_value(response, 'data', {})
@@ -1285,15 +1292,15 @@ class kucoinfutures(kucoin):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
-        fetch a list of orders
-        :param str symbol: unified market symbol
-        :param int since: timestamp in ms of the earliest order
-        :param int limit: max number of orders to return
-        :param dict params: exchange specific params
-        :param int params['till']: end time in ms
-        :param str params['side']: buy or sell
-        :param str params['type']: limit, or market
-        :returns: An `array of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :param int|None params['till']: end time in ms
+        :param str|None params['side']: buy or sell
+        :param str|None params['type']: limit, or market
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
@@ -1556,10 +1563,10 @@ class kucoinfutures(kucoin):
         """
         self.load_markets()
         request = {
-            # orderId(String) [optional] Fills for a specific order(other parameters can be ignored if specified)
-            # symbol(String) [optional] Symbol of the contract
-            # side(String) [optional] buy or sell
-            # type(String) [optional] limit, market, limit_stop or market_stop
+            # orderId(str) [optional] Fills for a specific order(other parameters can be ignored if specified)
+            # symbol(str) [optional] Symbol of the contract
+            # side(str) [optional] buy or sell
+            # type(str) [optional] limit, market, limit_stop or market_stop
             # startAt(long) [optional] Start time(milisecond)
             # endAt(long) [optional] End time(milisecond)
         }

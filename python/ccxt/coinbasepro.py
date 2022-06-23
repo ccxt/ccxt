@@ -51,6 +51,7 @@ class coinbasepro(Exchange):
                 'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -59,6 +60,7 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -270,7 +272,6 @@ class coinbasepro(Exchange):
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
             details = self.safe_value(currency, 'details', {})
-            precision = self.safe_number(currency, 'max_precision')
             status = self.safe_string(currency, 'status')
             active = (status == 'online')
             result[code] = {
@@ -283,7 +284,7 @@ class coinbasepro(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'max_precision'),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(details, 'min_size'),
@@ -305,37 +306,61 @@ class coinbasepro(Exchange):
         """
         response = self.publicGetProducts(params)
         #
-        #    [
-        #        {
-        #            "id": "ZEC-BTC",
-        #            "base_currency": "ZEC",
-        #            "quote_currency": "BTC",
-        #            "base_min_size": "0.0056",
-        #            "base_max_size": "3600",
-        #            "quote_increment": "0.000001",
-        #            "base_increment": "0.0001",
-        #            "display_name": "ZEC/BTC",
-        #            "min_market_funds": "0.000016",
-        #            "max_market_funds": "12",
-        #            "margin_enabled": False,
-        #            "fx_stablecoin": False,
-        #            "max_slippage_percentage": "0.03000000",
-        #            "post_only": False,
-        #            "limit_only": False,
-        #            "cancel_only": False,
-        #            "trading_disabled": False,
-        #            "status": "online",
-        #            "status_message": "",
-        #            "auction_mode": False
-        #          },
-        #    ]
+        #     [
+        #         {
+        #             id: 'BTCAUCTION-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTCAUCTION/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: True,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         },
+        #         {
+        #             id: 'BTC-USD',
+        #             base_currency: 'BTC',
+        #             quote_currency: 'USD',
+        #             base_min_size: '0.000016',
+        #             base_max_size: '1500',
+        #             quote_increment: '0.01',
+        #             base_increment: '0.00000001',
+        #             display_name: 'BTC/USD',
+        #             min_market_funds: '1',
+        #             max_market_funds: '20000000',
+        #             margin_enabled: False,
+        #             fx_stablecoin: False,
+        #             max_slippage_percentage: '0.02000000',
+        #             post_only: False,
+        #             limit_only: False,
+        #             cancel_only: False,
+        #             trading_disabled: False,
+        #             status: 'online',
+        #             status_message: '',
+        #             auction_mode: False
+        #         }
+        #     ]
         #
         result = []
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'id')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
+            baseId, quoteId = id.split('-')
+            # BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
+            # baseId = self.safe_string(market, 'base_currency')
+            # quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
@@ -373,8 +398,8 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -382,7 +407,7 @@ class coinbasepro(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
-                        'max': self.safe_number(market, 'max_market_funds'),
+                        'max': None,
                     },
                 },
                 'info': market,
@@ -390,6 +415,11 @@ class coinbasepro(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         self.load_markets()
         response = self.privateGetAccounts(params)
         #
@@ -987,12 +1017,28 @@ class coinbasepro(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'status': 'all',
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
@@ -1005,6 +1051,14 @@ class coinbasepro(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {
             'status': 'done',
         }
@@ -1017,7 +1071,7 @@ class coinbasepro(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the coinbasepro api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1286,6 +1340,14 @@ class coinbasepro(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         # https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a code param')
@@ -1437,6 +1499,12 @@ class coinbasepro(Exchange):
         }
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accounts = self.safe_value(self.options, 'coinbaseAccounts')

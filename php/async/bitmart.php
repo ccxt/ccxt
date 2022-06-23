@@ -49,6 +49,7 @@ class bitmart extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => null,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -57,6 +58,7 @@ class bitmart extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -446,20 +448,21 @@ class bitmart extends Exchange {
         //         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
         //         "data":{
         //             "symbols":array(
-        //                 array(
-        //                     "symbol":"PRQ_BTC",
-        //                     "symbol_id":1232,
-        //                     "base_currency":"PRQ",
-        //                     "quote_currency":"BTC",
-        //                     "quote_increment":"1.0000000000",
-        //                     "base_min_size":"1.0000000000",
-        //                     "base_max_size":"10000000.0000000000",
-        //                     "price_min_precision":8,
-        //                     "price_max_precision":10,
-        //                     "expiration":"NA",
-        //                     "min_buy_amount":"0.0001000000",
-        //                     "min_sell_amount":"0.0001000000"
-        //                 ),
+        //               array(
+        //                  "symbol" => "BTC_USDT",
+        //                  "symbol_id" => 53,
+        //                  "base_currency" => "BTC",
+        //                  "quote_currency" => "USDT",
+        //                  "base_min_size" => "0.000010000000000000000000000000",
+        //                  "base_max_size" => "100000000.000000000000000000000000000000",
+        //                  "price_min_precision" => -1,
+        //                  "price_max_precision" => 2,
+        //                  "quote_increment" => "0.00001", // Api docs says "The minimum order quantity is also the minimum order quantity increment", however I think they mistakenly use the term 'order quantity'
+        //                  "expiration" => "NA",
+        //                  "min_buy_amount" => "5.000000000000000000000000000000",
+        //                  "min_sell_amount" => "5.000000000000000000000000000000",
+        //                  "trade_status" => "trading"
+        //               ),
         //             )
         //         }
         //     }
@@ -476,19 +479,10 @@ class bitmart extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#$response-details
-            // from the above API doc:
-            // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price precision (digit) used to query price and kline
-            // price_max_precision Maximum price precision (digit) used to query price and kline
-            //
-            // the docs are wrong => https://github.com/ccxt/ccxt/issues/5612
-            //
             $minBuyCost = $this->safe_string($market, 'min_buy_amount');
             $minSellCost = $this->safe_string($market, 'min_sell_amount');
             $minCost = Precise::string_max($minBuyCost, $minSellCost);
-            $pricePrecision = $this->parse_precision($this->safe_string($market, 'price_max_precision'));
+            $baseMinSize = $this->safe_number($market, 'base_min_size');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -515,8 +509,8 @@ class bitmart extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'base_min_size'),
-                    'price' => $this->parse_number($pricePrecision),
+                    'amount' => $baseMinSize,
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_max_precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -524,7 +518,7 @@ class bitmart extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => $this->safe_number($market, 'base_min_size'),
+                        'min' => $baseMinSize,
                         'max' => $this->safe_number($market, 'base_max_size'),
                     ),
                     'price' => array(
@@ -1231,7 +1225,7 @@ class bitmart extends Exchange {
         //         '0.25', // volume
         //     )
         //
-        if (gettype($ohlcv) === 'array' && count(array_filter(array_keys($ohlcv), 'is_string')) == 0) {
+        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_timestamp($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
@@ -1732,7 +1726,7 @@ class bitmart extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitmart api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1773,8 +1767,7 @@ class bitmart extends Exchange {
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
-                    $precision = $market['precision']['price'];
-                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $precision, $this->precisionMode);
+                    $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
                 } elseif ($side === 'sell') {
                     $request['size'] = $this->amount_to_precision($symbol, $amount);
                 }
@@ -2018,14 +2011,38 @@ class bitmart extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return yield $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return yield $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return yield $this->fetch_orders_by_status('canceled', $symbol, $since, $limit, $params);
     }
 
@@ -2285,6 +2302,13 @@ class bitmart extends Exchange {
     }
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch information on a deposit
+         * @param {str} $id deposit $id
+         * @param {str|null} $code not used by bitmart fetchDeposit ()
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $id,

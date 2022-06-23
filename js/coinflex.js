@@ -68,6 +68,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
@@ -82,6 +83,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
@@ -509,7 +511,7 @@ module.exports = class coinflex extends Exchange {
             const fees = {};
             const networks = {};
             const networkList = this.safeValue (entry, 'networkList', []);
-            let precision = undefined;
+            let precisionString = undefined;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const networkId = this.safeString (networkItem, 'network');
@@ -519,8 +521,12 @@ module.exports = class coinflex extends Exchange {
                 isDepositEnabled = isDepositEnabled || depositEnable;
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[networkId] = undefined;
-                precision = this.safeString (networkItem, 'transactionPrecision');
-                precision = this.parseNumber (this.parsePrecision (precision));
+                const networkPrecisionString = this.safeString (networkItem, 'transactionPrecision');
+                if (precisionString === undefined) {
+                    precisionString = networkPrecisionString;
+                } else {
+                    precisionString = Precise.stringMin (precisionString, networkPrecisionString);
+                }
                 networks[networkId] = {
                     'id': networkId,
                     'network': networkId,
@@ -528,7 +534,7 @@ module.exports = class coinflex extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': undefined,
-                    'precision': precision,
+                    'precision': this.parseNumber (this.parsePrecision (networkPrecisionString)),
                     'limits': {
                         'deposit': {
                             'min': this.safeNumber (networkItem, 'minDeposit'),
@@ -546,7 +552,7 @@ module.exports = class coinflex extends Exchange {
                 'id': id,
                 'name': code,
                 'code': code,
-                'precision': precision, // TODO: this need codebase changes, as precision is network specific, but currencyToPrecision bugs in that case
+                'precision': this.parseNumber (this.parsePrecision (precisionString)),
                 'info': entry,
                 'active': isWithdrawEnabled && isDepositEnabled,
                 'deposit': isDepositEnabled,
@@ -1307,6 +1313,13 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         await this.loadMarkets ();
         const data = await this.getAccountData (params);
         const result = [];
@@ -1387,6 +1400,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -1443,6 +1466,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const response = await this.privateGetV2Orders (params);
@@ -2020,6 +2053,16 @@ module.exports = class coinflex extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         let currency = undefined;
         let request = {};
@@ -2167,7 +2210,7 @@ module.exports = class coinflex extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinflex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -2275,6 +2318,15 @@ module.exports = class coinflex extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinflex#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinflex api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }

@@ -83,6 +83,7 @@ class ftx(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -95,6 +96,7 @@ class ftx(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -102,7 +104,7 @@ class ftx(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransfer': None,
@@ -909,7 +911,9 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
-        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        :param str|None params['price']: "index" for index price candles
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         self.load_markets()
         market, marketId = self.get_market_params(symbol, 'market_name', params)
@@ -925,7 +929,8 @@ class ftx(Exchange):
             'limit': limit,
         }
         price = self.safe_string(params, 'price')
-        params = self.omit(params, 'price')
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['price', 'until'])
         if since is not None:
             startTime = int(since / 1000)
             request['start_time'] = startTime
@@ -935,6 +940,8 @@ class ftx(Exchange):
             if duration > 86400:
                 wholeDaysInTimeframe = int(duration / 86400)
                 request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         method = 'publicGetMarketsMarketNameCandles'
         if price == 'index':
             if symbol in self.markets:
@@ -1155,6 +1162,74 @@ class ftx(Exchange):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "backstopProvider": True,
+        #         "collateral": 3568181.02691129,
+        #         "freeCollateral": 1786071.456884368,
+        #         "initialMarginRequirement": 0.12222384240257728,
+        #         "liquidating": False,
+        #         "maintenanceMarginRequirement": 0.07177992558058484,
+        #         "makerFee": 0.0002,
+        #         "marginFraction": 0.5588433331419503,
+        #         "openMarginFraction": 0.2447194090423075,
+        #         "takerFee": 0.0005,
+        #         "totalAccountValue": 3568180.98341129,
+        #         "totalPositionSize": 6384939.6992,
+        #         "username": "user@domain.com",
+        #         "positions": [
+        #             {
+        #                 "cost": -31.7906,
+        #                 "entryPrice": 138.22,
+        #                 "future": "ETH-PERP",
+        #                 "initialMarginRequirement": 0.1,
+        #                 "longOrderSize": 1744.55,
+        #                 "maintenanceMarginRequirement": 0.04,
+        #                 "netSize": -0.23,
+        #                 "openSize": 1744.32,
+        #                 "realizedPnl": 3.39441714,
+        #                 "shortOrderSize": 1732.09,
+        #                 "side": "sell",
+        #                 "size": 0.23,
+        #                 "unrealizedPnl": 0,
+        #             },
+        #         ],
+        #     },
+        #
+        symbol = self.safe_symbol(None, market)
+        maker = self.safe_number(fee, 'makerFee')
+        taker = self.safe_number(fee, 'takerFee')
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
+
+    def parse_trading_fees(self, response):
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            result[symbol] = self.parse_trading_fee(response, market)
+        return result
+
+    def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fee for a market
+        :param str symbol: unified symbol of the market to fetch the fee for
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privateGetAccount(params)
+        result = self.safe_value(response, 'result', {})
+        return self.parse_trading_fee(result, market)
+
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
@@ -1201,20 +1276,7 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        maker = self.safe_number(result, 'makerFee')
-        taker = self.safe_number(result, 'takerFee')
-        tradingFees = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
-            tradingFees[symbol] = {
-                'info': response,
-                'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
-                'percentage': True,
-                'tierBased': True,
-            }
-        return tradingFees
+        return self.parse_trading_fees(result)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -1223,7 +1285,7 @@ class ftx(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: extra parameters specific to the ftx api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
@@ -1234,13 +1296,10 @@ class ftx(Exchange):
             request['future'] = market['id']
         if since is not None:
             request['start_time'] = int(since / 1000)
-        till = self.safe_integer(params, 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'end_time')  # exchange-specific in seconds
-        params = self.omit(params, ['end_time', 'till'])
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-        elif endTime is not None:
-            request['end_time'] = endTime
+        until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
+        params = self.omit(params, ['until', 'till'])
+        if until is not None:
+            request['end_time'] = int(until / 1000)
         response = self.publicGetFundingRates(self.extend(request, params))
         #
         #     {
@@ -1485,7 +1544,7 @@ class ftx(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the ftx api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1495,7 +1554,6 @@ class ftx(Exchange):
             'market': market['id'],
             'side': side,  # 'buy' or 'sell'
             # 'price': 0.306525,  # send null for market orders
-            'type': type,  # "limit", "market", "stop", "trailingStop", or "takeProfit"
             'size': float(self.amount_to_precision(symbol, amount)),
             # 'reduceOnly': False,  # optional, default is False
             # 'ioc': False,  # optional, default is False, limit or market orders only
@@ -1513,41 +1571,57 @@ class ftx(Exchange):
             request['clientId'] = clientOrderId
             params = self.omit(params, ['clientId', 'clientOrderId'])
         method = None
-        stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        params = self.omit(params, ['stopPrice', 'triggerPrice'])
-        if ((type == 'limit') or (type == 'market')) and (stopPrice is None):
-            method = 'privatePostOrders'
-            if type == 'limit':
-                request['price'] = float(self.price_to_precision(symbol, price))
-            elif type == 'market':
-                request['price'] = None
-            timeInForce = self.safe_string(params, 'timeInForce')
-            postOnly = self.safe_value(params, 'postOnly', False)
-            params = self.omit(params, ['timeInForce', 'postOnly'])
-            if timeInForce is not None:
-                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
-                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
-            maker = ((timeInForce == 'PO') or postOnly)
-            if (type == 'market') and maker:
-                raise InvalidOrder(self.id + ' createOrder() does not accept postOnly: True or timeInForce: PO for market orders')
-            ioc = (timeInForce == 'IOC')
-            if maker:
-                request['postOnly'] = True
-            if ioc:
-                request['ioc'] = True
-        elif (type == 'stop') or (type == 'takeProfit') or (stopPrice is not None):
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isTakeProfit = type == 'takeProfit'
+        isStopLoss = type == 'stop'
+        isTriggerPrice = False
+        if triggerPrice is not None:
+            isTriggerPrice = not isTakeProfit and not isStopLoss
+        elif takeProfitPrice is not None:
+            isTakeProfit = True
+            triggerPrice = takeProfitPrice
+        elif stopLossPrice is not None:
+            isStopLoss = True
+            triggerPrice = stopLossPrice
+        if not isTriggerPrice:
+            request['type'] = type
+        isStopOrder = isTakeProfit or isStopLoss or isTriggerPrice
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if isStopOrder:
+            if triggerPrice is None:
+                if isTakeProfit:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a takeProfitPrice param for a takeProfit order')
+                elif isStopLoss:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice param, a stopPrice or a stopLossPrice param for a stop order')
             method = 'privatePostConditionalOrders'
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice parameter or a triggerPrice parameter for ' + type + ' orders')
-            else:
-                request['triggerPrice'] = float(self.price_to_precision(symbol, stopPrice))
+            request['triggerPrice'] = float(self.price_to_precision(symbol, triggerPrice))
             if (type == 'limit') and (price is None):
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for stop limit orders')
             if price is not None:
                 request['orderPrice'] = float(self.price_to_precision(symbol, price))  # optional, order type is limit if self is specified, otherwise market
-            if (type == 'limit') or (type == 'market'):
-                # default to stop orders for main argument
-                request['type'] = 'stop'
+            if isStopLoss or isTakeProfit:
+                request['type'] = 'stop' if isStopLoss else 'takeProfit'
+        elif (type == 'limit') or (type == 'market'):
+            method = 'privatePostOrders'
+            isMarketOrder = False
+            if type == 'limit':
+                request['price'] = float(self.price_to_precision(symbol, price))
+            elif type == 'market':
+                request['price'] = None
+                isMarketOrder = True
+            timeInForce = self.safe_string(params, 'timeInForce')
+            postOnly = self.is_post_only(isMarketOrder, None, params)
+            params = self.omit(params, ['timeInForce', 'postOnly'])
+            if timeInForce is not None:
+                if not ((timeInForce == 'IOC') or (timeInForce == 'PO')):
+                    raise InvalidOrder(self.id + ' createOrder() does not accept timeInForce: ' + timeInForce + ' orders, only IOC and PO orders are allowed')
+            ioc = (timeInForce == 'IOC')
+            if postOnly:
+                request['postOnly'] = True
+            if ioc:
+                request['ioc'] = True
         elif type == 'trailingStop':
             trailValue = self.safe_number(params, 'trailValue', price)
             if trailValue is None:
@@ -1558,7 +1632,7 @@ class ftx(Exchange):
             raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', only limit, market, stop, trailingStop, or takeProfit orders are supported')
         response = getattr(self, method)(self.extend(request, params))
         #
-        # orders
+        # regular orders
         #
         #     {
         #         "success": True,
@@ -1586,27 +1660,30 @@ class ftx(Exchange):
         # conditional orders
         #
         #     {
-        #         "success": True,
-        #         "result": [
-        #             {
-        #                 "createdAt": "2019-03-05T09:56:55.728933+00:00",
-        #                 "future": "XRP-PERP",
-        #                 "id": 9596912,
-        #                 "market": "XRP-PERP",
-        #                 "triggerPrice": 0.306525,
-        #                 "orderId": null,
-        #                 "side": "sell",
-        #                 "size": 31431,
-        #                 "status": "open",
-        #                 "type": "stop",
-        #                 "orderPrice": null,
-        #                 "error": null,
-        #                 "triggeredAt": null,
-        #                 "reduceOnly": False
-        #             }
-        #         ]
+        #         "success":true,
+        #         "result":{
+        #             "id":215826320,
+        #             "market":"BTC/USD",
+        #             "future":null,
+        #             "side":"sell",
+        #             "type":"take_profit",  # the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" type with underscore
+        #             "orderPrice":40000.0,
+        #             "triggerPrice":39000.0,
+        #             "size":0.001,
+        #             "status":"open",
+        #             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+        #             "triggeredAt":null,
+        #             "orderId":null,
+        #             "error":null,
+        #             "reduceOnly":false,
+        #             "trailValue":null,
+        #             "trailStart":null,
+        #             "cancelledAt":null,
+        #             "cancelReason":null,
+        #             "retryUntilFilled":false,
+        #             "orderType":"limit"
+        #         }
         #     }
-        #
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
@@ -1707,6 +1784,7 @@ class ftx(Exchange):
         :param str id: order id
         :param str|None symbol: not used by ftx cancelOrder()
         :param dict params: extra parameters specific to the ftx api endpoint
+        :param bool params['stop']: True if cancelling a stop/trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1716,16 +1794,17 @@ class ftx(Exchange):
         options = self.safe_value(self.options, 'cancelOrder', {})
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
-        type = self.safe_value(params, 'type')
+        type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
+        stop = self.safe_value(params, 'stop')
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1807,6 +1886,14 @@ class ftx(Exchange):
         return self.parse_order(result)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market, marketId = self.get_market_params(symbol, 'market', params)
@@ -1852,6 +1939,14 @@ class ftx(Exchange):
         return self.parse_orders(result, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         request = {}
         market, marketId = self.get_market_params(symbol, 'market', params)
@@ -1921,7 +2016,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :param int|None params['till']: timestamp in ms of the latest trade
+        :param int|None params['until']: timestamp in ms of the latest trade
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
         self.load_markets()
@@ -1931,13 +2026,15 @@ class ftx(Exchange):
             request['market'] = marketId
         if market is not None:
             symbol = market['symbol']
-        till = self.safe_integer(params, 'till')
+        until = self.safe_integer_2(params, 'until', 'till')
         if since is not None:
             request['start_time'] = int(since / 1000)
             request['end_time'] = self.seconds()
-        if till is not None:
-            request['end_time'] = int(till / 1000)
-            params = self.omit(params, 'till')
+        if until is not None:
+            request['end_time'] = int(until / 1000)
+            params = self.omit(params, ['until', 'till'])
+        if limit is not None:
+            request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
         #
         #     {
@@ -2549,12 +2646,17 @@ class ftx(Exchange):
             market = self.market(symbol)
             request['future'] = market['id']
         if since is not None:
-            request['startTime'] = since
+            request['start_time'] = int(since / 1000)
+            request['end_time'] = self.seconds()
+        till = self.safe_integer(params, 'till')
+        if till is not None:
+            request['end_time'] = int(till / 1000)
+            params = self.omit(params, 'till')
         response = self.privateGetFundingPayments(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         # perp
         #     {
@@ -2571,11 +2673,11 @@ class ftx(Exchange):
         #       "openInterest": "48307.96"
         #     }
         #
-        fundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
+        fundingRateDatetimeRaw = self.safe_string(contract, 'nextFundingTime')
         fundingRateTimestamp = self.parse8601(fundingRateDatetimeRaw)
-        estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
+        estimatedSettlePrice = self.safe_number(contract, 'predictedExpirationPrice')
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
@@ -2583,7 +2685,7 @@ class ftx(Exchange):
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_number(fundingRate, 'nextFundingRate'),
+            'fundingRate': self.safe_number(contract, 'nextFundingRate'),
             'fundingTimestamp': fundingRateTimestamp,
             'fundingDatetime': self.iso8601(fundingRateTimestamp),
             'nextFundingRate': None,
@@ -2622,6 +2724,11 @@ class ftx(Exchange):
         return self.parse_funding_rate(result, market)
 
     def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         self.load_markets()
         response = self.privateGetSpotMarginBorrowRates(params)
         #
@@ -2639,13 +2746,13 @@ class ftx(Exchange):
 
     def fetch_borrow_rate_histories(self, codes=None, since=None, limit=None, params={}):
         """
-        Gets the history of the borrow rate for mutiple currencies
-        :param str code: Unified currency code
-        :param int since: Timestamp in ms of the earliest time to fetch the borrow rate
-        :param int limit: Max number of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` to return per currency, max=48 for multiple currencies, max=5000 for a single currency
-        :param dict params: Exchange specific parameters
-        :param dict params['till']: Timestamp in ms of the latest time to fetch the borrow rate
-        :returns: A dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` with unified currency codes as keys
+        retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param int|None since: timestamp in ms of the earliest borrowRate, default is None
+        :param int|None limit: max number of borrow rate prices to return, default is None
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :param dict params['till']: timestamp in ms of the latest time to fetch the borrow rate
+        :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>` indexed by the market symbol
         """
         self.load_markets()
         request = {}

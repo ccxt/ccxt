@@ -304,6 +304,13 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         throw new BadRequest (this.id + ' fetchAccounts() is not supported yet');
     }
 
@@ -434,12 +441,8 @@ module.exports = class kucoinfutures extends kucoin {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
             const baseMinSizeString = this.safeString (market, 'baseMinSize');
             const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
-            const baseMinSize = this.parseNumber (baseMinSizeString);
-            const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
-            const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
@@ -479,16 +482,16 @@ module.exports = class kucoinfutures extends kucoin {
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': baseMinSize,
-                        'max': baseMaxSize,
+                        'min': this.parseNumber (baseMinSizeString),
+                        'max': this.safeNumber (market, 'baseMaxSize'),
                     },
                     'price': {
                         'min': undefined,
                         'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
                     },
                     'cost': {
-                        'min': quoteMinSize,
-                        'max': quoteMaxSize,
+                        'min': this.safeNumber (market, 'quoteMinSize'),
+                        'max': this.parseNumber (quoteMaxSizeString),
                     },
                 },
                 'info': market,
@@ -585,6 +588,14 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         throw new BadRequest (this.id + ' createDepositAddress() is not supported yet');
     }
 
@@ -1305,19 +1316,20 @@ module.exports = class kucoinfutures extends kucoin {
          * @name kucoinfutures#fetchOrdersByStatus
          * @description fetches a list of orders placed on the exchange
          * @param {str} status 'active' or 'closed', only 'active' is valid for stop orders
-         * @param {str} symbol unified symbol for the market to retrieve orders from
-         * @param {int} since timestamp in ms of the earliest order to retrieve
-         * @param {int} limit The maximum number of orders to retrieve
+         * @param {str|undefined} symbol unified symbol for the market to retrieve orders from
+         * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
+         * @param {int|undefined} limit The maximum number of orders to retrieve
          * @param {dict} params exchange specific parameters
-         * @param {bool} params.stop set to true to retrieve untriggered stop orders
-         * @param {int} params.till End time in ms
-         * @param {str} params.side buy or sell
-         * @param {str} params.type limit or market
+         * @param {bool|undefined} params.stop set to true to retrieve untriggered stop orders
+         * @param {int|undefined} params.until End time in ms
+         * @param {str|undefined} params.side buy or sell
+         * @param {str|undefined} params.type limit or market
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, 'stop');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'stop', 'until', 'till' ]);
         if (status === 'closed') {
             status = 'done';
         } else if (status === 'open') {
@@ -1337,9 +1349,8 @@ module.exports = class kucoinfutures extends kucoin {
         if (since !== undefined) {
             request['startAt'] = since;
         }
-        const till = this.safeInteger2 (params, 'till', 'endAt');
-        if (till !== undefined) {
-            request['endAt'] = till;
+        if (until !== undefined) {
+            request['endAt'] = until;
         }
         const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
         const response = await this[method] (this.extend (request, params));
@@ -1352,15 +1363,15 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchClosedOrders
-         * @description fetch a list of orders
-         * @param {str} symbol unified market symbol
-         * @param {int} since timestamp in ms of the earliest order
-         * @param {int} limit max number of orders to return
-         * @param {dict} params exchange specific params
-         * @param {int} params.till end time in ms
-         * @param {str} params.side buy or sell
-         * @param {str} params.type limit, or market
-         * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {int|undefined} params.till end time in ms
+         * @param {str|undefined} params.side buy or sell
+         * @param {str|undefined} params.type limit, or market
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }

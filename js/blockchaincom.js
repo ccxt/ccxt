@@ -24,8 +24,8 @@ module.exports = class blockchaincom extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -44,6 +44,7 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchL3OrderBook': true,
                 'fetchLedger': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -52,6 +53,7 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -226,13 +228,11 @@ module.exports = class blockchaincom extends Exchange {
             const minPriceIncrementScaleString = this.safeString (market, 'min_price_increment_scale');
             const minPriceScalePrecisionString = this.parsePrecision (minPriceIncrementScaleString);
             const pricePrecisionString = Precise.stringMul (minPriceIncrementString, minPriceScalePrecisionString);
-            const pricePrecision = this.parseNumber (pricePrecisionString);
             // amount precision
             const lotSizeString = this.safeString (market, 'lot_size');
             const lotSizeScaleString = this.safeString (market, 'lot_size_scale');
             const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
             const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
-            const amountPrecision = this.parseNumber (amountPrecisionString);
             // minimum order size
             const minOrderSizeString = this.safeString (market, 'min_order_size');
             const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
@@ -277,8 +277,8 @@ module.exports = class blockchaincom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': this.parseNumber (amountPrecisionString),
+                    'price': this.parseNumber (pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {
@@ -317,6 +317,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -488,7 +497,7 @@ module.exports = class blockchaincom extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the blockchaincom api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -561,7 +570,15 @@ module.exports = class blockchaincom extends Exchange {
         };
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         await this.loadMarkets ();
@@ -612,16 +629,46 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const state = 'CANCELED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const state = 'FILLED';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const state = 'OPEN';
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
@@ -970,6 +1017,15 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name blockchaincom#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {str} id deposit id
+         * @param {str|undefined} code not used by blockchaincom fetchDeposit ()
+         * @param {dict} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const depositId = this.safeString (params, 'depositId', id);
         const request = {

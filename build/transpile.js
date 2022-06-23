@@ -20,7 +20,8 @@ const fs = require ('fs')
         replaceInFile,
         overwriteFile,
     } = require ('./fs.js')
-    , Exchange = require ('../js/base/Exchange.js')
+    , baseExchangeJsFile = './js/base/Exchange.js'
+    , Exchange = require ('.' + baseExchangeJsFile)
     , tsFilename = './ccxt.d.ts'
     , pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 
@@ -39,6 +40,7 @@ class Transpiler {
             [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
             [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
             [ /\.safeValue2\s/g, '.safe_value_2'],
+            [ /\.safeNumber\s/g, '.safe_number'],
             [ /\.safeFloat\s/g, '.safe_float'],
             [ /\.safeInteger\s/g, '.safe_integer'],
             [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
@@ -65,6 +67,7 @@ class Transpiler {
             [ /\.binaryToString\s/g, '.binary_to_string' ],
             [ /\.precisionFromString\s/g, '.precision_from_string'],
             [ /\.parsePrecision\s/g, '.parse_precision'],
+            [ /\.parseNumber\s/g, '.parse_number'],
             [ /\.implodeHostname\s/g, '.implode_hostname'],
             [ /\.implodeParams\s/g, '.implode_params'],
             [ /\.extractParams\s/g, '.extract_params'],
@@ -72,9 +75,16 @@ class Transpiler {
             [ /\.parseAccounts\s/g, '.parse_accounts' ],
             [ /\.parseAccount\s/g, '.parse_account' ],
             [ /\.parseBalance\s/g, '.parse_balance'],
+            [ /\.parseBorrowInterest\s/g, '.parse_borrow_interest'],
+            [ /\.parseFundingRateHistories\s/g, '.parse_funding_rate_histories'],
+            [ /\.parseFundingRateHistory\s/g, '.parse_funding_rate_history'],
             [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
             [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
             [ /\.parseDate\s/g, '.parse_date'],
+            [ /\.parseDepositAddresses\s/g, '.parse_deposit_addresses'],
+            [ /\.parseDepositAddress\s/g, '.parse_deposit_address'],
+            [ /\.parseMarketLeverageTiers\s/g, '.parse_market_leverage_tiers'],
+            [ /\.parseLeverageTiers\s/g, '.parse_leverage_tiers'],
             [ /\.parseLedgerEntry\s/g, '.parse_ledger_entry'],
             [ /\.parseLedger\s/g, '.parse_ledger'],
             [ /\.parseTickers\s/g, '.parse_tickers'],
@@ -83,12 +93,19 @@ class Transpiler {
             [ /\.parseTradesData\s/g, '.parse_trades_data'],
             [ /\.parseTrades\s/g, '.parse_trades'],
             [ /\.parseTrade\s/g, '.parse_trade'],
+            [ /\.parseTradingFees\s/g, '.parse_trading_fees'],
+            [ /\.parseTradingFee\s/g, '.parse_trading_fee'],
             [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
             [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
-            [ /\.parseTransaction\s/g, '.parse_transaction'],
             [ /\.parseTransactions\s/g, '.parse_transactions'],
+            [ /\.parseTransaction\s/g, '.parse_transaction'],
+            [ /\.parseTransfers\s/g, '.parse_transfers'],
+            [ /\.parseTransfer\s/g, '.parse_transfer'],
             [ /\.parseOrderBook\s/g, '.parse_order_book'],
             [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
+            [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
+            [ /\.parseOpenInterests\s/g, '.parse_open_interests'],
+            [ /\.parseOpenInterest\s/g, '.parse_open_interest'],
             [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
             [ /\.parseOrders\s/g, '.parse_orders'],
             [ /\.parseOrderStatus\s/g, '.parse_order_status'],
@@ -97,12 +114,16 @@ class Transpiler {
             [ /\.parseAccountPosition\s/g, '.parse_account_position' ],
             [ /\.parsePositionRisk\s/g, '.parse_position_risk' ],
             [ /\.parsePositions\s/g, '.parse_positions' ],
+            [ /\.parsePosition\s/g, '.parse_position' ],
             [ /\.parseIncome\s/g, '.parse_income' ],
             [ /\.parseIncomes\s/g, '.parse_incomes' ],
+            [ /\.parseFundingRates\s/g, '.parse_funding_rates' ],
             [ /\.parseFundingRate\s/g, '.parse_funding_rate' ],
             [ /\.parseMarginModification\s/g, '.parse_margin_modification' ],
             [ /\.filterByArray\s/g, '.filter_by_array'],
+            [ /\.filterByValueSinceLimit\s/g, '.filter_by_value_since_limit'],
             [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
+            [ /\.filterByCurrencySinceLimit\s/g, '.filter_by_currency_since_limit'],
             [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
             [ /\.filterBySymbol\s/g, '.filter_by_symbol'],
             [ /\.getVersionString\s/g, '.get_version_string'],
@@ -114,11 +135,17 @@ class Transpiler {
             [ /\.marketSymbols\s/g, '.market_symbols'],
             [ /\.marketIds\s/g, '.market_ids'],
             [ /\.marketId\s/g, '.market_id'],
+            [ /\.fetchFundingFee\s/g, '.fetch_funding_fee'],
+            [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
+            [ /\.fetchTradingLimits\s/g, '.fetch_trading_limits'],
             [ /\.fetchTransactionFee\s/g, '.fetch_transaction_fee'],
             [ /\.fetchTransactionFees\s/g, '.fetch_transaction_fees'],
             [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
             [ /\.fetchTradingFee\s/g, '.fetch_trading_fee'],
             [ /\.fetchFees\s/g, '.fetch_fees'],
+            [ /\.fetchOHLCVC\s/g, '.fetch_ohlcvc'],
+            [ /\.fetchOHLCV\s/g, '.fetch_ohlcv'],
+            [ /\.buildOHLCVC\s/g, '.build_ohlcvc'],
             [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
             [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
             [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
@@ -128,10 +155,17 @@ class Transpiler {
             [ /\.fetchOrders\s/g, '.fetch_orders'],
             [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
             [ /\.fetchOrder\s/g, '.fetch_order'],
+            [ /\.fetchBalance\s/g, '.fetch_balance'],
+            [ /\.fetchTotalBalance\s/g, '.fetch_total_balance'],
+            [ /\.fetchUsedBalance\s/g, '.fetch_used_balance'],
+            [ /\.fetchFreeBalance\s/g, '.fetch_free_balance'],
+            [ /\.fetchPartialBalance\s/g, '.fetch_partial_balance'],
+            [ /\.fetchPermissions\s/g, '.fetch_permissions'],
             [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
             [ /\.fetchTickers\s/g, '.fetch_tickers'],
             [ /\.fetchTicker\s/g, '.fetch_ticker'],
             [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
+            [ /\.fetchStatus\s/g, '.fetch_status'],
             [ /\.numberToString\s/g, '.number_to_string' ],
             [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
             [ /\.priceToPrecision\s/g, '.price_to_precision'],
@@ -142,10 +176,13 @@ class Transpiler {
             [ /\.costToPrecision\s/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
             [ /\.loadAccounts\s/g, '.load_accounts'],
+            [ /\.fetchAccounts\s/g, '.fetch_accounts'],
             [ /\.loadFees\s/g, '.load_fees'],
             [ /\.loadMarkets\s/g, '.load_markets'],
             [ /\.loadTimeDifference\s/g, '.load_time_difference'],
             [ /\.fetchMarkets\s/g, '.fetch_markets'],
+            [ /\.fetchMarketLeverageTiers\s/g, '.fetch_market_leverage_tiers'],
+            [ /\.fetchLeverageTiers\s/g, '.fetch_leverage_tiers'],
             [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
             [ /\.fetchCategories\s/g, '.fetch_categories'],
             [ /\.calculateFee\s/g, '.calculate_fee'],
@@ -161,6 +198,7 @@ class Transpiler {
             [ /\.encodeURIComponent\s/g, '.encode_uri_component'],
             [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
             [ /\.handleErrors\s/g, '.handle_errors'],
+            [ /\.handleWithdrawTagAndParams\s/g, '.handle_withdraw_tag_and_params'],
             [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
             [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
             [ /\.checkAddress\s/g, '.check_address'],
@@ -189,10 +227,13 @@ class Transpiler {
             [ /\.urlencodeWithArrayRepeat\s/g, '.urlencode_with_array_repeat' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /\.getSupportedMapping\s/g, '.get_supported_mapping'],
+            [ /\.fetchBorrowRates\s/g, '.fetch_borrow_rates'],
             [ /\.fetchBorrowRate\s/g, '.fetch_borrow_rate'],
             [ /\.handleMarketTypeAndParams\s/g, '.handle_market_type_and_params'],
             [ /\.checkOrderArguments\s/g, '.check_order_arguments'],
             [ /\.isPostOnly\s/g, '.is_post_only'],
+            [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
+            [ /\.omitZero\s/g, '.omit_zero'],
         ]
     }
 
@@ -304,6 +345,7 @@ class Transpiler {
             [ /\;$/gm, '' ],
             [ /\.toUpperCase\s*/g, '.upper' ],
             [ /\.toLowerCase\s*/g, '.lower' ],
+            [ /(\b)String(\b)/g, '$1str$2'],
             [ /JSON\.stringify\s*/g, 'json.dumps' ],
             [ /JSON\.parse\s*/g, "json.loads" ],
             // [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, '$2 in $1' ],
@@ -355,8 +397,9 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
+            [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
-            [ /(\s+) \* @returns \{([\]\[a-zA-Z]*)\}/g, '$1:returns $2:' ], // docstring return
+            [ /(\s+) \* @returns \{(.+)\}/g, '$1:returns $2:' ], // docstring return
             [ /(\s+ \* @param \{[\]\[\|a-zA-Z]+\} )([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+) (.*)/g, '$1$2[\'$3\'] $4' ], // docstring params.anything
             [ /(\s+) \* @([a-z]+) \{([\]\[a-zA-Z\|]+)\} ([a-zA-Z0-9_\-\.\[\]\']+)/g, '$1:$2 $3 $4:' ], // docstring param
         ])
@@ -406,8 +449,8 @@ class Transpiler {
             [ /(\s+)\* @description (.*)/g, '$1\* $2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
             [ /(\s+)\* @returns/g, '$1\* @return' ], // docstring return
-            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) != 0" ],
-            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && count(array_filter(array_keys($1), 'is_string')) == 0" ],
+            [ /\!Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) !== 'array' || array_keys($1) !== array_keys(array_keys($1))" ],
+            [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -510,6 +553,7 @@ class Transpiler {
         // add []-array syntax conversions up to 20 levels deep
         ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array($1)' ])).concat ([
 
+            [ /(\b)String(\b)/g, "$1'strval'$2"],
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
@@ -867,8 +911,15 @@ class Transpiler {
         // transpile JS → Python 3
         let python3Body = this.regexAll (js, this.getPythonRegexes ())
 
-        if (removeEmptyLines)
+        if (removeEmptyLines) {
             python3Body = python3Body.replace (/$\s*$/gm, '')
+        }
+
+        const strippedPython3BodyWithoutComments = python3Body.replace (/^[\s]+#.+$/gm, '')
+
+        if (!strippedPython3BodyWithoutComments.match(/[^\s]/)) {
+            python3Body += '\n        pass'
+        }
 
         python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
 
@@ -1052,16 +1103,14 @@ class Transpiler {
     // ------------------------------------------------------------------------
 
     getClassDeclarationMatches (contents) {
-        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
+        return contents.match (/^module\.exports\s*=\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
 
     // ------------------------------------------------------------------------
 
     transpileClass (contents) {
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
-        const transpileHint = '// METHODS BELOW THIS LINE ARE TRANSPILED TO PYTHON AND PHP';
-        const splitBody = classBody.trim ().split (transpileHint)
-        const methods = splitBody[splitBody.length - 1].trim ().split (/\n\s*\n/)
+        const methods = classBody.trim ().split (/\n\s*\n/)
         const {
             python2,
             python3,
@@ -1070,11 +1119,13 @@ class Transpiler {
             methodNames
         } = this.transpileMethodsToAllLanguages (className, methods)
         // altogether in PHP, async PHP, Python sync and async
+        const sync = false
+        const async = true
         return {
-            python2:      this.createPythonClass (className, baseClass, python2,  methodNames),
-            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, true),
-            php:          this.createPHPClass    (className, baseClass, php,      methodNames),
-            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, true),
+            python2:      this.createPythonClass (className, baseClass, python2,  methodNames, sync),
+            python3:      this.createPythonClass (className, baseClass, python3,  methodNames, async),
+            php:          this.createPHPClass    (className, baseClass, php,      methodNames, sync),
+            phpAsync:     this.createPHPClass    (className, baseClass, phpAsync, methodNames, async),
             className,
             baseClass,
         }
@@ -1302,6 +1353,42 @@ class Transpiler {
             php,
             phpAsync,
             methodNames
+        }
+    }
+
+    // ========================================================================
+
+    transpileBaseMethods () {
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
+        const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents)
+        const jsDelimiter = '// ' + delimiter
+        const parts = classBody.split (jsDelimiter)
+        if (parts.length > 1) {
+            log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
+            const secondPart = parts[1]
+            const methods = secondPart.trim ().split (/\n\s*\n/)
+            const {
+                python2,
+                python3,
+                php,
+                phpAsync,
+            } = this.transpileMethodsToAllLanguages (className, methods)
+            const pythonDelimiter = '# ' + delimiter + '\n'
+            const phpDelimiter = '// ' + delimiter + '\n'
+            const restOfFile = '([^\n]*\n)+'
+            const python2File = './python/ccxt/base/exchange.py'
+            const python3File = './python/ccxt/async_support/base/exchange.py'
+            const phpFile = './php/Exchange.php'
+            const phpAsyncFile = './php/async/Exchange.php'
+            log.magenta ('→', python2File.yellow)
+            replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+            log.magenta ('→', python3File.yellow)
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3.join ('\n') + '\n')
+            log.magenta ('→', phpFile.yellow)
+            replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+            log.magenta ('→', phpAsyncFile.yellow)
+            replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
         }
     }
 
@@ -1784,6 +1871,8 @@ class Transpiler {
         createFolderRecursively (phpAsyncFolder)
 
         //*
+
+        this.transpileBaseMethods ()
 
         const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 

@@ -30,8 +30,8 @@ class blockchaincom(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
-                'cancelOrders': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -50,6 +50,7 @@ class blockchaincom(Exchange):
                 'fetchL2OrderBook': True,
                 'fetchL3OrderBook': True,
                 'fetchLedger': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -58,6 +59,7 @@ class blockchaincom(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -228,13 +230,11 @@ class blockchaincom(Exchange):
             minPriceIncrementScaleString = self.safe_string(market, 'min_price_increment_scale')
             minPriceScalePrecisionString = self.parse_precision(minPriceIncrementScaleString)
             pricePrecisionString = Precise.string_mul(minPriceIncrementString, minPriceScalePrecisionString)
-            pricePrecision = self.parse_number(pricePrecisionString)
             # amount precision
             lotSizeString = self.safe_string(market, 'lot_size')
             lotSizeScaleString = self.safe_string(market, 'lot_size_scale')
             lotSizeScalePrecisionString = self.parse_precision(lotSizeScaleString)
             amountPrecisionString = Precise.string_mul(lotSizeString, lotSizeScalePrecisionString)
-            amountPrecision = self.parse_number(amountPrecisionString)
             # minimum order size
             minOrderSizeString = self.safe_string(market, 'min_order_size')
             minOrderSizeScaleString = self.safe_string(market, 'min_order_size_scale')
@@ -278,8 +278,8 @@ class blockchaincom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'amount': self.parse_number(amountPrecisionString),
+                    'price': self.parse_number(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {
@@ -313,6 +313,13 @@ class blockchaincom(Exchange):
         return self.fetch_l3_order_book(symbol, limit, params)
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified market symbol
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -469,7 +476,7 @@ class blockchaincom(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the blockchaincom api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -530,7 +537,13 @@ class blockchaincom(Exchange):
             'info': response,
         }
 
-    def cancel_orders(self, ids, symbol=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # cancels all open orders if no symbol specified
         # cancels all open orders of specified symbol, if symbol is specified
         self.load_markets()
@@ -575,14 +588,38 @@ class blockchaincom(Exchange):
         return result
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         state = 'CANCELED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         state = 'FILLED'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         state = 'OPEN'
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
@@ -892,6 +929,13 @@ class blockchaincom(Exchange):
         return self.parse_transactions(response, code, since, limit)
 
     def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by blockchaincom fetchDeposit()
+        :param dict params: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         depositId = self.safe_string(params, 'depositId', id)
         request = {

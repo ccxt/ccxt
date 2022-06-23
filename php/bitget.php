@@ -50,6 +50,7 @@ class bitget extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => null,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -60,6 +61,7 @@ class bitget extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -113,8 +115,9 @@ class bitget extends Exchange {
                 ),
                 'www' => 'https://www.bitget.com',
                 'doc' => array(
-                    'https://bitgetlimited.github.io/apidoc/en/swap',
+                    'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
+                    'https://bitgetlimited.github.io/apidoc/en/broker',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
                 'test' => array(
@@ -322,14 +325,14 @@ class bitget extends Exchange {
                     '32038' => '\\ccxt\\AuthenticationError', // User does not exist
                     '32040' => '\\ccxt\\ExchangeError', // User have open contract orders or position
                     '32044' => '\\ccxt\\ExchangeError', // array( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
-                    '32045' => '\\ccxt\\ExchangeError', // String of commission over 1 million
+                    '32045' => '\\ccxt\\ExchangeError', // 'strval' of commission over 1 million
                     '32046' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 trade plans at the same time
                     '32047' => '\\ccxt\\ExchangeError', // system error
                     '32048' => '\\ccxt\\InvalidOrder', // Order strategy track range error
                     '32049' => '\\ccxt\\ExchangeError', // Each user can hold up to 10 track plans at the same time
                     '32050' => '\\ccxt\\InvalidOrder', // Order strategy rang error
                     '32051' => '\\ccxt\\InvalidOrder', // Order strategy ice depth error
-                    '32052' => '\\ccxt\\ExchangeError', // String of commission over 100 thousand
+                    '32052' => '\\ccxt\\ExchangeError', // 'strval' of commission over 100 thousand
                     '32053' => '\\ccxt\\ExchangeError', // Each user can hold up to 6 ice plans at the same time
                     '32057' => '\\ccxt\\ExchangeError', // The order price is zero. Market-close-all function cannot be executed
                     '32054' => '\\ccxt\\ExchangeError', // Trade not allow
@@ -817,7 +820,7 @@ class bitget extends Exchange {
         //       maxTradeAmount => '0',
         //       takerFeeRate => '0.001',
         //       makerFeeRate => '0.001',
-        //       $priceScale => '4',
+        //       priceScale => '4',
         //       quantityScale => '4',
         //       $status => 'online'
         //     }
@@ -864,10 +867,8 @@ class bitget extends Exchange {
         if ($typeId === 'SPBL') {
             $type = 'spot';
             $spot = true;
-            $priceScale = $this->safe_string($market, 'priceScale');
-            $amountScale = $this->safe_string($market, 'quantityScale');
-            $pricePrecision = $this->parse_number($this->parse_precision($priceScale));
-            $amountPrecision = $this->parse_number($this->parse_precision($amountScale));
+            $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceScale')));
+            $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityScale')));
         } else {
             $type = 'swap';
             $swap = true;
@@ -902,10 +903,6 @@ class bitget extends Exchange {
         }
         $maker = $this->safe_number($market, 'makerFeeRate');
         $taker = $this->safe_number($market, 'takerFeeRate');
-        $precision = array(
-            'price' => $pricePrecision,
-            'amount' => $amountPrecision,
-        );
         $limits = array(
             'amount' => array(
                 'min' => $this->safe_number($market, 'minTradeAmount'),
@@ -947,7 +944,10 @@ class bitget extends Exchange {
             'active' => $active,
             'maker' => $maker,
             'taker' => $taker,
-            'precision' => $precision,
+            'precision' => array(
+                'price' => $pricePrecision,
+                'amount' => $amountPrecision,
+            ),
             'limits' => $limits,
         );
     }
@@ -1077,6 +1077,7 @@ class bitget extends Exchange {
                     'withdraw' => $withdrawEnabled === 'true',
                     'deposit' => $depositEnabled === 'true',
                     'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => null,
                 );
             }
             $result[$code] = array(
@@ -1590,7 +1591,7 @@ class bitget extends Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {dict} $params extra parameters specific to the bitget api endpoint
-         * @param {dict} $params->till timestamp in ms of the latest candle to fetch
+         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1603,7 +1604,8 @@ class bitget extends Exchange {
             'spot' => 'publicSpotGetMarketCandles',
             'swap' => 'publicMixGetMarketCandles',
         ));
-        $till = $this->safe_integer($params, 'till');
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $params = $this->omit($params, array( 'until', 'till' ));
         if ($limit === null) {
             $limit = 100;
         }
@@ -1612,13 +1614,13 @@ class bitget extends Exchange {
             $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
-                if ($till === null) {
+                if ($until === null) {
                     $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
                     $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
                 }
             }
-            if ($till !== null) {
-                $request['before'] = $till;
+            if ($until !== null) {
+                $request['before'] = $until;
             }
         } elseif ($market['type'] === 'swap') {
             $request['granularity'] = $this->timeframes['swap'][$timeframe];
@@ -1629,8 +1631,8 @@ class bitget extends Exchange {
                 $request['endTime'] = $now;
             } else {
                 $request['startTime'] = $this->sum($since, $duration * 1000);
-                if ($till !== null) {
-                    $request['endTime'] = $till;
+                if ($until !== null) {
+                    $request['endTime'] = $until;
                 } else {
                     $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
                 }
@@ -1837,7 +1839,7 @@ class bitget extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitget api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1848,9 +1850,19 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'orderType' => $type,
         );
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-        if (($type === 'limit') && ($stopPrice === null)) {
-            $request['price'] = $price;
+        $isMarketOrder = $type === 'market';
+        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+        $isTriggerOrder = $triggerPrice !== null;
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        $isStopLossOrder = $stopLossPrice !== null;
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isTakeProfitOrder = $takeProfitPrice !== null;
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder) > 1) {
+            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, $stopLossPrice, takeProfitPrice');
+        }
+        if (($type === 'limit') && ($triggerPrice === null)) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
         if ($clientOrderId === null) {
@@ -1866,34 +1878,56 @@ class bitget extends Exchange {
             'spot' => 'privateSpotPostTradeOrders',
             'swap' => 'privateMixPostOrderPlaceOrder',
         ));
+        $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
         if ($marketType === 'spot') {
             $request['clientOrderId'] = $clientOrderId;
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             $request['side'] = $side;
-            $request['force'] = 'gtc';
+            if ($postOnly) {
+                $request['force'] = 'post_only';
+            } else {
+                $request['force'] = 'gtc';
+            }
         } else {
             $request['clientOid'] = $clientOrderId;
             $request['size'] = $this->amount_to_precision($symbol, $amount);
-            if ($stopPrice) {
-                $triggerType = $this->safe_string($params, 'triggerType');
-                if ($triggerType === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerType parameter for stop orders, either fill_price or market_price');
-                }
+            if ($postOnly) {
+                $request['timeInForceValue'] = 'post_only';
+            }
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            if ($triggerPrice !== null) {
+                // default $triggerType to $market $price for unification
+                $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['executePrice'] = $this->price_to_precision($symbol, $price);
                 $method = 'privateMixPostPlanPlacePlan';
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            if ($reduceOnly) {
-                $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+            if ($isStopOrder) {
+                if (!$isMarketOrder) {
+                    throw new ExchangeError($this->id . ' createOrder() bitget stopLoss or takeProfit orders must be $market orders');
+                }
+                if ($isStopLossOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                    $request['planType'] = 'loss_plan';
+                } elseif ($isTakeProfitOrder) {
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $request['planType'] = 'profit_plan';
+                }
+                $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
+                $method = 'privateMixPostPlanPlaceTPSL';
             } else {
-                $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                if ($reduceOnly) {
+                    $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                } else {
+                    $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                }
             }
             $request['marginCoin'] = $market['settleId'];
         }
-        $params = $this->omit($params, array( 'stopPrice', 'triggerType' ));
-        $response = $this->$method (array_merge($request, $query));
+        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ));
+        $response = $this->$method (array_merge($request, $omitted));
         //
         //     {
         //         "code" => "00000",
@@ -1949,6 +1983,13 @@ class bitget extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str} $symbol unified $market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -2092,6 +2133,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -2195,6 +2244,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
@@ -2284,6 +2341,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the bitget api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $currency = null;
         $request = array();

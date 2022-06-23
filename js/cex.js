@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -43,6 +44,7 @@ module.exports = class cex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
@@ -51,6 +53,7 @@ module.exports = class cex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -154,6 +157,7 @@ module.exports = class cex extends Exchange {
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {},
                 'broad': {
@@ -282,7 +286,6 @@ module.exports = class cex extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precision');
             const active = true;
             result[code] = {
                 'id': id,
@@ -291,7 +294,7 @@ module.exports = class cex extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -361,16 +364,17 @@ module.exports = class cex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
             const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
-            let pricePrecision = this.safeInteger (quoteCurrency, 'precision', 8);
+            let pricePrecisionString = this.safeString (quoteCurrency, 'precision', '8');
             for (let j = 0; j < pairs.length; j++) {
                 const pair = pairs[j];
                 if ((pair['symbol1'] === baseId) && (pair['symbol2'] === quoteId)) {
                     // we might need to account for `priceScale` here
-                    pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
+                    pricePrecisionString = this.safeString (pair, 'pricePrecision', pricePrecisionString);
                 }
             }
-            const baseCcyPrecision = this.safeString (baseCurrency, 'precision', '8');
-            const baseCcyScale = this.safeString (baseCurrency, 'scale', '0');
+            const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision', '8');
+            const baseCurrencyScale = this.safeString (baseCurrency, 'scale', '0');
+            const amountPrecisionString = Precise.stringSub (baseCurrencyPrecision, baseCurrencyScale);
             result.push ({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -396,8 +400,8 @@ module.exports = class cex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (Precise.stringSub (baseCcyPrecision, baseCcyScale)),
-                    'price': pricePrecision,
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                 },
                 'limits': {
                     'leverage': {
@@ -726,7 +730,7 @@ module.exports = class cex extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the cex api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1069,6 +1073,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = 'privatePostOpenOrders';
@@ -1086,6 +1100,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
@@ -1216,6 +1240,16 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the cex api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

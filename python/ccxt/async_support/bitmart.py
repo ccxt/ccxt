@@ -60,6 +60,7 @@ class bitmart(Exchange):
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': None,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -68,6 +69,7 @@ class bitmart(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -451,20 +453,21 @@ class bitmart(Exchange):
         #         "trace":"a67c9146-086d-4d3f-9897-5636a9bb26e1",
         #         "data":{
         #             "symbols":[
-        #                 {
-        #                     "symbol":"PRQ_BTC",
-        #                     "symbol_id":1232,
-        #                     "base_currency":"PRQ",
-        #                     "quote_currency":"BTC",
-        #                     "quote_increment":"1.0000000000",
-        #                     "base_min_size":"1.0000000000",
-        #                     "base_max_size":"10000000.0000000000",
-        #                     "price_min_precision":8,
-        #                     "price_max_precision":10,
-        #                     "expiration":"NA",
-        #                     "min_buy_amount":"0.0001000000",
-        #                     "min_sell_amount":"0.0001000000"
-        #                 },
+        #               {
+        #                  "symbol": "BTC_USDT",
+        #                  "symbol_id": 53,
+        #                  "base_currency": "BTC",
+        #                  "quote_currency": "USDT",
+        #                  "base_min_size": "0.000010000000000000000000000000",
+        #                  "base_max_size": "100000000.000000000000000000000000000000",
+        #                  "price_min_precision": -1,
+        #                  "price_max_precision": 2,
+        #                  "quote_increment": "0.00001",  # Api docs says "The minimum order quantity is also the minimum order quantity increment", however I think they mistakenly use the term 'order quantity'
+        #                  "expiration": "NA",
+        #                  "min_buy_amount": "5.000000000000000000000000000000",
+        #                  "min_sell_amount": "5.000000000000000000000000000000",
+        #                  "trade_status": "trading"
+        #               },
         #             ]
         #         }
         #     }
@@ -481,19 +484,10 @@ class bitmart(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            #
-            # https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            # from the above API doc:
-            # quote_increment Minimum order price as well as the price increment
-            # price_min_precision Minimum price precision(digit) used to query price and kline
-            # price_max_precision Maximum price precision(digit) used to query price and kline
-            #
-            # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            #
             minBuyCost = self.safe_string(market, 'min_buy_amount')
             minSellCost = self.safe_string(market, 'min_sell_amount')
             minCost = Precise.string_max(minBuyCost, minSellCost)
-            pricePrecision = self.parse_precision(self.safe_string(market, 'price_max_precision'))
+            baseMinSize = self.safe_number(market, 'base_min_size')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -520,8 +514,8 @@ class bitmart(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'base_min_size'),
-                    'price': self.parse_number(pricePrecision),
+                    'amount': baseMinSize,
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_max_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -529,7 +523,7 @@ class bitmart(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
+                        'min': baseMinSize,
                         'max': self.safe_number(market, 'base_max_size'),
                     },
                     'price': {
@@ -1680,7 +1674,7 @@ class bitmart(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1717,8 +1711,7 @@ class bitmart(Exchange):
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
-                    precision = market['precision']['price']
-                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
+                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, market['precision']['price'], self.precisionMode)
                 elif side == 'sell':
                     request['size'] = self.amount_to_precision(symbol, amount)
         elif market['swap'] or market['future']:
@@ -1940,12 +1933,36 @@ class bitmart(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -2185,6 +2202,13 @@ class bitmart(Exchange):
         return self.parse_transactions(records, currency, since, limit)
 
     async def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch information on a deposit
+        :param str id: deposit id
+        :param str|None code: not used by bitmart fetchDeposit()
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,

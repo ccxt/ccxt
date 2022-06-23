@@ -56,6 +56,7 @@ class ascendex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -65,6 +66,7 @@ class ascendex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -280,7 +282,7 @@ class ascendex extends Exchange {
                     '100009' => '\\ccxt\\AuthenticationError', // AUTHORIZATION_NEEDED Authorization is require for the API access or request
                     '100010' => '\\ccxt\\BadRequest', // INVALID_OPERATION The action is invalid or not allowed for the account
                     '100011' => '\\ccxt\\BadRequest', // INVALID_TIMESTAMP Not a valid timestamp
-                    '100012' => '\\ccxt\\BadRequest', // INVALID_STR_FORMAT String format does not
+                    '100012' => '\\ccxt\\BadRequest', // INVALID_STR_FORMAT 'strval' format does not
                     '100013' => '\\ccxt\\BadRequest', // INVALID_NUM_FORMAT Invalid number input
                     '100101' => '\\ccxt\\ExchangeError', // UNKNOWN_ERROR Some unknown error
                     '150001' => '\\ccxt\\BadRequest', // INVALID_JSON_FORMAT Require a valid json object
@@ -416,7 +418,6 @@ class ascendex extends Exchange {
             $code = $this->safe_currency_code($id);
             $scale = $this->safe_string_2($currency, 'precisionScale', 'nativeScale');
             $precision = $this->parse_number($this->parse_precision($scale));
-            // why would the exchange API have different names for the same field
             $fee = $this->safe_number_2($currency, 'withdrawFee', 'withdrawalFee');
             $status = $this->safe_string_2($currency, 'status', 'statusCode');
             $active = ($status === 'Normal');
@@ -636,6 +637,11 @@ class ascendex extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         $accountGroup = $this->safe_string($this->options, 'account-group');
         $response = null;
         if ($accountGroup === null) {
@@ -671,10 +677,11 @@ class ascendex extends Exchange {
     }
 
     public function parse_balance($response) {
+        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -730,7 +737,7 @@ class ascendex extends Exchange {
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesPosition',
         ));
-        if ($accountCategory === 'cash') {
+        if (($accountCategory === 'cash') || ($accountCategory === 'margin')) {
             $request['account-category'] = $accountCategory;
         }
         $response = $this->$method (array_merge($request, $query));
@@ -1589,6 +1596,14 @@ class ascendex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structures}
+         */
         $this->load_markets();
         $this->load_accounts();
         $market = null;
@@ -1701,6 +1716,14 @@ class ascendex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $this->load_accounts();
         $account = $this->safe_value($this->accounts, 0, array());
@@ -1849,7 +1872,7 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $isArray = gettype($data) === 'array' && count(array_filter(array_keys($data), 'is_string')) == 0;
+        $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
         if (!$isArray) {
             $data = $this->safe_value($data, 'data', array());
         }
@@ -2431,8 +2454,8 @@ class ascendex extends Exchange {
             'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
             'percentage' => null,
-            'contracts' => null,
-            'contractSize' => $this->safe_number($position, 'position'),
+            'contracts' => $this->safe_number($position, 'position'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'side' => $this->safe_string_lower($position, 'side'),
             'hedged' => null,
@@ -2448,7 +2471,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($contract, $market = null) {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2460,17 +2483,17 @@ class ascendex extends Exchange {
         //          "nextFundingTime" => 1640073600000
         //      }
         //
-        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $currentTime = $this->safe_integer($fundingRate, 'time');
-        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
-        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
+        $currentTime = $this->safe_integer($contract, 'time');
+        $nextFundingRate = $this->safe_number($contract, 'fundingRate');
+        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $previousFundingTimestamp = null;
         return array(
-            'info' => $fundingRate,
+            'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->safe_number($fundingRate, 'markPrice'),
-            'indexPrice' => $this->safe_number($fundingRate, 'indexPrice'),
+            'markPrice' => $this->safe_number($contract, 'markPrice'),
+            'indexPrice' => $this->safe_number($contract, 'indexPrice'),
             'interestRate' => $this->parse_number('0'),
             'estimatedSettlePrice' => null,
             'timestamp' => $currentTime,

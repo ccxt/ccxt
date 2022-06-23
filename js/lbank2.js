@@ -61,7 +61,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
@@ -90,9 +90,9 @@ module.exports = class lbank2 extends Exchange {
                 'api': 'https://api.lbank.info',
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.info',
-                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
+                'doc': 'https://www.lbank.info/en-US/docs/index.html',
                 'fees': 'https://lbankinfo.zendesk.com/hc/en-gb/articles/360012072873-Trading-Fees',
-                'referral': 'https://www.lbex.io/invite?icode=7QCY',
+                'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -102,7 +102,7 @@ module.exports = class lbank2 extends Exchange {
                         'usdToCny': 2.5,
                         'withdrawConfigs': 2.5,
                         'timestamp': 2.5,
-                        'ticker/24h': 2.5, // down
+                        'ticker/24hr': 2.5,
                         'ticker': 2.5,
                         'depth': 2.5,
                         'incrDepth': 2.5,
@@ -336,7 +336,7 @@ module.exports = class lbank2 extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeInteger (market, 'minTranQua'),
+                        'min': this.safeNumber (market, 'minTranQua'),
                         'max': undefined,
                     },
                     'price': {
@@ -411,8 +411,7 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        // preferred ticker/24h endpoint is down
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         //
         //      {
         //          "result":"true",
@@ -436,6 +435,24 @@ module.exports = class lbank2 extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
         return this.parseTicker (first, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the lbank api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'symbol': 'all',
+        };
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -901,7 +918,7 @@ module.exports = class lbank2 extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the lbank2 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -980,11 +997,11 @@ module.exports = class lbank2 extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '-1': 'cancelled', // cancelled
+            '-1': 'canceled', // canceled
             '0': 'open', // not traded
             '1': 'open', // partial deal
             '2': 'closed', // complete deal
-            '3': 'closed', // filled partially and cancelled
+            '3': 'canceled', // filled partially and cancelled
             '4': 'closed', // disposal processing
         };
         return this.safeString (statuses, status, status);
@@ -1275,7 +1292,17 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // default query is for cancelled and completely filled orders
+        /**
+         * @method
+         * @name lbank2#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
+        // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -1325,6 +1352,16 @@ module.exports = class lbank2 extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the lbank2 api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1616,25 +1653,23 @@ module.exports = class lbank2 extends Exchange {
         };
     }
 
-    parseDepositStatus (status) {
+    parseTransactionStatus (status, type) {
         const statuses = {
-            '1': 'pending',
-            '2': 'ok',
-            '3': 'failed',
-            '4': 'cancelled',
-            '5': 'transfer',   // Transfer
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+                '4': 'canceled',
+                '5': 'transfer',
+            },
+            'withdrawal': {
+                '1': 'pending',
+                '2': 'canceled',
+                '3': 'failed',
+                '4': 'ok',
+            },
         };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseWithdrawalStatus (status) {
-        const statuses = {
-            '1': 'pending',
-            '2': 'cancelled',
-            '3': 'failed',
-            '4': 'ok',
-        };
-        return this.safeString (statuses, status, status);
+        return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1675,7 +1710,7 @@ module.exports = class lbank2 extends Exchange {
             type = 'withdrawal';
         }
         const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeString2 (transaction, 'insertTime', 'applyTime');
+        const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
         const networks = this.safeValue (this.options, 'inverse-networks', {});
         const networkId = this.safeString (transaction, 'networkName');
         const network = this.safeString (networks, networkId, networkId);
@@ -1690,13 +1725,7 @@ module.exports = class lbank2 extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const currencyId = this.safeString2 (transaction, 'coin', 'coid');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const statusId = this.safeString (transaction, 'status');
-        let status = undefined;
-        if (type === 'deposit') {
-            status = this.parseDepositStatus (statusId);
-        } else {
-            status = this.parseWithdrawalStatus (statusId);
-        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
         let fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
@@ -1976,7 +2005,8 @@ module.exports = class lbank2 extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                sign = this.binaryToBase64 (this.rsa (this.encode (uppercaseHash), this.encode (pem), 'RS256'));
+                const encodedPem = this.encode (pem);
+                sign = this.binaryToBase64 (this.rsa (uppercaseHash, encodedPem, 'RS256'));
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
             }

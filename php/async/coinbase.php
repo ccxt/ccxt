@@ -59,6 +59,7 @@ class coinbase extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => true,
@@ -71,6 +72,7 @@ class coinbase extends Exchange {
                 'fetchOrderBook' => false,
                 'fetchOrders' => null,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -160,6 +162,7 @@ class coinbase extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'two_factor_required' => '\\ccxt\\AuthenticationError', // 402 When sending money over 2fa limit
@@ -221,6 +224,11 @@ class coinbase extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
         yield $this->load_markets();
         $request = array(
             'limit' => 100,
@@ -303,6 +311,12 @@ class coinbase extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit $address
+         * @param {str} $code unified currency $code of the currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $accountId = $this->safe_string($params, 'account_id');
         $params = $this->omit($params, 'account_id');
         if ($accountId === null) {
@@ -370,8 +384,16 @@ class coinbase extends Exchange {
     }
 
     public function fetch_my_sells($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch $sells
+         * @param {str|null} $symbol not used by coinbase fetchMySells ()
+         * @param {int|null} $since timestamp in ms of the earliest sell, default is null
+         * @param {int|null} $limit max number of $sells to return, default is null
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#order-structure list of order structures}
+         */
         // they don't have an endpoint for all historical trades
-        $request = yield $this->prepare_account_request($limit, $params);
+        $request = $this->prepare_account_request($limit, $params);
         yield $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $sells = yield $this->privateGetAccountsAccountIdSells (array_merge($request, $query));
@@ -379,8 +401,16 @@ class coinbase extends Exchange {
     }
 
     public function fetch_my_buys($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch $buys
+         * @param {str|null} $symbol not used by coinbase fetchMyBuys ()
+         * @param {int|null} $since timestamp in ms of the earliest buy, default is null
+         * @param {int|null} $limit max number of $buys to return, default is null
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a list of  {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         // they don't have an endpoint for all historical trades
-        $request = yield $this->prepare_account_request($limit, $params);
+        $request = $this->prepare_account_request($limit, $params);
         yield $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
         $buys = yield $this->privateGetAccountsAccountIdBuys (array_merge($request, $query));
@@ -986,6 +1016,14 @@ class coinbase extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the coinbase api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         yield $this->load_markets();
         $currency = null;
         if ($code !== null) {
@@ -1449,7 +1487,7 @@ class coinbase extends Exchange {
         }
         $errors = $this->safe_value($response, 'errors');
         if ($errors !== null) {
-            if (gettype($errors) === 'array' && count(array_filter(array_keys($errors), 'is_string')) == 0) {
+            if (gettype($errors) === 'array' && array_keys($errors) === array_keys(array_keys($errors))) {
                 $numErrors = is_array($errors) ? count($errors) : 0;
                 if ($numErrors > 0) {
                     $errorCode = $this->safe_string($errors[0], 'id');
