@@ -554,10 +554,13 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const size = (delta[1] < 0) ? -delta[1] : delta[1];
-                    const side = (delta[1] < 0) ? 'asks' : 'bids';
+                    const amount = this.safeNumber (delta, 2);
+                    const count = this.safeNumber (delta, 1);
+                    const price = this.safeNumber (delta, 0);
+                    const size = (amount < 0) ? -amount : amount;
+                    const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store (delta[0], size, id);
+                    bookside.store (price, size, count);
                 }
             }
             client.resolve (orderbook, messageHash);
