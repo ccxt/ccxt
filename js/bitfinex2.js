@@ -17,6 +17,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'watchTickers': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
+                'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
@@ -584,13 +585,41 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
 
     async watchBalance (params = {}) {
         await this.loadMarkets ();
-        const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin funding
+        const balanceType = this.safeString (params, 'wallet', 'exchange'); // exchange, margin
+        params = this.omit (params, 'wallet');
         const messageHash = 'balance:' + balanceType;
         return await this.subscribePrivate (messageHash);
     }
 
     handleBalance (client, message, subscription) {
         //
+        // snapshot (exchange + margin together)
+        //   [
+        //       0,
+        //       'ws',
+        //       [
+        //           [
+        //               'exchange',
+        //               'LTC',
+        //               0.05479727,
+        //               0,
+        //               null,
+        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               null,
+        //           ]
+        //           [
+        //               'margin',
+        //               'USTF0',
+        //               11.960650700086292,
+        //               0,
+        //               null,
+        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               null,
+        //           ],
+        //       ],
+        //   ]
+        //
+        // spot
         //   [
         //       0,
         //       'wu',
@@ -613,21 +642,67 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //       ]
         //   ]
         //
-        const data = this.safeValue (message, 2);
-        const balanceType = this.safeString (data, 0);
-        const currencyId = this.safeString (data, 1);
-        const totalBalance = this.safeString (data, 2);
-        const availableBalance = this.safeString (data, 4);
+        // margin
+        //
+        //   [
+        //       'margin',
+        //       'USTF0',
+        //       11.960650700086292, // total
+        //       0,
+        //       6.776250700086292, // available
+        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       null
+        //   ]
+        //
+        const updateType = this.safeValue (message, 1);
+        let data = undefined;
+        if (updateType === 'ws') {
+            data = this.safeValue (message, 2);
+        } else {
+            data = [ this.safeValue (message, 2) ];
+        }
+        const updatedTypes = {};
+        for (let i = 0; i < data.length; i++) {
+            const rawBalance = data[i];
+            const balance = this.parseWsBalance (rawBalance);
+            const balanceType = this.safeString (rawBalance, 0);
+            const oldBalance = this.safeValue (this.balance, balanceType, {});
+            const newBalance = this.deepExtend (oldBalance, balance);
+            this.balance[balanceType] = this.safeBalance (newBalance);
+            updatedTypes[balanceType] = true;
+        }
+        const updatesKeys = Object.keys (updatedTypes);
+        for (let i = 0; i < updatesKeys.length; i++) {
+            const type = updatesKeys[i];
+            const messageHash = 'balance:' + type;
+            client.resolve (this.balance[type], messageHash);
+        }
+    }
+
+    parseWsBalance (balance) {
+        //
+        //     [
+        //         'exchange',
+        //         'LTC',
+        //         0.05479727,
+        //         0,
+        //         null,
+        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         null,
+        //     ]
+        //
+        const result = { 'info': balance };
+        const currencyId = this.safeString (balance, 1);
+        const totalBalance = this.safeString (balance, 2);
+        const availableBalance = this.safeString (balance, 4);
         const code = this.safeCurrencyCode (currencyId);
-        const account = (code in this.balance) ? this.balance[code] : this.account ();
+        const account = this.account ();
         if (availableBalance !== undefined) {
             account['free'] = availableBalance;
         }
         account['total'] = totalBalance;
-        this.balance[code] = account;
-        this.balance = this.safeBalance (this.balance);
-        const messageHash = 'balance:' + balanceType;
-        client.resolve (this.balance, messageHash);
+        result[code] = account;
+        return this.safeBalance (result);
     }
 
     handleSystemStatus (client, message) {
@@ -763,6 +838,10 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const orders = this.orders;
         const symbolIds = {};
         if (messageType === 'os') {
+            const snapshotLength = data.length;
+            if (snapshotLength === 0) {
+                return;
+            }
             for (let i = 0; i < data.length; i++) {
                 const value = data[i];
                 const parsed = this.parseWsOrder (value);
@@ -800,7 +879,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //   [
         //       97084883506, // order id
         //       null,
-        //       1655110144596,
+        //       1655110144596, // clientOrderId
         //       'tLTCUST', // symbol
         //       1655110144596, // created timestamp
         //       1655110144598, // updated timestamp
@@ -833,6 +912,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //   ]
         //
         const id = this.safeString (order, 0);
+        const clientOrderId = this.safeString (order, 1);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
         market = this.safeMarket (symbol);
@@ -863,7 +943,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -929,7 +1009,6 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 'ws': this.handleBalance,
                 'tu': this.handleMyTrade,
                 'te': this.handleMyTrade,
-
             };
             const method = this.safeValue2 (methods, channel, name);
             if (method === undefined) {
