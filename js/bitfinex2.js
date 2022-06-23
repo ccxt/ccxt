@@ -530,7 +530,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         const isRaw = (prec === 'R0');
         const id = this.safeString (message, 0);
         // if it is an initial snapshot
-        let orderbook = this.orderbooks[symbol];
+        let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             const limit = this.safeInteger (subscription, 'len');
             if (isRaw) {
@@ -545,11 +545,11 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
-                    const id = this.safeString (delta, 0);
-                    const price = this.safeFloat (delta, 1);
                     const size = (delta[2] < 0) ? -delta[2] : delta[2];
                     const side = (delta[2] < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
+                    const id = this.safeString (delta, 0);
+                    const price = this.safeFloat (delta, 1);
                     bookside.store (price, size, id);
                 }
             } else {
@@ -557,12 +557,12 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 for (let i = 0; i < deltas.length; i++) {
                     const delta = deltas[i];
                     const amount = this.safeNumber (delta, 2);
-                    const count = this.safeNumber (delta, 1);
+                    const counter = this.safeNumber (delta, 1);
                     const price = this.safeNumber (delta, 0);
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store (price, size, count);
+                    bookside.store (price, size, counter);
                 }
             }
             client.resolve (orderbook, messageHash);
@@ -579,12 +579,12 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
                 bookside.store (price, amount, id);
             } else {
                 const amount = this.safeNumber (deltas, 2);
-                const count = this.safeNumber (deltas, 1);
+                const counter = this.safeNumber (deltas, 1);
                 const price = this.safeNumber (deltas, 0);
                 const size = (amount < 0) ? -amount : amount;
                 const side = (amount < 0) ? 'asks' : 'bids';
                 const bookside = orderbook[side];
-                bookside.store (price, size, count);
+                bookside.store (price, size, counter);
             }
             client.resolve (orderbook, messageHash);
         }
