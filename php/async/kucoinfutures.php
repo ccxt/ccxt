@@ -1585,7 +1585,7 @@ class kucoinfutures extends kucoin {
         //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
         //     }
         //
-        $timestamp = $this->safe_string($transfer, 'updatedAt');
+        $timestamp = $this->safe_integer($transfer, 'updatedAt');
         return array(
             'id' => $this->safe_string($transfer, 'applyId'),
             'timestamp' => $timestamp,
