@@ -6115,6 +6115,7 @@ module.exports = class binance extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const currency = this.currency (code);
         const request = {
