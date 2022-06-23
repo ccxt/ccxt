@@ -2243,7 +2243,7 @@ class binance(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2259,12 +2259,11 @@ class binance(Exchange):
         market = self.market(symbol)
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         # the reality is that the time range wider than 500 candles won't work right
-        defaultLimit = 500
         maxLimit = 1500
+        limit = min(limit, maxLimit)
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
-        params = self.omit(params, ['price', 'until'])
-        limit = defaultLimit if (limit is None) else min(limit, maxLimit)
+        params = self.omit(params, ['price', 'until'])        
         request = {
             'interval': self.timeframes[timeframe],
             'limit': limit,
