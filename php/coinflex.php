@@ -984,12 +984,12 @@ class coinflex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'marketCode');
-            $timestamp = $this->safe_string($entry, 'timestamp');
+            $timestamp = $this->safe_integer($entry, 'timestamp');
             $result[] = array(
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'code' => null,
-                'timestamp' => $this->parse8601($timestamp),
-                'datetime' => $timestamp,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
                 'id' => null,
                 'amount' => $this->safe_number($entry, 'payment'),
                 'info' => $entry,
