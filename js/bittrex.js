@@ -1495,34 +1495,34 @@ module.exports = class bittrex extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "id": "d00fdf2e-df9e-48f1-....",
-        //         "currencySymbol": "BTC",
-        //         "quantity": "0.00550000",
-        //         "cryptoAddress": "1PhmYjnJPZH5NUwV8AU...",
-        //         "txId": "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        //         "confirmations": 2,
-        //         "updatedAt": "2020-01-12T16:49:30.41Z",
-        //         "completedAt": "2020-01-12T16:49:30.41Z",
-        //         "status": "COMPLETED",
-        //         "source": "BLOCKCHAIN"
-        //     }
+        //      {
+        //          "id": "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        //          "currencySymbol": "ETH",
+        //          "quantity": "0.36487773",
+        //          "cryptoAddress": "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        //          "txId": "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        //          "confirmations": 44,
+        //          "updatedAt": "2017-12-28T13:57:42.753Z",
+        //          "completedAt": "2017-12-28T13:57:42.753Z",
+        //          "status": "COMPLETED",
+        //          "source": "BLOCKCHAIN"
+        //      }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
+        //      {
+        //          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        //          "currencySymbol":"OMG",
+        //          "quantity":"2.67000000",
+        //          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        //          "cryptoAddressTag":"",
+        //          "txCost":"0.10000000",
+        //          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        //          "status":"COMPLETED",
+        //          "createdAt":"2017-12-16T20:46:22.5Z",
+        //          "completedAt":"2017-12-16T20:48:03.887Z",
+        //          "target":"BLOCKCHAIN"
+        //      }
         //
         // withdraw
         //
@@ -1535,9 +1535,17 @@ module.exports = class bittrex extends Exchange {
         //         "clientWithdrawalId": "string (uuid)"
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
+        const id = this.safeString (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        const isDeposit = this.safeString (transaction, 'source') === 'BLOCKCHAIN';
+        if (isDeposit) {
+            addressFrom = address;
+        } else {
+            addressTo = address;
+        }
         const txid = this.safeString (transaction, 'txId');
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const opened = this.parse8601 (this.safeString (transaction, 'createdAt'));
@@ -1586,8 +1594,8 @@ module.exports = class bittrex extends Exchange {
             'amount': amount,
             'network': undefined,
             'address': address,
-            'addressTo': undefined,
-            'addressFrom': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
