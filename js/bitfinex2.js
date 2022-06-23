@@ -445,30 +445,29 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        const timestamp = this.milliseconds ();
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
-        const last = this.safeString (ticker, 7);
-        const change = this.safeString (ticker, 5);
+        const last = this.safeString (ticker, 6);
+        const change = this.safeString (ticker, 4);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 9),
-            'low': this.safeString (ticker, 10),
-            'bid': this.safeString (ticker, 1),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 3),
-            'askVolume': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 8),
+            'low': this.safeString (ticker, 9),
+            'bid': this.safeString (ticker, 0),
+            'bidVolume': this.safeString (ticker, 1),
+            'ask': this.safeString (ticker, 2),
+            'askVolume': this.safeString (ticker, 3),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeString (ticker, 6),
+            'percentage': this.safeString (ticker, 5),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 8),
+            'baseVolume': this.safeString (ticker, 7),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -684,9 +683,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //     [
         //         'exchange',
         //         'LTC',
-        //         0.05479727,
+        //         0.05479727, // balance
         //         0,
-        //         null,
+        //         null, // available null if not calculated yet
         //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
         //         null,
         //     ]
