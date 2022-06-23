@@ -6146,7 +6146,7 @@ module.exports = class binance extends Exchange {
             'symbol': symbol,
         });
     }
-   
+
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
