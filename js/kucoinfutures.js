@@ -1624,7 +1624,7 @@ module.exports = class kucoinfutures extends kucoin {
         //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
         //     }
         //
-        const timestamp = this.safeString (transfer, 'updatedAt');
+        const timestamp = this.safeInteger (transfer, 'updatedAt');
         return {
             'id': this.safeString (transfer, 'applyId'),
             'timestamp': timestamp,
