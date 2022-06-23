@@ -4,6 +4,7 @@ global.log = require ('ololog') // for easier debugging
 
 const { Exchange, index, aggregate, unCamelCase } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
+const { TICK_SIZE, DECIMAL_PLACES } = require('../../base/functions/number')
 
 require ('./functions/test.generic')
 require ('./functions/test.time')
@@ -32,6 +33,7 @@ function testCalculateFee() {
         'markets': {
             'FOO/BAR': market,
         },
+        'precisionMode': TICK_SIZE,
     })
 
     market['precision'] =  {
@@ -61,6 +63,7 @@ function testExchangeConfigExtension () {
         'markets': {
             'ETH/BTC': { 'limits': { cost }, precision },
         },
+        'precisionMode': DECIMAL_PLACES,
     })
 
     deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
