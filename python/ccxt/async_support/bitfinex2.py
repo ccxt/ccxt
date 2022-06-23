@@ -62,6 +62,7 @@ class bitfinex2(Exchange):
                 'fetchDepositAddress': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -69,6 +70,7 @@ class bitfinex2(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -1835,8 +1837,7 @@ class bitfinex2(Exchange):
         request = {
             'op_renew': 1,
         }
-        response = await self.fetch_deposit_address(code, self.extend(request, params))
-        return response
+        return await self.fetch_deposit_address(code, self.extend(request, params))
 
     async def fetch_deposit_address(self, code, params={}):
         """

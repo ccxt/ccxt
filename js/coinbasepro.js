@@ -39,6 +39,7 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchDepositAddress': undefined, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': true,
                 'fetchLedger': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -47,6 +48,7 @@ module.exports = class coinbasepro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -391,8 +393,8 @@ module.exports = class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'base_min_size'),
-                        'max': this.safeNumber (market, 'base_max_size'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
                         'min': undefined,
@@ -400,7 +402,7 @@ module.exports = class coinbasepro extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'min_market_funds'),
-                        'max': this.safeNumber (market, 'max_market_funds'),
+                        'max': undefined,
                     },
                 },
                 'info': market,

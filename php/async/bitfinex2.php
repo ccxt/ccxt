@@ -48,6 +48,7 @@ class bitfinex2 extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -55,6 +56,7 @@ class bitfinex2 extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -1926,8 +1928,7 @@ class bitfinex2 extends Exchange {
         $request = array(
             'op_renew' => 1,
         );
-        $response = yield $this->fetch_deposit_address($code, array_merge($request, $params));
-        return $response;
+        return yield $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

@@ -2539,7 +2539,7 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.spotPublicGetV2ReferenceCurrencies()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
         #     {
         #       "code": 200,
         #       "data": [

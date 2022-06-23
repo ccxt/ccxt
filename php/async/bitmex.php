@@ -2118,6 +2118,7 @@ class bitmex extends Exchange {
         }
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
+        $contracts = $this->omit_zero($this->safe_number($position, 'currentQty'));
         return array(
             'info' => $position,
             'id' => $this->safe_string($position, 'account'),
@@ -2126,7 +2127,7 @@ class bitmex extends Exchange {
             'datetime' => $datetime,
             'hedged' => null,
             'side' => null,
-            'contracts' => null,
+            'contracts' => $this->convert_value($contracts, $market),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($position, 'avgEntryPrice'),
             'markPrice' => $this->safe_number($position, 'markPrice'),

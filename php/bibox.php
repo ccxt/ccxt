@@ -904,7 +904,7 @@ class bibox extends Exchange {
         $address = $this->safe_string($transaction, 'to_address');
         $currencyId = $this->safe_string($transaction, 'coin_symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->safe_string($transaction, 'createdAt');
+        $timestamp = $this->safe_integer($transaction, 'createdAt');
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
