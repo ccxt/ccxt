@@ -35,8 +35,8 @@ function testCalculateFee() {
     })
 
     market['precision'] =  {
-        'amount': exchange.parseNumber ('0.00000001'),
-        'price': exchange.parseNumber ('0.00000001'),
+        'amount': exchange.parseNumber ('1e-8'),
+        'price': exchange.parseNumber ('1e-8'),
     };
 
     Object.keys (fees).forEach ((takerOrMaker) => {
