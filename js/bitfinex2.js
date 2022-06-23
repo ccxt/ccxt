@@ -132,7 +132,8 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
         //
         const data = this.safeValue (message, 1, []);
         let ohlcvs = undefined;
-        if (Array.isArray (data)) {
+        const first = this.safeValue (data, 0);
+        if (Array.isArray (first)) {
             // snapshot
             ohlcvs = data;
         } else {
@@ -157,8 +158,9 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const ohlcv = ohlcvs[i];
+        const ohlcvsLength = ohlcvs.length;
+        for (let i = 0; i < ohlcvsLength; i++) {
+            const ohlcv = ohlcvs[ohlcvsLength - i - 1];
             const parsed = this.parseOHLCV (ohlcv, market);
             stored.append (parsed);
         }
