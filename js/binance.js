@@ -6112,11 +6112,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-<<<<<<< binanceRepayMarginLoan
     async repayMargin (code, amount, symbol = undefined, params = {}) {
-=======
-    async borrowMargin (code, amount, symbol = undefined, params = {}) {
->>>>>>> master
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -6131,21 +6127,48 @@ module.exports = class binance extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
         if (marginMode === 'isolated') {
             if (symbol === undefined) {
-<<<<<<< binanceRepayMarginLoan
                 throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-=======
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
->>>>>>> master
             }
             request['isIsolated'] = 'TRUE';
             request['symbol'] = market['id'];
         }
         params = this.omit (params, 'marginMode');
-<<<<<<< binanceRepayMarginLoan
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
-=======
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+   
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['isIsolated'] = 'TRUE';
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginLoan (this.extend (request, params));
->>>>>>> master
         //
         //     {
         //         "tranId": 108988250265,
