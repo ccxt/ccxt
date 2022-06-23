@@ -6022,6 +6022,7 @@ class binance extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
         $currency = $this->currency($code);
         $request = array(
