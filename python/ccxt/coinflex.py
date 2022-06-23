@@ -957,12 +957,12 @@ class coinflex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'marketCode')
-            timestamp = self.safe_string(entry, 'timestamp')
+            timestamp = self.safe_integer(entry, 'timestamp')
             result.append({
                 'symbol': self.safe_symbol(marketId, market),
                 'code': None,
-                'timestamp': self.parse8601(timestamp),
-                'datetime': timestamp,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
                 'id': None,
                 'amount': self.safe_number(entry, 'payment'),
                 'info': entry,
