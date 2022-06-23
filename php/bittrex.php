@@ -242,6 +242,12 @@ class bittrex extends Exchange {
                 'fetchTickers' => array(
                     'method' => 'publicGetMarketsTickers', // publicGetMarketsSummaries
                 ),
+                'fetchDeposits' => array(
+                    'status' => 'ok',
+                ),
+                'fetchWithdrawals' => array(
+                    'status' => 'ok',
+                ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
                 // With certain currencies, like
@@ -1344,11 +1350,37 @@ class bittrex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $response = $this->privateGetDepositsClosed (array_merge($request, $params));
+        $method = null;
+        $options = $this->safe_value($this->options, 'fetchDeposits', array());
+        $defaultStatus = $this->safe_string($options, 'status', 'ok');
+        $status = $this->safe_string($params, 'status', $defaultStatus);
+        if ($status === 'pending') {
+            $method = 'privateGetDepositsOpen';
+        } else {
+            $method = 'privateGetDepositsClosed';
+        }
+        $params = $this->omit($params, 'status');
+        $response = $this->$method (array_merge($request, $params));
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return $this->parse_transactions($response, $currency, $since, $limit);
         return $this->parse_transactions($response, $currency, null, $limit);
+    }
+
+    public function fetch_pending_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all pending deposits made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -1394,42 +1426,68 @@ class bittrex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $response = $this->privateGetWithdrawalsClosed (array_merge($request, $params));
+        $method = null;
+        $options = $this->safe_value($this->options, 'fetchWithdrawals', array());
+        $defaultStatus = $this->safe_string($options, 'status', 'ok');
+        $status = $this->safe_string($params, 'status', $defaultStatus);
+        if ($status === 'pending') {
+            $method = 'privateGetWithdrawalsOpen';
+        } else {
+            $method = 'privateGetWithdrawalsClosed';
+        }
+        $params = $this->omit($params, 'status');
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_pending_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all pending withdrawals made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "id" => "d00fdf2e-df9e-48f1-....",
-        //         "currencySymbol" => "BTC",
-        //         "quantity" => "0.00550000",
-        //         "cryptoAddress" => "1PhmYjnJPZH5NUwV8AU...",
-        //         "txId" => "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        //         "confirmations" => 2,
-        //         "updatedAt" => "2020-01-12T16:49:30.41Z",
-        //         "completedAt" => "2020-01-12T16:49:30.41Z",
-        //         "status" => "COMPLETED",
-        //         "source" => "BLOCKCHAIN"
-        //     }
+        //      {
+        //          "id" => "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        //          "currencySymbol" => "ETH",
+        //          "quantity" => "0.36487773",
+        //          "cryptoAddress" => "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        //          "txId" => "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        //          "confirmations" => 44,
+        //          "updatedAt" => "2017-12-28T13:57:42.753Z",
+        //          "completedAt" => "2017-12-28T13:57:42.753Z",
+        //          "status" => "COMPLETED",
+        //          "source" => "BLOCKCHAIN"
+        //      }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
+        //      {
+        //          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        //          "currencySymbol":"OMG",
+        //          "quantity":"2.67000000",
+        //          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        //          "cryptoAddressTag":"",
+        //          "txCost":"0.10000000",
+        //          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        //          "status":"COMPLETED",
+        //          "createdAt":"2017-12-16T20:46:22.5Z",
+        //          "completedAt":"2017-12-16T20:48:03.887Z",
+        //          "target":"BLOCKCHAIN"
+        //      }
         //
         // withdraw
         //
@@ -1445,6 +1503,14 @@ class bittrex extends Exchange {
         $id = $this->safe_string_2($transaction, 'id', 'clientWithdrawalId');
         $amount = $this->safe_number($transaction, 'quantity');
         $address = $this->safe_string($transaction, 'cryptoAddress');
+        $addressTo = null;
+        $addressFrom = null;
+        $isDeposit = $this->safe_string($transaction, 'source') === 'BLOCKCHAIN';
+        if ($isDeposit) {
+            $addressFrom = $address;
+        } else {
+            $addressTo = $address;
+        }
         $txid = $this->safe_string($transaction, 'txId');
         $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
         $opened = $this->parse8601($this->safe_string($transaction, 'createdAt'));
@@ -1493,8 +1559,8 @@ class bittrex extends Exchange {
             'amount' => $amount,
             'network' => null,
             'address' => $address,
-            'addressTo' => null,
-            'addressFrom' => null,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
