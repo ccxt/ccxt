@@ -1098,23 +1098,47 @@ module.exports = class okx extends Exchange {
         //
         const response = await this.privateGetAssetCurrencies (params);
         //
-        //     {
-        //         "code" :"0",
-        //         "data": [
-        //             {
-        //                 "canDep": true,
-        //                 "canInternal": true,
-        //                 "canWd": true,
-        //                 "ccy": "USDT",
-        //                 "chain": "USDT-ERC20",
-        //                 "maxFee": "40",
-        //                 "minFee": "20",
-        //                 "minWd": "2",
-        //                 "name": ""
-        //             }
-        //         ],
-        //         "msg": ""
-        //     }
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-TRC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "1.6",
+        //                "maxWd": "8852150",
+        //                "minFee": "0.8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-ERC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "16",
+        //                "maxWd": "8852150",
+        //                "minFee": "8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
@@ -1129,6 +1153,7 @@ module.exports = class okx extends Exchange {
             let currencyActive = false;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
+            let maxPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
@@ -1160,34 +1185,41 @@ module.exports = class okx extends Exchange {
                         // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
                         network = code;
                     }
+                    const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'wdTickSz')));
+                    if (maxPrecision === undefined) {
+                        maxPrecision = precision;
+                    } else {
+                        maxPrecision = Math.max (maxPrecision, precision);
+                    }
                     networks[network] = {
-                        'info': chain,
                         'id': networkId,
                         'network': network,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': undefined,
+                        'precision': precision,
                         'limits': {
                             'withdraw': {
                                 'min': this.safeNumber (chain, 'minWd'),
-                                'max': undefined,
+                                'max': this.safeNumber (chain, 'maxWd'),
                             },
                         },
+                        'info': chain,
                     };
                 }
             }
+            const firstChain = this.safeValue (chains, 0);
             result[code] = {
                 'info': undefined,
                 'code': code,
                 'id': currencyId,
-                'name': undefined,
+                'name': this.safeString (firstChain, 'name'),
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': maxPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -2004,7 +2036,7 @@ module.exports = class okx extends Exchange {
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    let notional = this.safeNumber (params, 'sz');
+                    let notional = this.safeNumber2 (params, 'cost', 'sz');
                     const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
@@ -2012,12 +2044,13 @@ module.exports = class okx extends Exchange {
                                 notional = amount * price;
                             }
                         } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
                     request['sz'] = this.costToPrecision (symbol, notional);
+                    params = this.omit (params, [ 'cost', 'sz' ]);
                 }
             }
             if (marketIOC && contract) {

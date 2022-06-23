@@ -2031,6 +2031,7 @@ class bitmex(Exchange):
             notional = Precise.string_mul(self.safe_string(position, 'foreignNotional'), '-1')
         maintenanceMargin = self.safe_number(position, 'maintMargin')
         unrealisedPnl = self.safe_number(position, 'unrealisedPnl')
+        contracts = self.omit_zero(self.safe_number(position, 'currentQty'))
         return {
             'info': position,
             'id': self.safe_string(position, 'account'),
@@ -2039,7 +2040,7 @@ class bitmex(Exchange):
             'datetime': datetime,
             'hedged': None,
             'side': None,
-            'contracts': None,
+            'contracts': self.convert_value(contracts, market),
             'contractSize': None,
             'entryPrice': self.safe_number(position, 'avgEntryPrice'),
             'markPrice': self.safe_number(position, 'markPrice'),

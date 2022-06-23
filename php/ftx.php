@@ -72,6 +72,7 @@ class ftx extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -84,6 +85,7 @@ class ftx extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -922,7 +924,7 @@ class ftx extends Exchange {
          * @param {dict} $params extra parameters specific to the ftx api endpoint
          * @param {str|null} $params->price "index" for index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         $this->load_markets();
         list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
@@ -1850,6 +1852,7 @@ class ftx extends Exchange {
          * @param {str} $id order $id
          * @param {str|null} $symbol not used by ftx cancelOrder ()
          * @param {dict} $params extra parameters specific to the ftx api endpoint
+         * @param {bool} $params->stop true if cancelling a stop/trigger order
          * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
@@ -1859,18 +1862,19 @@ class ftx extends Exchange {
         $options = $this->safe_value($this->options, 'cancelOrder', array());
         $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $type = $this->safe_value($params, 'type');
+        $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
+        $stop = $this->safe_value($params, 'stop');
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
             $request['order_id'] = intval($id);
-            if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
                 $method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             $request['client_order_id'] = $clientOrderId;
             $method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
+        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {

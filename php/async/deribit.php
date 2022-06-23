@@ -53,6 +53,7 @@ class deribit extends Exchange {
                 'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -63,6 +64,7 @@ class deribit extends Exchange {
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -2225,6 +2227,7 @@ class deribit extends Exchange {
             $code = $this->code_from_options('fetchPositions', $params);
         } elseif (gettype($symbols) === 'string') {
             $code = $symbols;
+            $symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
         } else {
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $length = is_array($symbols) ? count($symbols) : 0;

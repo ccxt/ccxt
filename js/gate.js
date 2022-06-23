@@ -404,6 +404,12 @@ module.exports = class gate extends Exchange {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
                 },
+                'timeInForce': {
+                    'GTC': 'gtc',
+                    'IOC': 'ioc',
+                    'PO': 'poc',
+                    'POC': 'poc',
+                },
                 'accountsByType': {
                     'funding': 'spot',
                     'spot': 'spot',
@@ -2220,7 +2226,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gateio api endpoint
          * @param {str|undefined} params.price "mark" or "index" for mark price and index price candles
          * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2441,6 +2447,45 @@ module.exports = class gate extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        //
+        //      [
+        //          {
+        //              "id":"3711449544",
+        //              "create_time":"1655486040",
+        //              "create_time_ms":"1655486040177.599900",
+        //              "currency_pair":"SHIB_USDT",
+        //              "side":"buy",
+        //              "role":"taker",
+        //              "amount":"1360039",
+        //              "price":"0.0000081084",
+        //              "order_id":"169717399644",
+        //              "fee":"2720.078",
+        //              "fee_currency":"SHIB",
+        //              "point_fee":"0",
+        //              "gt_fee":"0"
+        //          }
+        //      ]
+        //
+        const response = await this.fetchMyTrades (symbol, since, limit, { 'order_id': id });
+        return response;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2866,20 +2911,20 @@ module.exports = class gate extends Exchange {
          * @param {str} type 'limit' or 'market' *"market" is contract only*
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float|undefined} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} params  Extra parameters specific to the exchange API endpoint
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {str} params.timeInForce "GTC", "IOC", or "PO"
-         * @param {str} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @param {int} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-         * @param {str} params.text User defined information
-         * @param {str} params.account *spot and margin only* "spot", "margin" or "cross_margin"
-         * @param {bool} params.auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
-         * @param {str} params.settle *contract only* Unified Currency Code for settle currency
-         * @param {bool} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool} params.close *contract only* Set as true to close the position, with size set to 0
-         * @param {bool} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns {dict} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {float|undefined} params.stopPrice The price at which a trigger order is triggered at
+         * @param {str|undefined} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {str|undefined} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+         * @param {int|undefined} params.iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {str|undefined} params.text User defined information
+         * @param {str|undefined} params.account *spot and margin only* "spot", "margin" or "cross_margin"
+         * @param {bool|undefined} params.auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
+         * @param {str|undefined} params.settle *contract only* Unified Currency Code for settle currency
+         * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
+         * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
+         * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
+         * @returns {dict|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2898,44 +2943,32 @@ module.exports = class gate extends Exchange {
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLower2 (params, 'time_in_force', 'tif');
         const postOnly = this.isPostOnly (type === 'market', exchangeSpecificTimeInForce === 'poc', params);
+        let timeInForce = this.handleTimeInForce (params);
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        const timeInForce = this.safeStringUpper (params, 'timeInForce'); // supported values GTC, IOC, PO
-        let tif = undefined;
-        if (timeInForce !== undefined) {
-            const timeInForceMapping = {
-                'GTC': 'gtc',
-                'IOC': 'ioc',
-                'PO': 'poc',
-            };
-            tif = this.safeString (timeInForceMapping, timeInForce);
-            if (tif === undefined) {
-                throw new ExchangeError (this.id + ' createOrder() does not support timeInForce "' + timeInForce + '"');
-            }
-        }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ]);
         if (postOnly) {
-            tif = 'poc';
+            timeInForce = 'poc';
         }
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for ' + type + ' orders');
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for ' + type + ' orders');
         }
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
             amount = parseInt (signedAmount);
             if (isMarketOrder) {
-                if ((tif === 'poc') || (tif === 'gtc')) {
-                    throw new ExchangeError (this.id + ' createOrder() timeInForce for market orders must be "IOC"');
+                if ((timeInForce === 'poc') || (timeInForce === 'gtc')) {
+                    throw new ExchangeError (this.id + ' createOrder () timeInForce for market orders must be "IOC"');
                 }
-                tif = 'ioc';
+                timeInForce = 'ioc';
                 price = 0;
             }
         } else if (!isLimitOrder) {
             // exchange doesn't have market orders for spot
-            throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets');
+            throw new InvalidOrder (this.id + ' createOrder () does not support ' + type + ' orders for ' + market['type'] + ' markets');
         }
         let request = undefined;
         if (!isStopOrder && (trigger === undefined)) {
@@ -2957,7 +2990,7 @@ module.exports = class gate extends Exchange {
                     request['reduce_only'] = reduceOnly;
                 }
                 if (timeInForce !== undefined) {
-                    request['tif'] = tif;
+                    request['tif'] = timeInForce;
                 }
             } else {
                 let marginMode = undefined;
@@ -2976,8 +3009,8 @@ module.exports = class gate extends Exchange {
                     // 'auto_borrow': false, // used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     // 'auto_repay': false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 };
-                if (tif !== undefined) {
-                    request['time_in_force'] = tif;
+                if (timeInForce !== undefined) {
+                    request['time_in_force'] = timeInForce;
                 }
             }
             let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
@@ -2987,7 +3020,7 @@ module.exports = class gate extends Exchange {
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (clientOrderId.length > 28) {
-                    throw new BadRequest (this.id + ' createOrder() clientOrderId or text param must be up to 28 characters');
+                    throw new BadRequest (this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
                 params = this.omit (params, [ 'text', 'clientOrderId' ]);
                 if (clientOrderId[0] !== 't') {
@@ -3033,8 +3066,8 @@ module.exports = class gate extends Exchange {
                 if (reduceOnly !== undefined) {
                     request['initial']['reduce_only'] = reduceOnly;
                 }
-                if (tif !== undefined) {
-                    request['initial']['tif'] = tif;
+                if (timeInForce !== undefined) {
+                    request['initial']['tif'] = timeInForce;
                 }
             } else {
                 // spot conditional order
@@ -3072,8 +3105,8 @@ module.exports = class gate extends Exchange {
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
                 }
-                if (tif !== undefined) {
-                    request['put']['time_in_force'] = tif;
+                if (timeInForce !== undefined) {
+                    request['put']['time_in_force'] = timeInForce;
                 }
             }
             methodTail = 'PriceOrders';

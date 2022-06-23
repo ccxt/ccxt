@@ -411,6 +411,12 @@ class gate extends Exchange {
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                 ),
+                'timeInForce' => array(
+                    'GTC' => 'gtc',
+                    'IOC' => 'ioc',
+                    'PO' => 'poc',
+                    'POC' => 'poc',
+                ),
                 'accountsByType' => array(
                     'funding' => 'spot',
                     'spot' => 'spot',
@@ -2193,7 +2199,7 @@ class gate extends Exchange {
          * @param {dict} $params extra parameters specific $to the gateio api endpoint
          * @param {str|null} $params->price "mark" or "index" for mark $price and index $price candles
          * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2410,6 +2416,43 @@ class gate extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
+        }
+        //
+        //      array(
+        //          {
+        //              "id":"3711449544",
+        //              "create_time":"1655486040",
+        //              "create_time_ms":"1655486040177.599900",
+        //              "currency_pair":"SHIB_USDT",
+        //              "side":"buy",
+        //              "role":"taker",
+        //              "amount":"1360039",
+        //              "price":"0.0000081084",
+        //              "order_id":"169717399644",
+        //              "fee":"2720.078",
+        //              "fee_currency":"SHIB",
+        //              "point_fee":"0",
+        //              "gt_fee":"0"
+        //          }
+        //      )
+        //
+        $response = $this->fetch_my_trades($symbol, $since, $limit, array( 'order_id' => $id ));
+        return $response;
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2825,20 +2868,20 @@ class gate extends Exchange {
          * @param {str} $type 'limit' or 'market' *"market" is $contract only*
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float|null} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {dict} $params  Extra parameters specific to the exchange API endpoint
-         * @param {float} $params->stopPrice The $price at which a $trigger order is triggered at
-         * @param {str} $params->timeInForce "GTC", "IOC", or "PO"
-         * @param {str} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @param {int} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
-         * @param {str} $params->text User defined information
-         * @param {str} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
-         * @param {bool} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-         * @param {str} $params->settle *$contract only* Unified Currency Code for settle currency
-         * @param {bool} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool} $params->close *$contract only* Set as true to close the position, with size set to 0
-         * @param {bool} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-         * @return {dict} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
+         * @param {float|null} $params->stopPrice The $price at which a $trigger order is triggered at
+         * @param {str|null} $params->timeInForce "GTC", "IOC", or "PO"
+         * @param {str|null} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {int|null} $params->iceberg Amount to display for the iceberg order, Null or 0 for normal orders, Set to -1 to hide the order completely
+         * @param {str|null} $params->text User defined information
+         * @param {str|null} $params->account *spot and margin only* "spot", "margin" or "cross_margin"
+         * @param {bool|null} $params->auto_borrow *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
+         * @param {str|null} $params->settle *$contract only* Unified Currency Code for settle currency
+         * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
+         * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
+         * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+         * @return {dict|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2857,44 +2900,32 @@ class gate extends Exchange {
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         $exchangeSpecificTimeInForce = $this->safe_string_lower_2($params, 'time_in_force', 'tif');
         $postOnly = $this->is_post_only($type === 'market', $exchangeSpecificTimeInForce === 'poc', $params);
+        $timeInForce = $this->handle_time_in_force($params);
         // we only omit the unified $params here
         // this is because the other $params will get extended into the $request
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
-        $tif = null;
-        if ($timeInForce !== null) {
-            $timeInForceMapping = array(
-                'GTC' => 'gtc',
-                'IOC' => 'ioc',
-                'PO' => 'poc',
-            );
-            $tif = $this->safe_string($timeInForceMapping, $timeInForce);
-            if ($tif === null) {
-                throw new ExchangeError($this->id . ' createOrder() does not support $timeInForce "' . $timeInForce . '"');
-            }
-        }
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
         if ($postOnly) {
-            $tif = 'poc';
+            $timeInForce = 'poc';
         }
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders');
+            throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for ' . $type . ' orders');
         }
         if ($contract) {
             $amountToPrecision = $this->amount_to_precision($symbol, $amount);
             $signedAmount = ($side === 'sell') ? Precise::string_neg($amountToPrecision) : $amountToPrecision;
             $amount = intval($signedAmount);
             if ($isMarketOrder) {
-                if (($tif === 'poc') || ($tif === 'gtc')) {
-                    throw new ExchangeError($this->id . ' createOrder() $timeInForce for $market orders must be "IOC"');
+                if (($timeInForce === 'poc') || ($timeInForce === 'gtc')) {
+                    throw new ExchangeError($this->id . ' createOrder () $timeInForce for $market orders must be "IOC"');
                 }
-                $tif = 'ioc';
+                $timeInForce = 'ioc';
                 $price = 0;
             }
         } elseif (!$isLimitOrder) {
             // exchange doesn't have $market orders for spot
-            throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
+            throw new InvalidOrder($this->id . ' createOrder () does not support ' . $type . ' orders for ' . $market['type'] . ' markets');
         }
         $request = null;
         if (!$isStopOrder && ($trigger === null)) {
@@ -2904,7 +2935,7 @@ class gate extends Exchange {
                     'contract' => $market['id'], // filled in prepareRequest above
                     'size' => $amount, // int64, positive = bid, negative = ask
                     // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                    'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with $tif set as ioc
+                    'price' => $this->price_to_precision($symbol, $price), // 0 for $market order with tif set as ioc
                     // 'close' => false, // true to close the position, with size set to 0
                     // 'reduce_only' => false, // St as true to be reduce-only order
                     // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
@@ -2916,7 +2947,7 @@ class gate extends Exchange {
                     $request['reduce_only'] = $reduceOnly;
                 }
                 if ($timeInForce !== null) {
-                    $request['tif'] = $tif;
+                    $request['tif'] = $timeInForce;
                 }
             } else {
                 $marginMode = null;
@@ -2935,8 +2966,8 @@ class gate extends Exchange {
                     // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
                     // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 );
-                if ($tif !== null) {
-                    $request['time_in_force'] = $tif;
+                if ($timeInForce !== null) {
+                    $request['time_in_force'] = $timeInForce;
                 }
             }
             $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
@@ -2946,7 +2977,7 @@ class gate extends Exchange {
                 //     no longer than 28 bytes without t- prefix
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (strlen($clientOrderId) > 28) {
-                    throw new BadRequest($this->id . ' createOrder() $clientOrderId or text param must be up to 28 characters');
+                    throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
                 }
                 $params = $this->omit($params, array( 'text', 'clientOrderId' ));
                 if ($clientOrderId[0] !== 't') {
@@ -2992,8 +3023,8 @@ class gate extends Exchange {
                 if ($reduceOnly !== null) {
                     $request['initial']['reduce_only'] = $reduceOnly;
                 }
-                if ($tif !== null) {
-                    $request['initial']['tif'] = $tif;
+                if ($timeInForce !== null) {
+                    $request['initial']['tif'] = $timeInForce;
                 }
             } else {
                 // spot conditional order
@@ -3031,8 +3062,8 @@ class gate extends Exchange {
                         'expiration' => $expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     );
                 }
-                if ($tif !== null) {
-                    $request['put']['time_in_force'] = $tif;
+                if ($timeInForce !== null) {
+                    $request['put']['time_in_force'] = $timeInForce;
                 }
             }
             $methodTail = 'PriceOrders';

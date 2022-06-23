@@ -372,13 +372,9 @@ class delta extends Exchange {
         $response = $this->publicGetProducts ($params);
         //
         //     {
-        //         "meta":array(
-        //             "after":null,
-        //             "before":null,
-        //             "limit":100,
-        //             "total_count":81
-        //         ),
+        //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
         //         "result":[
+        //             // the below $response represents item from perpetual $market
         //             array(
         //                 "annualized_funding":"5.475000000000000000",
         //                 "is_quanto":false,
@@ -437,6 +433,117 @@ class delta extends Exchange {
         //                 "funding_method":"mark_price",
         //                 "max_leverage_notional":"20000"
         //             ),
+        //             // the below $response represents item from $spot $market
+        //             array(
+        //                 "position_size_limit" => 10000000,
+        //                 "settlement_price" => null,
+        //                 "funding_method" => "mark_price",
+        //                 "settling_asset" => null,
+        //                 "impact_size" => 10,
+        //                 "id" => 32258,
+        //                 "auction_finish_time" => null,
+        //                 "description" => "Solana tether $spot $market",
+        //                 "trading_status" => "operational",
+        //                 "tick_size" => "0.01",
+        //                 "liquidation_penalty_factor" => "1",
+        //                 "spot_index" => array(
+        //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
+        //                     "constituent_exchanges" => array(
+        //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
+        //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
+        //                     ),
+        //                     "constituent_indices" => null,
+        //                     "description" => "Solana index from binance and huobi",
+        //                     "health_interval" => 300,
+        //                     "id" => 105,
+        //                     "impact_size" => "40.000000000000000000",
+        //                     "index_type" => "spot_pair",
+        //                     "is_composite" => false,
+        //                     "price_method" => "ltp",
+        //                     "quoting_asset_id" => 5,
+        //                     "symbol" => ".DESOLUSDT",
+        //                     "tick_size" => "0.000100000000000000",
+        //                     "underlying_asset_id" => 66
+        //                 ),
+        //                 "contract_type" => "spot",
+        //                 "launch_time" => "2022-02-03T10:18:11Z",
+        //                 "symbol" => "SOL_USDT",
+        //                 "disruption_reason" => null,
+        //                 "settlement_time" => null,
+        //                 "insurance_fund_margin_contribution" => "1",
+        //                 "is_quanto" => false,
+        //                 "maintenance_margin" => "5",
+        //                 "taker_commission_rate" => "0.0005",
+        //                 "auction_start_time" => null,
+        //                 "max_leverage_notional" => "10000000",
+        //                 "state" => "live",
+        //                 "annualized_funding" => "0",
+        //                 "notional_type" => "vanilla",
+        //                 "price_band" => "100",
+        //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
+        //                 "default_leverage" => "1.000000000000000000",
+        //                 "initial_margin" => "10",
+        //                 "maintenance_margin_scaling_factor" => "1",
+        //                 "ui_config" => array(
+        //                     "default_trading_view_candle" => "1d",
+        //                     "leverage_slider_values" => array(),
+        //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
+        //                     "show_bracket_orders" => false,
+        //                     "sort_priority" => 2,
+        //                     "tags" => array()
+        //                 ),
+        //                 "basis_factor_max_limit" => "10000",
+        //                 "contract_unit_currency" => "SOL",
+        //                 "strike_price" => null,
+        //                 "quoting_asset" => array(
+        //                     "base_withdrawal_fee" => "10.000000000000000000",
+        //                     "deposit_status" => "enabled",
+        //                     "id" => 5,
+        //                     "interest_credit" => false,
+        //                     "interest_slabs" => null,
+        //                     "kyc_deposit_limit" => "100000.000000000000000000",
+        //                     "kyc_withdrawal_limit" => "10000.000000000000000000",
+        //                     "min_withdrawal_amount" => "30.000000000000000000",
+        //                     "minimum_precision" => 2,
+        //                     "name" => "Tether",
+        //                     "networks" => array(
+        //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
+        //                     ),
+        //                     "precision" => 8,
+        //                     "sort_priority" => 1,
+        //                     "symbol" => "USDT",
+        //                     "variable_withdrawal_fee" => "0.000000000000000000",
+        //                     "withdrawal_status" => "enabled"
+        //                 ),
+        //                 "maker_commission_rate" => "0.0005",
+        //                 "initial_margin_scaling_factor" => "2",
+        //                 "underlying_asset" => array(
+        //                     "base_withdrawal_fee" => "0.000000000000000000",
+        //                     "deposit_status" => "enabled",
+        //                     "id" => 66,
+        //                     "interest_credit" => false,
+        //                     "interest_slabs" => null,
+        //                     "kyc_deposit_limit" => "0.000000000000000000",
+        //                     "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                     "min_withdrawal_amount" => "0.020000000000000000",
+        //                     "minimum_precision" => 4,
+        //                     "name" => "Solana",
+        //                     "networks" => array(
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
+        //                     ),
+        //                     "precision" => 8,
+        //                     "sort_priority" => 7,
+        //                     "symbol" => "SOL",
+        //                     "variable_withdrawal_fee" => "0.000000000000000000",
+        //                     "withdrawal_status" => "enabled"
+        //                 ),
+        //                 "barrier_price" => null,
+        //                 "contract_value" => "1",
+        //                 "short_description" => "SOL-USDT $spot $market"
+        //             ),
         //         ],
         //         "success":true
         //     }
@@ -450,6 +557,7 @@ class delta extends Exchange {
             $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
             $settlingAsset = $this->safe_value($market, 'settling_asset');
+            $productSpecs = $this->safe_value($market, 'product_specs', array());
             $baseId = $this->safe_string($underlyingAsset, 'symbol');
             $quoteId = $this->safe_string($quotingAsset, 'symbol');
             $settleId = $this->safe_string($settlingAsset, 'symbol');
@@ -469,6 +577,13 @@ class delta extends Exchange {
             $expiryDatetime = $this->safe_string($market, 'settlement_time');
             $expiry = $this->parse8601($expiryDatetime);
             $contractSize = $this->safe_number($market, 'contract_value');
+            $amountPrecision = null;
+            if ($spot) {
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
+            } else {
+                // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
+                $amountPrecision = $this->parse_number('1');
+            }
             $linear = ($settle === $base);
             $optionType = null;
             $symbol = $base . '/' . $quote;
@@ -526,7 +641,7 @@ class delta extends Exchange {
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
-                    'amount' => $this->parse_number('1'), // number of contracts
+                    'amount' => $amountPrecision,
                     'price' => $this->safe_number($market, 'tick_size'),
                 ),
                 'limits' => array(

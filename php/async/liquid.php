@@ -203,18 +203,23 @@ class liquid extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
-                'API Authentication failed' => '\\ccxt\\AuthenticationError',
-                'Nonce is too small' => '\\ccxt\\InvalidNonce',
-                'Order not found' => '\\ccxt\\OrderNotFound',
-                'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
-                'Can not update non-live order' => '\\ccxt\\OrderNotFound',
-                'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
-                'must_be_positive' => '\\ccxt\\InvalidOrder',
-                'less_than_order_size' => '\\ccxt\\InvalidOrder',
-                'price_too_high' => '\\ccxt\\InvalidOrder',
-                'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
-                'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                'exact' => array(
+                    'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
+                    'API Authentication failed' => '\\ccxt\\AuthenticationError',
+                    'Nonce is too small' => '\\ccxt\\InvalidNonce',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
+                    'Can not update non-live order' => '\\ccxt\\OrderNotFound',
+                    'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
+                    'must_be_positive' => '\\ccxt\\InvalidOrder',
+                    'less_than_order_size' => '\\ccxt\\InvalidOrder',
+                    'price_too_high' => '\\ccxt\\InvalidOrder',
+                    'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
+                    'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                ),
+                'broad' => array(
+                    'is not in your IP whitelist' => '\\ccxt\\AuthenticationError', // array("message":"95.145.188.43 is not in your IP whitelist")
+                ),
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'BIFIF',
@@ -1563,7 +1568,7 @@ class liquid extends Exchange {
         }
         if ($code === 401) {
             // expected non-json $response
-            $this->throw_exactly_matched_exception($this->exceptions, $body, $body);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $body, $body);
             return;
         }
         if ($code === 429) {
@@ -1579,7 +1584,8 @@ class liquid extends Exchange {
             //
             //  array( "message" => "Order not found" )
             //
-            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         } elseif ($errors !== null) {
             //
             //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
@@ -1592,7 +1598,7 @@ class liquid extends Exchange {
                 $errorMessages = $errors[$type];
                 for ($j = 0; $j < count($errorMessages); $j++) {
                     $message = $errorMessages[$j];
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 }
             }
         } else {

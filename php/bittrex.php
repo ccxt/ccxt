@@ -53,6 +53,7 @@ class bittrex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
@@ -85,6 +86,7 @@ class bittrex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -1299,6 +1301,23 @@ class bittrex extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency deposit via the deposit $id
+         * @param {str} $id deposit $id
+         * @param {str|null} $code filter by currency $code
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'txId' => $id,
+        );
+        $response = $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
+        $transactions = $this->parse_transactions($response, $code, null, null);
+        return $this->safe_value($transactions, 0);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
@@ -1306,6 +1325,9 @@ class bittrex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -1316,11 +1338,34 @@ class bittrex extends Exchange {
             $currency = $this->currency($code);
             $request['currencySymbol'] = $currency['id'];
         }
+        if ($since !== null) {
+            $request['startDate'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
         $response = $this->privateGetDepositsClosed (array_merge($request, $params));
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return $this->parse_transactions($response, $currency, $since, $limit);
         return $this->parse_transactions($response, $currency, null, $limit);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str|null} $code filter by currency $code
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'txId' => $id,
+        );
+        $response = $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
+        $transactions = $this->parse_transactions($response, $code, null, null);
+        return $this->safe_value($transactions, 0);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1330,6 +1375,9 @@ class bittrex extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
@@ -1339,6 +1387,12 @@ class bittrex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currencySymbol'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startDate'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
         }
         $response = $this->privateGetWithdrawalsClosed (array_merge($request, $params));
         return $this->parse_transactions($response, $currency, $since, $limit);

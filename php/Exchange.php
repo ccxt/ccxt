@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.87.74';
+$version = '1.88.45';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.87.74';
+    const VERSION = '1.88.45';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -293,6 +293,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
         'safeOrder' => 'safe_order',
@@ -416,6 +417,7 @@ class Exchange {
         'fetchMarkOHLCV' => 'fetch_mark_ohlcv',
         'fetchIndexOHLCV' => 'fetch_index_ohlcv',
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
+        'handleTimeInForce' => 'handle_time_in_force',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2438,6 +2440,53 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function safe_ledger_entry($entry, $currency = null) {
+        $currency = $this->safe_currency(null, $currency);
+        $direction = $this->safe_string($entry, 'direction');
+        $before = $this->safe_string($entry, 'before');
+        $after = $this->safe_string($entry, 'after');
+        $amount = $this->safe_string($entry, 'amount');
+        if ($amount !== null) {
+            if ($before === null && $after !== null) {
+                $before = Precise::string_sub($after, $amount);
+            } elseif ($before !== null && $after === null) {
+                $after = Precise::string_add($before, $amount);
+            }
+        }
+        if ($before !== null && $after !== null) {
+            if ($direction === null) {
+                if (Precise::string_gt($before, $after)) {
+                    $direction = 'out';
+                }
+                if (Precise::string_gt($after, $before)) {
+                    $direction = 'in';
+                }
+            }
+        }
+        $fee = $this->safe_value($entry, 'fee');
+        if ($fee !== null) {
+            $fee['cost'] = $this->safe_number($fee, 'cost');
+        }
+        $timestamp = $this->safe_integer($entry, 'timestamp');
+        return array(
+            'id' => $this->safe_string($entry, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'direction' => $direction,
+            'account' => $this->safe_string($entry, 'account'),
+            'referenceId' => $this->safe_string($entry, 'referenceId'),
+            'referenceAccount' => $this->safe_string($entry, 'referenceAccount'),
+            'type' => $this->safe_string($entry, 'type'),
+            'currency' => $currency['code'],
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => $this->safe_string($entry, 'status'),
+            'fee' => $fee,
+            'info' => $entry,
+        );
+    }
+
     public function set_markets($markets, $currencies = null) {
         $values = array();
         $marketValues = $this->to_array($markets);
@@ -4222,5 +4271,22 @@ class Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function handle_time_in_force($params = array ()) {
+        /**
+         * @ignore
+         * * Must add $timeInForce to $this->options to use this method
+         * @return {str} returns the exchange specific value for $timeInForce
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        if ($timeInForce !== null) {
+            $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
+            if ($exchangeValue === null) {
+                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+            }
+            return $exchangeValue;
+        }
+        return null;
     }
 }
