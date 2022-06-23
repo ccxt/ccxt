@@ -2054,20 +2054,37 @@ module.exports = class Exchange {
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
-        const methodOptions = this.safeValue (this.options, methodName);
-        let methodType = defaultType;
-        if (methodOptions !== undefined) {
-            if (typeof methodOptions === 'string') {
-                methodType = methodOptions;
+        let marketType = undefined;
+        // at first, the priority is taken by `defaultType` (if present) param
+        const marketTypeFromParams = this.safeString2 (params, 'defaultType', 'type');
+        if (marketTypeFromParams !== undefined) {
+            marketType = marketTypeFromParams;
+            // omit only if they were present
+            params = this.omit (params, [ 'defaultType', 'type' ]);
+        } else {
+            if (market !== undefined) {
+                // if market object was present, then set it's type
+                marketType = market['type'];
             } else {
-                methodType = this.safeString2 (methodOptions, 'defaultType', 'type', methodType);
+                // check if market-type was present in method-specific options
+                const methodOptions = this.safeValue (this.options, methodName);
+                if (methodOptions !== undefined) {
+                    if (typeof methodOptions === 'string') {
+                        // if it was string, then it is old approach, which held market-type. There are no other cases, when it could have been other kind of string
+                        marketType = methodOptions;
+                    } else {
+                        // otherwise, try to get the market-type from target method's options
+                        marketType = this.safeString2 (methodOptions, 'defaultType', 'type');
+                    }
+                }
+                // if market-type was not defined in method-specific options too, fallback to exchange-wide options
+                if (marketType === undefined) {
+                    // market type defined in exchange-wide options (if neither that's present, fallback to 'spot')
+                    marketType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
+                }
             }
         }
-        const marketType = (market === undefined) ? methodType : market['type'];
-        const type = this.safeString2 (params, 'defaultType', 'type', marketType);
-        params = this.omit (params, [ 'defaultType', 'type' ]);
-        return [ type, params ];
+        return [ marketType, params ];
     }
 
     throwExactlyMatchedException (exact, string, message) {
