@@ -56,7 +56,7 @@ function testExchangeConfigExtension () {
 
 
     const cost = { 'min': 0.001, 'max': 1000 }
-    const precision = { 'amount': exchange.parseNumber ('1e-3') }
+    const precision = { 'amount': exchange.parseNumber ('3') }
     const exchange = new binance ({
         'markets': {
             'ETH/BTC': { 'limits': { cost }, precision },
@@ -64,7 +64,7 @@ function testExchangeConfigExtension () {
     })
 
     deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
-    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': exchange.parseNumber ('1e-6'), 'amount': exchange.parseNumber ('1e-3') })
+    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': exchange.parseNumber ('6'), 'amount': exchange.parseNumber ('3') })
     deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
 }
 
