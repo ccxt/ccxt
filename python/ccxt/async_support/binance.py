@@ -5681,6 +5681,7 @@ class binance(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
