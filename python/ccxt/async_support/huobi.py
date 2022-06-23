@@ -4761,7 +4761,7 @@ class huobi(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'contract_code')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'funding_time')
+            timestamp = self.safe_integer(entry, 'funding_time')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
