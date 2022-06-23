@@ -43,6 +43,7 @@ export default class bittrex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -75,6 +76,7 @@ export default class bittrex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1321,6 +1323,25 @@ export default class bittrex extends Exchange {
         return this.parseOrders (orders, market);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchWithdrawal
+         * @description fetch data on a currency deposit via the deposit id
+         * @param {str} id deposit id
+         * @param {str|undefined} code filter by currency code
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        return this.safeValue (transactions, 0);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1330,6 +1351,9 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1340,11 +1364,36 @@ export default class bittrex extends Exchange {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
         }
+        if (since !== undefined) {
+            request['startDate'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
         const response = await this.privateGetDepositsClosed (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return this.parseTransactions (response, currency, since, limit);
         return this.parseTransactions (response, currency, undefined, limit);
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code filter by currency code
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        return this.safeValue (transactions, 0);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1356,6 +1405,9 @@ export default class bittrex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1365,6 +1417,12 @@ export default class bittrex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
         }
         const response = await this.privateGetWithdrawalsClosed (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);

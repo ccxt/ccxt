@@ -1210,7 +1210,7 @@ export default class wavesexchange extends Exchange {
     priceFromPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const scale = wavesPrecision - this.sum (market['precision']['amount'], market['precision']['price']);
+        const scale = this.sum (wavesPrecision, market['precision']['price']) - market['precision']['amount'];
         return this.fromPrecision (price, scale);
     }
 

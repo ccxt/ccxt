@@ -920,7 +920,7 @@ export default class bibox extends Exchange {
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeString (transaction, 'createdAt');
+        const timestamp = this.safeInteger (transaction, 'createdAt');
         let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);

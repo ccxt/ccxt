@@ -26,6 +26,7 @@ export default class binance extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -6104,6 +6105,59 @@ export default class binance extends Exchange {
             'amountBorrowed': this.safeNumber (info, 'principal'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['isIsolated'] = 'TRUE';
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this.sapiPostMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'tranId'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
