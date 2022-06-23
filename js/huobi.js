@@ -5079,7 +5079,7 @@ module.exports = class huobi extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'contract_code');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'funding_time');
+            const timestamp = this.safeInteger (entry, 'funding_time');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
