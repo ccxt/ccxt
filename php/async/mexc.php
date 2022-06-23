@@ -3172,7 +3172,7 @@ class mexc extends Exchange {
         $result = array();
         for ($i = 0; $i < count($resultList); $i++) {
             $entry = $resultList[$i];
-            $timestamp = $this->safe_string($entry, 'settleTime');
+            $timestamp = $this->safe_integer($entry, 'settleTime');
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
