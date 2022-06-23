@@ -468,7 +468,7 @@ class Exchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
-        return (is_array($object) && array_key_exists($key, $object)) ? $object[$key] : $default_value;
+        return (is_array($object) && isset($object[$key])) ? $object[$key] : $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here
