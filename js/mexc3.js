@@ -2948,7 +2948,7 @@ module.exports = class mexc3 extends Exchange {
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             result.push ({
                 'info': entry,
                 'symbol': symbol,
