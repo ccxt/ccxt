@@ -61,6 +61,7 @@ class bybit extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -4705,6 +4706,73 @@ class bybit extends Exchange {
             throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
         }
         return yield $this->$method (array_merge($request, $params));
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+        /**
+         * Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @param {str} $symbol Unified $market $symbol
+         * @param {str} $timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {int} $since Not used by Bybit
+         * @param {int} $limit The number of open interest structures to return. Max 200, default 50
+         * @param {dict} $params Exchange specific parameters
+         * @return An array of open interest structures
+         */
+        if ($timeframe === '1m') {
+            throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'period' => $timeframe,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->publicGetV2PublicOpenInterest (array_merge($request, $params));
+        //
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "OK",
+        //        "ext_code" => "",
+        //        "ext_info" => "",
+        //        "result" => array(
+        //            array(
+        //                "open_interest" => 805604444,
+        //                "timestamp" => 1645056000,
+        //                "symbol" => "BTCUSD"
+        //            ),
+        //            ...
+        //        ),
+        //        "time_now" => "1645085118.727358"
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_open_interests($result, $market, $since, $limit);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    {
+        //        "open_interest" => 805604444,
+        //        "timestamp" => 1645056000,
+        //        "symbol" => "BTCUSD"
+        //    }
+        //
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $timestamp = $this->safe_timestamp($interest, 'timestamp');
+        $numContracts = $this->safe_string($interest, 'open_interest');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => Precise::string_mul($numContracts, $contractSize),
+            'quoteVolume' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

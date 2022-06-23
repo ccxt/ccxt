@@ -45,6 +45,7 @@ class hitbtc3(Exchange):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -182,6 +183,7 @@ class hitbtc3(Exchange):
                         'margin/order': 1,
                         'futures/order': 1,
                         'wallet/convert': 15,
+                        'wallet/crypto/address': 15,
                         'wallet/crypto/withdraw': 15,
                         'wallet/transfer': 15,
                         'sub-account/freeze': 15,
@@ -598,6 +600,38 @@ class hitbtc3(Exchange):
             return None
         else:
             return networkId.upper()
+
+    def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        network = self.safe_string_upper(params, 'network')
+        if (network is not None) and (code == 'USDT'):
+            networks = self.safe_value(self.options, 'networks')
+            parsedNetwork = self.safe_string(networks, network)
+            if parsedNetwork is not None:
+                request['currency'] = parsedNetwork
+            params = self.omit(params, 'network')
+        response = self.privatePostWalletCryptoAddress(self.extend(request, params))
+        #
+        #  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
+        #
+        currencyId = self.safe_string(response, 'currency')
+        return {
+            'currency': self.safe_currency_code(currencyId),
+            'address': self.safe_string(response, 'address'),
+            'tag': self.safe_string(response, 'payment_id'),
+            'network': None,
+            'info': response,
+        }
 
     def fetch_deposit_address(self, code, params={}):
         """

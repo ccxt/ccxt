@@ -64,6 +64,7 @@ class deribit(Exchange):
                 'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -74,6 +75,7 @@ class deribit(Exchange):
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -2158,6 +2160,7 @@ class deribit(Exchange):
             code = self.code_from_options('fetchPositions', params)
         elif isinstance(symbols, str):
             code = symbols
+            symbols = None  # fix https://github.com/ccxt/ccxt/issues/13961
         else:
             if isinstance(symbols, list):
                 length = len(symbols)

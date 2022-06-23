@@ -43,6 +43,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -50,6 +51,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
+                'fetchPositionMode': false,
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -1963,8 +1965,7 @@ module.exports = class bitfinex2 extends Exchange {
         const request = {
             'op_renew': 1,
         };
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        return response;
+        return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
     async fetchDepositAddress (code, params = {}) {

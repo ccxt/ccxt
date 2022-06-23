@@ -296,6 +296,8 @@ class bitstamp extends Exchange {
                         'ape_address/' => 1,
                         'mpl_withdrawal/' => 1,
                         'mpl_address/' => 1,
+                        'euroc_withdrawal/' => 1,
+                        'euroc_address/' => 1,
                     ),
                 ),
             ),

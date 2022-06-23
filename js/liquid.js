@@ -198,18 +198,23 @@ module.exports = class liquid extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError, // {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
@@ -1594,7 +1599,7 @@ module.exports = class liquid extends Exchange {
         }
         if (code === 401) {
             // expected non-json response
-            this.throwExactlyMatchedException (this.exceptions, body, body);
+            this.throwExactlyMatchedException (this.exceptions['exact'], body, body);
             return;
         }
         if (code === 429) {
@@ -1610,7 +1615,8 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -1623,7 +1629,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 }
             }
         } else {

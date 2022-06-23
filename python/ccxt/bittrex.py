@@ -60,6 +60,7 @@ class bittrex(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
@@ -92,6 +93,7 @@ class bittrex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransactions': None,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1244,6 +1246,22 @@ class bittrex(Exchange):
             orders.append(result)
         return self.parse_orders(orders, market)
 
+    def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch data on a currency deposit via the deposit id
+        :param str id: deposit id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        response = self.privateGetDepositsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, code, None, None)
+        return self.safe_value(transactions, 0)
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
@@ -1251,6 +1269,9 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1260,11 +1281,31 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
+        if since is not None:
+            request['startDate'] = self.iso8601(since)
+        if limit is not None:
+            request['pageSize'] = limit
         response = self.privateGetDepositsClosed(self.extend(request, params))
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        response = self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, code, None, None)
+        return self.safe_value(transactions, 0)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1273,6 +1314,9 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1282,6 +1326,10 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
+        if since is not None:
+            request['startDate'] = self.iso8601(since)
+        if limit is not None:
+            request['pageSize'] = limit
         response = self.privateGetWithdrawalsClosed(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
