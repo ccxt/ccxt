@@ -233,6 +233,12 @@ module.exports = class bittrex extends Exchange {
                 'fetchTickers': {
                     'method': 'publicGetMarketsTickers', // publicGetMarketsSummaries
                 },
+                'fetchDeposits': {
+                    'status': 'ok',
+                },
+                'fetchWithdrawals': {
+                    'status': 'ok',
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 // With certain currencies, like
@@ -1327,7 +1333,7 @@ module.exports = class bittrex extends Exchange {
     async fetchDeposit (id, code = undefined, params = {}) {
         /**
          * @method
-         * @name bittrex#fetchWithdrawal
+         * @name bittrex#fetchDeposit
          * @description fetch data on a currency deposit via the deposit id
          * @param {str} id deposit id
          * @param {str|undefined} code filter by currency code
@@ -1371,11 +1377,39 @@ module.exports = class bittrex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetDepositsClosed (this.extend (request, params));
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchDeposits', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetDepositsOpen';
+        } else {
+            method = 'privateGetDepositsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return this.parseTransactions (response, currency, since, limit);
         return this.parseTransactions (response, currency, undefined, limit);
+    }
+
+    async fetchPendingDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingDeposits
+         * @description fetch all pending deposits made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
@@ -1425,8 +1459,36 @@ module.exports = class bittrex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetWithdrawalsClosed (this.extend (request, params));
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchWithdrawals', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetWithdrawalsOpen';
+        } else {
+            method = 'privateGetWithdrawalsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchPendingWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingWithdrawals
+         * @description fetch all pending withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
     parseTransaction (transaction, currency = undefined) {
