@@ -1270,6 +1270,13 @@ class Transpiler {
         let phpAsync = []
         let methodNames = []
 
+        // check for incorrect references, using: node build/transpile --incorrectMethodReferences [--force]
+        const checkcheckIncorrectMethods = process.argv.includes ('--incorrectMethodReferences');
+        const skippReferencedMethodNames = {'signIn':0, 'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,};
+        const exchangeRef = new Exchange();
+        const exchangeHasItems = exchangeRef.has;
+        const allMethodNames = Object.keys (exchangeHasItems);
+        //
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
             let part = methods[i].trim ()
@@ -1289,6 +1296,41 @@ class Transpiler {
 
             // method name
             let method = matches[2]
+
+            // check if incorrect method referenced
+            if (checkcheckIncorrectMethods) {
+                if (method in exchangeHasItems) {
+                    for (let i = 0; i < allMethodNames.length; i++) {
+                        const currCheckingMethod = allMethodNames[i];
+                        // skip current method name itself
+                        if (method === currCheckingMethod) {
+                            continue;
+                        }
+                        // skip incorrect method names
+                        if (currCheckingMethod in skippReferencedMethodNames) {
+                            continue;
+                        }
+                        // check if other method name [i.e. fetchOrders() without space between name and brackets] is mentioned in method body.
+                        if (
+                            part.match ( new RegExp ('\'(.*?)' + currCheckingMethod + '\\(\\)(.*?)\'', 'g')) 
+                                &&
+                            // If current method is also mentioned, then don't consider such scenarios as mistakes, because there are such valid occasions: Exception('... fetchDepositAddress() can be called only after createDepositAddress()...')
+                            ! part.match ( new RegExp ('\'(.*?)' + method + '\\(\\)(.*?)' + currCheckingMethod  + '\\((.*?)\'', 'g')) 
+                        ) {
+                            log.red ('Note:! ' + className + '>' + method + '() string references include ' + currCheckingMethod + '()');
+                        }
+                        // check inside i.e. fetchTrades() for incorrect reference, like `this.safeValue (o[O]ptions, 'fetchOrders')`
+                        if ( part.indexOf('ptions, \'' + currCheckingMethod + '\'')> -1) {
+                            log.red ('Note:! ' + className + '>' + method + '() incorrectly uses options of \'' + currCheckingMethod + '\'');
+                        }
+
+                        // check inside i.e. fetchTrades() for incorrect reference, i.e. this.handleWhateverParams ('fetchOrders',...)
+                        if ( part.match ( new RegExp ('this\.handle[a-zA-Z] \\(\'' + currCheckingMethod, 'g') ) ) {
+                            log.red ('Note:! ' + className + '>' + method + '() references to string of \'' + currCheckingMethod + '\'');
+                        }
+                    }
+                }
+            }
 
             methodNames.push (method)
 
