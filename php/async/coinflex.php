@@ -2075,7 +2075,7 @@ class coinflex extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'asset');
-        $timestamp = $this->safe_string($transfer, 'transferredAt');
+        $timestamp = $this->safe_integer($transfer, 'transferredAt');
         $fromAccount = $this->safe_string($transfer, 'fromAccount');
         $toAccount = $this->safe_string($transfer, 'toAccount');
         $status = $this->parse_transaction_status($this->safe_string($transfer, 'status'));
