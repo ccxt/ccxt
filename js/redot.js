@@ -132,22 +132,24 @@ module.exports = class redot extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetGetInstruments (params);
-        // {
-        //     "result":[
-        //     {
-        //         "id":"KARTA-USDT",
-        //         "displayName":"KARTA/USDT",
-        //         "type":"spot",
-        //         "base":"KARTA",
-        //         "quote":"USDT",
-        //         "minQty":0.01,
-        //         "maxQty":10000000.0,
-        //         "tickSize":0.01,
-        //         "takerFee":0.0015,
-        //         "makerFee":-0.0005,
-        //         "feeCurrency":"acquired"
-        //     },
-        // }
+        //
+        //    {
+        //        "result":[
+        //        {
+        //            "id":"KARTA-USDT",
+        //            "displayName":"KARTA/USDT",
+        //            "type":"spot",
+        //            "base":"KARTA",
+        //            "quote":"USDT",
+        //            "minQty":0.01,
+        //            "maxQty":10000000.0,
+        //            "tickSize":0.01,
+        //            "takerFee":0.0015,
+        //            "makerFee":-0.0005,
+        //            "feeCurrency":"acquired"
+        //        },
+        //    }
+        //
         const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -226,23 +228,23 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         //
-        // {
-        //     "result":{
-        //     "bids":[
-        //         [
-        //             0.068377,
-        //             1.3247,
-        //         ],
-        //     ],
-        //     "asks":[
-        //         [
-        //             0.068531,
-        //             0.2693,
-        //         ]
-        //     ],
-        //     "time":1642973720071624
-        //     }
-        // }
+        //    {
+        //        "result":{
+        //        "bids":[
+        //            [
+        //                0.068377,
+        //                1.3247,
+        //            ],
+        //        ],
+        //        "asks":[
+        //            [
+        //                0.068531,
+        //                0.2693,
+        //            ]
+        //        ],
+        //        "time":1642973720071624
+        //        }
+        //    }
         //
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeIntegerProduct (result, 'time', 0.001);
@@ -257,21 +259,21 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.publicGetGetTicker (this.extend (request, params));
         //
-        // {
-        //     "result":
-        //     {
-        //     "lastTradeId":7219332,
-        //     "price":0.068708,
-        //     "qty":0.0046,
-        //     "bidPrice":0.068663,
-        //     "askPrice":0.068678,
-        //     "bidQty":0.4254,
-        //     "askQty":0.0506,
-        //     "volumeUsd":315646.03,
-        //     "volume":130.5272,
-        //     "time":1642974178845710
-        //     }
-        // }
+        //   {
+        //       "result":
+        //       {
+        //       "lastTradeId":7219332,
+        //       "price":0.068708,
+        //       "qty":0.0046,
+        //       "bidPrice":0.068663,
+        //       "askPrice":0.068678,
+        //       "bidQty":0.4254,
+        //       "askQty":0.0506,
+        //       "volumeUsd":315646.03,
+        //       "volume":130.5272,
+        //       "time":1642974178845710
+        //       }
+        //   }
         //
         const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
@@ -290,46 +292,51 @@ module.exports = class redot extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetGetLastTrades (this.extend (request, params));
-        // {
-        //     "result":{
-        //     "data":[
-        //         {
-        //             "id":744918,
-        //             "time":1594800000857010,
-        //             "price":0.02594000,
-        //             "qty":0.05800000,
-        //             "side":"buy"
-        //         }
-        //     ],
-        //     "next":false
-        //     }
-        // }
+        //
+        //   {
+        //       "result":{
+        //       "data":[
+        //           {
+        //               "id":744918,
+        //               "time":1594800000857010,
+        //               "price":0.02594000,
+        //               "qty":0.05800000,
+        //               "side":"buy"
+        //           }
+        //       ],
+        //       "next":false
+        //       }
+        //   }
+        //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // fetchTrades
-        //  {
-        //      "id":"7466162",
-        //      "time":"1644601530690620",
-        //      "price":"0.99930000",
-        //      "qty":"116.73700000",
-        //      "side":"buy"
-        //   }
+        //    {
+        //        "id":"7466162",
+        //        "time":"1644601530690620",
+        //        "price":"0.99930000",
+        //        "qty":"116.73700000",
+        //        "side":"buy"
+        //    }
+        //
         // fetchMyTrades
-        // {
-        //     "id":"7465756",
-        //     "instrumentId":"USDC-USDT",
-        //     "price":"0.99760000",
-        //     "qty":"10.00000000",
-        //     "orderId":"1432795030",
-        //     "userSide":"sell",
-        //     "fee":"0.0149640000000000",
-        //     "feeAsset":"USDT",
-        //     "timestamp":"1644598407866177"
-        //  }
+        //    {
+        //        "id":"7465756",
+        //        "instrumentId":"USDC-USDT",
+        //        "price":"0.99760000",
+        //        "qty":"10.00000000",
+        //        "orderId":"1432795030",
+        //        "userSide":"sell",
+        //        "fee":"0.0149640000000000",
+        //        "feeAsset":"USDT",
+        //        "timestamp":"1644598407866177"
+        //    }
+        //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
         const marketId = this.safeString2 (trade, 'i', 'instrumentId');
@@ -363,18 +370,18 @@ module.exports = class redot extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "lastTradeId":7219332,
-        //     "price":0.068708,
-        //     "qty":0.0046,
-        //     "bidPrice":0.068663,
-        //     "askPrice":0.068678,
-        //     "bidQty":0.4254,
-        //     "askQty":0.0506,
-        //     "volumeUsd":315646.03,
-        //     "volume":130.5272,
-        //     "time":1642974178845710
-        // }
+        //    {
+        //        "lastTradeId":7219332,
+        //        "price":0.068708,
+        //        "qty":0.0046,
+        //        "bidPrice":0.068663,
+        //        "askPrice":0.068678,
+        //        "bidQty":0.4254,
+        //        "askQty":0.0506,
+        //        "volumeUsd":315646.03,
+        //        "volume":130.5272,
+        //        "time":1642974178845710
+        //    }
         //
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeString (ticker, 'price');
@@ -411,14 +418,14 @@ module.exports = class redot extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //  {
-        //       "time":1642973286229265,
-        //       "low":0.068584,
-        //       "high":0.068584,
-        //       "open":0.068584,
-        //       "close":0.068584,
-        //       "volume":0.0338
-        //  },
+        //    {
+        //         "time":1642973286229265,
+        //         "low":0.068584,
+        //         "high":0.068584,
+        //         "open":0.068584,
+        //         "close":0.068584,
+        //         "volume":0.0338
+        //    }
         //
         return [
             this.safeIntegerProduct (ohlcv, 'time', 0.001),
@@ -438,18 +445,20 @@ module.exports = class redot extends Exchange {
             'size': this.timeframes[timeframe],
         };
         const response = await this.publicGetGetCandles (this.extend (request, params));
-        // {
-        //     "result":{
-        //     "data":[
-        //         {
-        //             "time":1642973286229265,
-        //             "low":0.068584,
-        //             "high":0.068584,
-        //             "open":0.068584,
-        //             "close":0.068584,
-        //             "volume":0.0338
-        //         },
-        // }
+        //
+        //    {
+        //        "result":{
+        //        "data":[
+        //            {
+        //                "time":1642973286229265,
+        //                "low":0.068584,
+        //                "high":0.068584,
+        //                "open":0.068584,
+        //                "close":0.068584,
+        //                "volume":0.0338
+        //            },
+        //    }
+        //
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -476,18 +485,18 @@ module.exports = class redot extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetGetAccountSummary (params);
         //
-        // {
-        //     "result":{
-        //        "assets":{
-        //           "BTC":{
-        //              "depositAddress":"",
-        //              "balance":{
-        //                 "available":"0.0",
-        //                 "blocked":"0.0",
-        //                 "total":"0.0"
-        //              }
-        //           },
-        // }
+        //  {
+        //      "result":{
+        //         "assets":{
+        //            "BTC":{
+        //               "depositAddress":"",
+        //               "balance":{
+        //                  "available":"0.0",
+        //                  "blocked":"0.0",
+        //                  "total":"0.0"
+        //               }
+        //            },
+        //  }
         //
         const result = this.safeValue (response, 'result', {});
         const assets = this.safeValue (result, 'assets', {});
@@ -499,31 +508,33 @@ module.exports = class redot extends Exchange {
             'orderId': parseInt (id),
         };
         const response = await this.privatePostCancelOrder (this.extend (request, params));
-        // {
-        //     "result": {
-        //       "id": 234,
-        //       "instrumentId": "ETH-BTC",
-        //       "status": "cancelled",
-        //       "type": "limit",
-        //       "side": "sell",
-        //       "qty": 0.02000123,
-        //       "cumQty": 0.01595400,
-        //       "price": 0.02595400,
-        //       "timestamp": 1594800486782215
-        //     }
-        //   }
+        //
+        //   {
+        //       "result": {
+        //         "id": 234,
+        //         "instrumentId": "ETH-BTC",
+        //         "status": "cancelled",
+        //         "type": "limit",
+        //         "side": "sell",
+        //         "qty": 0.02000123,
+        //         "cumQty": 0.01595400,
+        //         "price": 0.02595400,
+        //         "timestamp": 1594800486782215
+        //       }
+        //    }
+        //
         return response;
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.privatePostCancelAllOrders (params);
         //
-        // {
-        //     "result": [
-        //       234,
-        //       456
-        //     ]
-        // }
+        //   {
+        //       "result": [
+        //         234,
+        //         456
+        //       ]
+        //   }
         //
         return response;
     }
@@ -544,25 +555,25 @@ module.exports = class redot extends Exchange {
         }
         const response = await this.privateGetGetOpenOrders (this.extend (request, params));
         //
-        // {
-        //     "result": {
-        //       "data": [
-        //         {
-        //           "id": 234,
-        //           "instrumentId": "ETH-BTC",
-        //           "status": "open",
-        //           "type": "limit",
-        //           "side": "sell",
-        //           "qty": 0.02000123,
-        //           "cumQty": 0.01595400,
-        //           "price": 0.02595400,
-        //           "timestamp": 1594800486782215
-        //         },
-        //         ...
-        //       ],
-        //       "next": true
+        //   {
+        //       "result": {
+        //         "data": [
+        //           {
+        //             "id": 234,
+        //             "instrumentId": "ETH-BTC",
+        //             "status": "open",
+        //             "type": "limit",
+        //             "side": "sell",
+        //             "qty": 0.02000123,
+        //             "cumQty": 0.01595400,
+        //             "price": 0.02595400,
+        //             "timestamp": 1594800486782215
+        //           },
+        //           ...
+        //         ],
+        //         "next": true
+        //       }
         //     }
-        //   }
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data');
@@ -585,25 +596,25 @@ module.exports = class redot extends Exchange {
         }
         const response = await this.privateGetGetOrders (this.extend (request, params));
         //
-        // {
-        //     "result": {
-        //       "data": [
-        //         {
-        //           "id": 234,
-        //           "instrumentId": "ETH-BTC",
-        //           "status": "filled",
-        //           "type": "limit",
-        //           "side": "sell",
-        //           "qty": 0.02000123,
-        //           "cumQty": 0.02000123,
-        //           "price": 0.02595400,
-        //           "timestamp": 1594800486782215
-        //         },
-        //         ...
-        //       ],
-        //       "next": true
-        //     }
-        //   }
+        //   {
+        //       "result": {
+        //         "data": [
+        //           {
+        //             "id": 234,
+        //             "instrumentId": "ETH-BTC",
+        //             "status": "filled",
+        //             "type": "limit",
+        //             "side": "sell",
+        //             "qty": 0.02000123,
+        //             "cumQty": 0.02000123,
+        //             "price": 0.02595400,
+        //             "timestamp": 1594800486782215
+        //           },
+        //           ...
+        //         ],
+        //         "next": true
+        //       }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data');
@@ -615,19 +626,21 @@ module.exports = class redot extends Exchange {
             'orderId': id,
         };
         const response = await this.privateGetGetOrder (this.extend (request, params));
-        // {
-        //     "result":{
-        //        "id":"1432857356",
-        //        "instrumentId":"USDC-USDT",
-        //        "status":"cancelled",
-        //        "type":"limit",
-        //        "side":"sell",
-        //        "qty":"1.00000000",
-        //        "cumQty":"0.00000000",
-        //        "price":"100.00000000",
-        //        "timestamp":"1644600263569962"
-        //     }
-        //  }
+        //
+        //   {
+        //       "result":{
+        //          "id":"1432857356",
+        //          "instrumentId":"USDC-USDT",
+        //          "status":"cancelled",
+        //          "type":"limit",
+        //          "side":"sell",
+        //          "qty":"1.00000000",
+        //          "cumQty":"0.00000000",
+        //          "price":"100.00000000",
+        //          "timestamp":"1644600263569962"
+        //       }
+        //    }
+        //
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result);
     }
@@ -640,17 +653,19 @@ module.exports = class redot extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // {
-        //     "id":"1432857828",
-        //     "instrumentId":"USDC-USDT",
-        //     "status":"open",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "qty":"1.00000000",
-        //     "cumQty":"0.00000000",
-        //     "price":"100.00000000",
-        //     "timestamp":"1644600280211136"
-        //  }
+        //
+        //    {
+        //        "id":"1432857828",
+        //        "instrumentId":"USDC-USDT",
+        //        "status":"open",
+        //        "type":"limit",
+        //        "side":"sell",
+        //        "qty":"1.00000000",
+        //        "cumQty":"0.00000000",
+        //        "price":"100.00000000",
+        //        "timestamp":"1644600280211136"
+        //     }
+        //
         const created = this.safeIntegerProduct (order, 'timestamp', 0.001);
         const marketId = this.safeString (order, 'instrumentId');
         const symbol = this.safeSymbol (marketId, market);
@@ -701,7 +716,7 @@ module.exports = class redot extends Exchange {
         }
         const response = await this.privateGetGetTrades (this.extend (request, params));
         //
-        // {
+        //  {
         //     "result": {
         //       "data": [
         //         {
@@ -744,22 +759,24 @@ module.exports = class redot extends Exchange {
             request['limit'] = parseInt (limit); // default max 200
         }
         const response = await this.privateGetGetTradesByOrder (this.extend (request, params));
-        // {
-        //     "result": [
-        //       {
-        //         "id": 1,
-        //         "instrumentId": "ETH-BTC",
-        //         "price": 0.02595400,
-        //         "qty": 0.02000123,
-        //         "orderId": 234,
-        //         "userSide": "sell",
-        //         "fee": 0.00000001,
-        //         "feeAsset": "BTC",
-        //         "timestamp": 1594800486782215
-        //       },
-        //       ...
-        //     ]
-        // }
+        //
+        //   {
+        //       "result": [
+        //         {
+        //           "id": 1,
+        //           "instrumentId": "ETH-BTC",
+        //           "price": 0.02595400,
+        //           "qty": 0.02000123,
+        //           "orderId": 234,
+        //           "userSide": "sell",
+        //           "fee": 0.00000001,
+        //           "feeAsset": "BTC",
+        //           "timestamp": 1594800486782215
+        //         },
+        //         ...
+        //       ]
+        //   }
+        //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
@@ -780,11 +797,13 @@ module.exports = class redot extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostPlaceOrder (this.extend (request, params));
-        // {
-        //     "result": {
-        //       "orderId": 234
-        //     }
-        // }
+        //
+        //  {
+        //      "result": {
+        //        "orderId": 234
+        //      }
+        //  }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
@@ -797,11 +816,11 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.privateGetGetDepositAddress (this.extend (request, params));
         //
-        // {
-        //     "result": {
-        //       "asset": "BTC",
-        //       "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc"
-        // }
+        //   {
+        //       "result": {
+        //         "asset": "BTC",
+        //         "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc"
+        //   }
         //
         const data = this.safeValue (response, 'result', {});
         const address = this.safeString (data, 'address');
@@ -819,7 +838,7 @@ module.exports = class redot extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetGetFees (params);
         //
-        // {
+        //  {
         //     "result": [
         //       {
         //         "asset": "BTC",
@@ -872,24 +891,24 @@ module.exports = class redot extends Exchange {
         }
         const response = await this.privateGetGetWithdrawals (this.extend (request, params));
         //
-        // {
-        //     "result": {
-        //       "data": [
-        //         {
-        //           "id": 234,
-        //           "timestamp": 1594800486782215,
-        //           "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc",
-        //           "asset": "BTC",
-        //           "amount": 0.001,
-        //           "fee": 0.000002,
-        //           "transactionId": null,
-        //           "status": "pending"
-        //         },
-        //         ...
-        //       ],
-        //       "next": true
+        //    {
+        //        "result": {
+        //          "data": [
+        //            {
+        //              "id": 234,
+        //              "timestamp": 1594800486782215,
+        //              "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc",
+        //              "asset": "BTC",
+        //              "amount": 0.001,
+        //              "fee": 0.000002,
+        //              "transactionId": null,
+        //              "status": "pending"
+        //            },
+        //            ...
+        //          ],
+        //          "next": true
+        //        }
         //     }
-        //   }
         //
         const result = this.safeValue (response, 'result', {});
         const withdrawals = this.safeValue (result, 'data', []);
@@ -906,18 +925,18 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.privatePostWithdraw (this.extend (request, params));
         //
-        // {
-        //     "result": {
-        //       "id": 100,
-        //       "timestamp": 1594800486782215,
-        //       "address": "17ciVVLx423dd32df9s4t5jTexACxwF55uc",
-        //       "asset": "BTC",
-        //       "amount": 0.099998,
-        //       "fee": 0.000002,
-        //       "transactionId": null,
-        //       "status": "pending"
-        //     }
-        //   }s
+        //    {
+        //        "result": {
+        //          "id": 100,
+        //          "timestamp": 1594800486782215,
+        //          "address": "17ciVVLx423dd32df9s4t5jTexACxwF55uc",
+        //          "asset": "BTC",
+        //          "amount": 0.099998,
+        //          "fee": 0.000002,
+        //          "transactionId": null,
+        //          "status": "pending"
+        //        }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
         const id = this.safeString (result, 'id');
@@ -967,12 +986,12 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.publicPostGetToken (this.extend (request, params));
         //
-        // {
-        //     "result":{
-        //        "accessToken":"eyJx6g",
-        //        "refreshToken":"Gp5ZOwczv4XKspo0qMGNjYw=="
-        //     }
-        //  }
+        //   {
+        //      "result":{
+        //         "accessToken":"eyJx6g",
+        //         "refreshToken":"Gp5ZOwczv4XKspo0qMGNjYw=="
+        //      }
+        //   }
         //
         const result = this.safeValue (response, 'result');
         const accessToken = this.safeString (result, 'accessToken'); // expires in 30 min
@@ -983,7 +1002,7 @@ module.exports = class redot extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
-        // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+        //   {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
         //
         if (response === undefined) {
             return;
