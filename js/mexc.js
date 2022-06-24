@@ -3375,7 +3375,7 @@ module.exports = class mexc extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
