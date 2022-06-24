@@ -3747,7 +3747,7 @@ module.exports = class zb extends Exchange {
         //         },
         //     ],
         //
-        const timestamp = this.safeString (item, 'createTime');
+        const timestamp = this.safeInteger (item, 'createTime');
         let direction = undefined;
         const changeDirection = this.safeNumber (item, 'isIn');
         if (changeDirection === 1) {
