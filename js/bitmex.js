@@ -347,7 +347,7 @@ module.exports = class bitmex extends Exchange {
             const basequote = baseId + quoteId;
             const swap = (id === basequote);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
-            // so let's take the quote currency first and then adjust if needed
+            // so let's take the settlCurrency first and then adjust if needed
             let type = undefined;
             let future = false;
             let prediction = false;
@@ -374,7 +374,7 @@ module.exports = class bitmex extends Exchange {
                 symbol = id;
                 active = false;
             }
-            const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
+            const positionId = this.safeString2 (market, 'positionCurrency', 'settlCurrency');
             const position = this.safeCurrencyCode (positionId);
             const positionIsQuote = (position === quote);
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
