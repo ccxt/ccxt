@@ -2484,6 +2484,11 @@ module.exports = class Exchange {
         return market['symbol'];
     }
 
+    safeMarketSymbol (dictionary, key, market = undefined, delimiter = undefined) {
+        const marketId = this.safeString (dictionary, key)
+        return this.safeSymbol (marketId, market, delimiter)
+    }
+
     parseFundingRate (contract, market = undefined) {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
