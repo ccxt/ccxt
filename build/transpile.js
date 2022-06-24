@@ -1267,10 +1267,10 @@ class Transpiler {
         const exchange = new Exchange();
         this.correctionRefrences = {
             'enabled': process.argv.includes ('--incorrectMethodReferences'),
-            'skipReferencedMethods': {'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,},
+            'skipReferencedMethods': {'spot': 0, 'margin': 0, 'future': 0, 'swap': 0, 'CORS': 0, 'option': 0},
             'whitelistedReferences': {
-                'exchange': {'fetchTicker':{'fetchTickers':0}},
-                'ndax': {'withdraw':{'signIn':0}},
+                'exchange': {'fetchTicker': {'fetchTickers': 0}},
+                'ndax': {'withdraw': {'signIn' :0}},
             },
             'hasList': exchange.has,
             'hasListKeys':  Object.keys (exchange.has),
