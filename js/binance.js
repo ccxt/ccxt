@@ -2918,7 +2918,7 @@ module.exports = class binance extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
