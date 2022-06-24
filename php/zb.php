@@ -3701,7 +3701,7 @@ class zb extends Exchange {
         //         ),
         //     ),
         //
-        $timestamp = $this->safe_string($item, 'createTime');
+        $timestamp = $this->safe_integer($item, 'createTime');
         $direction = null;
         $changeDirection = $this->safe_number($item, 'isIn');
         if ($changeDirection === 1) {
