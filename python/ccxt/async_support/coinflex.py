@@ -77,6 +77,7 @@ class coinflex(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverageTiers': None,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': None,
@@ -91,6 +92,7 @@ class coinflex(Exchange):
                 'fetchOrderTrades': None,
                 'fetchPermissions': None,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': None,
@@ -955,12 +957,12 @@ class coinflex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'marketCode')
-            timestamp = self.safe_string(entry, 'timestamp')
+            timestamp = self.safe_integer(entry, 'timestamp')
             result.append({
                 'symbol': self.safe_symbol(marketId, market),
                 'code': None,
-                'timestamp': self.parse8601(timestamp),
-                'datetime': timestamp,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
                 'id': None,
                 'amount': self.safe_number(entry, 'payment'),
                 'info': entry,
@@ -1981,7 +1983,7 @@ class coinflex(Exchange):
         #     }
         #
         currencyId = self.safe_string(transfer, 'asset')
-        timestamp = self.safe_string(transfer, 'transferredAt')
+        timestamp = self.safe_integer(transfer, 'transferredAt')
         fromAccount = self.safe_string(transfer, 'fromAccount')
         toAccount = self.safe_string(transfer, 'toAccount')
         status = self.parse_transaction_status(self.safe_string(transfer, 'status'))

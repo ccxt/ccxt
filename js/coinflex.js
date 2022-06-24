@@ -68,6 +68,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
@@ -82,6 +83,7 @@ module.exports = class coinflex extends Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
+                'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
@@ -994,12 +996,12 @@ module.exports = class coinflex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'marketCode');
-            const timestamp = this.safeString (entry, 'timestamp');
+            const timestamp = this.safeInteger (entry, 'timestamp');
             result.push ({
                 'symbol': this.safeSymbol (marketId, market),
                 'code': undefined,
-                'timestamp': this.parse8601 (timestamp),
-                'datetime': timestamp,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
                 'id': undefined,
                 'amount': this.safeNumber (entry, 'payment'),
                 'info': entry,
@@ -2118,7 +2120,7 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const currencyId = this.safeString (transfer, 'asset');
-        const timestamp = this.safeString (transfer, 'transferredAt');
+        const timestamp = this.safeInteger (transfer, 'transferredAt');
         const fromAccount = this.safeString (transfer, 'fromAccount');
         const toAccount = this.safeString (transfer, 'toAccount');
         let status = this.parseTransactionStatus (this.safeString (transfer, 'status'));

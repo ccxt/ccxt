@@ -1286,40 +1286,27 @@ module.exports = class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        const id = this.safeString2 (order, 'ReplacementOrderId', 'OrderId');
         const timestamp = this.safeInteger (order, 'ReceiveTime');
-        const lastTradeTimestamp = this.safeInteger (order, 'LastUpdatedTime');
         const marketId = this.safeString (order, 'Instrument');
-        const symbol = this.safeSymbol (marketId, market);
-        const side = this.safeStringLower (order, 'Side');
-        const type = this.safeStringLower (order, 'OrderType');
-        const clientOrderId = this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId');
-        const price = this.safeString (order, 'Price');
-        const amount = this.safeString (order, 'OrigQuantity');
-        const filled = this.safeString (order, 'QuantityExecuted');
-        const cost = this.safeString (order, 'GrossValueExecuted');
-        const average = this.safeString (order, 'AvgPrice');
-        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice')));
-        const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
         return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString2 (order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId': this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': this.safeInteger (order, 'LastUpdatedTime'),
+            'status': this.parseOrderStatus (this.safeString (order, 'OrderState')),
+            'symbol': this.safeSymbol (marketId, market),
+            'type': this.safeStringLower (order, 'OrderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'side': this.safeStringLower (order, 'Side'),
+            'price': this.safeString (order, 'Price'),
+            'stopPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
+            'cost': this.safeString (order, 'GrossValueExecuted'),
+            'amount': this.safeString (order, 'OrigQuantity'),
+            'filled': this.safeString (order, 'QuantityExecuted'),
+            'average': this.safeString (order, 'AvgPrice'),
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,

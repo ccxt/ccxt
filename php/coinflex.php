@@ -72,6 +72,7 @@ class coinflex extends Exchange {
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverageTiers' => null,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => null,
@@ -86,6 +87,7 @@ class coinflex extends Exchange {
                 'fetchOrderTrades' => null,
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => null,
@@ -982,12 +984,12 @@ class coinflex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'marketCode');
-            $timestamp = $this->safe_string($entry, 'timestamp');
+            $timestamp = $this->safe_integer($entry, 'timestamp');
             $result[] = array(
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'code' => null,
-                'timestamp' => $this->parse8601($timestamp),
-                'datetime' => $timestamp,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
                 'id' => null,
                 'amount' => $this->safe_number($entry, 'payment'),
                 'info' => $entry,
@@ -2072,7 +2074,7 @@ class coinflex extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'asset');
-        $timestamp = $this->safe_string($transfer, 'transferredAt');
+        $timestamp = $this->safe_integer($transfer, 'transferredAt');
         $fromAccount = $this->safe_string($transfer, 'fromAccount');
         $toAccount = $this->safe_string($transfer, 'toAccount');
         $status = $this->parse_transaction_status($this->safe_string($transfer, 'status'));

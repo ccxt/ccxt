@@ -2637,7 +2637,7 @@ class huobi extends Exchange {
          * @param {dict} $params extra parameters specific to the huobi api endpoint
          * @return {dict} an associative dictionary of currencies
          */
-        $response = yield $this->spotPublicGetV2ReferenceCurrencies ();
+        $response = yield $this->spotPublicGetV2ReferenceCurrencies ($params);
         //     {
         //       "code" => 200,
         //       "data" => array(
@@ -5027,7 +5027,7 @@ class huobi extends Exchange {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'contract_code');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'funding_time');
+            $timestamp = $this->safe_integer($entry, 'funding_time');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,

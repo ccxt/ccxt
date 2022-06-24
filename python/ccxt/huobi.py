@@ -2539,7 +2539,7 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.spotPublicGetV2ReferenceCurrencies()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
         #     {
         #       "code": 200,
         #       "data": [
@@ -4759,7 +4759,7 @@ class huobi(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'contract_code')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'funding_time')
+            timestamp = self.safe_integer(entry, 'funding_time')
             rates.append({
                 'info': entry,
                 'symbol': symbol,

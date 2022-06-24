@@ -3130,7 +3130,7 @@ class zb extends Exchange {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'fundingTime');
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,

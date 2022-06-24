@@ -51,6 +51,7 @@ class coinbasepro(Exchange):
                 'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -59,6 +60,7 @@ class coinbasepro(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -396,8 +398,8 @@ class coinbasepro(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'base_min_size'),
-                        'max': self.safe_number(market, 'base_max_size'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -405,7 +407,7 @@ class coinbasepro(Exchange):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
-                        'max': self.safe_number(market, 'max_market_funds'),
+                        'max': None,
                     },
                 },
                 'info': market,

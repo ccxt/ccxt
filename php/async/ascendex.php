@@ -678,10 +678,11 @@ class ascendex extends Exchange {
     }
 
     public function parse_balance($response) {
+        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -737,7 +738,7 @@ class ascendex extends Exchange {
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesPosition',
         ));
-        if ($accountCategory === 'cash') {
+        if (($accountCategory === 'cash') || ($accountCategory === 'margin')) {
             $request['account-category'] = $accountCategory;
         }
         $response = yield $this->$method (array_merge($request, $query));
@@ -2454,8 +2455,8 @@ class ascendex extends Exchange {
             'entryPrice' => $this->safe_number($position, 'avgOpenPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
             'percentage' => null,
-            'contracts' => null,
-            'contractSize' => $this->safe_number($position, 'position'),
+            'contracts' => $this->safe_number($position, 'position'),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'side' => $this->safe_string_lower($position, 'side'),
             'hedged' => null,

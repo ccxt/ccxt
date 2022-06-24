@@ -372,12 +372,7 @@ class delta extends Exchange {
         $response = yield $this->publicGetProducts ($params);
         //
         //     {
-        //         "meta":array(
-        //             "after":null,
-        //             "before":null,
-        //             "limit":100,
-        //             "total_count":81
-        //         ),
+        //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
         //         "result":[
         //             // the below $response represents item from perpetual $market
         //             array(
@@ -439,7 +434,7 @@ class delta extends Exchange {
         //                 "max_leverage_notional":"20000"
         //             ),
         //             // the below $response represents item from $spot $market
-        //             {
+        //             array(
         //                 "position_size_limit" => 10000000,
         //                 "settlement_price" => null,
         //                 "funding_method" => "mark_price",
@@ -451,25 +446,11 @@ class delta extends Exchange {
         //                 "trading_status" => "operational",
         //                 "tick_size" => "0.01",
         //                 "liquidation_penalty_factor" => "1",
-        //                 "spot_index" => {
-        //                     "config" => array(
-        //                         "quoting_asset" => "USDT",
-        //                         "service_id" => 8,
-        //                         "underlying_asset" => "SOL"
-        //                     ),
+        //                 "spot_index" => array(
+        //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
         //                     "constituent_exchanges" => array(
-        //                         array(
-        //                         "exchange" => "binance",
-        //                         "health_interval" => 60,
-        //                         "health_priority" => 1,
-        //                         "weight" => 1
-        //                         ),
-        //                         array(
-        //                         "exchange" => "huobi",
-        //                         "health_interval" => 60,
-        //                         "health_priority" => 2,
-        //                         "weight" => 1
-        //                         }
+        //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
+        //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
         //                     ),
         //                     "constituent_indices" => null,
         //                     "description" => "Solana index from binance and huobi",
@@ -499,28 +480,14 @@ class delta extends Exchange {
         //                 "annualized_funding" => "0",
         //                 "notional_type" => "vanilla",
         //                 "price_band" => "100",
-        //                 "product_specs" => array(
-        //                     "kyc_required" => false,
-        //                     "max_order_size" => 2000,
-        //                     "min_order_size" => 0.01,
-        //                     "quoting_precision" => 4,
-        //                     "underlying_precision" => 2
-        //                 ),
+        //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
         //                 "default_leverage" => "1.000000000000000000",
         //                 "initial_margin" => "10",
         //                 "maintenance_margin_scaling_factor" => "1",
         //                 "ui_config" => array(
         //                     "default_trading_view_candle" => "1d",
         //                     "leverage_slider_values" => array(),
-        //                     "price_clubbing_values" => array(
-        //                         0.01,
-        //                         0.05,
-        //                         0.1,
-        //                         0.5,
-        //                         1,
-        //                         2.5,
-        //                         5
-        //                     ),
+        //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
         //                     "show_bracket_orders" => false,
         //                     "sort_priority" => 2,
         //                     "tags" => array()
@@ -528,7 +495,7 @@ class delta extends Exchange {
         //                 "basis_factor_max_limit" => "10000",
         //                 "contract_unit_currency" => "SOL",
         //                 "strike_price" => null,
-        //                 "quoting_asset" => {
+        //                 "quoting_asset" => array(
         //                     "base_withdrawal_fee" => "10.000000000000000000",
         //                     "deposit_status" => "enabled",
         //                     "id" => 5,
@@ -540,30 +507,9 @@ class delta extends Exchange {
         //                     "minimum_precision" => 2,
         //                     "name" => "Tether",
         //                     "networks" => array(
-        //                         array(
-        //                           "base_withdrawal_fee" => "25",
-        //                           "deposit_status" => "enabled",
-        //                           "memo_required" => false,
-        //                           "network" => "ERC20",
-        //                           "variable_withdrawal_fee" => "0",
-        //                           "withdrawal_status" => "enabled"
-        //                         ),
-        //                         array(
-        //                           "base_withdrawal_fee" => "1",
-        //                           "deposit_status" => "enabled",
-        //                           "memo_required" => false,
-        //                           "network" => "BEP20(BSC)",
-        //                           "variable_withdrawal_fee" => "0",
-        //                           "withdrawal_status" => "enabled"
-        //                         ),
-        //                         array(
-        //                           "base_withdrawal_fee" => "1",
-        //                           "deposit_status" => "disabled",
-        //                           "memo_required" => false,
-        //                           "network" => "TRC20(TRON)",
-        //                           "variable_withdrawal_fee" => "0",
-        //                           "withdrawal_status" => "disabled"
-        //                         }
+        //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
         //                     ),
         //                     "precision" => 8,
         //                     "sort_priority" => 1,
@@ -585,22 +531,8 @@ class delta extends Exchange {
         //                     "minimum_precision" => 4,
         //                     "name" => "Solana",
         //                     "networks" => array(
-        //                         array(
-        //                           "base_withdrawal_fee" => "0.01",
-        //                           "deposit_status" => "enabled",
-        //                           "memo_required" => false,
-        //                           "network" => "SOLANA",
-        //                           "variable_withdrawal_fee" => "0",
-        //                           "withdrawal_status" => "enabled"
-        //                         ),
-        //                         array(
-        //                           "base_withdrawal_fee" => "0.01",
-        //                           "deposit_status" => "enabled",
-        //                           "memo_required" => false,
-        //                           "network" => "BEP20(BSC)",
-        //                           "variable_withdrawal_fee" => "0",
-        //                           "withdrawal_status" => "enabled"
-        //                         }
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
         //                     ),
         //                     "precision" => 8,
         //                     "sort_priority" => 7,

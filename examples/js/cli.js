@@ -273,8 +273,9 @@ async function run () {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
-                        start = end
                         printHumanReadable (exchange, result)
+                        console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
                             log.red (e.constructor.name, e.message)

@@ -540,7 +540,7 @@ module.exports = class lykke extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (payload, 0, {});
-        const timestamp = this.safeString (orderbook, 'timestamp');
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
     }
 

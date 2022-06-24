@@ -35,6 +35,7 @@ class hitbtc3 extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -172,6 +173,7 @@ class hitbtc3 extends Exchange {
                         'margin/order' => 1,
                         'futures/order' => 1,
                         'wallet/convert' => 15,
+                        'wallet/crypto/address' => 15,
                         'wallet/crypto/withdraw' => 15,
                         'wallet/transfer' => 15,
                         'sub-account/freeze' => 15,
@@ -600,6 +602,41 @@ class hitbtc3 extends Exchange {
         } else {
             return strtoupper($networkId);
         }
+    }
+
+    public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a $currency deposit address
+         * @param {str} $code unified $currency $code of the $currency for the deposit address
+         * @param {dict} $params extra parameters specific to the hitbtc api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $network = $this->safe_string_upper($params, 'network');
+        if (($network !== null) && ($code === 'USDT')) {
+            $networks = $this->safe_value($this->options, 'networks');
+            $parsedNetwork = $this->safe_string($networks, $network);
+            if ($parsedNetwork !== null) {
+                $request['currency'] = $parsedNetwork;
+            }
+            $params = $this->omit($params, 'network');
+        }
+        $response = $this->privatePostWalletCryptoAddress (array_merge($request, $params));
+        //
+        //  array("currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3")
+        //
+        $currencyId = $this->safe_string($response, 'currency');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId),
+            'address' => $this->safe_string($response, 'address'),
+            'tag' => $this->safe_string($response, 'payment_id'),
+            'network' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_deposit_address($code, $params = array ()) {

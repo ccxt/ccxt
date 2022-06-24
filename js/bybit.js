@@ -54,6 +54,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -1656,7 +1657,7 @@ module.exports = class bybit extends Exchange {
             method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
         } else {
-            method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
+            method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
         }
         const fetchFundingRateFromTicker = await this[fundingRateFromTickerMethod] (this.extend (request, params));
@@ -4754,6 +4755,75 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterestHistory
+         * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @param {str} symbol Unified market symbol
+         * @param {str} timeframe "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {int} since Not used by Bybit
+         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {dict} params Exchange specific parameters
+         * @returns An array of open interest structures
+         */
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": [
+        //            {
+        //                "open_interest": 805604444,
+        //                "timestamp": 1645056000,
+        //                "symbol": "BTCUSD"
+        //            },
+        //            ...
+        //        ],
+        //        "time_now": "1645085118.727358"
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOpenInterests (result, market, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    {
+        //        "open_interest": 805604444,
+        //        "timestamp": 1645056000,
+        //        "symbol": "BTCUSD"
+        //    }
+        //
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const timestamp = this.safeTimestamp (interest, 'timestamp');
+        const numContracts = this.safeString (interest, 'open_interest');
+        const contractSize = this.safeString (market, 'contractSize');
+        return {
+            'symbol': this.safeSymbol (id),
+            'baseVolume': Precise.stringMul (numContracts, contractSize),
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

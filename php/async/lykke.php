@@ -531,7 +531,7 @@ class lykke extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($payload, 0, array());
-        $timestamp = $this->safe_string($orderbook, 'timestamp');
+        $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
