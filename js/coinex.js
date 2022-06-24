@@ -25,6 +25,7 @@ module.exports = class coinex extends Exchange {
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
