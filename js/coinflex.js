@@ -2120,7 +2120,7 @@ module.exports = class coinflex extends Exchange {
         //     }
         //
         const currencyId = this.safeString (transfer, 'asset');
-        const timestamp = this.safeString (transfer, 'transferredAt');
+        const timestamp = this.safeInteger (transfer, 'transferredAt');
         const fromAccount = this.safeString (transfer, 'fromAccount');
         const toAccount = this.safeString (transfer, 'toAccount');
         let status = this.parseTransactionStatus (this.safeString (transfer, 'status'));
