@@ -58,30 +58,24 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-    //     const method = 'candles_subscribe';
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     symbol = market['symbol'];
-    //     const timeframes = this.safeValue (this.options, 'timeframes', {});
-    //     const interval = this.safeInteger (timeframes, timeframe);
-    //     const marketId = market['id'];
-    //     const messageHash = 'candles:' + interval + ':' + symbol;
-    //     const reqParams = [ marketId ];
-    //     // start and end are mandatory
-    //     const now = this.milliseconds ();
-    //     const end = this.safeInteger (params, 'end', now);
-    //     params = this.omit (params, 'end');
-    //     if (since === undefined) {
-    //         since = now - (86400 * 1000); // 24 hours
-    //     }
-    //     // reqParams.push (since);
-    //     // reqParams.push (end);
-    //     reqParams.push (interval);
-    //     const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-    //     if (this.newUpdates) {
-    //         limit = ohlcv.getLimit (symbol, limit);
-    //     }
-    //     return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        const interval = this.safeInteger (timeframes, timeframe);
+        const marketId = market['id'];
+        // currently there is not way of knowing
+        // the interval upon getting an update
+        // so that can't be part of the message hash, and the user can only subscribe
+        // to one timeframe per symbol
+        const messageHash = 'candles:' + symbol;
+        const reqParams = [ marketId, interval ];
+        const method = 'candles_subscribe';
+        const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -103,24 +97,24 @@ module.exports = class whitebit extends ccxt.whitebit {
         //     id: null
         // }
         //
-        const marketId = this.safeString (message, 'symbol');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data', {});
-        const interval = this.safeString (data, 'interval');
-        const messageHash = 'kline' + ':' + interval + ':' + symbol;
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const timeframe = this.findTimeframe (interval, timeframes);
-        const parsed = this.parseWsOHLCV (data, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+        const params = this.safeValue (message, 'params', []);
+        for (let i = 0; i < params.length; i++) {
+            const data = params[i];
+            const marketId = this.safeString (data, 7);
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            const messageHash = 'candles' + ':' + symbol;
+            const parsed = this.parseOHLCV (data, market);
+            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            let stored = this.ohlcvs[symbol];
+            if (stored === undefined) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol] = stored;
+            }
+            stored.append (parsed);
+            client.resolve (stored, messageHash);
         }
-        stored.append (parsed);
-        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -596,6 +590,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'market_update': this.handleTicker,
             'trade': this.handleTrades,
             'depth_update': this.handleOrderBook,
+            'candles_update': this.handleOHLCV,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
