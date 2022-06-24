@@ -28,7 +28,6 @@ module.exports = class redot extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
-                'fetchTransactionFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
@@ -47,6 +46,7 @@ module.exports = class redot extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
@@ -972,7 +972,7 @@ module.exports = class redot extends Exchange {
         };
     }
 
-    async fetchTransactionFees (params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name redot#fetchTransactionFees
