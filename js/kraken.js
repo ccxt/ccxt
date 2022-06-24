@@ -1766,7 +1766,7 @@ module.exports = class kraken extends Exchange {
          * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
-            'orders': [ ids ],
+            'orders': ids,
         };
         const response = await this.privatePostCancelOrderBatch (this.extend (request, params));
         //
@@ -2365,10 +2365,15 @@ module.exports = class kraken extends Exchange {
                 url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
+            const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            if (isCancelOrderBatch) {
+                body = this.json (this.extend ({ 'nonce': nonce }, params));
+            } else {
+                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            }
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, 'sha256', 'binary');
             const binary = this.stringToBinary (this.encode (url));
@@ -2378,8 +2383,13 @@ module.exports = class kraken extends Exchange {
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                // 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            if (isCancelOrderBatch) {
+                headers['Content-Type'] = 'application/json';
+            } else {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         } else {
             url = '/' + path;
         }
