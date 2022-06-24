@@ -197,6 +197,7 @@ class whitebit(Exchange):
                             'order/stop_market',
                             'order/cancel',
                             'orders',
+                            'profile/websocket_token',
                         ],
                     },
                 },
