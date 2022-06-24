@@ -28,6 +28,7 @@ class ftxus(ftx):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchPremiumIndexOHLCV': False,
             },
             'urls': {

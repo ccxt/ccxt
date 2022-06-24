@@ -2,13 +2,15 @@ error_hierarchy = {
     'BaseError': {
         'ExchangeError': {
             'AuthenticationError': {
-                'PermissionDenied': {},
+                'PermissionDenied': {
+                    'AccountNotEnabled': {},
+                },
                 'AccountSuspended': {},
-                'AccountNotEnabled': {},
             },
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -57,11 +59,11 @@ class PermissionDenied(AuthenticationError):
     pass
 
 
-class AccountSuspended(AuthenticationError):
+class AccountNotEnabled(PermissionDenied):
     pass
 
 
-class AccountNotEnabled(AuthenticationError):
+class AccountSuspended(AuthenticationError):
     pass
 
 
@@ -74,6 +76,10 @@ class BadRequest(ExchangeError):
 
 
 class BadSymbol(BadRequest):
+    pass
+
+
+class MarginModeAlreadySet(BadRequest):
     pass
 
 
@@ -163,11 +169,12 @@ __all__ = [
     'ExchangeError',
     'AuthenticationError',
     'PermissionDenied',
-    'AccountSuspended',
     'AccountNotEnabled',
+    'AccountSuspended',
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'MarginModeAlreadySet',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',

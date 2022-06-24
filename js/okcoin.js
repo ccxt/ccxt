@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,9 @@ module.exports = class okcoin extends Exchange {
             'name': 'OKCoin',
             'countries': [ 'CN', 'US' ],
             'version': 'v3',
-            'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            // cheapest endpoint is 100 requests per 2 seconds
+            // 50 requests per second => 1000 / 50 = 20ms
+            'rateLimit': 20,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -49,6 +51,7 @@ module.exports = class okcoin extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -85,91 +88,157 @@ module.exports = class okcoin extends Exchange {
             },
             'api': {
                 'general': {
-                    'get': [
-                        'time',
-                    ],
+                    'get': {
+                        'time': 8.3334,
+                    },
                 },
                 'account': {
-                    'get': [
-                        'wallet',
-                        'sub-account',
-                        'asset-valuation',
-                        'wallet/{currency}',
-                        'withdrawal/history',
-                        'withdrawal/history/{currency}',
-                        'ledger',
-                        'deposit/address',
-                        'deposit/history',
-                        'deposit/history/{currency}',
-                        'currencies',
-                        'withdrawal/fee',
-                    ],
-                    'post': [
-                        'transfer',
-                        'withdrawal',
-                    ],
+                    'get': {
+                        'wallet': 8.3334,
+                        'sub-account': 1000,
+                        'asset-valuation': 1000,
+                        'wallet/{currency}': 8.3334,
+                        'withdrawal/history': 8.3334,
+                        'withdrawal/history/{currency}': 8.3334,
+                        'ledger': 5,
+                        'deposit/address': 8.3334,
+                        'deposit/history': 8.3334,
+                        'deposit/history/{currency}': 8.3334,
+                        'currencies': 8.3334,
+                        'withdrawal/fee': 8.3334,
+                        'deposit-lightning': 50,
+                        'withdrawal-lightning': 50,
+                        'fiat/deposit/detail': 5,
+                        'fiat/deposit/details': 8.3334,
+                        'fiat/withdraw/detail': 5,
+                        'fiat/withdraw/details': 8.3334,
+                        'fiat/channel': 8.3334,
+                    },
+                    'post': {
+                        'transfer': 100, // 1 request per 2 seconds (per currency)
+                        'withdrawal': 8.3334,
+                        'fiat/cancel_deposit': 1,
+                        'fiat/deposit': 8.3334,
+                        'fiat/withdraw': 8.3334,
+                        'fiat/cancel_withdrawal': 1,
+                    },
+                },
+                // TODO fix signing issue in sign ()
+                // all other endpoints of the format
+                // api/account/v3/wallet
+                // otc endpoints actually of the format: (exchanged places)
+                // api/v3/otc/rfq/instruments
+                'otc': {
+                    'get': {
+                        'rfq/instruments': 50, // represents: GET api/v3/otc/rfq/instruments
+                        'rfq/trade': 50,
+                        'rfq/history': 50,
+                    },
+                    'post': {
+                        'rfq/quote': 50,
+                        'rfq/trade': 50,
+                    },
+                },
+                // TODO fix signing issue as above
+                'users': {
+                    'get': {
+                        'subaccount-info': 20,
+                        'account-info': 20,
+                        'subaccount/apikey': 20,
+                    },
+                    'post': {
+                        'create-subaccount': 5, // represents: POST api/v3/users/create-subaccount
+                        'delete-subaccount': 5,
+                        'subaccount/apikey': 50,
+                        'subacount/delete-apikey': 20,
+                        'subacount/modify-apikey': 20,
+                    },
+                },
+                'earning': {
+                    'get': {
+                        'offers': 5,
+                        'orders': 5,
+                        'positions': 8.3334,
+                    },
+                    'post': {
+                        'purchase': 5,
+                        'redeem': 5,
+                        'cancel': 5,
+                    },
                 },
                 'spot': {
-                    'get': [
-                        'accounts',
-                        'accounts/{currency}',
-                        'accounts/{currency}/ledger',
-                        'orders',
-                        'amend_order/{instrument_id}',
-                        'orders_pending',
-                        'orders/{order_id}',
-                        'orders/{client_oid}',
-                        'trade_fee',
-                        'fills',
-                        'algo',
+                    'get': {
+                        'accounts': 5,
+                        'accounts/{currency}': 5,
+                        'accounts/{currency}/ledger': 5,
+                        'orders': 10,
+                        'orders_pending': 5,
+                        'orders/{order_id}': 5,
+                        'orders/{client_oid}': 5,
+                        'trade_fee': 5,
+                        'fills': 10,
+                        'algo': 5,
                         // public
-                        'instruments',
-                        'instruments/{instrument_id}/book',
-                        'instruments/ticker',
-                        'instruments/{instrument_id}/ticker',
-                        'instruments/{instrument_id}/trades',
-                        'instruments/{instrument_id}/candles',
-                        'instruments/{instrument_id}/history/candles',
-                    ],
-                    'post': [
-                        'order_algo',
-                        'orders',
-                        'batch_orders',
-                        'cancel_orders/{order_id}',
-                        'cancel_orders/{client_oid}',
-                        'cancel_batch_algos',
-                        'cancel_batch_orders',
-                    ],
+                        'instruments': 5,
+                        'instruments/{instrument_id}/book': 5,
+                        'instruments/ticker': 5,
+                        'instruments/{instrument_id}/ticker': 5,
+                        'instruments/{instrument_id}/trades': 5,
+                        'instruments/{instrument_id}/candles': 5,
+                    },
+                    'post': {
+                        'order_algo': 2.5,
+                        'orders': 1,
+                        'batch_orders': 2,
+                        'cancel_orders/{order_id}': 1,
+                        'cancel_orders/{client_oid}': 1,
+                        'cancel_batch_algos': 5,
+                        'cancel_batch_orders': 5,
+                        'amend_order/{instrument_id}': 2.5,
+                        'amend_batch_orders': 5,
+                    },
                 },
                 'margin': {
-                    'get': [
-                        'accounts',
-                        'accounts/{instrument_id}',
-                        'accounts/{instrument_id}/ledger',
-                        'accounts/availability',
-                        'accounts/{instrument_id}/availability',
-                        'accounts/borrowed',
-                        'accounts/{instrument_id}/borrowed',
-                        'orders',
-                        'accounts/{instrument_id}/leverage',
-                        'orders/{order_id}',
-                        'orders/{client_oid}',
-                        'orders_pending',
-                        'fills',
+                    'get': {
+                        'accounts': 5,
+                        'accounts/{instrument_id}': 5,
+                        'accounts/{instrument_id}/ledger': 5,
+                        'accounts/availability': 5,
+                        'accounts/{instrument_id}/availability': 5,
+                        'accounts/borrowed': 5,
+                        'accounts/{instrument_id}/borrowed': 5,
+                        'orders': 10,
+                        'accounts/{instrument_id}/leverage': 1,
+                        'orders/{order_id}': 5,
+                        'orders/{client_oid}': 5,
+                        'orders_pending': 5,
+                        'fills': 10,
                         // public
-                        'instruments/{instrument_id}/mark_price',
-                    ],
-                    'post': [
-                        'accounts/borrow',
-                        'accounts/repayment',
-                        'orders',
-                        'batch_orders',
-                        'cancel_orders',
-                        'cancel_orders/{order_id}',
-                        'cancel_orders/{client_oid}',
-                        'cancel_batch_orders',
-                        'accounts/{instrument_id}/leverage',
-                    ],
+                        'instruments/{instrument_id}/mark_price': 5,
+                    },
+                    'post': {
+                        'accounts/borrow': 1,
+                        'accounts/repayment': 1,
+                        'orders': 1,
+                        'batch_orders': 2,
+                        'cancel_orders': 1,
+                        'cancel_orders/{order_id}': 1,
+                        'cancel_orders/{client_oid}': 1,
+                        'cancel_batch_orders': 2,
+                        'amend_order/{instrument_id}': 2.5,
+                        'amend_batch_orders': 5,
+                        'accounts/{instrument_id}/leverage': 1,
+                    },
+                },
+                'system': {
+                    'get': {
+                        'status': 250,
+                    },
+                },
+                'market': {
+                    'get': {
+                        'oracle': 250,
+                    },
                 },
                 'futures': {
                     'get': [
@@ -678,6 +747,16 @@ module.exports = class okcoin extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [ 'spot' ],
                 'defaultType': 'spot', // 'account', 'spot', 'margin', 'futures', 'swap', 'option'
+                'accountsByType': {
+                    'spot': '1',
+                    'margin': '5',
+                    'funding': '6',
+                },
+                'accountsById': {
+                    '1': 'spot',
+                    '5': 'margin',
+                    '6': 'funding',
+                },
                 'auth': {
                     'time': 'public',
                     'currencies': 'private',
@@ -703,6 +782,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.generalGetTime (params);
         //
         //     {
@@ -714,6 +800,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchMarkets
+         * @description retrieves data on all markets for okcoin
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const types = this.safeValue (this.options, 'fetchMarkets');
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -871,7 +964,8 @@ module.exports = class okcoin extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverageString, '1')),
             'swap': swap,
-            'futures': future,
+            'future': future,
+            'futures': future, // deprecated
             'option': option,
             'active': true,
             'contract': contract,
@@ -1001,11 +1095,18 @@ module.exports = class okcoin extends Exchange {
             //
             return this.parseMarkets (response);
         } else {
-            throw new NotSupported (this.id + ' fetchMarketsByType does not support market type ' + type);
+            throw new NotSupported (this.id + ' fetchMarketsByType() does not support market type ' + type);
         }
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
@@ -1034,7 +1135,6 @@ module.exports = class okcoin extends Exchange {
                 const currency = response[i];
                 const id = this.safeString (currency, 'currency');
                 const code = this.safeCurrencyCode (id);
-                const precision = 0.00000001; // default precision, todo: fix "magic constants"
                 const name = this.safeString (currency, 'name');
                 const canDeposit = this.safeInteger (currency, 'can_deposit');
                 const canWithdraw = this.safeInteger (currency, 'can_withdraw');
@@ -1051,7 +1151,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': precision,
+                    'precision': this.parseNumber ('0.00000001'),
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -1066,6 +1166,15 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = market['type'] + 'GetInstrumentsInstrumentId';
@@ -1151,10 +1260,18 @@ module.exports = class okcoin extends Exchange {
             'baseVolume': this.safeString (ticker, 'base_volume_24h'),
             'quoteVolume': this.safeString (ticker, 'quote_volume_24h'),
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdTicker';
@@ -1194,6 +1311,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
@@ -1289,9 +1414,6 @@ module.exports = class okcoin extends Exchange {
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'size', 'qty');
         amountString = this.safeString (trade, 'order_qty', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1299,21 +1421,21 @@ module.exports = class okcoin extends Exchange {
             takerOrMaker = 'taker';
         }
         const side = this.safeString (trade, 'side');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
                 // therefore we need to invert the fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
+                'cost': Precise.stringNeg (feeCostString),
                 'currency': feeCurrency,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1323,14 +1445,24 @@ module.exports = class okcoin extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdTrades';
@@ -1429,6 +1561,17 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const duration = this.parseTimeframe (timeframe);
@@ -1456,7 +1599,7 @@ module.exports = class okcoin extends Exchange {
             }
         } else if (type === 'HistoryCandles') {
             if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV does not have ' + type + ' for ' + market['type'] + ' markets');
+                throw new NotSupported (this.id + ' fetchOHLCV() does not have ' + type + ' for ' + market['type'] + ' markets');
             }
             if (since !== undefined) {
                 if (limit === undefined) {
@@ -1782,6 +1925,13 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
@@ -1934,6 +2084,18 @@ module.exports = class okcoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
@@ -1992,8 +2154,7 @@ module.exports = class okcoin extends Exchange {
                     } else {
                         notional = (notional === undefined) ? amount : notional;
                     }
-                    const precision = market['precision']['price'];
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                    request['notional'] = this.costToPrecision (symbol, notional);
                 } else {
                     request['size'] = this.amountToPrecision (symbol, amount);
                 }
@@ -2018,6 +2179,15 @@ module.exports = class okcoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2176,19 +2346,8 @@ module.exports = class okcoin extends Exchange {
         if ((side !== 'buy') && (side !== 'sell')) {
             side = this.parseOrderSide (type);
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'size');
         const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
@@ -2235,7 +2394,7 @@ module.exports = class okcoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -2254,6 +2413,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -2446,6 +2613,16 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // '-2': failed,
         // '-1': cancelled,
         //  '0': open ,
@@ -2459,6 +2636,16 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         // '-2': failed,
         // '-1': cancelled,
         //  '0': open ,
@@ -2497,6 +2684,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const parts = code.split ('-');
         const currency = this.currency (parts[0]);
@@ -2515,12 +2710,121 @@ module.exports = class okcoin extends Exchange {
         const addressesByCode = this.parseDepositAddresses (response);
         const address = this.safeValue (addressesByCode, code);
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot return nonexistent addresses, you should create withdrawal addresses with the exchange website first');
         }
         return address;
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name okcoin#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'amount': this.currencyToPrecision (code, amount),
+            'currency': currency['id'],
+            'from': fromId, // 1 spot, 5 margin, 6 funding
+            'to': toId, // 1 spot, 5 margin, 6 funding
+            'type': '0', // 0 Transfer between accounts in the main account/sub_account, 1 main account to sub_account, 2 sub_account to main account
+        };
+        if (fromId === 'main') {
+            request['type'] = '1';
+            request['sub_account'] = toId;
+            request['to'] = '0';
+        } else if (toId === 'main') {
+            request['type'] = '2';
+            request['sub_account'] = fromId;
+            request['from'] = '0';
+            request['to'] = '6';
+        } else if (fromId === '5' || toId === '5') {
+            let marketId = this.safeString2 (params, 'instrument_id', 'to_instrument_id');
+            if (marketId === undefined) {
+                const symbol = this.safeString (params, 'symbol');
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' transfer() requires an exchange-specific instrument_id parameter or a unified symbol parameter');
+                } else {
+                    params = this.omit (params, 'symbol');
+                    const market = this.market (symbol);
+                    marketId = market['id'];
+                }
+                if (fromId === '5') {
+                    request['instrument_id'] = marketId;
+                }
+                if (toId === '5') {
+                    request['to_instrument_id'] = marketId;
+                }
+            }
+        }
+        const response = await this.accountPostTransfer (this.extend (request, params));
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //      {
+        //          "transfer_id": "754147",
+        //          "currency": "ETC",
+        //          "from": "6",
+        //          "amount": "0.1",
+        //          "to": "1",
+        //          "result": true
+        //      }
+        //
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (accountsById, this.safeString (transfer, 'from')),
+            'toAccount': this.safeString (accountsById, this.safeString (transfer, 'to')),
+            'status': this.parseTransferStatus (this.safeString (transfer, 'result')),
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'true': 'ok',
+        };
+        return this.safeString (statuses, status, 'failed');
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -2559,13 +2863,20 @@ module.exports = class okcoin extends Exchange {
         //         "result":true
         //     }
         //
-        return {
-            'info': response,
-            'id': this.safeString (response, 'withdrawal_id'),
-        };
+        return this.parseTransaction (response, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = 'accountGetDepositHistory';
@@ -2580,6 +2891,16 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         let method = 'accountGetWithdrawalHistory';
@@ -2747,25 +3068,25 @@ module.exports = class okcoin extends Exchange {
         const symbol = market['symbol'];
         const quoteId = market['quoteId'];
         let side = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let amountString = undefined;
+        let costString = undefined;
         const receivedCurrencyId = this.safeString (userTrade, 'currency');
         let feeCurrencyId = undefined;
         if (receivedCurrencyId === quoteId) {
             side = this.safeString (otherTrade, 'side');
-            amount = this.safeNumber (otherTrade, 'size');
-            cost = this.safeNumber (userTrade, 'size');
+            amountString = this.safeString (otherTrade, 'size');
+            costString = this.safeString (userTrade, 'size');
             feeCurrencyId = this.safeString (otherTrade, 'currency');
         } else {
             side = this.safeString (userTrade, 'side');
-            amount = this.safeNumber (userTrade, 'size');
-            cost = this.safeNumber (otherTrade, 'size');
+            amountString = this.safeString (userTrade, 'size');
+            costString = this.safeString (otherTrade, 'size');
             feeCurrencyId = this.safeString (userTrade, 'currency');
         }
         const id = this.safeString (userTrade, 'trade_id');
-        const price = this.safeNumber (userTrade, 'price');
-        const feeCostFirst = this.safeNumber (otherTrade, 'fee');
-        const feeCostSecond = this.safeNumber (userTrade, 'fee');
+        const priceString = this.safeString (userTrade, 'price');
+        const feeCostFirstString = this.safeString (otherTrade, 'fee');
+        const feeCostSecondString = this.safeString (userTrade, 'fee');
         const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'currency'));
         const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'currency'));
         let fee = undefined;
@@ -2774,32 +3095,32 @@ module.exports = class okcoin extends Exchange {
         // or a negative number (transaction fee deduction)
         // therefore we need to invert the fee
         // more about it https://github.com/ccxt/ccxt/issues/5909
-        if ((feeCostFirst !== undefined) && (feeCostFirst !== 0)) {
-            if ((feeCostSecond !== undefined) && (feeCostSecond !== 0)) {
+        if ((feeCostFirstString !== undefined) && !Precise.stringEquals (feeCostFirstString, '0')) {
+            if ((feeCostSecondString !== undefined) && !Precise.stringEquals (feeCostSecondString, '0')) {
                 fees = [
                     {
-                        'cost': -feeCostFirst,
+                        'cost': Precise.stringNeg (feeCostFirstString),
                         'currency': feeCurrencyCodeFirst,
                     },
                     {
-                        'cost': -feeCostSecond,
+                        'cost': Precise.stringNeg (feeCostSecondString),
                         'currency': feeCurrencyCodeSecond,
                     },
                 ];
             } else {
                 fee = {
-                    'cost': -feeCostFirst,
+                    'cost': Precise.stringNeg (feeCostFirstString),
                     'currency': feeCurrencyCodeFirst,
                 };
             }
-        } else if ((feeCostSecond !== undefined) && (feeCostSecond !== 0)) {
+        } else if ((feeCostSecondString !== undefined) && !Precise.stringEquals (feeCostSecondString, '0')) {
             fee = {
-                'cost': -feeCostSecond,
+                'cost': Precise.stringNeg (feeCostSecondString),
                 'currency': feeCurrencyCodeSecond,
             };
         } else {
             fee = {
-                'cost': 0,
+                'cost': '0',
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
@@ -2844,7 +3165,7 @@ module.exports = class okcoin extends Exchange {
             takerOrMaker = 'taker';
         }
         const orderId = this.safeString (userTrade, 'order_id');
-        const result = {
+        return this.safeTrade ({
             'info': pair,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2854,15 +3175,12 @@ module.exports = class okcoin extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
-        if (fees !== undefined) {
-            result['fees'] = fees;
-        }
-        return result;
+            'fees': fees,
+        }, market);
     }
 
     parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2879,14 +3197,21 @@ module.exports = class okcoin extends Exchange {
                 result.push (trade);
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        market = this.safeMarket (undefined, market);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         // okex actually returns ledger entries instead of fills here, so each fill in the order
         // is represented by two trades with opposite buy/sell sides, not one :\
         // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
@@ -2985,6 +3310,17 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         const request = {
             // 'instrument_id': market['id'],
             'order_id': id,
@@ -2996,6 +3332,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {str} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let method = undefined;
@@ -3198,6 +3542,14 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchPositions
+         * @description fetch all open positions
+         * @param {[str]|undefined} symbols not used by okcoin fetchPositions
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
         await this.loadMarkets ();
         let method = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
@@ -3267,6 +3619,16 @@ module.exports = class okcoin extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okcoin#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the okcoin api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchLedger', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);

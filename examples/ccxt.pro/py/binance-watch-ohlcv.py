@@ -1,5 +1,5 @@
 import ccxtpro
-import asyncio
+from asyncio import run
 
 print('CCXT Pro version', ccxtpro.__version__)
 
@@ -12,10 +12,8 @@ def table(values):
     return "\n".join([string.format(*[str(v[k]) for k in keys]) for v in values])
 
 
-async def main(loop):
+async def main():
     exchange = ccxtpro.binance({
-        'enableRateLimit': True,
-        'asyncio_loop': loop,
         # 'options': {
         #     'OHLCVLimit': 1000, # how many candles to store in memory by default
         # },
@@ -42,5 +40,4 @@ async def main(loop):
         print(exchange.id, method, 'is not supported or not implemented yet')
 
 
-asyncio_loop = asyncio.get_event_loop()
-asyncio_loop.run_until_complete(main(asyncio_loop))
+run(main())

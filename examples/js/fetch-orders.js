@@ -9,7 +9,6 @@ require ('ansicolor').nice
 const exchange = new ccxt.bittrex ({
     apiKey: "YOUR_API_KEY",
     secret: "YOUR_SECRET",
-    enableRateLimit: true,
 })
 
 async function test () {

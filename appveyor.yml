@@ -23,6 +23,7 @@ install:
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
+  # - php -i
   - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
@@ -45,6 +46,10 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
+  # - C:\ProgramData\chocolatey\bin
+  # - C:\ProgramData\chocolatey\lib
+  # - C:\tools\php81
+  - .cache
 after_build:
   # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
   #

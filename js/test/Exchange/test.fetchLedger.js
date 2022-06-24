@@ -9,9 +9,11 @@ const assert = require ('assert')
 
 module.exports = async (exchange, code) => {
 
-    if (exchange.has.fetchLedger) {
+    let method = 'fetchLedger'
 
-        const items = await exchange.fetchLedger (code)
+    if (exchange.has[method]) {
+
+        const items = await exchange[method] (code)
 
         assert (items instanceof Array)
 
@@ -26,9 +28,11 @@ module.exports = async (exchange, code) => {
             }
         }
 
-        if (exchange.has.fetchLedgerItem) {
+        method = 'fetchLedgerItem';
+
+        if (exchange.has[method]) {
             const { id } = items.pop ()
-            let item = await exchange.fetchLedgerItem (id)
+            let item = await exchange[method] (id)
             if (Array.isArray (item)) {
                 item = item[0]
             }
@@ -37,6 +41,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        console.log ('Fetching ledger items not supported')
+        console.log (method + '() is not supported')
     }
 }

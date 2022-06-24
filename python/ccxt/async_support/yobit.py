@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,6 +15,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -32,7 +26,7 @@ class yobit(Exchange):
             'id': 'yobit',
             'name': 'YoBit',
             'countries': ['RU'],
-            'rateLimit': 3000,  # responses are cached every 2 seconds
+            'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
                 'CORS': None,
@@ -47,6 +41,9 @@ class yobit(Exchange):
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -60,11 +57,12 @@ class yobit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -76,12 +74,17 @@ class yobit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -96,24 +99,24 @@ class yobit(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth/{pair}',
-                        'info',
-                        'ticker/{pair}',
-                        'trades/{pair}',
-                    ],
+                    'get': {
+                        'depth/{pair}': 1,
+                        'info': 1,
+                        'ticker/{pair}': 1,
+                        'trades/{pair}': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'ActiveOrders',
-                        'CancelOrder',
-                        'GetDepositAddress',
-                        'getInfo',
-                        'OrderInfo',
-                        'Trade',
-                        'TradeHistory',
-                        'WithdrawCoinsToAddress',
-                    ],
+                    'post': {
+                        'ActiveOrders': 1,
+                        'CancelOrder': 1,
+                        'GetDepositAddress': 1,
+                        'getInfo': 1,
+                        'OrderInfo': 1,
+                        'Trade': 1,
+                        'TradeHistory': 1,
+                        'WithdrawCoinsToAddress': 1,
+                    },
                 },
             },
             'fees': {
@@ -133,6 +136,7 @@ class yobit(Exchange):
                 'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
+                'AUR': 'AuroraCoin',
                 'BAB': 'Babel',
                 'BAN': 'BANcoin',
                 'BCC': 'BCH',
@@ -174,6 +178,7 @@ class yobit(Exchange):
                 'GCC': 'GlobalCryptocurrency',
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
+                'GMR': 'Gimmer',
                 'GOLD': 'GoldMint',
                 'GOT': 'Giotto Coin',
                 'GSX': 'GlowShares',
@@ -222,6 +227,7 @@ class yobit(Exchange):
                 'SOLO': 'SoloCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
+                'TNS': 'Transcodium',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
@@ -235,6 +241,7 @@ class yobit(Exchange):
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -291,6 +298,11 @@ class yobit(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
         #
@@ -321,6 +333,11 @@ class yobit(Exchange):
         return self.parse_balance(response)
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for yobit
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetInfo(params)
         #
         #     {
@@ -340,7 +357,7 @@ class yobit(Exchange):
         #         },
         #     }
         #
-        markets = self.safe_value(response, 'pairs')
+        markets = self.safe_value(response, 'pairs', {})
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -382,8 +399,8 @@ class yobit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'decimal_places'),
-                    'price': self.safe_integer(market, 'decimal_places'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal_places'))),
                 },
                 'limits': {
                     'leverage': {
@@ -408,6 +425,13 @@ class yobit(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -423,6 +447,13 @@ class yobit(Exchange):
         return self.parse_order_book(orderbook, symbol)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :param [str]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param int|None limit: max number of entries per orderbook to return, default is None
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbol
+        """
         await self.load_markets()
         ids = None
         if symbols is None:
@@ -430,7 +461,7 @@ class yobit(Exchange):
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+                raise ExchangeError(self.id + ' fetchOrderBooks() has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -486,9 +517,15 @@ class yobit(Exchange):
             'baseVolume': self.safe_string(ticker, 'vol_cur'),
             'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         ids = self.ids
         if symbols is None:
@@ -497,7 +534,7 @@ class yobit(Exchange):
             maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
             # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
             if len(ids) > self.options['fetchTickersMaxLength']:
-                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
+                raise ArgumentsRequired(self.id + ' fetchTickers() has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
@@ -516,10 +553,39 @@ class yobit(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "type":"bid",
+        #          "price":0.14046179,
+        #          "amount":0.001,
+        #          "tid":200256901,
+        #          "timestamp":1649861004
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "pair":"doge_usdt",
+        #          "type":"sell",
+        #          "amount":139,
+        #          "rate":0.139,
+        #          "order_id":"2101103631773172",
+        #          "is_your_order":1,
+        #          "timestamp":"1649861561"
+        #      }
+        #
         timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
@@ -532,24 +598,29 @@ class yobit(Exchange):
         marketId = self.safe_string(trade, 'pair')
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string(trade, 'amount')
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        # arguments for calculateFee(need to be numbers)
         price = self.parse_number(priceString)
         amount = self.parse_number(amountString)
         type = 'limit'  # all trades are still limit trades
         fee = None
-        feeCost = self.safe_number(trade, 'commission')
-        if feeCost is not None:
+        feeCostString = self.safe_number(trade, 'commission')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         isYourOrder = self.safe_value(trade, 'is_your_order')
         if isYourOrder is not None:
             if fee is None:
-                fee = self.calculate_fee(symbol, type, side, amount, price, 'taker')
-        return {
+                feeInNumbers = self.calculate_fee(symbol, type, side, amount, price, 'taker')
+                fee = {
+                    'currency': self.safe_string(feeInNumbers, 'currency'),
+                    'cost': self.safe_string(feeInNumbers, 'cost'),
+                    'rate': self.safe_string(feeInNumbers, 'rate'),
+                }
+        return self.safe_trade({
             'id': id,
             'order': order,
             'timestamp': timestamp,
@@ -558,14 +629,22 @@ class yobit(Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -574,15 +653,87 @@ class yobit(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTradesPair(self.extend(request, params))
+        #
+        #      {
+        #          "doge_usdt": [
+        #              {
+        #                  "type":"ask",
+        #                  "price":0.13956743,
+        #                  "amount":0.0008,
+        #                  "tid":200256900,
+        #                  "timestamp":1649860521
+        #              },
+        #          ]
+        #      }
+        #
         if isinstance(response, list):
             numElements = len(response)
             if numElements == 0:
                 return []
-        return self.parse_trades(response[market['id']], market, since, limit)
+        result = self.safe_value(response, market['id'], [])
+        return self.parse_trades(result, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicGetInfo(params)
+        #
+        #     {
+        #         "server_time":1615856752,
+        #         "pairs":{
+        #             "ltc_btc":{
+        #                 "decimal_places":8,
+        #                 "min_price":0.00000001,
+        #                 "max_price":10000,
+        #                 "min_amount":0.0001,
+        #                 "min_total":0.0001,
+        #                 "hidden":0,
+        #                 "fee":0.2,
+        #                 "fee_buyer":0.2,
+        #                 "fee_seller":0.2
+        #             },
+        #             ...
+        #         },
+        #     }
+        #
+        pairs = self.safe_value(response, 'pairs', {})
+        marketIds = list(pairs.keys())
+        result = {}
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            pair = self.safe_value(pairs, marketId, {})
+            symbol = self.safe_symbol(marketId, None, '_')
+            takerString = self.safe_string(pair, 'fee_buyer')
+            makerString = self.safe_string(pair, 'fee_seller')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if type == 'market':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -592,46 +743,64 @@ class yobit(Exchange):
             'rate': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostTrade(self.extend(request, params))
-        id = None
-        status = 'open'
-        filled = 0.0
-        remaining = amount
-        if 'return' in response:
-            id = self.safe_string(response['return'], 'order_id')
-            if id == '0':
-                id = self.safe_string(response['return'], 'init_order_id')
-                status = 'closed'
-            filled = self.safe_number(response['return'], 'received', 0.0)
-            remaining = self.safe_number(response['return'], 'remains', amount)
-        timestamp = self.milliseconds()
-        return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': None,
-            # 'trades': self.parse_trades(order['trades'], market),
-            'info': response,
-            'clientOrderId': None,
-            'average': None,
-            'trades': None,
-        }
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "received":0,
+        #              "remains":10,
+        #              "order_id":1101103635125179,
+        #              "funds": {
+        #                  "usdt":27.84756553,
+        #                  "usdttrc20":0,
+        #                  "doge":19.98327206
+        #              },
+        #              "funds_incl_orders": {
+        #                  "usdt":30.35256553,
+        #                  "usdttrc20":0,
+        #                  "doge":19.98327206
+        #               },
+        #               "server_time":1650114256
+        #           }
+        #       }
+        #
+        result = self.safe_value(response, 'return')
+        return self.parse_order(result, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by yobit cancelOrder()
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': int(id),
         }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        response = await self.privatePostCancelOrder(self.extend(request, params))
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "order_id":1101103632552304,
+        #              "funds": {
+        #                  "usdt":30.71055443,
+        #                  "usdttrc20":0,
+        #                  "doge":9.98327206
+        #              },
+        #              "funds_incl_orders": {
+        #                  "usdt":31.81275443,
+        #                  "usdttrc20":0,
+        #                  "doge":9.98327206
+        #              },
+        #              "server_time":1649918298
+        #          }
+        #      }
+        #
+        result = self.safe_value(response, 'return', {})
+        return self.parse_order(result)
 
     def parse_order_status(self, status):
         statuses = {
@@ -643,13 +812,78 @@ class yobit(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = self.safe_string(order, 'id')
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_timestamp(order, 'timestamp_created')
+        #
+        # createOrder(private)
+        #
+        #      {
+        #          "received":0,
+        #          "remains":10,
+        #          "order_id":1101103635125179,
+        #          "funds": {
+        #              "usdt":27.84756553,
+        #              "usdttrc20":0,
+        #              "doge":19.98327206
+        #          },
+        #          "funds_incl_orders": {
+        #              "usdt":30.35256553,
+        #              "usdttrc20":0,
+        #              "doge":19.98327206
+        #          },
+        #          "server_time":1650114256
+        #      }
+        #
+        # fetchOrder(private)
+        #
+        #      {
+        #          "id: "1101103635103335",  # id-field is manually added in fetchOrder() from exchange response id-order dictionary structure
+        #          "pair":"doge_usdt",
+        #          "type":"buy",
+        #          "start_amount":10,
+        #          "amount":10,
+        #          "rate":0.05,
+        #          "timestamp_created":"1650112553",
+        #          "status":0
+        #      }
+        #
+        # fetchOpenOrders(private)
+        #
+        #      {
+        #          "id":"1101103635103335",  # id-field is manually added in fetchOpenOrders() from exchange response id-order dictionary structure
+        #          "pair":"doge_usdt",
+        #          "type":"buy",
+        #          "amount":10,
+        #          "rate":0.05,
+        #          "timestamp_created":"1650112553",
+        #          "status":0
+        #      }
+        #
+        # cancelOrder(private)
+        #
+        #      {
+        #          "order_id":1101103634000197,
+        #          "funds": {
+        #              "usdt":31.81275443,
+        #              "usdttrc20":0,
+        #              "doge":9.98327206
+        #          },
+        #          "funds_incl_orders": {
+        #              "usdt":31.81275443,
+        #              "usdttrc20":0,
+        #              "doge":9.98327206
+        #          }
+        #      }
+        #
+        id = self.safe_string_2(order, 'id', 'order_id')
+        status = self.parse_order_status(self.safe_string(order, 'status', 'open'))
+        if id == '0':
+            id = self.safe_string(order, 'init_order_id')
+            status = 'closed'
+        timestamp = self.safe_timestamp_2(order, 'timestamp_created', 'server_time')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = self.safe_string(order, 'amount')
         amount = self.safe_string(order, 'start_amount')
+        remaining = self.safe_string_2(order, 'amount', 'remains')
+        filled = self.safe_string(order, 'received', '0.0')
         price = self.safe_string(order, 'rate')
         fee = None
         type = 'limit'
@@ -671,7 +905,7 @@ class yobit(Exchange):
             'cost': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': None,
+            'filled': filled,
             'status': status,
             'fee': fee,
             'average': None,
@@ -679,6 +913,12 @@ class yobit(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by yobit fetchOrder
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': int(id),
@@ -686,9 +926,33 @@ class yobit(Exchange):
         response = await self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)
         orders = self.safe_value(response, 'return', {})
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "1101103635103335": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "start_amount":10,
+        #                  "amount":10,
+        #                  "rate":0.05,
+        #                  "timestamp_created":"1650112553",
+        #                  "status":0
+        #              }
+        #          }
+        #      }
+        #
         return self.parse_order(self.extend({'id': id}, orders[id]))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -698,10 +962,41 @@ class yobit(Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
-        orders = self.safe_value(response, 'return', [])
-        return self.parse_orders(orders, market, since, limit)
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "1101103634006799": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "amount":10,
+        #                  "rate":0.1,
+        #                  "timestamp_created":"1650034937",
+        #                  "status":0
+        #              },
+        #              "1101103634006738": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"buy",
+        #                  "amount":10,
+        #                  "rate":0.1,
+        #                  "timestamp_created":"1650034932",
+        #                  "status":0
+        #              }
+        #          }
+        #      }
+        #
+        result = self.safe_value(response, 'return', {})
+        return self.parse_orders(result, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         await self.load_markets()
@@ -722,6 +1017,22 @@ class yobit(Exchange):
         if since is not None:
             request['since'] = int(since / 1000)
         response = await self.privatePostTradeHistory(self.extend(request, params))
+        #
+        #      {
+        #          "success":1,
+        #          "return": {
+        #              "200257004": {
+        #                  "pair":"doge_usdt",
+        #                  "type":"sell",
+        #                  "amount":139,
+        #                  "rate":0.139,
+        #                  "order_id":"2101103631773172",
+        #                  "is_your_order":1,
+        #                  "timestamp":"1649861561"
+        #              }
+        #          }
+        #      }
+        #
         trades = self.safe_value(response, 'return', {})
         ids = list(trades.keys())
         result = []
@@ -731,9 +1042,15 @@ class yobit(Exchange):
                 'trade_id': id,
             }), market)
             result.append(trade)
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         request = {
             'need_new': 1,
         }
@@ -748,6 +1065,12 @@ class yobit(Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -766,6 +1089,15 @@ class yobit(Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the yobit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
@@ -848,7 +1180,7 @@ class yobit(Exchange):
             # To cover points 1, 2, 3 and 4 combined self handler should work like self:
             #
             success = self.safe_value(response, 'success', False)
-            if isinstance(success, basestring):
+            if isinstance(success, str):
                 if (success == 'true') or (success == '1'):
                     success = True
                 else:

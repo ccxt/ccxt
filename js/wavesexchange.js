@@ -14,7 +14,6 @@ module.exports = class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'rateLimit': 500,
             'certified': true,
             'pro': false,
             'has': {
@@ -29,6 +28,9 @@ module.exports = class wavesexchange extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -42,12 +44,13 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -58,11 +61,14 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -130,6 +136,7 @@ module.exports = class wavesexchange extends Exchange {
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
+                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
@@ -282,6 +289,9 @@ module.exports = class wavesexchange extends Exchange {
                     ],
                 },
             },
+            'currencies': {
+                'WX': { 'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': undefined, 'code': 'WX', 'precision': 8 },
+            },
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
@@ -341,19 +351,51 @@ module.exports = class wavesexchange extends Exchange {
         return super.setSandboxMode (enabled);
     }
 
+    async getFeesForAsset (symbol, side, amount, price, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
+        const request = this.extend ({
+            'amountAsset': market['baseId'],
+            'priceAsset': market['quoteId'],
+            'orderType': side,
+            'amount': amount,
+            'price': price,
+        }, params);
+        return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
+    }
+
     async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const settings = await this.matcherGetMatcherSettings ();
-        const dynamic = this.safeGetDynamic (settings);
-        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
+        const response = await this.getFeesForAsset (symbol, side, amount, price);
+        // {
+        //     "base":{
+        //        "feeAssetId":"WAVES",
+        //        "matcherFee":"1000000"
+        //     },
+        //     "discount":{
+        //        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //        "matcherFee":"4077612"
+        //     }
+        //  }
+        const isDiscountFee = this.safeValue (params, 'isDiscountFee', false);
+        let mode = undefined;
+        if (isDiscountFee) {
+            mode = this.safeValue (response, 'discount');
+        } else {
+            mode = this.safeValue (response, 'base');
+        }
+        const matcherFee = this.safeString (mode, 'matcherFee');
+        const feeAssetId = this.safeString (mode, 'feeAssetId');
+        const feeAsset = this.safeCurrencyCode (feeAssetId);
+        const adjustedMatcherFee = this.currencyFromPrecision (feeAsset, matcherFee);
         const amountAsString = this.numberToString (amount);
         const priceAsString = this.numberToString (price);
-        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        const feeCost = this.feeToPrecision (symbol, this.parseNumber (wavesMatcherFee));
-        const feeRate = Precise.stringDiv (wavesMatcherFee, Precise.stringMul (amountAsString, priceAsString));
+        const feeCost = this.feeToPrecision (symbol, this.parseNumber (adjustedMatcherFee));
+        const feeRate = Precise.stringDiv (adjustedMatcherFee, Precise.stringMul (amountAsString, priceAsString));
         return {
             'type': takerOrMaker,
-            'currency': 'WAVES',
-            // To calculate the rate since Waves has a fixed fee.
+            'currency': feeAsset,
             'rate': this.parseNumber (feeRate),
             'cost': this.parseNumber (feeCost),
         };
@@ -428,6 +470,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchMarkets
+         * @description retrieves data on all markets for wavesexchange
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} an array of objects representing market data
+         */
         const response = await this.marketGetTickers ();
         //
         //   [
@@ -464,8 +513,10 @@ module.exports = class wavesexchange extends Exchange {
             const quoteId = this.safeString (entry, 'priceAssetID');
             const id = baseId + '/' + quoteId;
             const marketId = this.safeString (entry, 'symbol');
-            const [ base, quote ] = marketId.split ('/');
-            const symbol = this.safeCurrencyCode (base) + '/' + this.safeCurrencyCode (quote);
+            let [ base, quote ] = marketId.split ('/');
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -519,6 +570,15 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({
@@ -616,7 +676,8 @@ module.exports = class wavesexchange extends Exchange {
         } else if (api === 'matcher') {
             if (method === 'POST') {
                 headers = {
-                    'content-type': 'application/json',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 };
                 body = this.json (query);
             } else {
@@ -641,6 +702,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns response from exchange
+         */
         if (!this.safeString (this.options, 'accessToken')) {
             const prefix = 'ffffff01';
             const expiresDelta = 60 * 60 * 24 * 7;
@@ -697,15 +765,7 @@ module.exports = class wavesexchange extends Exchange {
         let symbol = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             const marketId = baseId + '/' + quoteId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
+            market = this.safeMarket (marketId, market, '/');
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
@@ -737,10 +797,18 @@ module.exports = class wavesexchange extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -775,7 +843,56 @@ module.exports = class wavesexchange extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetPairs (params);
+        //
+        //     {
+        //         "__type":"list",
+        //         "data":[
+        //             {
+        //                 "__type":"pair",
+        //                 "data":{
+        //                     "firstPrice":0.00012512,
+        //                     "lastPrice":0.00012441,
+        //                     "low":0.00012167,
+        //                     "high":0.00012768,
+        //                     "weightedAveragePrice":0.000124710697407246,
+        //                     "volume":209554.26356614,
+        //                     "quoteVolume":26.1336583539951,
+        //                     "volumeWaves":209554.26356614,
+        //                     "txsCount":6655
+        //                 },
+        //                 "amountAsset":"WAVES",
+        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTickers (data, symbols);
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -790,9 +907,9 @@ module.exports = class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const currentTime = parseInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
-            const timeStart = currentTime - delta;
+            const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
         } else {
             request['timeStart'] = since.toString ();
@@ -824,7 +941,8 @@ module.exports = class wavesexchange extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        let result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        result = this.filterFutureCandles (result);
         let lastClose = undefined;
         const length = result.length;
         for (let i = 0; i < result.length; i++) {
@@ -839,6 +957,19 @@ module.exports = class wavesexchange extends Exchange {
                 result[j] = entry;
             }
             lastClose = entry[4];
+        }
+        return result;
+    }
+
+    filterFutureCandles (ohlcvs) {
+        const result = [];
+        const timestamp = this.milliseconds ();
+        for (let i = 0; i < ohlcvs.length; i++) {
+            if (ohlcvs[i][0] > timestamp) {
+                // stop when getting data from the future
+                break;
+            }
+            result.push (ohlcvs[i]);
         }
         return result;
     }
@@ -874,6 +1005,14 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.signIn ();
         const networks = this.safeValue (this.options, 'networks', {});
         const rawNetwork = this.safeStringUpper (params, 'network');
@@ -930,7 +1069,7 @@ module.exports = class wavesexchange extends Exchange {
         }
         if (!(code in currencies)) {
             const codes = Object.keys (currencies);
-            throw new ExchangeError (this.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + codes.join (', '));
+            throw new ExchangeError (this.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + codes.join (', '));
         }
         let response = undefined;
         if (network === undefined) {
@@ -1042,8 +1181,8 @@ module.exports = class wavesexchange extends Exchange {
         return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
-    currencyToPrecision (currency, amount) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[currency]['precision'])));
+    currencyToPrecision (code, amount, networkCode = undefined) {
+        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {
@@ -1051,7 +1190,7 @@ module.exports = class wavesexchange extends Exchange {
             return undefined;
         }
         const precise = new Precise (amount);
-        precise.decimals = precise.decimals + scale;
+        precise.decimals = this.sum (precise.decimals, scale);
         precise.reduce ();
         return precise.toString ();
     }
@@ -1072,7 +1211,7 @@ module.exports = class wavesexchange extends Exchange {
     priceFromPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const scale = wavesPrecision - market['precision']['amount'] + market['precision']['price'];
+        const scale = this.sum (wavesPrecision, market['precision']['price']) - market['precision']['amount'];
         return this.fromPrecision (price, scale);
     }
 
@@ -1094,6 +1233,18 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
@@ -1101,109 +1252,74 @@ module.exports = class wavesexchange extends Exchange {
         const matcherPublicKey = await this.getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
-        amount = this.amountToPrecision (symbol, amount);
         const isMarketOrder = (type === 'market');
         if ((isMarketOrder) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
-        price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const settings = await this.matcherGetMatcherSettings ();
+        const matcherFees = await this.getFeesForAsset (symbol, side, amount, price);
         // {
-        //   "orderVersions": [
-        //     1,
-        //     2,
-        //     3
-        //   ],
-        //   "success": true,
-        //   "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        //   "orderFee": {
-        //     "dynamic": {
-        //       "baseFee": 300000,
-        //       "rates": {
-        //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ": 1.0257813,
-        //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH": 0.01268146,
-        //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk": 0.05232404,
-        //         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS": 0.00023985,
-        //         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8": 19.5967716,
-        //         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu": 0.00937073,
-        //         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p": 2.19825,
-        //         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H": 0.03180264,
-        //         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy": 0.00996631,
-        //         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3": 0.03254476,
-        //         "WAVES": 1,
-        //         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa": 0.03703704
-        //       }
+        //     "base":{
+        //        "feeAssetId":"WAVES", // varies depending on the trading pair
+        //        "matcherFee":"1000000"
+        //     },
+        //     "discount":{
+        //        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //        "matcherFee":"4077612"
         //     }
-        //   },
-        //   "networkByte": 87,
-        //   "matcherVersion": "2.1.4.8",
-        //   "status": "SimpleResponse",
-        //   "priceAssets": [
-        //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
-        //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
-        //     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
-        //     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
-        //     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-        //     "WAVES",
-        //     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
-        //     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
-        //     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
-        //     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
-        //     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
-        //     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
-        //     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
-        //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
-        //   ]
-        // }
-        const dynamic = this.safeGetDynamic (settings);
-        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
-        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        const rates = this.safeGetRates (dynamic);
-        // choose sponsored assets from the list of priceAssets above
-        const priceAssets = Object.keys (rates);
+        //  }
+        const base = this.safeValue (matcherFees, 'base');
+        const baseFeeAssetId = this.safeString (base, 'feeAssetId');
+        const baseFeeAsset = this.safeCurrencyCode (baseFeeAssetId);
+        const baseMatcherFee = this.safeString (base, 'matcherFee');
+        const discount = this.safeValue (matcherFees, 'discount');
+        const discountFeeAssetId = this.safeString (discount, 'feeAssetId');
+        const discountFeeAsset = this.safeCurrencyCode (discountFeeAssetId);
+        const discountMatcherFee = this.safeString (discount, 'matcherFee');
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
-        if ('feeAssetId' in params) {
-            matcherFeeAssetId = params['feeAssetId'];
-        } else if ('feeAssetId' in this.options) {
-            matcherFeeAssetId = this.options['feeAssetId'];
-        } else {
-            const balances = await this.fetchBalance ();
-            const floatWavesMatcherFee = parseFloat (wavesMatcherFee);
-            if (balances['WAVES']['free'] > floatWavesMatcherFee) {
-                matcherFeeAssetId = 'WAVES';
-                matcherFee = baseMatcherFee;
+        // check first if user supplied asset fee is valid
+        if (('feeAsset' in params) || ('feeAsset' in this.options)) {
+            const feeAsset = this.safeString (params, 'feeAsset', this.safeString (this.options, 'feeAsset'));
+            const feeCurrency = this.currency (feeAsset);
+            matcherFeeAssetId = this.safeString (feeCurrency, 'id');
+        }
+        const balances = await this.fetchBalance ();
+        if (matcherFeeAssetId !== undefined) {
+            if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
+                throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
+            }
+            const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
+            const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
+            const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
+            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
+                matcherFee = parseInt (rawMatcherFee);
             } else {
-                for (let i = 0; i < priceAssets.length; i++) {
-                    const assetId = priceAssets[i];
-                    const code = this.safeCurrencyCode (assetId);
-                    const balance = this.safeString (this.safeValue (balances, code, {}), 'free');
-                    const assetFee = Precise.stringMul (rates[assetId], wavesMatcherFee);
-                    if ((balance !== undefined) && Precise.stringGt (balance, assetFee)) {
-                        matcherFeeAssetId = assetId;
-                        break;
-                    }
+                throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
+            }
+        }
+        if (matcherFeeAssetId === undefined) {
+            // try to the pay the fee using the base first then discount asset
+            const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
+            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
+                matcherFeeAssetId = baseFeeAssetId;
+                matcherFee = parseInt (baseMatcherFee);
+            } else {
+                const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
+                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
+                    matcherFeeAssetId = discountFeeAssetId;
+                    matcherFee = parseInt (discountMatcherFee);
                 }
             }
         }
         if (matcherFeeAssetId === undefined) {
-            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
+            throw new InsufficientFunds (this.id + ' not enough funds on none of the eligible asset fees');
         }
-        if (matcherFee === undefined) {
-            const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-            const rate = this.safeString (rates, matcherFeeAssetId);
-            const code = this.safeCurrencyCode (matcherFeeAssetId);
-            const currency = this.currency (code);
-            const newPrecison = wavesPrecision - currency['precision'];
-            matcherFee = this.fromPrecision (Precise.stringMul (rate, baseMatcherFee), newPrecison);
-            // ceil the fee
-            matcherFee = Precise.stringDiv (Precise.stringAdd (matcherFee, '1'), '1', 0);
-        }
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
@@ -1240,6 +1356,32 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
+        //
+        //     {
+        //         "success":true,
+        //         "message":{
+        //             "version":3,
+        //             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
+        //             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        //             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        //             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //             "assetPair":{
+        //                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
+        //                 "priceAsset":"WAVES"
+        //             },
+        //             "orderType":"buy",
+        //             "amount":110874978,
+        //             "price":514397851,
+        //             "timestamp":1650473255988,
+        //             "expiration":1652892455988,
+        //             "matcherFee":7074571,
+        //             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
+        //             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
+        //             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        //         },
+        //         "status":"OrderAccepted"
+        //     }
+        //
         if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket (body);
             const value = this.safeValue (response, 'message');
@@ -1249,30 +1391,18 @@ module.exports = class wavesexchange extends Exchange {
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
         }
-        // { success: true,
-        //   message:
-        //    { version: 3,
-        //      id: 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        //      sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //      senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //      matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //      assetPair:
-        //       { amountAsset: null,
-        //         priceAsset: '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS' },
-        //      orderType: 'sell',
-        //      amount: 1,
-        //      price: 100000000,
-        //      timestamp: 1591593117995,
-        //      expiration: 1594012317995,
-        //      matcherFee: 300000,
-        //      matcherFeeAssetId: null,
-        //      signature: '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq',
-        //      proofs:
-        //       [ '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ] },
-        //   status: 'OrderAccepted' }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
@@ -1313,6 +1443,14 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {str|undefined} symbol unified symbol of the market the order was made in
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
@@ -1339,6 +1477,16 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         if (symbol === undefined) {
@@ -1382,6 +1530,16 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         await this.signIn ();
         let market = undefined;
@@ -1398,6 +1556,16 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         await this.signIn ();
         let market = undefined;
@@ -1452,32 +1620,33 @@ module.exports = class wavesexchange extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //     createOrder
+        // createOrder
         //
         //     {
-        //         version: 3,
-        //         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        //         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        //         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        //         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        //         assetPair: {
-        //             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        //         'version': 3,
+        //         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        //         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        //         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        //         'matcherPublicKey': '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        //         'assetPair': {
+        //             'amountAsset': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //             'priceAsset': 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
         //         },
-        //         orderType: 'buy',
-        //         amount: 10000,
-        //         price: 400000000,
-        //         timestamp: 1599848586891,
-        //         expiration: 1602267786891,
-        //         matcherFee: 3008,
-        //         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        //         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        //         proofs: [
-        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        //         ]
+        //         'orderType': 'buy',
+        //         'amount': 10000,
+        //         'price': 400000000,
+        //         'timestamp': 1599848586891,
+        //         'expiration': 1602267786891,
+        //         'matcherFee': 3008,
+        //         'matcherFeeAssetId': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        //         'signature': '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         'proofs': [
+        //             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        //         ],
         //     }
         //
-        //     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1578,6 +1747,13 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         // makes a lot of different requests to get all the data
         // in particular:
         // fetchMarkets, getWavesAddress,
@@ -1626,7 +1802,7 @@ module.exports = class wavesexchange extends Exchange {
         //     }
         //   ]
         // }
-        const balances = this.safeValue (totalBalance, 'balances');
+        const balances = this.safeValue (totalBalance, 'balances', []);
         const result = {};
         let timestamp = undefined;
         const assetIds = [];
@@ -1657,7 +1833,7 @@ module.exports = class wavesexchange extends Exchange {
                 'ids': assetIds,
             };
             const response = await this.publicGetAssets (request);
-            const data = this.safeValue (response, 'data');
+            const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
                 const balance = nonStandardBalances[i];
@@ -1722,20 +1898,109 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const address = await this.getWavesAddress ();
         const request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['amountAsset'] = market['baseId'];
+            request['priceAsset'] = market['quoteId'];
+        }
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":true,
+        //          "lastCursor":"MzA2MjQ0MzAwMDI5OjpkZXNj",
+        //          "data": [
+        //              {
+        //                  "__type":"transaction",
+        //                  "data": {
+        //                      "id":"GbjPqco2wRP5QSrY5LimFrUyJaM535K9nhK5zaQ7J7Tx",
+        //                      "timestamp":"2022-04-06T19:56:31.479Z",
+        //                      "height":3062443,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs":[
+        //                          "57mYrANw61eiArCTv2eYwzXm71jYC2KpZ5AeM9zHEstuRaYSAWSuSE7njAJYJu8zap6DMCm3nzqc6es3wQFDpRCN"
+        //                      ],
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0,
+        //                      "sellMatcherFee":0.00141728,
+        //                      "price":215.7431,
+        //                      "amount":0.09,
+        //                      "order1": {
+        //                          "id":"49qiuQj5frdZ6zpTCEpMuKPMAh1EimwXpXWB4BeCw33h",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"buy",
+        //                          "price":215.7431,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.36265477,
+        //                          "timestamp":"2022-04-06T19:55:06.832Z",
+        //                          "expiration":"2022-05-05T19:55:06.832Z",
+        //                          "matcherFee":3.000334,
+        //                          "signature":"2rBWhdeuRJNpQfXfTFtcR8x8Lpic8FUHPdLML9uxABRUuxe48YRJcZxbncwWAh9LWFCEUZiztv7RZBZfGMWfFxTs",
+        //                          "matcherFeeAssetId":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                      },
+        //                      "order2": {
+        //                          "id":"AkxiJqCuv6wm8K41TUSgFNwShZMnCbMDT78MqrcWpQ53",
+        //                          "senderPublicKey":"72o7qNKyne5hthB1Ww6famE7uHrk5vTVB2ZfUMBEqL3Y",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"sell",
+        //                          "price":210,
+        //                          "sender":"3P3CzbjGgiqEyUBeKZYfgZtyaZfMG8fjoUD",
+        //                          "amount":0.09,
+        //                          "timestamp":"2022-04-06T19:56:18.535Z",
+        //                          "expiration":"2022-05-04T19:56:18.535Z",
+        //                          "matcherFee":0.00141728,
+        //                          "signature":"5BZCjYn6QzVkMXBFDBnzcAUBdCZqhq9hQfRXFHfLUQCsbis4zeriw4sUqLa1BZRT2isC6iY4Z4HtekikPqZ461PT",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              },...
+        //          ]
+        //      }
+        //
         return this.parseTrades (data, market, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1750,10 +2015,77 @@ module.exports = class wavesexchange extends Exchange {
         }
         const response = await this.publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
+        //
+        //      {
+        //          "__type":"list",
+        //          "isLastPage":false,
+        //          "lastCursor":"MzA2MjM2MTAwMDU0OjpkZXNj",
+        //          "data": [
+        //              {
+        //                  "__type":"transaction",
+        //                  "data": {
+        //                      "id":"F42WsvSsyEzvpPLFjVhQKkSNuopooP4zMkjSUs47NeML",
+        //                      "timestamp":"2022-04-06T18:39:49.145Z",
+        //                      "height":3062361,
+        //                      "type":7,
+        //                      "version":2,
+        //                      "proofs": [
+        //                          "39iJv82kFi4pyuBxYeZpP45NXXjbrCXdVsHPAAvj32UMLmTXLjMTfV43PcmZDSAuS93HKSDo1aKJrin8UvkeE9Bs"
+        //                      ],
+        //                      "fee":0.003,
+        //                      "applicationStatus":"succeeded",
+        //                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        //                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                      "buyMatcherFee":0.02314421,
+        //                      "sellMatcherFee":0,
+        //                      "price":217.3893,
+        //                      "amount":0.34523025,
+        //                      "order1": {
+        //                          "id":"HkM36PHGaeeZdDKT1mYgZXhaU9PRZ54RZiJc2K4YMT3Q",
+        //                          "senderPublicKey":"7wYCaDcc6GX1Jx2uS7QgLHBypBKvrezTS1HfiW6Xe4Bk",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"buy",
+        //                          "price":225.2693,
+        //                          "sender":"3PLPc8f4DGYaF9C9bwJ2uVmHqRv3NCjg5VQ",
+        //                          "amount":2.529,
+        //                          "timestamp":"2022-04-06T18:39:48.796Z",
+        //                          "expiration":"2022-05-05T18:39:48.796Z",
+        //                          "matcherFee":0.17584444,
+        //                          "signature":"2yQfJoomv86evQDw36fg1uiRkHvPDZtRp3qvxqTBWPvz4JLTHGQtEHJF5NGTvym6U93CtgNprngzmD9ecHBjxf6U",
+        //                          "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+        //                      },
+        //                      "order2": {
+        //                          "id":"F7HKmeuzwWdk3wKitHLnVx5MuD4wBWPpphQ8kUGx4tT9",
+        //                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        //                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //                          "assetPair": {
+        //                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        //                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        //                          },
+        //                          "orderType":"sell",
+        //                          "price":217.3893,
+        //                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        //                          "amount":0.35767793,
+        //                          "timestamp":"2022-04-06T18:32:01.390Z",
+        //                          "expiration":"2022-05-05T18:32:01.390Z",
+        //                          "matcherFee":0.0139168,
+        //                          "signature":"34HgWVLPgeYWkiSvAc5ChVepGTYDQDug2dMTSincs6idEyoM7AtaZuH3mqQ5RJG2fcxxH2QSB723Qq3dgLQwQmKf",
+        //                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        //                      }
+        //                  }
+        //              }, ...
+        //          ]
+        //      }
+        //
         return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // { __type: 'transaction',
         //   data:
         //    { id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
@@ -1798,15 +2130,13 @@ module.exports = class wavesexchange extends Exchange {
         //         matcherFee: 0.003,
         //         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         //         matcherFeeAssetId: null } } }
+        //
         const data = this.safeValue (trade, 'data');
         const datetime = this.safeString (data, 'timestamp');
         const timestamp = this.parse8601 (datetime);
         const id = this.safeString (data, 'id');
         const priceString = this.safeString (data, 'price');
         const amountString = this.safeString (data, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
         let order = undefined;
@@ -1826,10 +2156,10 @@ module.exports = class wavesexchange extends Exchange {
         const side = this.safeString (order, 'orderType');
         const orderId = this.safeString (order, 'id');
         const fee = {
-            'cost': this.safeNumber (order, 'matcherFee'),
+            'cost': this.safeString (order, 'matcherFee'),
             'currency': this.safeCurrencyCode (this.safeString (order, 'matcherFeeAssetId', 'WAVES')),
         };
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -1839,11 +2169,11 @@ module.exports = class wavesexchange extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -1864,6 +2194,17 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name wavesexchange#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the wavesexchange api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
@@ -1877,7 +2218,7 @@ module.exports = class wavesexchange extends Exchange {
             }
             if (!(code in currencies)) {
                 const codes = Object.keys (currencies);
-                throw new ExchangeError (this.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + codes.toString ());
+                throw new ExchangeError (this.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + codes.toString ());
             }
         }
         await this.loadMarkets ();
@@ -1975,6 +2316,54 @@ module.exports = class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        return await this.nodePostTransactionsBroadcast (request);
+        const result = await this.nodePostTransactionsBroadcast (request);
+        //
+        //     {
+        //         "id": "string",
+        //         "signature": "string",
+        //         "fee": 0,
+        //         "timestamp": 1460678400000,
+        //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount": 0
+        //     }
+        //
+        return this.parseTransaction (result, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "string",
+        //         "signature": "string",
+        //         "fee": 0,
+        //         "timestamp": 1460678400000,
+        //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        //         "amount": 0
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
     }
 };

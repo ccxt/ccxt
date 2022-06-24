@@ -222,6 +222,13 @@ class Precise {
         return (new Precise($string1))->equals(new Precise($string2));
     }
 
+    public static function string_eq($string1, $string2) {
+        if (($string1 === null) || ($string2 === null)) {
+            return null;
+        }
+        return (new Precise($string1))->equals(new Precise($string2));
+    }
+
     public static function string_min($string1, $string2) {
         if (($string1 === null) || ($string2 === null)) {
             return null;

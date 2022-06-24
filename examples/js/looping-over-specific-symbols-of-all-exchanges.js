@@ -29,13 +29,7 @@ require ('ansicolor').nice
                 if (exchange === undefined) {
 
                     // create the exchange instance
-                    exchange = new ccxt[exchangeId] ({
-
-                        // add at least some rate-limiting as required by the Manual:
-                        // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
-                        'enableRateLimit': true,
-                    })
+                    exchange = new ccxt[exchangeId] ()
                 }
 
                 exchanges[exchangeId] = exchange // save it for later use

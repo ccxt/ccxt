@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'AuthenticationError.php';
+require_once PATH_TO_CCXT . 'PermissionDenied.php';
 
-class AccountNotEnabled extends AuthenticationError {};
+class AccountNotEnabled extends PermissionDenied {};

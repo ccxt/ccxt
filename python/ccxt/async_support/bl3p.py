@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -40,20 +41,27 @@ class bl3p(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
+                'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -94,11 +102,12 @@ class bl3p(Exchange):
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
                 'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response):
         data = self.safe_value(response, 'data', {})
-        wallets = self.safe_value(data, 'wallets')
+        wallets = self.safe_value(data, 'wallets', {})
         result = {'info': data}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -115,6 +124,11 @@ class bl3p(Exchange):
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostGENMKTMoneyInfo(params)
         return self.parse_balance(response)
@@ -128,6 +142,13 @@ class bl3p(Exchange):
         ]
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -177,9 +198,15 @@ class bl3p(Exchange):
             'baseVolume': self.safe_string(volume, '24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -205,33 +232,34 @@ class bl3p(Exchange):
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
-        priceString = self.safe_string(trade, 'price_int')
-        priceString = Precise.string_div(priceString, '100000')
-        amountString = self.safe_string(trade, 'amount_int')
-        amountString = Precise.string_div(amountString, '100000000')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price_int')
+        amount = self.safe_string(trade, 'amount_int')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': Precise.string_div(price, '100000'),
+            'amount': Precise.string_div(amount, '100000000'),
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         market = self.market(symbol)
         response = await self.publicGetMarketTrades(self.extend({
             'market': market['id'],
@@ -239,7 +267,69 @@ class bl3p(Exchange):
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.privatePostGENMKTMoneyInfo(params)
+        #
+        #     {
+        #         result: 'success',
+        #         data: {
+        #             user_id: '13396',
+        #             wallets: {
+        #                 BTC: {
+        #                     balance: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     },
+        #                     available: {
+        #                         value_int: '0',
+        #                         display: '0.00000000 BTC',
+        #                         currency: 'BTC',
+        #                         value: '0.00000000',
+        #                         display_short: '0.00 BTC'
+        #                     }
+        #                 },
+        #                 ...
+        #             },
+        #             trade_fee: '0.25'
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        feeString = self.safe_string(data, 'trade_fee')
+        fee = self.parse_number(Precise.string_div(feeString, '100'))
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = self.market(symbol)
         order = {
             'market': market['id'],
@@ -257,6 +347,13 @@ class bl3p(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'order_id': id,
         }

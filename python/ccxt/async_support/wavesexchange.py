@@ -26,7 +26,6 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'rateLimit': 500,
             'certified': True,
             'pro': False,
             'has': {
@@ -41,6 +40,9 @@ class wavesexchange(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -54,12 +56,13 @@ class wavesexchange(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -70,11 +73,14 @@ class wavesexchange(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -142,6 +148,7 @@ class wavesexchange(Exchange):
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
+                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
@@ -294,6 +301,9 @@ class wavesexchange(Exchange):
                     ],
                 },
             },
+            'currencies': {
+                'WX': {'id': 'EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc', 'numericId': None, 'code': 'WX', 'precision': 8},
+            },
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
@@ -351,19 +361,49 @@ class wavesexchange(Exchange):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
         return super(wavesexchange, self).set_sandbox_mode(enabled)
 
+    async def get_fees_for_asset(self, symbol, side, amount, price, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
+        price = self.price_to_precision(symbol, price)
+        request = self.extend({
+            'amountAsset': market['baseId'],
+            'priceAsset': market['quoteId'],
+            'orderType': side,
+            'amount': amount,
+            'price': price,
+        }, params)
+        return await self.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request)
+
     async def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
-        settings = await self.matcherGetMatcherSettings()
-        dynamic = self.safe_get_dynamic(settings)
-        baseMatcherFee = self.safe_string(dynamic, 'baseFee')
+        response = await self.get_fees_for_asset(symbol, side, amount, price)
+        # {
+        #     "base":{
+        #        "feeAssetId":"WAVES",
+        #        "matcherFee":"1000000"
+        #     },
+        #     "discount":{
+        #        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #        "matcherFee":"4077612"
+        #     }
+        #  }
+        isDiscountFee = self.safe_value(params, 'isDiscountFee', False)
+        mode = None
+        if isDiscountFee:
+            mode = self.safe_value(response, 'discount')
+        else:
+            mode = self.safe_value(response, 'base')
+        matcherFee = self.safe_string(mode, 'matcherFee')
+        feeAssetId = self.safe_string(mode, 'feeAssetId')
+        feeAsset = self.safe_currency_code(feeAssetId)
+        adjustedMatcherFee = self.currency_from_precision(feeAsset, matcherFee)
         amountAsString = self.number_to_string(amount)
         priceAsString = self.number_to_string(price)
-        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
-        feeCost = self.fee_to_precision(symbol, self.parse_number(wavesMatcherFee))
-        feeRate = Precise.string_div(wavesMatcherFee, Precise.string_mul(amountAsString, priceAsString))
+        feeCost = self.fee_to_precision(symbol, self.parse_number(adjustedMatcherFee))
+        feeRate = Precise.string_div(adjustedMatcherFee, Precise.string_mul(amountAsString, priceAsString))
         return {
             'type': takerOrMaker,
-            'currency': 'WAVES',
-            # To calculate the rate since Waves has a fixed fee.
+            'currency': feeAsset,
             'rate': self.parse_number(feeRate),
             'cost': self.parse_number(feeCost),
         }
@@ -434,6 +474,11 @@ class wavesexchange(Exchange):
             return quotes
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for wavesexchange
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.marketGetTickers()
         #
         #   [
@@ -471,7 +516,9 @@ class wavesexchange(Exchange):
             id = baseId + '/' + quoteId
             marketId = self.safe_string(entry, 'symbol')
             base, quote = marketId.split('/')
-            symbol = self.safe_currency_code(base) + '/' + self.safe_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -523,6 +570,13 @@ class wavesexchange(Exchange):
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -605,7 +659,8 @@ class wavesexchange(Exchange):
         elif api == 'matcher':
             if method == 'POST':
                 headers = {
-                    'content-type': 'application/json',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 }
                 body = self.json(query)
             else:
@@ -625,6 +680,11 @@ class wavesexchange(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns: response from exchange
+        """
         if not self.safe_string(self.options, 'accessToken'):
             prefix = 'ffffff01'
             expiresDelta = 60 * 60 * 24 * 7
@@ -679,13 +739,7 @@ class wavesexchange(Exchange):
         symbol = None
         if (baseId is not None) and (quoteId is not None):
             marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
+            market = self.safe_market(marketId, market, '/')
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
         last = self.safe_string(data, 'lastPrice')
@@ -716,9 +770,15 @@ class wavesexchange(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -752,7 +812,51 @@ class wavesexchange(Exchange):
         ticker = self.safe_value(data, 0, {})
         return self.parse_ticker(ticker, market)
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetPairs(params)
+        #
+        #     {
+        #         "__type":"list",
+        #         "data":[
+        #             {
+        #                 "__type":"pair",
+        #                 "data":{
+        #                     "firstPrice":0.00012512,
+        #                     "lastPrice":0.00012441,
+        #                     "low":0.00012167,
+        #                     "high":0.00012768,
+        #                     "weightedAveragePrice":0.000124710697407246,
+        #                     "volume":209554.26356614,
+        #                     "quoteVolume":26.1336583539951,
+        #                     "volumeWaves":209554.26356614,
+        #                     "txsCount":6655
+        #                 },
+        #                 "amountAsset":"WAVES",
+        #                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_tickers(data, symbols)
+
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -766,9 +870,9 @@ class wavesexchange(Exchange):
         limit = min(allowedCandles, limit)
         duration = self.parse_timeframe(timeframe) * 1000
         if since is None:
-            currentTime = int(self.milliseconds() / duration) * duration
+            durationRoundedTimestamp = int(self.milliseconds() / duration) * duration
             delta = (limit - 1) * duration
-            timeStart = currentTime - delta
+            timeStart = durationRoundedTimestamp - delta
             request['timeStart'] = str(timeStart)
         else:
             request['timeStart'] = str(since)
@@ -800,6 +904,7 @@ class wavesexchange(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         result = self.parse_ohlcvs(data, market, timeframe, since, limit)
+        result = self.filter_future_candles(result)
         lastClose = None
         length = len(result)
         for i in range(0, len(result)):
@@ -813,6 +918,16 @@ class wavesexchange(Exchange):
                 entry[4] = lastClose
                 result[j] = entry
             lastClose = entry[4]
+        return result
+
+    def filter_future_candles(self, ohlcvs):
+        result = []
+        timestamp = self.milliseconds()
+        for i in range(0, len(ohlcvs)):
+            if ohlcvs[i][0] > timestamp:
+                # stop when getting data from the future
+                break
+            result.append(ohlcvs[i])
         return result
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -845,6 +960,12 @@ class wavesexchange(Exchange):
         ]
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.sign_in()
         networks = self.safe_value(self.options, 'networks', {})
         rawNetwork = self.safe_string_upper(params, 'network')
@@ -898,7 +1019,7 @@ class wavesexchange(Exchange):
                 networksByCurrency[currencyCode][currencyId] = True
         if not (code in currencies):
             codes = list(currencies.keys())
-            raise ExchangeError(self.id + ' fetch ' + code + ' deposit address not supported. Currency code must be one of ' + ', '.join(codes))
+            raise ExchangeError(self.id + ' fetchDepositAddress() ' + code + ' not supported. Currency code must be one of ' + ', '.join(codes))
         response = None
         if network is None:
             request = {
@@ -997,14 +1118,14 @@ class wavesexchange(Exchange):
     def amount_to_precision(self, symbol, amount):
         return int(float(self.to_precision(amount, self.markets[symbol]['precision']['amount'])))
 
-    def currency_to_precision(self, currency, amount):
-        return int(float(self.to_precision(amount, self.currencies[currency]['precision'])))
+    def currency_to_precision(self, code, amount, networkCode=None):
+        return int(float(self.to_precision(amount, self.currencies[code]['precision'])))
 
     def from_precision(self, amount, scale):
         if amount is None:
             return None
         precise = Precise(amount)
-        precise.decimals = precise.decimals + scale
+        precise.decimals = self.sum(precise.decimals, scale)
         precise.reduce()
         return str(precise)
 
@@ -1022,7 +1143,7 @@ class wavesexchange(Exchange):
     def price_from_precision(self, symbol, price):
         market = self.markets[symbol]
         wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-        scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
+        scale = self.sum(wavesPrecision, market['precision']['price']) - market['precision']['amount']
         return self.from_precision(price, scale)
 
     def safe_get_dynamic(self, settings):
@@ -1039,6 +1160,16 @@ class wavesexchange(Exchange):
         return rates
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_dependencies()
         self.check_required_keys()
         await self.load_markets()
@@ -1046,102 +1177,65 @@ class wavesexchange(Exchange):
         matcherPublicKey = await self.get_matcher_public_key()
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
-        amount = self.amount_to_precision(symbol, amount)
         isMarketOrder = (type == 'market')
         if (isMarketOrder) and (price is None):
             raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
-        price = self.price_to_precision(symbol, price)
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
         defaultExpiryDelta = self.safe_integer(self.options, 'createOrderDefaultExpiry', 2419200000)
         expiration = self.sum(timestamp, defaultExpiryDelta)
-        settings = await self.matcherGetMatcherSettings()
+        matcherFees = await self.get_fees_for_asset(symbol, side, amount, price)
         # {
-        #   "orderVersions": [
-        #     1,
-        #     2,
-        #     3
-        #   ],
-        #   "success": True,
-        #   "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        #   "orderFee": {
-        #     "dynamic": {
-        #       "baseFee": 300000,
-        #       "rates": {
-        #         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ": 1.0257813,
-        #         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH": 0.01268146,
-        #         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk": 0.05232404,
-        #         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS": 0.00023985,
-        #         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8": 19.5967716,
-        #         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu": 0.00937073,
-        #         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p": 2.19825,
-        #         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H": 0.03180264,
-        #         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy": 0.00996631,
-        #         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3": 0.03254476,
-        #         "WAVES": 1,
-        #         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa": 0.03703704
-        #       }
+        #     "base":{
+        #        "feeAssetId":"WAVES",  # varies depending on the trading pair
+        #        "matcherFee":"1000000"
+        #     },
+        #     "discount":{
+        #        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        #        "matcherFee":"4077612"
         #     }
-        #   },
-        #   "networkByte": 87,
-        #   "matcherVersion": "2.1.4.8",
-        #   "status": "SimpleResponse",
-        #   "priceAssets": [
-        #     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
-        #     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        #     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
-        #     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
-        #     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
-        #     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-        #     "WAVES",
-        #     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
-        #     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
-        #     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
-        #     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
-        #     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
-        #     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
-        #     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
-        #     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
-        #   ]
-        # }
-        dynamic = self.safe_get_dynamic(settings)
-        baseMatcherFee = self.safe_string(dynamic, 'baseFee')
-        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
-        rates = self.safe_get_rates(dynamic)
-        # choose sponsored assets from the list of priceAssets above
-        priceAssets = list(rates.keys())
+        #  }
+        base = self.safe_value(matcherFees, 'base')
+        baseFeeAssetId = self.safe_string(base, 'feeAssetId')
+        baseFeeAsset = self.safe_currency_code(baseFeeAssetId)
+        baseMatcherFee = self.safe_string(base, 'matcherFee')
+        discount = self.safe_value(matcherFees, 'discount')
+        discountFeeAssetId = self.safe_string(discount, 'feeAssetId')
+        discountFeeAsset = self.safe_currency_code(discountFeeAssetId)
+        discountMatcherFee = self.safe_string(discount, 'matcherFee')
         matcherFeeAssetId = None
         matcherFee = None
-        if 'feeAssetId' in params:
-            matcherFeeAssetId = params['feeAssetId']
-        elif 'feeAssetId' in self.options:
-            matcherFeeAssetId = self.options['feeAssetId']
-        else:
-            balances = await self.fetch_balance()
-            floatWavesMatcherFee = float(wavesMatcherFee)
-            if balances['WAVES']['free'] > floatWavesMatcherFee:
-                matcherFeeAssetId = 'WAVES'
-                matcherFee = baseMatcherFee
+        # check first if user supplied asset fee is valid
+        if ('feeAsset' in params) or ('feeAsset' in self.options):
+            feeAsset = self.safe_string(params, 'feeAsset', self.safe_string(self.options, 'feeAsset'))
+            feeCurrency = self.currency(feeAsset)
+            matcherFeeAssetId = self.safe_string(feeCurrency, 'id')
+        balances = await self.fetch_balance()
+        if matcherFeeAssetId is not None:
+            if baseFeeAssetId != matcherFeeAssetId and discountFeeAssetId != matcherFeeAssetId:
+                raise InvalidOrder(self.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset)
+            matcherFeeAsset = self.safe_currency_code(matcherFeeAssetId)
+            rawMatcherFee = baseMatcherFee if (matcherFeeAssetId == baseFeeAssetId) else discountMatcherFee
+            floatMatcherFee = float(self.currency_from_precision(matcherFeeAsset, rawMatcherFee))
+            if (matcherFeeAsset in balances) and (balances[matcherFeeAsset]['free'] >= floatMatcherFee):
+                matcherFee = int(rawMatcherFee)
             else:
-                for i in range(0, len(priceAssets)):
-                    assetId = priceAssets[i]
-                    code = self.safe_currency_code(assetId)
-                    balance = self.safe_string(self.safe_value(balances, code, {}), 'free')
-                    assetFee = Precise.string_mul(rates[assetId], wavesMatcherFee)
-                    if (balance is not None) and Precise.string_gt(balance, assetFee):
-                        matcherFeeAssetId = assetId
-                        break
+                raise InsufficientFunds(self.id + ' not enough funds of the selected asset fee')
         if matcherFeeAssetId is None:
-            raise InsufficientFunds(self.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES')
-        if matcherFee is None:
-            wavesPrecision = self.safe_integer(self.options, 'wavesPrecision', 8)
-            rate = self.safe_string(rates, matcherFeeAssetId)
-            code = self.safe_currency_code(matcherFeeAssetId)
-            currency = self.currency(code)
-            newPrecison = wavesPrecision - currency['precision']
-            matcherFee = self.from_precision(Precise.string_mul(rate, baseMatcherFee), newPrecison)
-            # ceil the fee
-            matcherFee = Precise.string_div(Precise.string_add(matcherFee, '1'), '1', 0)
+            # try to the pay the fee using the base first then discount asset
+            floatBaseMatcherFee = float(self.currency_from_precision(baseFeeAsset, baseMatcherFee))
+            if (baseFeeAsset in balances) and (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee):
+                matcherFeeAssetId = baseFeeAssetId
+                matcherFee = int(baseMatcherFee)
+            else:
+                floatDiscountMatcherFee = float(self.currency_from_precision(discountFeeAsset, discountMatcherFee))
+                if (discountFeeAsset in balances) and (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee):
+                    matcherFeeAssetId = discountFeeAssetId
+                    matcherFee = int(discountMatcherFee)
+        if matcherFeeAssetId is None:
+            raise InsufficientFunds(self.id + ' not enough funds on none of the eligible asset fees')
+        amount = self.amount_to_precision(symbol, amount)
+        price = self.price_to_precision(symbol, price)
         byteArray = [
             self.number_to_be(3, 1),
             self.base58_to_binary(self.apiKey),
@@ -1177,6 +1271,32 @@ class wavesexchange(Exchange):
         }
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
+        #
+        #     {
+        #         "success":true,
+        #         "message":{
+        #             "version":3,
+        #             "id":"GK5ox4RfLJFtqjQsCbDmvCya8ZhFVEUQDtF4yYuAJ6C7",
+        #             "sender":"3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
+        #             "senderPublicKey":"AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF",
+        #             "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #             "assetPair":{
+        #                 "amountAsset":"C1iWsKGqLwjHUndiQ7iXpdmPum9PeCDFfyXBdJJosDRS",
+        #                 "priceAsset":"WAVES"
+        #             },
+        #             "orderType":"buy",
+        #             "amount":110874978,
+        #             "price":514397851,
+        #             "timestamp":1650473255988,
+        #             "expiration":1652892455988,
+        #             "matcherFee":7074571,
+        #             "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on",
+        #             "signature":"5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8",
+        #             "proofs":["5Vgs6mbdZJv5Ce9mdobT6fppXr6bKn5WVDbzP6mGG5jMB5jgcA2eSScwctgvY5SwPm9n1bctAAKuXtLcdHjNNie8"]
+        #         },
+        #         "status":"OrderAccepted"
+        #     }
+        #
         if isMarketOrder:
             response = await self.matcherPostMatcherOrderbookMarket(body)
             value = self.safe_value(response, 'message')
@@ -1185,29 +1305,15 @@ class wavesexchange(Exchange):
             response = await self.matcherPostMatcherOrderbook(body)
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
-        # {success: True,
-        #   message:
-        #    {version: 3,
-        #      id: 'Do7cDJMf2MJuFyorvxNNuzS42MXSGGEq1r1hGDn1PHiS',
-        #      sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #      senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #      matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #      assetPair:
-        #       {amountAsset: null,
-        #         priceAsset: '8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS'},
-        #      orderType: 'sell',
-        #      amount: 1,
-        #      price: 100000000,
-        #      timestamp: 1591593117995,
-        #      expiration: 1594012317995,
-        #      matcherFee: 300000,
-        #      matcherFeeAssetId: null,
-        #      signature: '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq',
-        #      proofs:
-        #       ['2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq']},
-        #   status: 'OrderAccepted'}
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_dependencies()
         self.check_required_keys()
         await self.sign_in()
@@ -1247,6 +1353,12 @@ class wavesexchange(Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.check_required_dependencies()
         self.check_required_keys()
         await self.load_markets()
@@ -1271,6 +1383,14 @@ class wavesexchange(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.check_required_dependencies()
         self.check_required_keys()
         if symbol is None:
@@ -1312,6 +1432,14 @@ class wavesexchange(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.sign_in()
         market = None
@@ -1326,6 +1454,14 @@ class wavesexchange(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         await self.sign_in()
         market = None
@@ -1376,32 +1512,33 @@ class wavesexchange(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #     createOrder
+        # createOrder
         #
         #     {
-        #         version: 3,
-        #         id: 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
-        #         sender: '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
-        #         senderPublicKey: 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
-        #         matcherPublicKey: '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
-        #         assetPair: {
-        #             amountAsset: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #             priceAsset: 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p'
+        #         'version': 3,
+        #         'id': 'BshyeHXDfJmTnjTdBYt371jD4yWaT3JTP6KpjpsiZepS',
+        #         'sender': '3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH',
+        #         'senderPublicKey': 'AHXn8nBA4SfLQF7hLQiSn16kxyehjizBGW1TdrmSZ1gF',
+        #         'matcherPublicKey': '9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5',
+        #         'assetPair': {
+        #             'amountAsset': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #             'priceAsset': 'DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p',
         #         },
-        #         orderType: 'buy',
-        #         amount: 10000,
-        #         price: 400000000,
-        #         timestamp: 1599848586891,
-        #         expiration: 1602267786891,
-        #         matcherFee: 3008,
-        #         matcherFeeAssetId: '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
-        #         signature: '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
-        #         proofs: [
-        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy'
-        #         ]
+        #         'orderType': 'buy',
+        #         'amount': 10000,
+        #         'price': 400000000,
+        #         'timestamp': 1599848586891,
+        #         'expiration': 1602267786891,
+        #         'matcherFee': 3008,
+        #         'matcherFeeAssetId': '474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu',
+        #         'signature': '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         'proofs': [
+        #             '3D2h8ubrhuWkXbVn4qJ3dvjmZQxLoRNfjTqb9uNpnLxUuwm4fGW2qGH6yKFe2SQPrcbgkS3bDVe7SNtMuatEJ7qy',
+        #         ],
         #     }
         #
-        #     fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
+        #
+        # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders
         #
         #     {
         #         id: '81D9uKk2NfmZzfG7uaJsDtxqWFbJXZmjYvrL88h15fk8',
@@ -1496,6 +1633,11 @@ class wavesexchange(Exchange):
             return cachedAddreess
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         # makes a lot of different requests to get all the data
         # in particular:
         # fetchMarkets, getWavesAddress,
@@ -1544,7 +1686,7 @@ class wavesexchange(Exchange):
         #     }
         #   ]
         # }
-        balances = self.safe_value(totalBalance, 'balances')
+        balances = self.safe_value(totalBalance, 'balances', [])
         result = {}
         timestamp = None
         assetIds = []
@@ -1572,7 +1714,7 @@ class wavesexchange(Exchange):
                 'ids': assetIds,
             }
             response = await self.publicGetAssets(request)
-            data = self.safe_value(response, 'data')
+            data = self.safe_value(response, 'data', [])
             for i in range(0, len(data)):
                 entry = data[i]
                 balance = nonStandardBalances[i]
@@ -1629,19 +1771,103 @@ class wavesexchange(Exchange):
         return self.safe_balance(result)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
-        market = self.market(symbol)
         address = await self.get_waves_address()
         request = {
             'sender': address,
-            'amountAsset': market['baseId'],
-            'priceAsset': market['quoteId'],
         }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['amountAsset'] = market['baseId']
+            request['priceAsset'] = market['quoteId']
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
+        #
+        #      {
+        #          "__type":"list",
+        #          "isLastPage":true,
+        #          "lastCursor":"MzA2MjQ0MzAwMDI5OjpkZXNj",
+        #          "data": [
+        #              {
+        #                  "__type":"transaction",
+        #                  "data": {
+        #                      "id":"GbjPqco2wRP5QSrY5LimFrUyJaM535K9nhK5zaQ7J7Tx",
+        #                      "timestamp":"2022-04-06T19:56:31.479Z",
+        #                      "height":3062443,
+        #                      "type":7,
+        #                      "version":2,
+        #                      "proofs":[
+        #                          "57mYrANw61eiArCTv2eYwzXm71jYC2KpZ5AeM9zHEstuRaYSAWSuSE7njAJYJu8zap6DMCm3nzqc6es3wQFDpRCN"
+        #                      ],
+        #                      "fee":0.003,
+        #                      "applicationStatus":"succeeded",
+        #                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        #                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                      "buyMatcherFee":0,
+        #                      "sellMatcherFee":0.00141728,
+        #                      "price":215.7431,
+        #                      "amount":0.09,
+        #                      "order1": {
+        #                          "id":"49qiuQj5frdZ6zpTCEpMuKPMAh1EimwXpXWB4BeCw33h",
+        #                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"buy",
+        #                          "price":215.7431,
+        #                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        #                          "amount":0.36265477,
+        #                          "timestamp":"2022-04-06T19:55:06.832Z",
+        #                          "expiration":"2022-05-05T19:55:06.832Z",
+        #                          "matcherFee":3.000334,
+        #                          "signature":"2rBWhdeuRJNpQfXfTFtcR8x8Lpic8FUHPdLML9uxABRUuxe48YRJcZxbncwWAh9LWFCEUZiztv7RZBZfGMWfFxTs",
+        #                          "matcherFeeAssetId":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                      },
+        #                      "order2": {
+        #                          "id":"AkxiJqCuv6wm8K41TUSgFNwShZMnCbMDT78MqrcWpQ53",
+        #                          "senderPublicKey":"72o7qNKyne5hthB1Ww6famE7uHrk5vTVB2ZfUMBEqL3Y",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"sell",
+        #                          "price":210,
+        #                          "sender":"3P3CzbjGgiqEyUBeKZYfgZtyaZfMG8fjoUD",
+        #                          "amount":0.09,
+        #                          "timestamp":"2022-04-06T19:56:18.535Z",
+        #                          "expiration":"2022-05-04T19:56:18.535Z",
+        #                          "matcherFee":0.00141728,
+        #                          "signature":"5BZCjYn6QzVkMXBFDBnzcAUBdCZqhq9hQfRXFHfLUQCsbis4zeriw4sUqLa1BZRT2isC6iY4Z4HtekikPqZ461PT",
+        #                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        #                      }
+        #                  }
+        #              },...
+        #          ]
+        #      }
+        #
         return self.parse_trades(data, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1654,9 +1880,76 @@ class wavesexchange(Exchange):
             request['timeStart'] = since
         response = await self.publicGetTransactionsExchange(request)
         data = self.safe_value(response, 'data')
+        #
+        #      {
+        #          "__type":"list",
+        #          "isLastPage":false,
+        #          "lastCursor":"MzA2MjM2MTAwMDU0OjpkZXNj",
+        #          "data": [
+        #              {
+        #                  "__type":"transaction",
+        #                  "data": {
+        #                      "id":"F42WsvSsyEzvpPLFjVhQKkSNuopooP4zMkjSUs47NeML",
+        #                      "timestamp":"2022-04-06T18:39:49.145Z",
+        #                      "height":3062361,
+        #                      "type":7,
+        #                      "version":2,
+        #                      "proofs": [
+        #                          "39iJv82kFi4pyuBxYeZpP45NXXjbrCXdVsHPAAvj32UMLmTXLjMTfV43PcmZDSAuS93HKSDo1aKJrin8UvkeE9Bs"
+        #                      ],
+        #                      "fee":0.003,
+        #                      "applicationStatus":"succeeded",
+        #                      "sender":"3PEjHv3JGjcWNpYEEkif2w8NXV4kbhnoGgu",
+        #                      "senderPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                      "buyMatcherFee":0.02314421,
+        #                      "sellMatcherFee":0,
+        #                      "price":217.3893,
+        #                      "amount":0.34523025,
+        #                      "order1": {
+        #                          "id":"HkM36PHGaeeZdDKT1mYgZXhaU9PRZ54RZiJc2K4YMT3Q",
+        #                          "senderPublicKey":"7wYCaDcc6GX1Jx2uS7QgLHBypBKvrezTS1HfiW6Xe4Bk",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"buy",
+        #                          "price":225.2693,
+        #                          "sender":"3PLPc8f4DGYaF9C9bwJ2uVmHqRv3NCjg5VQ",
+        #                          "amount":2.529,
+        #                          "timestamp":"2022-04-06T18:39:48.796Z",
+        #                          "expiration":"2022-05-05T18:39:48.796Z",
+        #                          "matcherFee":0.17584444,
+        #                          "signature":"2yQfJoomv86evQDw36fg1uiRkHvPDZtRp3qvxqTBWPvz4JLTHGQtEHJF5NGTvym6U93CtgNprngzmD9ecHBjxf6U",
+        #                          "matcherFeeAssetId":"Atqv59EYzjFGuitKVnMRk6H8FukjoV3ktPorbEys25on"
+        #                      },
+        #                      "order2": {
+        #                          "id":"F7HKmeuzwWdk3wKitHLnVx5MuD4wBWPpphQ8kUGx4tT9",
+        #                          "senderPublicKey":"CjUfoH3dsDZsf5UuAjqqzpWHXgvKzBZpVG9YixF7L48K",
+        #                          "matcherPublicKey":"9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        #                          "assetPair": {
+        #                              "amountAsset":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt",
+        #                              "priceAsset":"DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p"
+        #                          },
+        #                          "orderType":"sell",
+        #                          "price":217.3893,
+        #                          "sender":"3PR9WmaHV5ueVw2Wr9xsiCG3t4ySXzkkGLy",
+        #                          "amount":0.35767793,
+        #                          "timestamp":"2022-04-06T18:32:01.390Z",
+        #                          "expiration":"2022-05-05T18:32:01.390Z",
+        #                          "matcherFee":0.0139168,
+        #                          "signature":"34HgWVLPgeYWkiSvAc5ChVepGTYDQDug2dMTSincs6idEyoM7AtaZuH3mqQ5RJG2fcxxH2QSB723Qq3dgLQwQmKf",
+        #                          "matcherFeeAssetId":"7TMu26hAs7B2oW6c5sfx45KSZT7GQA3TZNYuCav8Dcqt"
+        #                      }
+        #                  }
+        #              }, ...
+        #          ]
+        #      }
+        #
         return self.parse_trades(data, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
         # {__type: 'transaction',
         #   data:
         #    {id: 'HSdruioHqvYHeyn9hhyoHdRWPB2bFA8ujeCPZMK6992c',
@@ -1701,15 +1994,13 @@ class wavesexchange(Exchange):
         #         matcherFee: 0.003,
         #         signature: '3SFyrcqzou2ddZyNisnLYaGhLt5qRjKxH8Nw3s4T5U7CEKGX9DDo8dS27RgThPVGbYF1rYET1FwrWoQ2UFZ6SMTR',
         #         matcherFeeAssetId: null}}}
+        #
         data = self.safe_value(trade, 'data')
         datetime = self.safe_string(data, 'timestamp')
         timestamp = self.parse8601(datetime)
         id = self.safe_string(data, 'id')
         priceString = self.safe_string(data, 'price')
         amountString = self.safe_string(data, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         order1 = self.safe_value(data, 'order1')
         order2 = self.safe_value(data, 'order2')
         order = None
@@ -1727,10 +2018,10 @@ class wavesexchange(Exchange):
         side = self.safe_string(order, 'orderType')
         orderId = self.safe_string(order, 'id')
         fee = {
-            'cost': self.safe_number(order, 'matcherFee'),
+            'cost': self.safe_string(order, 'matcherFee'),
             'currency': self.safe_currency_code(self.safe_string(order, 'matcherFeeAssetId', 'WAVES')),
         }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -1740,11 +2031,11 @@ class wavesexchange(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'error')
@@ -1760,6 +2051,15 @@ class wavesexchange(Exchange):
             raise ExchangeError(self.id + ' ' + body)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the wavesexchange api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # currently only works for BTC and WAVES
         if code != 'WAVES':
@@ -1772,7 +2072,7 @@ class wavesexchange(Exchange):
                 currencies[currencyCode] = True
             if not (code in currencies):
                 codes = list(currencies.keys())
-                raise ExchangeError(self.id + ' fetch ' + code + ' withdrawals are not supported. Currency code must be one of ' + str(codes))
+                raise ExchangeError(self.id + ' withdraw() ' + code + ' not supported. Currency code must be one of ' + str(codes))
         await self.load_markets()
         hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
         set = {}
@@ -1863,4 +2163,51 @@ class wavesexchange(Exchange):
             'timestamp': timestamp,
             'signature': signature,
         }
-        return await self.nodePostTransactionsBroadcast(request)
+        result = await self.nodePostTransactionsBroadcast(request)
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        return self.parse_transaction(result, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "id": "string",
+        #         "signature": "string",
+        #         "fee": 0,
+        #         "timestamp": 1460678400000,
+        #         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
+        #         "amount": 0
+        #     }
+        #
+        currency = self.safe_currency(None, currency)
+        return {
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': None,
+            'currency': currency['code'],
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+            'info': transaction,
+        }

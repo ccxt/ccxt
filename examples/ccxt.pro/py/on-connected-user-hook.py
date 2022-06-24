@@ -1,5 +1,5 @@
 import ccxtpro
-from asyncio import get_event_loop, ensure_future
+from asyncio import run, ensure_future
 from pprint import pprint
 
 
@@ -31,7 +31,6 @@ async def create_order(exchange):
         pprint(order)
     except Exception as e:
         print(type(e).__name__, str(e))
-        break
 
 
 async def watch_orders(exchange):
@@ -43,16 +42,14 @@ async def watch_orders(exchange):
             pprint(orders)
         except Exception as e:
             print(type(e).__name__, str(e))
-            break;
+            break
     await exchange.close()
 
 
-loop = get_event_loop()
 exchange = MyBinance({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
-    'asyncio_loop': loop,
 })
 
-loop.run_until_complete(watch_orders(exchange))
+
+run(watch_orders(exchange))

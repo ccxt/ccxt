@@ -13,11 +13,15 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , cache_markets = process.argv.includes ('--cache-markets')
     , testnet =
         process.argv.includes ('--test') ||
         process.argv.includes ('--testnet') ||
         process.argv.includes ('--sandbox')
     , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , isSpot = process.argv.includes ('--spot')
+    , isSwap = process.argv.includes ('--swap')
+    , isFuture = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -42,6 +46,7 @@ const ccxt         = require ('../../ccxt.js')
     , util         = require ('util')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
+    , fsPromises   = require ('fs/promises')
     , { ExchangeError, NetworkError } = ccxt
 
 //-----------------------------------------------------------------------------
@@ -69,7 +74,6 @@ let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 const timeout = 30000
 let exchange = undefined
-const enableRateLimit = true
 
 const { Agent } = require ('https')
 
@@ -80,12 +84,15 @@ const httpsAgent = new Agent ({
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({
-        timeout,
-        enableRateLimit,
-        httpsAgent,
-        ... settings,
-    })
+    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+
+    if (isSpot) {
+        exchange.options['defaultType'] = 'spot';
+    } else if (isSwap) {
+        exchange.options['defaultType'] = 'swap';
+    } else if (isFuture) {
+        exchange.options['defaultType'] = 'future';
+    }
 
     // check auth keys in env var
     const requiredCredentials = exchange.requiredCredentials;
@@ -141,13 +148,13 @@ function printUsage () {
     log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
     log ('--testnet         Use the exchange testnet if available, same as --sandbox')
     log ('--test            Use the exchange testnet if available, same as --sandbox')
+    log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
 }
 
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
-
-    if (Array.isArray (result) || table) {
+    if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
 
@@ -158,40 +165,38 @@ const printHumanReadable = (exchange, result) => {
                 log (object)
             })
 
-        if (!no_table)
-            if (arrayOfObjects || table && Array.isArray (result)) {
-                log (result.length > 0 ? asTable (result.map (element => {
-                    let keys = Object.keys (element)
-                    delete element['info']
-                    keys.forEach (key => {
-                        if (!iso8601)
-                            return element[key]
-                        try {
-                            const iso8601 = exchange.iso8601 (element[key])
-                            if (iso8601.match (/^20[0-9]{2}[-]?/))
-                                element[key] = iso8601
-                            else
-                                throw new Error ('wrong date')
-                        } catch (e) {
-                            return element[key]
-                        }
-                    })
-                    return element
-                })) : result)
-                log (result.length, 'objects');
-            } else {
-                console.dir (result, { depth: null })
-                log (result.length, 'objects');
-            }
+        if (arrayOfObjects || table && Array.isArray (result)) {
+            log (result.length > 0 ? asTable (result.map (element => {
+                let keys = Object.keys (element)
+                delete element['info']
+                keys.forEach (key => {
+                    if (!iso8601)
+                        return element[key]
+                    try {
+                        const iso8601 = exchange.iso8601 (element[key])
+                        if (iso8601.match (/^20[0-9]{2}[-]?/))
+                            element[key] = iso8601
+                        else
+                            throw new Error ('wrong date')
+                    } catch (e) {
+                        return element[key]
+                    }
+                })
+                return element
+            })) : result)
+            log (result.length, 'objects');
+        } else {
+            console.dir (result, { depth: null })
+            log (result.length, 'objects');
+        }
     } else {
-        console.dir (result, { depth: null})
+        console.dir (result, { depth: null, maxArrayLength: null })
     }
 }
 
 //-----------------------------------------------------------------------------
 
-
-async function main () {
+async function run () {
 
     if (!exchangeId) {
 
@@ -216,8 +221,18 @@ async function main () {
             exchange.verbose = verbose
         }
 
+        const path = '.cache/' + exchangeId + '-markets.json'
+
         if (!no_load_markets) {
-            await exchange.loadMarkets ()
+            try {
+                await fsPromises.access (path, fs.constants.R_OK)
+                exchange.markets = JSON.parse (await fsPromises.readFile (path))
+            } catch {
+                await exchange.loadMarkets ()
+                if (cache_markets) {
+                    await fsPromises.writeFile (path, JSON.stringify (exchange.markets))
+                }
+            }
         }
 
         if (signIn && exchange.has.signIn) {
@@ -251,13 +266,16 @@ async function main () {
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
 
+                let i = 0;
+
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (end - start, 'ms')
-                        start = end
+                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         printHumanReadable (exchange, result)
+                        console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
                             log.red (e.constructor.name, e.message)
@@ -278,8 +296,9 @@ async function main () {
                         console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll)
-                        break;
+                    if (!poll){
+                        break
+                    }
                 }
 
             } else if (exchange[methodName] === undefined) {
@@ -296,4 +315,4 @@ async function main () {
 
 //-----------------------------------------------------------------------------
 
-main ()
+run ()

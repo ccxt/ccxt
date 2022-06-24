@@ -4,13 +4,15 @@ const errorHierarchy = {
     'BaseError': {
         'ExchangeError': {
             'AuthenticationError': {
-                'PermissionDenied': {},
+                'PermissionDenied': {
+                    'AccountNotEnabled': {},
+                },
                 'AccountSuspended': {},
-                'AccountNotEnabled': {},
             },
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ccxtpro
-from asyncio import gather, get_event_loop
+from asyncio import gather, run
 
 
 async def symbol_loop(exchange, method, symbol):
@@ -43,12 +43,9 @@ async def method_loop(exchange, method):
             break  # you can break just this one loop if it fails
 
 
-async def exchange_loop(asyncio_loop, exchange_id, methods, config={}):
+async def exchange_loop(exchange_id, methods, config={}):
     print('Starting', exchange_id, methods)
-    exchange = getattr(ccxtpro, exchange_id)({
-        'enableRateLimit': True,
-        'asyncio_loop': asyncio_loop,
-    })
+    exchange = getattr(ccxtpro, exchange_id)()
     for attr, value in config.items():
         setattr(exchange, attr, value)
     loops = [symbols_method_loop(exchange, method, symbols) if len(symbols) else method_loop(exchange, method) for method, symbols in methods.items()]
@@ -56,7 +53,7 @@ async def exchange_loop(asyncio_loop, exchange_id, methods, config={}):
     await exchange.close()
 
 
-async def main(asyncio_loop):
+async def main():
     keys = {
         'okex': {
             'apiKey': 'YOUR_API_KEY',
@@ -79,10 +76,8 @@ async def main(asyncio_loop):
             'watchBalance': [],
         },
     }
-    loops = [exchange_loop(asyncio_loop, exchange_id, methods, keys.get(exchange_id, {})) for exchange_id, methods in exchanges.items()]
+    loops = [exchange_loop(exchange_id, methods, keys.get(exchange_id, {})) for exchange_id, methods in exchanges.items()]
     await gather(*loops)
 
 
-if __name__ == '__main__':
-    asyncio_loop = get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+run(main())

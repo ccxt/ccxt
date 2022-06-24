@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -21,7 +22,17 @@ class xena(Exchange):
             'id': 'xena',
             'name': 'Xena Exchange',
             'countries': ['VC', 'UK'],
-            'rateLimit': 100,
+            # per second rate limits are far lower than the equivalent hourly
+            # requests per second rounded down(3dp)
+            # relative weight costs rounded up(3dp)
+            # 1 hour = 3600 seconds
+            # Order Cancellations: 100k per hour => 100 000 / 3600 = 27.777 requests per second => rateLimit = 1000ms / 27.777 = 36.001008 ms between requests => 36.1(safety)
+            # New Orders: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            # Heartbeat: 30k per hour => 30 000 / 3600 = 8.333 requests per second => cost = 27.777 / 8.333 = 3.333373335 => 3.334
+            # Candles: 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            # Dom(market data): 5000 per hour => 5000 /  3600 = 1.388 requests per second => cost = 27.777 / 1.388 = 20.01224784 => 20.013
+            # All snapshot requests(balances, active orders and trade history, positions): 500 per hour => 0.138 requests per second => cost = 27.777 / 0.138 = 201.2826087 => 201.283
+            'rateLimit': 36.1,
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -46,6 +57,8 @@ class xena(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -55,7 +68,13 @@ class xena(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
@@ -70,7 +89,7 @@ class xena(Exchange):
                 },
                 'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees': 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             },
             'timeframes': {
                 '1m': '1m',
@@ -85,57 +104,57 @@ class xena(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'common/currencies',
-                        'common/instruments',
-                        'common/features',
-                        'common/commissions',
-                        'common/news',
-                        'market-data/candles/{marketId}/{timeframe}',
-                        'market-data/market-watch',
-                        'market-data/dom/{symbol}',
-                        'market-data/candles/{symbol}/{timeframe}',
-                        'market-data/trades/{symbol}',
-                        'market-data/server-time',
-                        'market-data/v2/candles/{symbol}/{timeframe}',
-                        'market-data/v2/trades/{symbol}',
-                        'market-data/v2/dom/{symbol}/',
-                        'market-data/v2/server-time',
-                    ],
+                    'get': {
+                        'common/currencies': 20.013,
+                        'common/instruments': 20.013,
+                        'common/features': 20.013,
+                        'common/commissions': 20.013,
+                        'common/news': 20.013,
+                        'market-data/candles/{marketId}/{timeframe}': 20.013,
+                        'market-data/market-watch': 20.013,
+                        'market-data/dom/{symbol}': 20.013,
+                        'market-data/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/trades/{symbol}': 20.013,
+                        'market-data/server-time': 20.013,
+                        'market-data/v2/candles/{symbol}/{timeframe}': 20.013,
+                        'market-data/v2/trades/{symbol}': 20.013,
+                        'market-data/v2/dom/{symbol}/': 20.013,
+                        'market-data/v2/server-time': 20.013,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'trading/accounts/{accountId}/order',
-                        'trading/accounts/{accountId}/active-orders',
-                        'trading/accounts/{accountId}/last-order-statuses',
-                        'trading/accounts/{accountId}/positions',
-                        'trading/accounts/{accountId}/positions-history',
-                        'trading/accounts/{accountId}/margin-requirements',
-                        'trading/accounts',
-                        'trading/accounts/{accountId}/balance',
-                        'trading/accounts/{accountId}/trade-history',
-                        # 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
-                        'transfers/accounts',
-                        'transfers/accounts/{accountId}',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                        'transfers/accounts/{accountId}/deposits',
-                        'transfers/accounts/{accountId}/trusted-addresses',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/balance-history',
-                        # 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
-                        # 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        # 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
-                    ],
-                    'post': [
-                        'trading/order/new',
-                        'trading/order/heartbeat',
-                        'trading/order/cancel',
-                        'trading/order/mass-cancel',
-                        'trading/order/replace',
-                        'trading/position/maintenance',
-                        'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/deposit-address/{currency}',
-                    ],
+                    'get': {
+                        'trading/accounts/{accountId}/order': 50,
+                        'trading/accounts/{accountId}/active-orders': 50,
+                        'trading/accounts/{accountId}/last-order-statuses': 50,
+                        'trading/accounts/{accountId}/positions': 50,
+                        'trading/accounts/{accountId}/positions-history': 50,
+                        'trading/accounts/{accountId}/margin-requirements': 50,
+                        'trading/accounts': 50,
+                        'trading/accounts/{accountId}/balance': 50,  # TESTING(50 works)
+                        'trading/accounts/{accountId}/trade-history': 50,
+                        # 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=2205043254': 50,
+                        'transfers/accounts': 50,
+                        'transfers/accounts/{accountId}': 50,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 50,
+                        'transfers/accounts/{accountId}/deposits': 100,  # TESTING
+                        'transfers/accounts/{accountId}/trusted-addresses': 50,
+                        'transfers/accounts/{accountId}/withdrawals': 50,
+                        'transfers/accounts/{accountId}/balance-history': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}': 50,
+                        # 'transfers/accounts/{accountId}/balance-history?txid=3e50db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf': 50,
+                    },
+                    'post': {
+                        'trading/order/new': 3.334,
+                        'trading/order/heartbeat': 3.334,
+                        'trading/order/cancel': 1,
+                        'trading/order/mass-cancel': 1,
+                        'trading/order/replace': 3.334,
+                        'trading/position/maintenance': 3.334,
+                        'transfers/accounts/{accountId}/withdrawals': 3.334,
+                        'transfers/accounts/{accountId}/deposit-address/{currency}': 3.334,
+                    },
                 },
             },
             'fees': {
@@ -152,6 +171,7 @@ class xena(Exchange):
                     'deposit': {},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Validation failed': BadRequest,
@@ -175,6 +195,11 @@ class xena(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetMarketDataV2ServerTime(params)
         #
         #     {
@@ -186,6 +211,11 @@ class xena(Exchange):
         return int(transactTime / 1000000)
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for xena
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetCommonInstruments(params)
         #
         #     [
@@ -331,8 +361,8 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('0'),
-                    'price': self.safe_integer_2(market, 'tickSize', 'pricePrecision'),
+                    'amount': self.parse_number('1'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'tickSize', 'pricePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -357,6 +387,11 @@ class xena(Exchange):
         return result
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCommonCurrencies(params)
         #
         #     {
@@ -392,7 +427,6 @@ class xena(Exchange):
             currency = response[id]
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'title')
-            precision = self.safe_integer(currency, 'precision')
             enabled = self.safe_value(currency, 'enabled')
             active = (enabled is True)
             withdraw = self.safe_value(currency, 'withdraw', {})
@@ -405,7 +439,7 @@ class xena(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': self.safe_number(withdraw, 'commission'),
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -464,16 +498,28 @@ class xena(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         tickers = self.fetch_tickers(None, params)
         if symbol in tickers:
             return tickers[symbol]
-        raise BadSymbol(self.id + ' fetchTicker could not find a ticker with symbol ' + symbol)
+        raise BadSymbol(self.id + ' fetchTicker() could not find a ticker with symbol ' + symbol)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         tickers = self.publicGetMarketDataMarketWatch(params)
         #
@@ -499,6 +545,13 @@ class xena(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -539,6 +592,11 @@ class xena(Exchange):
         return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         response = self.privateGetTradingAccounts(params)
         #
         #     {
@@ -548,7 +606,7 @@ class xena(Exchange):
         #         ]
         #     }
         #
-        accounts = self.safe_value(response, 'accounts')
+        accounts = self.safe_value(response, 'accounts', [])
         result = []
         for i in range(0, len(accounts)):
             account = accounts[i]
@@ -612,6 +670,11 @@ class xena(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -638,6 +701,8 @@ class xena(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchTrades(public)
+        #
         #     {
         #         "mdUpdateAction":"0",
         #         "mdEntryType":"2",
@@ -648,7 +713,7 @@ class xena(Exchange):
         #         "aggressorSide":"1"
         #     }
         #
-        # fetchMyTrades
+        # fetchMyTrades(private)
         #
         #     {
         #         "msgType":"8",
@@ -687,21 +752,18 @@ class xena(Exchange):
         symbol = self.safe_symbol(marketId, market)
         priceString = self.safe_string_2(trade, 'lastPx', 'mdEntryPx')
         amountString = self.safe_string_2(trade, 'lastQty', 'mdEntrySize')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
-        feeCost = self.safe_number(trade, 'commission')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'commission')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'commCurrency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            feeRate = self.safe_number(trade, 'commRate')
+            feeRateString = self.safe_string(trade, 'commRate')
             fee = {
-                'cost': feeCost,
-                'rate': feeRate,
+                'cost': feeCostString,
+                'rate': feeRateString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -711,13 +773,21 @@ class xena(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -817,6 +887,15 @@ class xena(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -848,6 +927,14 @@ class xena(Exchange):
         return self.parse_ohlcvs(mdEntry, market, timeframe, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -971,6 +1058,16 @@ class xena(Exchange):
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -982,14 +1079,14 @@ class xena(Exchange):
         }
         orderType = self.safe_string(orderTypes, type)
         if orderType is None:
-            raise InvalidOrder(self.id + ' createOrder does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit')
+            raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type + ', supported order types are market, limit, stop, stop-limit')
         orderSides = {
             'buy': '1',
             'sell': '2',
         }
         orderSide = self.safe_string(orderSides, side)
         if orderSide is None:
-            raise InvalidOrder(self.id + ' createOrder does not support order side ' + side + ', supported order sides are buy, sell')
+            raise InvalidOrder(self.id + ' createOrder() does not support order side ' + side + ', supported order sides are buy, sell')
         market = self.market(symbol)
         request = {
             'account': int(accountId),
@@ -1052,7 +1149,7 @@ class xena(Exchange):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1099,6 +1196,13 @@ class xena(Exchange):
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
@@ -1144,6 +1248,12 @@ class xena(Exchange):
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1175,6 +1285,14 @@ class xena(Exchange):
         return response
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1214,6 +1332,14 @@ class xena(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1260,6 +1386,12 @@ class xena(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1287,6 +1419,12 @@ class xena(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1369,9 +1507,25 @@ class xena(Exchange):
         return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_by_type('withdrawals', code, since, limit, params)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         return self.fetch_transactions_by_type('deposits', code, since, limit, params)
 
     def parse_transaction(self, transaction, currency=None):
@@ -1466,6 +1620,15 @@ class xena(Exchange):
         return self.safe_string(statuses, status, status)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1557,6 +1720,14 @@ class xena(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         self.load_accounts()
         accountId = self.get_account_id(params)
@@ -1604,6 +1775,189 @@ class xena(Exchange):
         #     ]
         #
         return self.parse_ledger(response, currency, since, limit)
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the xena api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
+        self.load_markets()
+        response = self.publicGetCommonInstruments(params)
+        #
+        #    [
+        #        {
+        #            "id": "XBTUSD_3M_240622",
+        #            "type": "Margin",
+        #            "marginType": "XenaFuture",
+        #            "symbol": "XBTUSD_3M_240622",
+        #            "baseCurrency": "BTC",
+        #            "quoteCurrency": "USD",
+        #            "settlCurrency": "USDC",
+        #            "tickSize": 0,
+        #            "minOrderQuantity": "0.0001",
+        #            "orderQtyStep": "0.0001",
+        #            "limitOrderMaxDistance": "10",
+        #            "priceInputMask": "00000.0",
+        #            "enabled": True,
+        #            "liquidationMaxDistance": "0.01",
+        #            "contractValue": "1",
+        #            "contractCurrency": "BTC",
+        #            "lotSize": "1",
+        #            "maxOrderQty": "10",
+        #            "maxPosVolume": "200",
+        #            "mark": ".XBTUSD_3M_240622",
+        #            "underlying": ".BTC3_TWAP",
+        #            "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        #            "addUvmToFreeMargin": "ProfitAndLoss",
+        #            "margin": {
+        #                "netting": "PositionsAndOrders",
+        #                "rates": [
+        #                    {"maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025"},
+        #                    {"maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05"},
+        #                    {"maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1"},
+        #                    {"maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15"},
+        #                    {"maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2"},
+        #                    {"maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25"},
+        #                    {"maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5"}
+        #               ],
+        #               "rateMultipliers": {
+        #                    "LimitBuy": "1",
+        #                    "LimitSell": "1",
+        #                    "Long": "1",
+        #                    "MarketBuy": "1",
+        #                    "MarketSell": "1",
+        #                    "Short": "1",
+        #                    "StopBuy": "0",
+        #                    "StopSell": "0"
+        #                }
+        #            },
+        #            "clearing": {"enabled": True, "index": ".XBTUSD_3M_240622"},
+        #            "riskAdjustment": {"enabled": True, "index": ".RiskAdjustment_IR"},
+        #            "expiration": {"enabled": True, "index": ".BTC3_TWAP"},
+        #            "pricePrecision": 1,
+        #            "priceRange": {
+        #                "enabled": True,
+        #                "distance": "0.2",
+        #                "movingBoundary": "0",
+        #                "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        #                "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        #            },
+        #            "priceLimits": {
+        #                "enabled": True,
+        #                "distance": "0.5",
+        #                "movingBoundary": "0",
+        #                "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        #                "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        #            },
+        #            "serie": "XBTUSD",
+        #            "tradingStartDate": "2021-12-31 07:00:00",
+        #            "expiryDate": "2022-06-24 08:00:00"
+        #           },
+        #           ...
+        #        ]
+        #
+        return self.parse_leverage_tiers(response, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        """
+         * @ignore
+        :param dict info: Exchange market response for 1 market
+        :param dict market: CCXT market
+        """
+        #
+        #    {
+        #        "id": "XBTUSD_3M_240622",
+        #        "type": "Margin",
+        #        "marginType": "XenaFuture",
+        #        "symbol": "XBTUSD_3M_240622",
+        #        "baseCurrency": "BTC",
+        #        "quoteCurrency": "USD",
+        #        "settlCurrency": "USDC",
+        #        "tickSize": 0,
+        #        "minOrderQuantity": "0.0001",
+        #        "orderQtyStep": "0.0001",
+        #        "limitOrderMaxDistance": "10",
+        #        "priceInputMask": "00000.0",
+        #        "enabled": True,
+        #        "liquidationMaxDistance": "0.01",
+        #        "contractValue": "1",
+        #        "contractCurrency": "BTC",
+        #        "lotSize": "1",
+        #        "maxOrderQty": "10",
+        #        "maxPosVolume": "200",
+        #        "mark": ".XBTUSD_3M_240622",
+        #        "underlying": ".BTC3_TWAP",
+        #        "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+        #        "addUvmToFreeMargin": "ProfitAndLoss",
+        #        "margin": {
+        #            "netting": "PositionsAndOrders",
+        #            "rates": [
+        #                {"maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025"},
+        #                {"maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05"},
+        #                {"maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1"},
+        #                {"maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15"},
+        #                {"maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2"},
+        #                {"maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25"},
+        #                {"maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5"}
+        #            ],
+        #            "rateMultipliers": {
+        #                "LimitBuy": "1",
+        #                "LimitSell": "1",
+        #                "Long": "1",
+        #                "MarketBuy": "1",
+        #                "MarketSell": "1",
+        #                "Short": "1",
+        #                "StopBuy": "0",
+        #                "StopSell": "0"
+        #            }
+        #        },
+        #        "clearing": {"enabled": True, "index": ".XBTUSD_3M_240622"},
+        #        "riskAdjustment": {"enabled": True, "index": ".RiskAdjustment_IR"},
+        #        "expiration": {"enabled": True, "index": ".BTC3_TWAP"},
+        #        "pricePrecision": 1,
+        #        "priceRange": {
+        #            "enabled": True,
+        #            "distance": "0.2",
+        #            "movingBoundary": "0",
+        #            "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+        #            "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+        #        },
+        #        "priceLimits": {
+        #            "enabled": True,
+        #            "distance": "0.5",
+        #            "movingBoundary": "0",
+        #            "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+        #            "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+        #        },
+        #        "serie": "XBTUSD",
+        #        "tradingStartDate": "2021-12-31 07:00:00",
+        #        "expiryDate": "2022-06-24 08:00:00"
+        #    }
+        #
+        margin = self.safe_value(info, 'margin')
+        rates = self.safe_value(margin, 'rates')
+        floor = 0
+        id = self.safe_string(info, 'symbol')
+        market = self.safe_market(id, market)
+        tiers = []
+        if rates is not None:
+            for j in range(0, len(rates)):
+                tier = rates[j]
+                cap = self.safe_number(tier, 'maxVolume')
+                initialRate = self.safe_string(tier, 'initialRate')
+                tiers.append({
+                    'tier': self.sum(j, 1),
+                    'currency': market['base'],
+                    'minNotional': floor,
+                    'maxNotional': cap,
+                    'maintenanceMarginRate': self.safe_number(tier, 'maintenanceRate'),
+                    'maxLeverage': self.parse_number(Precise.string_div('1', initialRate)),
+                    'info': tier,
+                })
+                floor = cap
+        return tiers
 
     def nonce(self):
         return self.milliseconds()

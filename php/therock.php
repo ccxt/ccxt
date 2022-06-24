@@ -16,7 +16,8 @@ class therock extends Exchange {
             'id' => 'therock',
             'name' => 'TheRockTrading',
             'countries' => array( 'MT' ),
-            'rateLimit' => 1000,
+            // 10 requests per second => 1000ms / 10 => 100 ms between requests (all endpoints)
+            'rateLimit' => 100,
             'version' => 'v1',
             'has' => array(
                 'CORS' => null,
@@ -32,7 +33,6 @@ class therock extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
-                'fetchFundingRateHistories' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
@@ -40,6 +40,8 @@ class therock extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -48,12 +50,20 @@ class therock extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
+                'transfer' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api' => 'https://api.therocktrading.com',
+                'api' => array(
+                    'rest' => 'https://api.therocktrading.com',
+                ),
                 'www' => 'https://therocktrading.com',
                 'doc' => array(
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -63,39 +73,41 @@ class therock extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'funds',
-                        'funds/{id}/orderbook',
-                        'funds/{id}/ticker',
-                        'funds/{id}/trades',
-                        'funds/tickers',
+                        'funds' => 1,
+                        'funds/{id}' => 1,
+                        'funds/{id}/orderbook' => 1,
+                        'funds/{id}/ticker' => 1,
+                        'funds/{id}/trades' => 1,
+                        'funds/{id}/ohlc_statistics' => 1,
+                        'funds/tickers' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'balances',
-                        'balances/{id}',
-                        'discounts',
-                        'discounts/{id}',
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/trades',
-                        'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/position_balances',
-                        'funds/{fund_id}/positions',
-                        'funds/{fund_id}/positions/{id}',
-                        'transactions',
-                        'transactions/{id}',
-                        'withdraw_limits/{id}',
-                        'withdraw_limits',
+                        'balances' => 1,
+                        'balances/{id}' => 1,
+                        'discounts' => 1,
+                        'discounts/{id}' => 1,
+                        'funds' => 1,
+                        'funds/{id}' => 1,
+                        'funds/{id}/trades' => 1,
+                        'funds/{fund_id}/orders' => 1,
+                        'funds/{fund_id}/orders/{id}' => 1,
+                        'funds/{fund_id}/position_balances' => 1,
+                        'funds/{fund_id}/positions' => 1,
+                        'funds/{fund_id}/positions/{id}' => 1,
+                        'transactions' => 1,
+                        'transactions/{id}' => 1,
+                        'withdraw_limits/{id}' => 1,
+                        'withdraw_limits' => 1,
                     ),
                     'post' => array(
-                        'atms/withdraw',
-                        'funds/{fund_id}/orders',
+                        'atms/withdraw' => 1,
+                        'funds/{fund_id}/orders' => 1,
                     ),
                     'delete' => array(
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/orders/remove_all',
+                        'funds/{fund_id}/orders/{id}' => 1,
+                        'funds/{fund_id}/orders/remove_all' => 1,
                     ),
                 ),
             ),
@@ -119,6 +131,7 @@ class therock extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Request already running' => '\\ccxt\\BadRequest',
@@ -135,10 +148,20 @@ class therock extends Exchange {
                     ' is invalid' => '\\ccxt\\InvalidAddress',
                 ),
             ),
+            'options' => array(
+                'withdraw' => array(
+                    'fillResponseFromRequest' => true,
+                ),
+            ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for therock
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing $market data
+         */
         $response = $this->publicGetFunds ($params);
         //
         //    {
@@ -164,7 +187,7 @@ class therock extends Exchange {
         $markets = $this->safe_value($response, 'funds');
         $result = array();
         if ($markets === null) {
-            throw new ExchangeError($this->id . ' fetchMarkets got an unexpected response');
+            throw new ExchangeError($this->id . ' fetchMarkets() got an unexpected response');
         } else {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -206,8 +229,8 @@ class therock extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($market, 'trade_currency_decimals'),
-                        'price' => $this->safe_integer($market, 'base_currency_decimals'),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'trade_currency_decimals'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_currency_decimals'))),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -250,12 +273,24 @@ class therock extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetBalances ($params);
         return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         */
         $this->load_markets();
         $request = array(
             'id' => $this->market_id($symbol),
@@ -305,10 +340,16 @@ class therock extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'volume_traded'),
             'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
         $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'fund_id');
@@ -325,6 +366,12 @@ class therock extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -355,8 +402,8 @@ class therock extends Exchange {
         //
         //     {      $id =>  4493548,
         //       fund_id => "ETHBTC",
-        //        $amount =>  0.203,
-        //         $price =>  0.02783576,
+        //        amount =>  0.203,
+        //         price =>  0.02783576,
         //          $side => "buy",
         //          dark =>  false,
         //          date => "2018-11-30T08:19:18.236Z" }
@@ -365,8 +412,8 @@ class therock extends Exchange {
         //
         //     {           $id =>    237338,
         //            fund_id =>   "BTCEUR",
-        //             $amount =>    0.348,
-        //              $price =>    348,
+        //             amount =>    0.348,
+        //              price =>    348,
         //               $side =>   "sell",
         //               dark =>    false,
         //           order_id =>    14920648,
@@ -374,17 +421,17 @@ class therock extends Exchange {
         //       $transactions => array( array(       $id =>  2770768,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "sold_currency_to_fund",
-        //                            $price =>  121.1,
+        //                            price =>  121.1,
         //                         currency => "EUR"                       ),
         //                       array(       $id =>  2770769,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "released_currency_to_fund",
-        //                            $price =>  0.348,
+        //                            price =>  0.348,
         //                         currency => "BTC"                        ),
         //                       {       $id =>  2770772,
         //                             date => "2015-06-03T00:49:49.000Z",
         //                             type => "paid_commission",
-        //                            $price =>  0.06,
+        //                            price =>  0.06,
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
@@ -396,27 +443,24 @@ class therock extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $fee = null;
-        $feeCost = null;
+        $feeCostString = null;
         $transactions = $this->safe_value($trade, 'transactions', array());
         $transactionsByType = $this->group_by($transactions, 'type');
         $feeTransactions = $this->safe_value($transactionsByType, 'paid_commission', array());
         for ($i = 0; $i < count($feeTransactions); $i++) {
-            if ($feeCost === null) {
-                $feeCost = 0;
+            if ($feeCostString === null) {
+                $feeCostString = '0.0';
             }
-            $feeCost = $this->sum($feeCost, $this->safe_number($feeTransactions[$i], 'price'));
+            $feeCostString = Precise::string_add($feeCostString, $this->safe_string($feeTransactions[$i], 'price'));
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $market['quote'],
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -426,11 +470,11 @@ class therock extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function parse_ledger_entry_direction($direction) {
@@ -586,6 +630,14 @@ class therock extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $request = array(
             // 'page' => 1,
@@ -781,7 +833,10 @@ class therock extends Exchange {
         //         }
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // privatePostAtmsWithdraw
+        //    array( "transaction_id" => 65088485 )
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'transaction_id');
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $detail = $this->safe_value($transaction, 'transfer_detail', array());
         $method = $this->safe_string($detail, 'method');
@@ -823,6 +878,14 @@ class therock extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $request = array(
             'type' => 'withdraw',
         );
@@ -830,6 +893,14 @@ class therock extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $request = array(
             'type' => 'atm_payment',
         );
@@ -837,6 +908,14 @@ class therock extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch history of deposits and withdrawals
+         * @param {str|null} $code unified $currency $code for the $currency of the $transactions, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of $transactions to return, default is null
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->load_markets();
         $request = array(
             // 'page' => 1,
@@ -922,6 +1001,56 @@ class therock extends Exchange {
         $transactionTypes = array( 'withdraw', 'atm_payment' );
         $depositsAndWithdrawals = $this->filter_by_array($transactions, 'type', $transactionTypes, false);
         return $this->parse_transactions($depositsAndWithdrawals, $currency, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $amount = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'currency' => $currency['id'],
+            'destination_address' => $address,
+            'amount' => floatval($amount),
+        );
+        if ($tag !== null) {
+            $request['destination_tag'] = $tag;
+        }
+        // requires write permission on the wallet
+        $response = $this->privatePostAtmsWithdraw (array_merge($request, $params));
+        //
+        //    array( "transaction_id" => 65088485 )
+        //
+        $transaction = $this->parse_transaction($response, $currency);
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            if ($transaction['addressTo'] === $address) {
+                $transaction['addressTo'] = $address;
+            }
+            if ($transaction['address'] === null) {
+                $transaction['address'] = $address;
+            }
+            if ($transaction['tagTo'] === null) {
+                $transaction['tagTo'] = $tag;
+            }
+            if ($transaction['tag'] === null) {
+                $transaction['tag'] = $tag;
+            }
+            if ($transaction['amount'] === null) {
+                $transaction['amount'] = $amount;
+            }
+        }
+        return $transaction;
     }
 
     public function parse_order_status($status) {
@@ -1034,6 +1163,14 @@ class therock extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'status' => 'active',
         );
@@ -1041,6 +1178,14 @@ class therock extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array(
             'status' => 'executed',
         );
@@ -1048,6 +1193,14 @@ class therock extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -1093,6 +1246,12 @@ class therock extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {strs} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -1103,10 +1262,49 @@ class therock extends Exchange {
             'fund_id' => $market['id'],
         );
         $response = $this->privateGetFundsFundIdOrdersId (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => 4325578,
+        //         "fund_id":"BTCEUR",
+        //         "side":"buy",
+        //         "type":"limit",
+        //         "status":"executed",
+        //         "price":0.0102,
+        //         "amount" => 50.0,
+        //         "amount_unfilled" => 0.0,
+        //         "conditional_type" => null,
+        //         "conditional_price" => null,
+        //         "date":"2015-06-03T00:49:48.000Z",
+        //         "close_on" => null,
+        //         "leverage" => 1.0,
+        //         "position_id" => null,
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":50,
+        //                 "price":0.0102,
+        //                 "side":"buy",
+        //                 "dark":false,
+        //                 "date":"2015-06-03T00:49:49.000Z"
+        //             }
+        //         )
+        //     }
+        //
         return $this->parse_order($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         if ($type === 'market') {
             $price = 0;
@@ -1122,6 +1320,13 @@ class therock extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'id' => $id,
@@ -1131,7 +1336,85 @@ class therock extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {str} $timeframe the length of time each candle represents in minutes
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $periodInSeconds = $this->parse_timeframe($timeframe);
+        $periodInMinutes = intval($periodInSeconds / 60);
+        $request = array(
+            'id' => $market['id'],
+            'period' => $periodInMinutes,
+        );
+        if ($since === null) {
+            $request['after'] = $this->iso8601($since);
+        }
+        $response = $this->publicGetFundsIdOhlcStatistics (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "fund_id" => "BTCUSDT",
+        //             "open" => 31500.0,
+        //             "high" => 31500.0,
+        //             "low" => 31500.0,
+        //             "close" => 31500.0,
+        //             "average" => 31500.0,
+        //             "weighted_average" => 31500.0,
+        //             "base_volume" => 0.0,
+        //             "traded_volume" => 0.0,
+        //             "interval_starts_at" => "2022-06-06T16:40:00.000Z",
+        //             "interval_ends_at" => "2022-06-06T16:50:00.000Z"
+        //         }
+        //         ...
+        //     )
+        //
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     {
+        //         "fund_id" => "BTCUSDT",
+        //         "open" => 31500.0,
+        //         "high" => 31500.0,
+        //         "low" => 31500.0,
+        //         "close" => 31500.0,
+        //         "average" => 31500.0,
+        //         "weighted_average" => 31500.0,
+        //         "base_volume" => 0.0,
+        //         "traded_volume" => 0.0,
+        //         "interval_starts_at" => "2022-06-06T16:40:00.000Z",
+        //         "interval_ends_at" => "2022-06-06T16:50:00.000Z"
+        //     }
+        //
+        $dateTime = $this->safe_string($ohlcv, 'interval_starts_at');
+        return array(
+            $this->parse8601($dateTime),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'base_volume'),
+        );
+    }
+
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -1148,41 +1431,47 @@ class therock extends Exchange {
         }
         $response = $this->privateGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( {           id =>    237338,
-        //                        fund_id =>   "BTCEUR",
-        //                         amount =>    0.348,
-        //                          price =>    348,
-        //                           side =>   "sell",
-        //                           dark =>    false,
-        //                       order_id =>    14920648,
-        //                           date =>   "2015-06-03T00:49:49.000Z",
-        //                   transactions => array( array(       id =>  2770768,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "sold_currency_to_fund",
-        //                                        price =>  121.1,
-        //                                     currency => "EUR"                       ),
-        //                                   array(       id =>  2770769,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "released_currency_to_fund",
-        //                                        price =>  0.348,
-        //                                     currency => "BTC"                        ),
-        //                                   {       id =>  2770772,
-        //                                         date => "2015-06-03T00:49:49.000Z",
-        //                                         type => "paid_commission",
-        //                                        price =>  0.06,
-        //                                     currency => "EUR",
-        //                                     trade_id =>  440492                     }   ) } ),
-        //         meta => { total_count =>    31,
-        //                       first => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                        next => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
-        //                        last => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )  } }
+        //     {
+        //         "trades" => array(
+        //             {
+        //                 "id":237338,
+        //                 "fund_id":"BTCEUR",
+        //                 "amount":0.348,
+        //                 "price":348.0,
+        //                 "side":"sell",
+        //                 "dark" => false,
+        //                 "order_id":14920648,
+        //                 "date":"2015-06-03T00:49:49.000Z",
+        //                 "transactions" => array(
+        //                     array( "id" => 2770768, "date" => "2015-06-03T00:49:49.000Z", "type" => "sold_currency_to_fund", "price" => 121.1, "currency" => "EUR" ),
+        //                     array( "id" => 2770769, "date" => "2015-06-03T00:49:49.000Z", "type" => "released_currency_to_fund", "price" => 0.348, "currency" => "BTC" ),
+        //                     array( "id" => 2770772, "date" => "2015-06-03T00:49:49.000Z", "type" => "paid_commission", "price" => 0.06, "currency" => "EUR", "trade_id" => 440492 ),
+        //                 )
+        //             }
+        //         ),
+        //         "meta" => {
+        //             "total_count" => 31,
+        //             "first" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "previous" => null,
+        //             "current" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //             "next" => array( "href" => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
+        //             "last":array( "href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )
+        //         }
+        //     }
         //
-        return $this->parse_trades($response['trades'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1196,35 +1485,166 @@ class therock extends Exchange {
         }
         $response = $this->publicGetFundsIdTrades (array_merge($request, $params));
         //
-        //     { trades => array( array(      id =>  4493548,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.203,
-        //                     price =>  0.02783576,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T08:19:18.236Z" ),
-        //                 {      id =>  4492926,
-        //                   fund_id => "ETHBTC",
-        //                    amount =>  0.04,
-        //                     price =>  0.02767034,
-        //                      side => "buy",
-        //                      dark =>  false,
-        //                      date => "2018-11-30T07:03:03.897Z" }  ),
-        //         meta => { total_count =>    null,
-        //                       first => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                    previous =>    null,
-        //                     current => array( page =>  1,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
-        //                        next => array( page =>  2,
-        //                                href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
-        //                        last =>    null                                                                   } }
+        //     {
+        //         trades => array(
+        //             array(
+        //                 id =>  4493548,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.203,
+        //                 price =>  0.02783576,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T08:19:18.236Z"
+        //             ),
+        //             {
+        //                 id =>  4492926,
+        //                 fund_id => "ETHBTC",
+        //                 amount =>  0.04,
+        //                 price =>  0.02767034,
+        //                 side => "buy",
+        //                 dark =>  false,
+        //                 date => "2018-11-30T07:03:03.897Z"
+        //             }
+        //         ),
+        //         meta => {
+        //             total_count => null,
+        //             first => array( page => 1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             previous => null,
+        //             current => array( page =>  1, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1" ),
+        //             next => array( page =>  2, href => "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2" ),
+        //             last => null
+        //         }
+        //     }
         //
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'id' => $market['id'],
+        );
+        $response = $this->publicGetFundsId (array_merge($request, $params));
+        //
+        //     {
+        //         id => 'ETHBTC',
+        //         description => 'Trade Ether with Bitcoin',
+        //         type => 'currency',
+        //         base_currency => 'BTC',
+        //         trade_currency => 'ETH',
+        //         buy_fee => '0.2',
+        //         sell_fee => '0.2',
+        //         minimum_price_offer => '0.00000001',
+        //         minimum_quantity_offer => '0.005',
+        //         base_currency_decimals => '8',
+        //         trade_currency_decimals => '3',
+        //         leverages => array()
+        //     }
+        //
+        $request = array(
+            'id' => $market['quoteId'],
+        );
+        $discount = $this->privateGetDiscountsId (array_merge($request, $params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details" => {
+        //             "personal_discount" => 50.0,
+        //             "commissions_related_discount" => 0.0
+        //         }
+        //     }
+        //
+        return $this->parse_trading_fee($response, $discount, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the therock api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
+        $this->load_markets();
+        $response = $this->publicGetFunds ($params);
+        //
+        //     {
+        //         $funds => array(
+        //             array(
+        //                 id => 'BTCEUR',
+        //                 description => 'Trade Bitcoin with Euro',
+        //                 type => 'currency',
+        //                 base_currency => 'EUR',
+        //                 trade_currency => 'BTC',
+        //                 buy_fee => '0.2',
+        //                 sell_fee => '0.2',
+        //                 minimum_price_offer => '0.01',
+        //                 minimum_quantity_offer => '0.0005',
+        //                 base_currency_decimals => '2',
+        //                 trade_currency_decimals => '4',
+        //                 leverages => array()
+        //             ),
+        //         )
+        //     }
+        //
+        $discountsResponse = $this->privateGetDiscounts ($params);
+        //
+        //     {
+        //         "discounts" => array(
+        //             {
+        //                 "currency":"BTC",
+        //                 "discount":50.0,
+        //                 "details" => {
+        //                     "personal_discount" => 50.0,
+        //                     "commissions_related_discount" => 0.0
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $funds = $this->safe_value($response, 'funds', array());
+        $discounts = $this->safe_value($discountsResponse, 'discounts', array());
+        $result = array();
+        for ($i = 0; $i < count($funds); $i++) {
+            $fund = $funds[$i];
+            $marketId = $this->safe_string($fund, 'id');
+            $market = $this->safe_market($marketId);
+            $quoteId = $this->safe_value($market, 'quoteId');
+            $discount = $this->filter_by($discounts, 'currency', $quoteId);
+            $fee = $this->parse_trading_fee($fund, $discount, $market);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee($fee, $discount = null, $market = null) {
+        $marketId = $this->safe_string($fee, 'id');
+        $takerString = $this->safe_string($fee, 'buy_fee');
+        $makerString = $this->safe_string($fee, 'sell_fee');
+        // TotalFee = (100 - $discount) * $fee / 10000
+        $discountString = $this->safe_string($discount, 'discount', '0');
+        $feePercentage = Precise::string_sub('100', $discountString);
+        $taker = $this->parse_number(Precise::string_div(Precise::string_mul($takerString, $feePercentage), '10000'));
+        $maker = $this->parse_number(Precise::string_div(Precise::string_mul($makerString, $feePercentage), '10000'));
+        return array(
+            'info' => $fee,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $maker,
+            'taker' => $taker,
+            'percentage' => true,
+            'tierBased' => true,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $headers = ($headers === null) ? array() : $headers;
         if ($api === 'private') {
@@ -1245,7 +1665,7 @@ class therock extends Exchange {
             $headers['X-TRT-KEY'] = $this->apiKey;
             $headers['X-TRT-NONCE'] = $nonce;
             $headers['X-TRT-SIGN'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-        } else if ($api === 'public') {
+        } elseif ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->rawencode($query);
             }
@@ -1259,8 +1679,7 @@ class therock extends Exchange {
         }
         //
         //     {
-        //         "errors":
-        //         array(
+        //         "errors" => array(
         //             array( "message" => ":currency is not a valid value for param currency","code" => "11","meta" => array( "key":"currency","value":":currency") ),
         //             array( "message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
         //             array( "message" => "Request already running", "code" => "50"),

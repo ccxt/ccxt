@@ -8,6 +8,8 @@ const assert = require ('assert')
 
 module.exports = async (exchange) => {
 
+    const method = 'fetchFundingRateHistory'
+
     const format = {
         'currency': 'USDT',
         'info': {}, // Or []
@@ -16,9 +18,8 @@ module.exports = async (exchange) => {
         'rate': 0.0006,
     }
 
-    if (exchange.has.fetchFundingRateHistory) {
+    if (exchange.has[method]) {
 
-        const method = 'fetchFundingRateHistory'
         const fundingRates = await exchange[method] ()
         console.log ('fetched all', fundingRates.length, 'funding rates')
 
@@ -35,6 +36,6 @@ module.exports = async (exchange) => {
         return fundingRates
 
     } else {
-        console.log ('fetchFundingRateHistory not supported')
+        console.log (method + '() is not supported')
     }
 }

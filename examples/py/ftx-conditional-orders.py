@@ -13,7 +13,6 @@ print('CCXT Version:', ccxt.__version__)
 
 
 exchange = ccxt.ftx({
-    'enableRateLimit': True,
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
 })
@@ -22,7 +21,7 @@ exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-symbol = 'BTC-PERP'
+symbol = 'BTC/USD:USD'
 type = 'stop'
 side = 'sell'
 amount = 1

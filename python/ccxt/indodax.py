@@ -12,7 +12,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.precise import Precise
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class indodax(Exchange):
@@ -22,6 +22,9 @@ class indodax(Exchange):
             'id': 'indodax',
             'name': 'INDODAX',
             'countries': ['ID'],  # Indonesia
+            # 10 requests per second for making trades => 1000ms / 10 = 100ms
+            # 180 requests per minute(public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
+            'rateLimit': 100,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -30,10 +33,16 @@ class indodax(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
+                'cancelOrders': False,
+                'createDepositAddress': False,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -41,16 +50,19 @@ class indodax(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchDeposit': False,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -63,10 +75,21 @@ class indodax(Exchange):
                 'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransactionFee': True,
+                'fetchTransactionFees': False,
+                'fetchTransactions': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -82,26 +105,33 @@ class indodax(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'server_time',
-                        'pairs',
-                        '{pair}/ticker',
-                        '{pair}/trades',
-                        '{pair}/depth',
-                    ],
+                    'get': {
+                        'server_time': 5,
+                        'pairs': 5,
+                        'price_increments': 5,
+                        'summaries': 5,
+                        'ticker_all': 5,
+                        '{pair}/ticker': 5,
+                        '{pair}/trades': 5,
+                        '{pair}/depth': 5,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'getInfo',
-                        'transHistory',
-                        'trade',
-                        'tradeHistory',
-                        'getOrder',
-                        'openOrders',
-                        'cancelOrder',
-                        'orderHistory',
-                        'withdrawCoin',
-                    ],
+                    'post': {
+                        'getInfo': 4,
+                        'transHistory': 4,
+                        'trade': 1,
+                        'tradeHistory': 4,  # TODO add fetchMyTrades
+                        'openOrders': 4,
+                        'orderHistory': 4,
+                        'getOrder': 4,
+                        'cancelOrder': 4,
+                        'withdrawFee': 4,
+                        'withdrawCoin': 4,
+                        'listDownline': 4,
+                        'checkDownline': 4,
+                        'createVoucher': 4,  # partner only
+                    },
                 },
             },
             'fees': {
@@ -138,12 +168,18 @@ class indodax(Exchange):
                 'DRK': 'DASH',
                 'NEM': 'XEM',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetServerTime(params)
         #
         #     {
@@ -154,6 +190,11 @@ class indodax(Exchange):
         return self.safe_integer(response, 'server_time')
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for indodax
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetPairs(params)
         #
         #     [
@@ -217,8 +258,9 @@ class indodax(Exchange):
                 'optionType': None,
                 'percentage': True,
                 'precision': {
-                    'amount': int('8'),
-                    'price': self.safe_integer(market, 'price_round'),
+                    'amount': self.parse_number(self.parse_precision('8')),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_round'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -263,6 +305,11 @@ class indodax(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privatePostGetInfo(params)
         #
@@ -298,6 +345,13 @@ class indodax(Exchange):
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -344,9 +398,15 @@ class indodax(Exchange):
             'baseVolume': self.safe_string(ticker, baseVolume),
             'quoteVolume': self.safe_string(ticker, quoteVolume),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -372,34 +432,31 @@ class indodax(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
-        id = self.safe_string(trade, 'tid')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        type = None
-        side = self.safe_string(trade, 'type')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
-            'id': id,
+        return self.safe_trade({
+            'id': self.safe_string(trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
+            'symbol': self.safe_symbol(None, market),
+            'type': None,
+            'side': self.safe_string(trade, 'type'),
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': self.safe_string(trade, 'price'),
+            'amount': self.safe_string(trade, 'amount'),
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -489,6 +546,12 @@ class indodax(Exchange):
         })
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol')
         self.load_markets()
@@ -503,6 +566,14 @@ class indodax(Exchange):
         return self.extend({'info': response}, order)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -529,13 +600,22 @@ class indodax(Exchange):
         return exchangeOrders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['pair'] = market['id']
         response = self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market)
@@ -543,8 +623,18 @@ class indodax(Exchange):
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -567,6 +657,13 @@ class indodax(Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         side = self.safe_value(params, 'side')
@@ -581,7 +678,141 @@ class indodax(Exchange):
         }
         return self.privatePostCancelOrder(self.extend(request, params))
 
+    def fetch_transaction_fee(self, code, params={}):
+        """
+        fetch the fee for a transaction
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostWithdrawFee(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "server_time": 1607923272,
+        #             "withdraw_fee": 0.005,
+        #             "currency": "eth"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'return', {})
+        currencyId = self.safe_string(data, 'currency')
+        return {
+            'info': response,
+            'rate': self.safe_number(data, 'withdraw_fee'),
+            'currency': self.safe_currency_code(currencyId, currency),
+        }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {}
+        if since is not None:
+            startTime = self.iso8601(since)[0:10]
+            request['start'] = startTime
+            request['end'] = self.iso8601(self.milliseconds())[0:10]
+        response = self.privatePostTransHistory(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "return": {
+        #             "withdraw": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "coupon",
+        #                         "rp": "115205",
+        #                         "fee": "500",
+        #                         "amount": "114705",
+        #                         "submit_time": "1539844166",
+        #                         "success_time": "1539844189",
+        #                         "withdraw_id": "1783717",
+        #                         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #                         "sender": "boris",
+        #                         "used_by": "viginia88"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [],
+        #                 "abyss": [],
+        #                 ...
+        #             },
+        #             "deposit": {
+        #                 "idr": [
+        #                     {
+        #                         "status": "success",
+        #                         "type": "duitku",
+        #                         "rp": "393000",
+        #                         "fee": "5895",
+        #                         "amount": "387105",
+        #                         "submit_time": "1576555012",
+        #                         "success_time": "1576555012",
+        #                         "deposit_id": "3395438",
+        #                         "tx": "Duitku OVO Settlement"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "btc": [
+        #                     {
+        #                         "status": "success",
+        #                         "btc": "0.00118769",
+        #                         "amount": "0.00118769",
+        #                         "success_time": "1539529208",
+        #                         "deposit_id": "3602369",
+        #                         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #                     },
+        #                     ...
+        #                 ],
+        #                 "abyss": [],
+        #                 ...
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'return', {})
+        withdraw = self.safe_value(data, 'withdraw', {})
+        deposit = self.safe_value(data, 'deposit', {})
+        transactions = []
+        currency = None
+        if code is None:
+            keys = list(withdraw.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, withdraw[key])
+            keys = list(deposit.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                transactions = self.array_concat(transactions, deposit[key])
+        else:
+            currency = self.currency(code)
+            withdraws = self.safe_value(withdraw, currency['id'], [])
+            deposits = self.safe_value(deposit, currency['id'], [])
+            transactions = self.array_concat(withdraws, deposits)
+        return self.parse_transactions(transactions, currency, since, limit)
+
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -617,13 +848,87 @@ class indodax(Exchange):
         #         "withdraw_memo": "123123"
         #     }
         #
-        id = None
-        if ('txid' in response) and (len(response['txid']) > 0):
-            id = response['txid']
+        return self.parse_transaction(response, currency)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # withdraw
+        #
+        #     {
+        #         "success": 1,
+        #         "status": "approved",
+        #         "withdraw_currency": "xrp",
+        #         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #         "withdraw_amount": "10000.00000000",
+        #         "fee": "2.00000000",
+        #         "amount_after_fee": "9998.00000000",
+        #         "submit_time": "1509469200",
+        #         "withdraw_id": "xrp-12345",
+        #         "txid": "",
+        #         "withdraw_memo": "123123"
+        #     }
+        #
+        # transHistory
+        #
+        #     {
+        #         "status": "success",
+        #         "type": "coupon",
+        #         "rp": "115205",
+        #         "fee": "500",
+        #         "amount": "114705",
+        #         "submit_time": "1539844166",
+        #         "success_time": "1539844189",
+        #         "withdraw_id": "1783717",
+        #         "tx": "BTC-IDR-RDTVVO2P-ETD0EVAW-VTNZGMIR-HTNTUAPI-84ULM9OI",
+        #         "sender": "boris",
+        #         "used_by": "viginia88"
+        #     }
+        #
+        #     {
+        #         "status": "success",
+        #         "btc": "0.00118769",
+        #         "amount": "0.00118769",
+        #         "success_time": "1539529208",
+        #         "deposit_id": "3602369",
+        #         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
+        #     },
+        status = self.safe_string(transaction, 'status')
+        timestamp = self.safe_timestamp_2(transaction, 'success_time', 'submit_time')
+        depositId = self.safe_string(transaction, 'deposit_id')
+        feeCost = self.safe_number(transaction, 'fee')
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': self.safe_currency_code(None, currency),
+                'cost': self.safe_number('fee'),
+            }
         return {
-            'info': response,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),
+            'txid': self.safe_string_2(transaction, 'txid', 'tx'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'addressFrom': None,
+            'address': self.safe_string(transaction, 'withdraw_address'),
+            'addressTo': None,
+            'amount': self.safe_number_n(transaction, ['amount', 'withdraw_amount', 'deposit_amount']),
+            'type': 'withdraw' if (depositId is None) else 'deposit',
+            'currency': self.safe_currency_code(None, currency),
+            'status': self.parse_transaction_status(status),
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'fee': fee,
+            'info': transaction,
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

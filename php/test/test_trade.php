@@ -40,7 +40,7 @@ function test_trade($exchange, $trade, $symbol, $now) {
         assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));
     }
     if ($fees) {
-        assert (gettype($fees) === 'array' && count(array_filter(array_keys($fees), 'is_string')) == 0);
+        assert (gettype($fees) === 'array' && array_keys($fees) === array_keys(array_keys($fees)));
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));
