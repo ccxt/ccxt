@@ -39,6 +39,9 @@ module.exports = class whitebit extends ccxt.whitebit {
                     '1d': '86400',
                     '1w': '604800',
                 },
+                'watchOrderBook': {
+                    'priceInterval': 0, // "0" - no interval, available values - "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -55,30 +58,30 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const method = 'candles_subscribe';
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const interval = this.safeInteger (timeframes, timeframe);
-        const marketId = market['id'];
-        const messageHash = 'candles:' + interval + ':' + symbol;
-        const reqParams = [ marketId ];
-        // start and end are mandatory
-        const now = this.milliseconds ();
-        const end = this.safeInteger (params, 'end', now);
-        params = this.omit (params, 'end');
-        if (since === undefined) {
-            since = now - (86400 * 1000); // 24 hours
-        }
-        // reqParams.push (since);
-        // reqParams.push (end);
-        reqParams.push (interval);
-        const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    //     const method = 'candles_subscribe';
+    //     await this.loadMarkets ();
+    //     const market = this.market (symbol);
+    //     symbol = market['symbol'];
+    //     const timeframes = this.safeValue (this.options, 'timeframes', {});
+    //     const interval = this.safeInteger (timeframes, timeframe);
+    //     const marketId = market['id'];
+    //     const messageHash = 'candles:' + interval + ':' + symbol;
+    //     const reqParams = [ marketId ];
+    //     // start and end are mandatory
+    //     const now = this.milliseconds ();
+    //     const end = this.safeInteger (params, 'end', now);
+    //     params = this.omit (params, 'end');
+    //     if (since === undefined) {
+    //         since = now - (86400 * 1000); // 24 hours
+    //     }
+    //     // reqParams.push (since);
+    //     // reqParams.push (end);
+    //     reqParams.push (interval);
+    //     const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
+    //     if (this.newUpdates) {
+    //         limit = ohlcv.getLimit (symbol, limit);
+    //     }
+    //     return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
     handleOHLCV (client, message) {
@@ -124,41 +127,68 @@ module.exports = class whitebit extends ccxt.whitebit {
     async watchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'orderbook' + ':' + market['id'];
-        const orderbook = await this.watchPublic (messageHash, params);
+        if (limit === undefined) {
+            limit = 10; // max 100
+        }
+        const messageHash = 'orderbook' + ':' + market['symbol'];
+        const method = 'depth_subscribe';
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const defaultPriceInterval = this.safeString (options, 'priceInterval', '0');
+        const priceInterval = this.safeString (params, 'priceInterval', defaultPriceInterval);
+        params = this.omit (params, 'priceInterval');
+        const reqParams = [
+            market['id'],
+            limit,
+            priceInterval,
+            true, // true for allowing multiple subscriptions
+        ];
+        const orderbook = await this.watchPublic (messageHash, method, reqParams, params);
         return orderbook.limit (limit);
     }
 
     handleOrderBook (client, message) {
         //
-        //     {
-        //         "topic":"orderbook",
-        //         "action":"partial",
-        //         "symbol":"ltc-usdt",
-        //         "data":{
-        //             "bids":[
-        //                 [104.29, 5.2264],
-        //                 [103.86,1.3629],
-        //                 [101.82,0.5942]
-        //             ],
-        //             "asks":[
-        //                 [104.81,9.5531],
-        //                 [105.54,0.6416],
-        //                 [106.18,1.4141],
-        //             ],
-        //             "timestamp":"2022-04-12T08:17:05.932Z"
-        //         },
-        //         "time":1649751425
-        //     }
+        // {
+        //     "method":"depth_update",
+        //     "params":[
+        //        true,
+        //        {
+        //           "asks":[
+        //              [ "21252.45","0.01957"],
+        //              ["21252.55","0.126205"],
+        //              ["21252.66","0.222689"],
+        //              ["21252.76","0.185358"],
+        //              ["21252.87","0.210077"],
+        //              ["21252.98","0.303991"],
+        //              ["21253.08","0.327909"],
+        //              ["21253.19","0.399007"],
+        //              ["21253.3","0.427695"],
+        //              ["21253.4","0.492901"]
+        //           ],
+        //           "bids":[
+        //              ["21248.82","0.22"],
+        //              ["21248.73","0.000467"],
+        //              ["21248.62","0.100864"],
+        //              ["21248.51","0.061436"],
+        //              ["21248.42","0.091"],
+        //              ["21248.41","0.126839"],
+        //              ["21248.3","0.063511"],
+        //              ["21248.2","0.110547"],
+        //              ["21248","0.25257"],
+        //              ["21247.7","1.71813"]
+        //           ]
+        //        },
+        //        "BTC_USDT"
+        //     ],
+        //     "id":null
+        //  }
         //
-        const marketId = this.safeString (message, 'symbol');
-        const channel = this.safeString (message, 'topic');
+        const params = this.safeValue (message, 'params', []);
+        const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const data = this.safeValue (message, 'data');
-        let timestamp = this.safeString (data, 'timestamp');
-        timestamp = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestamp);
+        const data = this.safeValue (params, 1);
+        const snapshot = this.parseOrderBook (data, symbol, undefined);
         let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
             orderbook = this.orderBook (snapshot);
@@ -167,7 +197,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
         }
-        const messageHash = channel + ':' + marketId;
+        const messageHash = 'orderbook' + ':' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -565,7 +595,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const methods = {
             'market_update': this.handleTicker,
             'trade': this.handleTrades,
-            'orderbook': this.handleOrderBook,
+            'depth_update': this.handleOrderBook,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
