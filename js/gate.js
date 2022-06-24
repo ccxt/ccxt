@@ -4367,6 +4367,193 @@ module.exports = class gate extends Exchange {
         return tiers;
     }
 
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privateMarginPostCrossRepayments';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
+            const mode = this.safeString (params, 'mode'); // 'all' or 'partial'
+            if (mode === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
+            }
+            const id = this.safeString (params, 'loan_id');
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
+            }
+            method = 'privateMarginPostLoansLoanIdRepayment';
+            request['currency_pair'] = market['id'];
+            request['mode'] = mode;
+            request['loan_id'] = id;
+        }
+        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "123435",
+        //         "create_time": "1548000000",
+        //         "expire_time": "1548100000",
+        //         "side": "borrow",
+        //         "status": "loaned",
+        //         "currency": "BTC",
+        //         "rate": "0.002",
+        //         "amount": "1.5",
+        //         "days": 10,
+        //         "auto_renew": true,
+        //         "currency_pair": "ETH_BTC",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0",
+        //         "fee_rate": "0.18",
+        //         "orig_id": "123424",
+        //         "text": "t-abc"
+        //     }
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privateMarginPostCrossLoans';
+        if (marginMode === 'isolated') {
+            method = 'privateMarginPostLoans';
+            request['side'] = 'borrow';
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "123435",
+        //         "create_time": "1548000000",
+        //         "expire_time": "1548100000",
+        //         "side": "borrow",
+        //         "status": "loaned",
+        //         "currency": "BTC",
+        //         "rate": "0.002",
+        //         "amount": "1.5",
+        //         "days": 10,
+        //         "auto_renew": true,
+        //         "currency_pair": "ETH_BTC",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0",
+        //         "fee_rate": "0.18",
+        //         "orig_id": "123424",
+        //         "text": "t-abc"
+        //     }
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "123435",
+        //         "create_time": "1548000000",
+        //         "expire_time": "1548100000",
+        //         "side": "borrow",
+        //         "status": "loaned",
+        //         "currency": "BTC",
+        //         "rate": "0.002",
+        //         "amount": "1.5",
+        //         "days": 10,
+        //         "auto_renew": true,
+        //         "currency_pair": "ETH_BTC",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0",
+        //         "fee_rate": "0.18",
+        //         "orig_id": "123424",
+        //         "text": "t-abc"
+        //     }
+        //
+        const currencyId = this.safeString (info, 'currency');
+        const marketId = this.safeString (info, 'currency_pair');
+        const timestamp = this.safeInteger (info, 'create_time');
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amount'),
+            'symbol': this.safeSymbol (marketId, undefined),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
