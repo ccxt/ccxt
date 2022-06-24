@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
 
     if (exchange.has[method]) {
 
-        const ticker = await exchange.fetchTicker (symbol)
+        const ticker = await exchange[method] (symbol)
 
         testTicker (exchange, ticker, method, symbol)
 
@@ -32,7 +32,7 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log (symbol, 'fetchTicker () not supported')
+        console.log (symbol, method + '() is not supported')
     }
 }
 

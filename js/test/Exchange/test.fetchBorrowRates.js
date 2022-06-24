@@ -8,9 +8,10 @@ const testBorrowRate = require ('./test.borrowRate.js')
 
 module.exports = async (exchange) => {
 
-    if (exchange.has.fetchBorrowRates) {
+    const method = 'fetchBorrowRates'
 
-        const method = 'fetchBorrowRates'
+    if (exchange.has[method]) {
+
         const borrowRates = await exchange[method] ()
         console.log ('fetched all', Object.keys (borrowRates).length, 'borrow rates')
 
@@ -23,6 +24,6 @@ module.exports = async (exchange) => {
 
     } else {
 
-        console.log ('fetching all borrow rates at once not supported')
+        console.log (method + '() fetching all borrow rates at once is not supported')
     }
 }

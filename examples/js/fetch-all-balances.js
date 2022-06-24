@@ -59,7 +59,6 @@ let settings = localKeysFile ? (require (localKeysFile) || {}) : {}
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
-const enableRateLimit = true
 
 const coins = [
     'BTC',
@@ -101,7 +100,6 @@ function initializeAllExchanges () {
             const exchange = new ccxt[exchangeId] ({
                 timeout,
                 verbose,
-                enableRateLimit,
                 ... (settings[exchangeId] || {})
             })
             exchange.checkRequiredCredentials ()
@@ -122,7 +120,7 @@ function initializeAllExchanges () {
     const exchanges = initializeAllExchanges ()
     console.log (exchanges.map (exchange => exchange.id))
     let results = []
-    const priceOracle = new ccxt.bitfinex ({ enableRateLimit })
+    const priceOracle = new ccxt.bitfinex ()
     const tickers = await priceOracle.fetchTickers ()
     await Promise.all (exchanges.map ((exchange) => (async function () {
 

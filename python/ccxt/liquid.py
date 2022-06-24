@@ -75,7 +75,7 @@ class liquid(Exchange):
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees',  # add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees',  # add fetchFees, fetchTradingFees, fetchTransactionFees
                     ],
                 },
                 'private': {
@@ -209,18 +209,23 @@ class liquid(Exchange):
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder,  # {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol,  # {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError,  # {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
                 'BIFI': 'BIFIF',
@@ -246,6 +251,11 @@ class liquid(Exchange):
         })
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencies(params)
         #
         #     [
@@ -284,7 +294,7 @@ class liquid(Exchange):
             depositable = self.safe_value(currency, 'depositable')
             withdrawable = self.safe_value(currency, 'withdrawable')
             active = depositable and withdrawable
-            amountPrecision = self.safe_integer(currency, 'assets_precision')
+            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(currency, 'assets_precision')))
             result[code] = {
                 'id': id,
                 'code': code,
@@ -297,8 +307,8 @@ class liquid(Exchange):
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -amountPrecision),
-                        'max': math.pow(10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minimum_withdrawal'),
@@ -309,6 +319,11 @@ class liquid(Exchange):
         return result
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for liquid
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         spot = self.publicGetProducts(params)
         #
         #     [
@@ -522,6 +537,11 @@ class liquid(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetAccounts(params)
         #
@@ -561,6 +581,13 @@ class liquid(Exchange):
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'id': self.market_id(symbol),
@@ -605,9 +632,15 @@ class liquid(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         response = self.publicGetProducts(params)
         result = {}
@@ -618,6 +651,12 @@ class liquid(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -664,6 +703,14 @@ class liquid(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -679,6 +726,12 @@ class liquid(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -738,6 +791,11 @@ class liquid(Exchange):
         }
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         spot = self.publicGetProducts(params)
         #
@@ -835,6 +893,14 @@ class liquid(Exchange):
         return result
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         # the `with_details` param is undocumented - it adds the order_id to the results
@@ -848,6 +914,16 @@ class liquid(Exchange):
         return self.parse_trades(response['models'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
@@ -888,6 +964,13 @@ class liquid(Exchange):
         return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -985,47 +1068,20 @@ class liquid(Exchange):
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        amount = self.safe_number(order, 'quantity')
-        filled = self.safe_number(order, 'filled_quantity')
-        price = self.safe_number(order, 'price')
+        amount = self.safe_string(order, 'quantity')
+        filled = self.safe_string(order, 'filled_quantity')
+        price = self.safe_string(order, 'price')
         type = self.safe_string(order, 'order_type')
-        tradeCost = 0
-        tradeFilled = 0
-        average = self.safe_number(order, 'average_price')
-        trades = self.parse_trades(self.safe_value(order, 'executions', []), market, None, None, {
-            'order': orderId,
-            'type': type,
-        })
-        numTrades = len(trades)
-        for i in range(0, numTrades):
-            # php copies values upon assignment, but not references them
-            # todo rewrite self(shortly)
-            trade = trades[i]
-            trade['order'] = orderId
-            trade['type'] = type
-            tradeFilled = self.sum(tradeFilled, trade['amount'])
-            tradeCost = self.sum(tradeCost, trade['cost'])
-        cost = None
-        lastTradeTimestamp = None
-        if numTrades > 0:
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and (tradeFilled > 0):
-                average = tradeCost / tradeFilled
-            if cost is None:
-                cost = tradeCost
-            if filled is None:
-                filled = tradeFilled
-        remaining = None
-        if amount is not None and filled is not None:
-            remaining = amount - filled
+        average = self.safe_string(order, 'average_price')
+        trades = self.safe_value(order, 'executions', [])
         side = self.safe_string(order, 'side')
         clientOrderId = self.safe_string(order, 'client_order_id')
-        return {
+        return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -1036,26 +1092,88 @@ class liquid(Exchange):
             'stopPrice': None,
             'amount': amount,
             'filled': filled,
-            'cost': cost,
-            'remaining': remaining,
+            'cost': None,
+            'remaining': None,
             'average': average,
             'trades': trades,
             'fee': {
                 'currency': market['quote'],
-                'cost': self.safe_number(order, 'order_fee'),
+                'cost': self.safe_string(order, 'order_fee'),
             },
             'info': order,
-        }
+        })
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by liquid fetchOrder
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
         }
         response = self.privateGetOrdersId(self.extend(request, params))
+        #
+        #     {
+        #         "id": 6929766032,
+        #         "order_type": "limit",
+        #         "quantity": "0.003",
+        #         "disc_quantity": "0.0",
+        #         "iceberg_total_quantity": "0.0",
+        #         "side": "buy",
+        #         "filled_quantity": "0.0",
+        #         "price": 1800.0,
+        #         "created_at": 1653139172,
+        #         "updated_at": 1653139172,
+        #         "status": "live",
+        #         "leverage_level": 1,
+        #         "source_exchange": "QUOINE",
+        #         "product_id": 625,
+        #         "margin_type": null,
+        #         "take_profit": null,
+        #         "stop_loss": null,
+        #         "trading_type": "spot",
+        #         "product_code": "CASH",
+        #         "funding_currency": "USDT",
+        #         "crypto_account_id": null,
+        #         "currency_pair_code": "ETHUSDT",
+        #         "average_price": 0.0,
+        #         "target": "spot",
+        #         "order_fee": "0.0",
+        #         "source_action": "manual",
+        #         "unwound_trade_id": null,
+        #         "trade_id": null,
+        #         "client_order_id": "2865675_1653139172173",
+        #         "settings": null,
+        #         "trailing_stop_type": null,
+        #         "trailing_stop_value": null,
+        #         "executions": [ # array will be empty for unfilled order
+        #           {
+        #             "id": 485442157,
+        #             "quantity": "0.002",
+        #             "price": "1973.32",
+        #             "taker_side": "buy",
+        #             "created_at": 1653139978,
+        #             "timestamp": "1653139978.434518",
+        #             "my_side": "buy"
+        #          }
+        #         ],
+        #         "stop_triggered_time": null
+        #     }
+        #
         return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         market = None
         request = {
@@ -1074,27 +1192,52 @@ class liquid(Exchange):
         #
         #     {
         #         "models": [
-        #             {
-        #                 "id": 2157474,
-        #                 "order_type": "limit",
-        #                 "quantity": "0.01",
-        #                 "disc_quantity": "0.0",
-        #                 "iceberg_total_quantity": "0.0",
-        #                 "side": "sell",
-        #                 "filled_quantity": "0.0",
-        #                 "price": "500.0",
-        #                 "created_at": 1462123639,
-        #                 "updated_at": 1462123639,
-        #                 "status": "live",
-        #                 "leverage_level": 1,
-        #                 "source_exchange": "QUOINE",
-        #                 "product_id": 1,
-        #                 "product_code": "CASH",
-        #                 "funding_currency": "USD",
-        #                 "currency_pair_code": "BTCUSD",
-        #                 "order_fee": "0.0",
-        #                 "executions": [],  # optional
-        #             }
+        #           {
+        #             "id": 6929766034,
+        #             "order_type": "limit",
+        #             "quantity": "0.003",
+        #             "disc_quantity": "0.0",
+        #             "iceberg_total_quantity": "0.0",
+        #             "side": "buy",
+        #             "filled_quantity": "0.0",
+        #             "price": 1800.0,
+        #             "created_at": 1653139172,
+        #             "updated_at": 1653139172,
+        #             "status": "live",
+        #             "leverage_level": 1,
+        #             "source_exchange": 0,
+        #             "product_id": 625,
+        #             "margin_type": null,
+        #             "take_profit": null,
+        #             "stop_loss": null,
+        #             "trading_type": "spot",
+        #             "product_code": "CASH",
+        #             "funding_currency": "USDT",
+        #             "crypto_account_id": null,
+        #             "currency_pair_code": "ETHUSDT",
+        #             "average_price": 0.0,
+        #             "target": "spot",
+        #             "order_fee": "0.0",
+        #             "source_action": "manual",
+        #             "unwound_trade_id": null,
+        #             "trade_id": null,
+        #             "client_order_id": "2865672_1653139172173",
+        #             "settings": null,
+        #             "trailing_stop_type": null,
+        #             "trailing_stop_value": null,
+        #             "stop_triggered_time": null
+        #             "executions": [ # array will be empty for unfilled order
+        #               {
+        #                 "id": 485442157,
+        #                 "quantity": "0.002",
+        #                 "price": "1973.32",
+        #                 "taker_side": "buy",
+        #                 "created_at": 1653139978,
+        #                 "timestamp": "1653139978.434518",
+        #                 "my_side": "buy"
+        #              }
+        #             ],
+        #           }
         #         ],
         #         "current_page": 1,
         #         "total_pages": 1
@@ -1104,14 +1247,39 @@ class liquid(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {'status': 'live'}
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         request = {'status': 'filled'}
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1162,6 +1330,14 @@ class liquid(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the liquid api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # state: 'processed',  # optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
@@ -1330,7 +1506,7 @@ class liquid(Exchange):
             return
         if code == 401:
             # expected non-json response
-            self.throw_exactly_matched_exception(self.exceptions, body, body)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], body, body)
             return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
@@ -1343,7 +1519,8 @@ class liquid(Exchange):
             #
             #  {"message": "Order not found"}
             #
-            self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         elif errors is not None:
             #
             #  {"errors": {"user": ["not_enough_free_balance"]}}
@@ -1356,6 +1533,6 @@ class liquid(Exchange):
                 errorMessages = errors[type]
                 for j in range(0, len(errorMessages)):
                     message = errorMessages[j]
-                    self.throw_exactly_matched_exception(self.exceptions, message, feedback)
+                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         else:
             raise ExchangeError(feedback)

@@ -1,10 +1,9 @@
 import ccxtpro
-from asyncio import get_event_loop
+from asyncio import run
 
 
 async def main():
     exchange = ccxtpro.binance({
-        'enableRateLimit': True,
         'options': {
             'defaultType': 'future',
         },
@@ -19,6 +18,5 @@ async def main():
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main())
+run(main())
 

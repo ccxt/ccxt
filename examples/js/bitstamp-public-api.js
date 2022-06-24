@@ -3,7 +3,7 @@ const ccxt = require ('../../ccxt.js')
     , log  = require ('ololog')
     , asTable = require ('as-table').configure ({ delimiter: ' | ' })
     , id = 'bitstamp'
-    , exchange = new ccxt[id] ({ enableRateLimit: true })
+    , exchange = new ccxt[id] ()
     , symbol = 'BTC/USD'
 
 ;(async function main () {
@@ -19,7 +19,7 @@ const ccxt = require ('../../ccxt.js')
     // Order book data
     const orderbook = await exchange.fetchOrderBook (symbol)
     console.log ('Order book ', symbol, orderbook.asks[0], orderbook.bids[0])
-    
+
     // Ticker
     const ticker = await exchange.fetchTicker (symbol)
     console.log ('Ticker ', symbol, " bid ", ticker.bid, " ask ", ticker.ask)

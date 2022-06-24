@@ -16,13 +16,7 @@ require ('ansicolor').nice
     for (let exchangeId of exchanges) {
 
         // create the exchange instance
-        const exchange = new ccxt[exchangeId] ({
-
-            // add at least some rate-limiting as required by the Manual:
-            // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
-            'enableRateLimit': true,
-        })
+        const exchange = new ccxt[exchangeId] ()
 
         // preload all markets first, as explained in the Manual:
         // https://github.com/ccxt/ccxt/wiki/Manual#loading-markets

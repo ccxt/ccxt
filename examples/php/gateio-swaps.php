@@ -1,12 +1,12 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\gateio (array (
+$exchange = new \ccxt\gateio(array(
     'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
     'secret' => 'YOUR_SECRET_KEY',
     'options' => array(
@@ -37,9 +37,9 @@ try {
     var_dump ($cancel);
 
 } catch (\ccxt\NetworkError $e) {
-    echo '[Network Error] ' . $e->getMessage () . "\n";
+    echo '[Network Error] ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo '[Error] ' . $e->getMessage () . "\n";
+    echo '[Error] ' . $e->getMessage() . "\n";
 }
 
 // Example 2: Creating and canceling a linear future (stop-limit) order with leverage
@@ -80,8 +80,8 @@ try {
     var_dump($leverage);
 
 } catch (\ccxt\NetworkError $e) {
-    echo '[Network Error] ' . $e->getMessage () . "\n";
+    echo '[Network Error] ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo '[Error] ' . $e->getMessage () . "\n";
+    echo '[Error] ' . $e->getMessage() . "\n";
 }
 ?>

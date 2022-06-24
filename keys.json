@@ -1,5 +1,6 @@
 {
     "aax":           { "skip": true },
+    "ascendex":      { "skip": true },
     "aofex":         { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
@@ -19,6 +20,7 @@
     "coinegg":       { "skip": true },
     "coinfalcon":    { "skip": true },
     "coingi":        { "skip": true },
+    "coinbase":      { "skip": true },
     "coinmarketcap": { "skip": true },
     "coinmate":      { "skip": true },
     "coinone":       { "skip": true },
@@ -35,6 +37,7 @@
     "gemini":        { "skip": true },
     "huobipro":      { "skip": true },
     "itbit":         { "skip": true },
+    "indodax":       { "skip": true },
     "kuna":          { "skip": true },
     "latoken2":      { "skip": true },
     "lbank":         { "skip": true },
@@ -50,5 +53,6 @@
     "vcc":           { "skip": true },
     "woo":           { "skip": true },
     "xbtce":         { "skip": true },
-    "zaif":          { "skip": true }
+    "zaif":          { "skip": true },
+    "zipmex":        { "skip": true }
 }

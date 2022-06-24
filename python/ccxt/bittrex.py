@@ -5,10 +5,10 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -20,7 +20,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bittrex(Exchange):
@@ -49,6 +49,9 @@ class bittrex(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
+                'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -57,9 +60,9 @@ class bittrex(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -67,15 +70,18 @@ class bittrex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': 'emulated',
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -85,7 +91,9 @@ class bittrex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': None,
                 'fetchTransactions': None,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -152,6 +160,7 @@ class bittrex(Exchange):
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -199,6 +208,7 @@ class bittrex(Exchange):
                     'percentage': False,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'BAD_REQUEST': BadRequest,  # {"code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":{"invalidRequestParameter":"day"}}
@@ -239,6 +249,12 @@ class bittrex(Exchange):
                 'fetchTickers': {
                     'method': 'publicGetMarketsTickers',  # publicGetMarketsSummaries
                 },
+                'fetchDeposits': {
+                    'status': 'ok',
+                },
+                'fetchWithdrawals': {
+                    'status': 'ok',
+                },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
                 # With certain currencies, like
@@ -278,13 +294,15 @@ class bittrex(Exchange):
             },
         })
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
-
     def fee_to_precision(self, symbol, fee):
-        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
+        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bittrex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.publicGetMarkets(params)
         #
         #     [
@@ -342,8 +360,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int('8'),
-                    'price': self.safe_integer(market, 'precision', 8),
+                    'amount': self.parse_number('0.00000001'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
                 },
                 'limits': {
                     'leverage': {
@@ -382,11 +400,23 @@ class bittrex(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privateGetBalances(params)
         return self.parse_balance(response)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'marketSymbol': self.market_id(symbol),
@@ -416,6 +446,11 @@ class bittrex(Exchange):
         return orderbook
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.publicGetCurrencies(params)
         #
         #     [
@@ -439,7 +474,7 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
@@ -456,7 +491,7 @@ class bittrex(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, precision),
+                        'min': precision,
                         'max': None,
                     },
                     'withdraw': {
@@ -517,9 +552,15 @@ class bittrex(Exchange):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultMethod = self.safe_string(options, 'method', 'publicGetMarketsTickers')
@@ -559,6 +600,12 @@ class bittrex(Exchange):
         return self.filter_by_array(tickers, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -654,6 +701,11 @@ class bittrex(Exchange):
         }, market)
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetPing(params)
         #
         #     {
@@ -663,6 +715,14 @@ class bittrex(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -683,6 +743,12 @@ class bittrex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -699,6 +765,11 @@ class bittrex(Exchange):
         return self.parse_trading_fee(response, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetAccountFeesTrading(params)
         #
@@ -755,6 +826,15 @@ class bittrex(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         reverseId = market['baseId'] + '-' + market['quoteId']
@@ -801,16 +881,81 @@ class bittrex(Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
+        stop = self.safe_value(params, 'stop')
         if symbol is not None:
             market = self.market(symbol)
             request['marketSymbol'] = market['id']
-        response = self.privateGetOrdersOpen(self.extend(request, params))
+        method = 'privateGetOrdersOpen'
+        if stop:
+            method = 'privateGetConditionalOrdersOpen'
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {
             'orderId': id,
@@ -822,52 +967,131 @@ class bittrex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # A ceiling order is a market or limit order that allows you to specify
         # the amount of quote currency you want to spend(or receive, if selling)
         # instead of the quantity of the market currency(e.g. buy $100 USD of BTC
         # at the current market BTC price)
         self.load_markets()
         market = self.market(symbol)
-        uppercaseType = type.upper()
+        uppercaseType = None
+        if type is not None:
+            uppercaseType = type.upper()
         reverseId = market['baseId'] + '-' + market['quoteId']
+        stop = self.safe_value(params, 'stop')
+        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         request = {
-            'marketSymbol': reverseId,
-            'direction': side.upper(),
-            'type': uppercaseType,  # LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
-            # 'quantity': self.amount_to_precision(symbol, amount),  # required for limit orders, excluded for ceiling orders
-            # 'ceiling': self.price_to_precision(symbol, price),  # required for ceiling orders, excluded for non-ceiling orders
-            # 'limit': self.price_to_precision(symbol, price),  # required for limit orders, excluded for market orders
-            # 'timeInForce': 'GOOD_TIL_CANCELLED',  # IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
-            # 'useAwards': False,  # optional
+            'marketSymbol': reverseId,  # SPOT and STOP
+            # 'direction': side.upper(),  # SPOT, STOP 'orderToCreate'
+            # 'type': uppercaseType,  # SPOT: LIMIT, MARKET, CEILING_LIMIT, CEILING_MARKET
+            # 'quantity': self.amount_to_precision(symbol, amount),  # SPOT, required for limit orders, excluded for ceiling orders
+            # 'ceiling': self.price_to_precision(symbol, price),  # SPOT, required for ceiling orders, excluded for non-ceiling orders
+            # 'limit': self.price_to_precision(symbol, price),  # SPOT, required for limit orders, excluded for market orders
+            # 'timeInForce': 'GOOD_TIL_CANCELLED',  # SPOT, IMMEDIATE_OR_CANCEL, FILL_OR_KILL, POST_ONLY_GOOD_TIL_CANCELLED
+            # 'useAwards': False,  # SPOT, optional
+            # 'operand': 'LTE',  # STOP, price above(GTE) or below(LTE) which the conditional order will trigger. either self or trailingStopPercent must be specified.
+            # 'triggerPrice': self.price_to_precision(symbol, stopPrice),  # STOP
+            # 'trailingStopPercent': self.price_to_precision(symbol, stopPrice),  # STOP, either self or triggerPrice must be set
+            # 'orderToCreate': {direction:side,type:uppercaseType},  # STOP, The spot order to be triggered
+            # 'orderToCancel': {id:'f03d5e98-b5ac-48fb-8647-dd4db828a297',type:uppercaseType},  # STOP, The spot order to be canceled
+            # 'clineConditionalOrderId': 'f03d5e98-b5ac-48fb-8647-dd4db828a297',  # STOP
         }
-        isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
-        isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
-        isCeilingOrder = isCeilingLimit or isCeilingMarket
-        if isCeilingOrder:
-            cost = None
-            if isCeilingLimit:
-                request['limit'] = self.price_to_precision(symbol, price)
-                cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
-            elif isCeilingMarket:
-                cost = self.safe_number_2(params, 'ceiling', 'cost')
-                if cost is None:
-                    if price is None:
-                        cost = amount
+        method = 'privatePostOrders'
+        if stop or stopPrice:
+            method = 'privatePostConditionalOrders'
+            operand = self.safe_string(params, 'operand')
+            if operand is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires an operand parameter')
+            trailingStopPercent = self.safe_number(params, 'trailingStopPercent')
+            orderToCreate = self.safe_value(params, 'orderToCreate')
+            orderToCancel = self.safe_value(params, 'orderToCancel')
+            if stopPrice is None:
+                request['trailingStopPercent'] = self.price_to_precision(symbol, trailingStopPercent)
+            if orderToCreate:
+                isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+                isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+                isCeilingOrder = isCeilingLimit or isCeilingMarket
+                ceiling = None
+                limit = None
+                timeInForce = None
+                if isCeilingOrder:
+                    cost = None
+                    if isCeilingLimit:
+                        limit = self.price_to_precision(symbol, price)
+                        cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
+                    elif isCeilingMarket:
+                        cost = self.safe_number_2(params, 'ceiling', 'cost')
+                        if cost is None:
+                            if price is None:
+                                cost = amount
+                            else:
+                                cost = amount * price
+                    ceiling = self.cost_to_precision(symbol, cost)
+                    timeInForce = 'IMMEDIATE_OR_CANCEL'
+                else:
+                    if uppercaseType == 'LIMIT':
+                        limit = self.price_to_precision(symbol, price)
+                        timeInForce = 'GOOD_TIL_CANCELLED'
                     else:
-                        cost = amount * price
-            params = self.omit(params, ['ceiling', 'cost'])
-            request['ceiling'] = self.cost_to_precision(symbol, cost)
-            # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
-            request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+                        timeInForce = 'IMMEDIATE_OR_CANCEL'
+                request['orderToCreate'] = {
+                    'marketSymbol': reverseId,
+                    'direction': side.upper(),
+                    'type': uppercaseType,
+                    'quantity': self.amount_to_precision(symbol, amount),
+                    'ceiling': ceiling,
+                    'limit': limit,
+                    'timeInForce': timeInForce,
+                    'clientOrderId': self.safe_string(params, 'clientOrderId'),
+                    'useAwards': self.safe_value(params, 'useAwards'),
+                }
+            if orderToCancel:
+                request['orderToCancel'] = orderToCancel
+            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['operand'] = operand
         else:
-            request['quantity'] = self.amount_to_precision(symbol, amount)
-            if uppercaseType == 'LIMIT':
-                request['limit'] = self.price_to_precision(symbol, price)
-                request['timeInForce'] = 'GOOD_TIL_CANCELLED'
-            else:
-                # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+            if side is not None:
+                request['direction'] = side.upper()
+            request['type'] = uppercaseType
+            isCeilingLimit = (uppercaseType == 'CEILING_LIMIT')
+            isCeilingMarket = (uppercaseType == 'CEILING_MARKET')
+            isCeilingOrder = isCeilingLimit or isCeilingMarket
+            if isCeilingOrder:
+                cost = None
+                if isCeilingLimit:
+                    request['limit'] = self.price_to_precision(symbol, price)
+                    cost = self.safe_number_2(params, 'ceiling', 'cost', amount)
+                elif isCeilingMarket:
+                    cost = self.safe_number_2(params, 'ceiling', 'cost')
+                    if cost is None:
+                        if price is None:
+                            cost = amount
+                        else:
+                            cost = amount * price
+                request['ceiling'] = self.cost_to_precision(symbol, cost)
+                # bittrex only accepts IMMEDIATE_OR_CANCEL or FILL_OR_KILL for ceiling orders
                 request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
-        response = self.privatePostOrders(self.extend(request, params))
+            else:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
+                if uppercaseType == 'LIMIT':
+                    request['limit'] = self.price_to_precision(symbol, price)
+                    request['timeInForce'] = 'GOOD_TIL_CANCELLED'
+                else:
+                    # bittrex does not allow GOOD_TIL_CANCELLED for market orders
+                    request['timeInForce'] = 'IMMEDIATE_OR_CANCEL'
+        query = self.omit(params, ['stop', 'stopPrice', 'ceiling', 'cost', 'operand', 'trailingStopPercent', 'orderToCreate', 'orderToCancel'])
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
         #
         #     {
         #         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
@@ -885,21 +1109,112 @@ class bittrex(Exchange):
         #         updatedAt: '2020-03-18T02:37:33.42Z'
         #       }
         #
+        # Stop
+        #
+        #     {
+        #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        #         "marketSymbol": "BTC-USDT",
+        #         "operand": "LTE",
+        #         "triggerPrice": "0.1",
+        #         "orderToCreate": {
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.0002",
+        #             "limit": "30000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED"
+        #         },
+        #         "status": "OPEN",
+        #         "createdAt": "2022-04-19T21:02:14.17Z",
+        #         "updatedAt": "2022-04-19T21:02:14.17Z"
+        #     }
+        #
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
-        return self.extend(self.parse_order(response), {
+        stop = self.safe_value(params, 'stop')
+        request = {}
+        method = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if stop:
+            method = 'privateDeleteConditionalOrdersConditionalOrderId'
+            request = {
+                'conditionalOrderId': id,
+            }
+        else:
+            method = 'privateDeleteOrdersOrderId'
+            request = {
+                'orderId': id,
+            }
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "CANCELLED",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #             "closedAt": "2022-04-20T03:47:24.69Z"
+        #         }
+        #     ]
+        #
+        return self.extend(self.parse_order(response, market), {
             'id': id,
             'info': response,
             'status': 'canceled',
         })
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {}
         market = None
@@ -937,7 +1252,34 @@ class bittrex(Exchange):
             orders.append(result)
         return self.parse_orders(orders, market)
 
+    def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch data on a currency deposit via the deposit id
+        :param str id: deposit id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        response = self.privateGetDepositsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, code, None, None)
+        return self.safe_value(transactions, 0)
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         # https://support.bittrex.com/hc/en-us/articles/115003723911
         request = {}
@@ -945,13 +1287,68 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
-        response = self.privateGetDepositsClosed(self.extend(request, params))
+        if since is not None:
+            request['startDate'] = self.iso8601(since)
+        if limit is not None:
+            request['pageSize'] = limit
+        method = None
+        options = self.safe_value(self.options, 'fetchDeposits', {})
+        defaultStatus = self.safe_string(options, 'status', 'ok')
+        status = self.safe_string(params, 'status', defaultStatus)
+        if status == 'pending':
+            method = 'privateGetDepositsOpen'
+        else:
+            method = 'privateGetDepositsClosed'
+        params = self.omit(params, 'status')
+        response = getattr(self, method)(self.extend(request, params))
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
 
+    def fetch_pending_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all pending deposits made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        response = self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, code, None, None)
+        return self.safe_value(transactions, 0)
+
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         # https://support.bittrex.com/hc/en-us/articles/115003723911
         request = {}
@@ -959,43 +1356,91 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
-        response = self.privateGetWithdrawalsClosed(self.extend(request, params))
+        if since is not None:
+            request['startDate'] = self.iso8601(since)
+        if limit is not None:
+            request['pageSize'] = limit
+        method = None
+        options = self.safe_value(self.options, 'fetchWithdrawals', {})
+        defaultStatus = self.safe_string(options, 'status', 'ok')
+        status = self.safe_string(params, 'status', defaultStatus)
+        if status == 'pending':
+            method = 'privateGetWithdrawalsOpen'
+        else:
+            method = 'privateGetWithdrawalsClosed'
+        params = self.omit(params, 'status')
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
+
+    def fetch_pending_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all pending withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        return self.fetch_withdrawals(code, since, limit, self.extend(params, {'status': 'pending'}))
 
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #     {
-        #         "id": "d00fdf2e-df9e-48f1-....",
-        #         "currencySymbol": "BTC",
-        #         "quantity": "0.00550000",
-        #         "cryptoAddress": "1PhmYjnJPZH5NUwV8AU...",
-        #         "txId": "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        #         "confirmations": 2,
-        #         "updatedAt": "2020-01-12T16:49:30.41Z",
-        #         "completedAt": "2020-01-12T16:49:30.41Z",
-        #         "status": "COMPLETED",
-        #         "source": "BLOCKCHAIN"
-        #     }
+        #
+        #      {
+        #          "id": "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        #          "currencySymbol": "ETH",
+        #          "quantity": "0.36487773",
+        #          "cryptoAddress": "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        #          "txId": "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        #          "confirmations": 44,
+        #          "updatedAt": "2017-12-28T13:57:42.753Z",
+        #          "completedAt": "2017-12-28T13:57:42.753Z",
+        #          "status": "COMPLETED",
+        #          "source": "BLOCKCHAIN"
+        #      }
         #
         # fetchWithdrawals
+        #
+        #      {
+        #          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        #          "currencySymbol":"OMG",
+        #          "quantity":"2.67000000",
+        #          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        #          "cryptoAddressTag":"",
+        #          "txCost":"0.10000000",
+        #          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        #          "status":"COMPLETED",
+        #          "createdAt":"2017-12-16T20:46:22.5Z",
+        #          "completedAt":"2017-12-16T20:48:03.887Z",
+        #          "target":"BLOCKCHAIN"
+        #      }
+        #
+        # withdraw
+        #
         #     {
-        #         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        #         "Currency" : "XC",
-        #         "Amount" : 7513.75121715,
-        #         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        #         "Opened" : "2014-07-08T23:13:31.83",
-        #         "Authorized" : True,
-        #         "PendingPayment" : False,
-        #         "TxCost" : 0.00002000,
-        #         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        #         "Canceled" : False,
-        #         "InvalidAddress" : False
+        #         "currencySymbol": "string",
+        #         "quantity": "number(double)",
+        #         "cryptoAddress": "string",
+        #         "cryptoAddressTag": "string",
+        #         "fundsTransferMethodId": "string(uuid)",
+        #         "clientWithdrawalId": "string(uuid)"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'id', 'clientWithdrawalId')
         amount = self.safe_number(transaction, 'quantity')
         address = self.safe_string(transaction, 'cryptoAddress')
+        addressTo = None
+        addressFrom = None
+        isDeposit = self.safe_string(transaction, 'source') == 'BLOCKCHAIN'
+        if isDeposit:
+            addressFrom = address
+        else:
+            addressTo = address
         txid = self.safe_string(transaction, 'txId')
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
         opened = self.parse8601(self.safe_string(transaction, 'createdAt'))
@@ -1040,8 +1485,8 @@ class bittrex(Exchange):
             'amount': amount,
             'network': None,
             'address': address,
-            'addressTo': None,
-            'addressFrom': None,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
@@ -1068,6 +1513,8 @@ class bittrex(Exchange):
 
     def parse_order(self, order, market=None):
         #
+        # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        #
         #     {
         #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
         #         marketSymbol: 'LTC-ETH',
@@ -1086,11 +1533,31 @@ class bittrex(Exchange):
         #         closedAt: '2018-06-23T13:14:30.19Z'
         #     }
         #
+        # Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
+        #
+        #     {
+        #         "id": "9791fe52-a3e5-4ac3-ae03-e327b2993571",
+        #         "marketSymbol": "BTC-USDT",
+        #         "operand": "LTE",
+        #         "triggerPrice": "0.1",
+        #         "orderToCreate": {
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.0002",
+        #             "limit": "30000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED"
+        #         },
+        #         "status": "OPEN",
+        #         "createdAt": "2022-04-19T21:02:14.17Z",
+        #         "updatedAt": "2022-04-19T21:02:14.17Z",
+        #         "closedAt": "2022-04-20T03:47:24.69Z"
+        #     }
+        #
         marketSymbol = self.safe_string(order, 'marketSymbol')
         market = self.safe_market(marketSymbol, market, '-')
         symbol = market['symbol']
         feeCurrency = market['quote']
-        direction = self.safe_string_lower(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
@@ -1101,14 +1568,40 @@ class bittrex(Exchange):
         elif updatedAt:
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
+        direction = self.safe_string_lower(order, 'direction')
+        if direction is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            direction = self.safe_string_lower(conditionalOrder, 'direction')
         type = self.safe_string_lower(order, 'type')
+        if type is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            type = self.safe_string_lower(conditionalOrder, 'type')
         quantity = self.safe_string(order, 'quantity')
+        if quantity is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            quantity = self.safe_string(conditionalOrder, 'quantity')
         limit = self.safe_string(order, 'limit')
+        if limit is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            limit = self.safe_string(conditionalOrder, 'limit')
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
+        if timeInForce is None:
+            conditionalOrder = self.safe_value(order, 'orderToCreate')
+            if conditionalOrder is None:
+                conditionalOrder = self.safe_value(order, 'orderToCancel')
+            timeInForce = self.parse_time_in_force(self.safe_string(conditionalOrder, 'timeInForce'))
         fillQuantity = self.safe_string(order, 'fillQuantity')
         commission = self.safe_number(order, 'commission')
         proceeds = self.safe_string(order, 'proceeds')
         status = self.safe_string_lower(order, 'status')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         postOnly = (timeInForce == 'PO')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
@@ -1122,7 +1615,7 @@ class bittrex(Exchange):
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': None,
+            'stopPrice': self.safe_string(order, 'triggerPrice'),
             'cost': proceeds,
             'average': None,
             'amount': quantity,
@@ -1153,48 +1646,46 @@ class bittrex(Exchange):
         return self.safe_string(statuses, status, status)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
+        stop = self.safe_value(params, 'stop')
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         response = None
+        method = None
         try:
-            request = {
-                'orderId': id,
-            }
-            response = self.privateGetOrdersOrderId(self.extend(request, params))
+            request = {}
+            if stop:
+                method = 'privateGetConditionalOrdersConditionalOrderId'
+                request['conditionalOrderId'] = id
+            else:
+                method = 'privateGetOrdersOrderId'
+                request['orderId'] = id
+            query = self.omit(params, 'stop')
+            response = getattr(self, method)(self.extend(request, query))
         except Exception as e:
             if self.last_json_response:
                 message = self.safe_string(self.last_json_response, 'message')
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
-        return self.parse_order(response)
-
-    def order_to_trade(self, order):
-        # self entire method should be moved to the base class
-        timestamp = self.safe_integer_2(order, 'lastTradeTimestamp', 'timestamp')
-        return {
-            'id': self.safe_string(order, 'id'),
-            'side': self.safe_string(order, 'side'),
-            'order': self.safe_string(order, 'id'),
-            'type': self.safe_string(order, 'type'),
-            'price': self.safe_number(order, 'average'),
-            'amount': self.safe_number(order, 'filled'),
-            'cost': self.safe_number(order, 'cost'),
-            'symbol': self.safe_string(order, 'symbol'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fee': self.safe_value(order, 'fee'),
-            'info': order,
-            'takerOrMaker': None,
-        }
-
-    def orders_to_trades(self, orders):
-        # self entire method should be moved to the base class
-        result = []
-        for i in range(0, len(orders)):
-            result.append(self.order_to_trade(orders[i]))
-        return result
+        return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {}
         if limit is not None:
@@ -1205,21 +1696,22 @@ class bittrex(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            # because of self line we will have to rethink the entire v3
-            # in other words, markets define all the rest of the API
-            # and v3 market ids are reversed in comparison to v1
-            # v3 has to be a completely separate implementation
-            # otherwise we will have to shuffle symbols and currencies everywhere
-            # which is prone to errors, as was shown here
-            # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
-            request['marketSymbol'] = market['base'] + '-' + market['quote']
-        response = self.privateGetOrdersClosed(self.extend(request, params))
-        orders = self.parse_orders(response, market)
-        trades = self.orders_to_trades(orders)
+            request['marketSymbol'] = market['id']
+        response = self.privateGetExecutions(self.extend(request, params))
+        trades = self.parse_trades(response, market)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
+        stop = self.safe_value(params, 'stop')
         request = {}
         if limit is not None:
             request['pageSize'] = limit
@@ -1236,10 +1728,63 @@ class bittrex(Exchange):
             # which is prone to errors, as was shown here
             # https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
             request['marketSymbol'] = market['base'] + '-' + market['quote']
-        response = self.privateGetOrdersClosed(self.extend(request, params))
+        method = 'privateGetOrdersClosed'
+        if stop:
+            method = 'privateGetConditionalOrdersClosed'
+        query = self.omit(params, 'stop')
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     [
+        #         {
+        #             "id": "df6cf5ee-fc27-4b61-991a-cc94b6459ac9",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.00023277",
+        #             "limit": "30000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:33:53.16Z",
+        #             "updatedAt": "2022-04-20T02:33:53.16Z"
+        #         }
+        #     ]
+        #
+        # Stop
+        #
+        #     [
+        #         {
+        #             "id": "f64f7c4f-295c-408b-9cbc-601981abf100",
+        #             "marketSymbol": "BTC-USDT",
+        #             "operand": "LTE",
+        #             "triggerPrice": "0.10000000",
+        #             "orderToCreate": {
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "direction": "BUY",
+        #                 "type": "LIMIT",
+        #                 "quantity": "0.00020000",
+        #                 "limit": "30000.00000000",
+        #                 "timeInForce": "GOOD_TIL_CANCELLED"
+        #             },
+        #             "status": "OPEN",
+        #             "createdAt": "2022-04-20T02:38:12.26Z",
+        #             "updatedAt": "2022-04-20T02:38:12.26Z"
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1271,6 +1816,12 @@ class bittrex(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1303,6 +1854,15 @@ class bittrex(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -1315,11 +1875,17 @@ class bittrex(Exchange):
         if tag is not None:
             request['cryptoAddressTag'] = tag
         response = self.privatePostWithdrawals(self.extend(request, params))
-        id = self.safe_string(response, 'id')
-        return {
-            'info': response,
-            'id': id,
-        }
+        #
+        #     {
+        #         "currencySymbol": "string",
+        #         "quantity": "number(double)",
+        #         "cryptoAddress": "string",
+        #         "cryptoAddressTag": "string",
+        #         "fundsTransferMethodId": "string(uuid)",
+        #         "clientWithdrawalId": "string(uuid)"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
 
     def sign(self, path, api='v3', method='GET', params={}, headers=None, body=None):
         url = self.implode_params(self.urls['api'][api], {

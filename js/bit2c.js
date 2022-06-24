@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -32,6 +33,7 @@ module.exports = class bit2c extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -39,11 +41,14 @@ module.exports = class bit2c extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -81,7 +86,7 @@ module.exports = class bit2c extends Exchange {
                 'private': {
                     'post': [
                         'Merchant/CreateCheckout',
-                        'Order/AddCoinFundsRequest',
+                        'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
@@ -122,6 +127,7 @@ module.exports = class bit2c extends Exchange {
             'options': {
                 'fetchTradesMethod': 'public_get_exchanges_pair_trades',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
@@ -158,6 +164,13 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalanceV2 (params);
         //
@@ -206,6 +219,15 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),
@@ -241,10 +263,18 @@ module.exports = class bit2c extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market, false);
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -255,9 +285,19 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = this.options['fetchTradesMethod'];
+        const method = this.options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         const request = {
             'pair': market['id'],
         };
@@ -268,6 +308,13 @@ module.exports = class bit2c extends Exchange {
             request['limit'] = limit; // max 100000
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+        //     ]
+        //
         if (typeof response === 'string') {
             throw new ExchangeError (response);
         }
@@ -275,6 +322,13 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalance (params);
         //
@@ -317,6 +371,18 @@ module.exports = class bit2c extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let method = 'privatePostOrderAddOrder';
         const request = {
@@ -338,6 +404,15 @@ module.exports = class bit2c extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#cancelOrder
+         * @description cancels an open order
+         * @param {str} id order id
+         * @param {str|undefined} symbol Not used by bit2c cancelOrder ()
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'id': id,
         };
@@ -345,6 +420,16 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -399,6 +484,16 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -415,10 +510,79 @@ module.exports = class bit2c extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetOrderOrderHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":1,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"-0.015",
+        //             "firstAmountBalance":"9",
+        //             "secondAmount":"14.93",
+        //             "secondAmountBalance":"130,233.28",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         },
+        //         {
+        //             "ticks":1574767951,
+        //             "created":"26/11/19 13:32",
+        //             "action":0,
+        //             "price":"1000",
+        //             "pair":"EthNis",
+        //             "reference":"EthNis|10867390|10867377",
+        //             "fee":"0.5",
+        //             "feeAmount":"0.08",
+        //             "feeCoin":"₪",
+        //             "firstAmount":"0.015",
+        //             "firstAmountBalance":"9.015",
+        //             "secondAmount":"-15.08",
+        //             "secondAmountBalance":"130,218.35",
+        //             "firstCoin":"ETH",
+        //             "secondCoin":"₪"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "date":1651785980,
+        //         "price":127975.68,
+        //         "amount":0.3750321,
+        //         "isBid":true,
+        //         "tid":1261018
+        //     }
+        //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "ticks":1574767951,
+        //         "created":"26/11/19 13:32",
+        //         "action":1,
+        //         "price":"1000",
+        //         "pair":"EthNis",
+        //         "reference":"EthNis|10867390|10867377",
+        //         "fee":"0.5",
+        //         "feeAmount":"0.08",
+        //         "feeCoin":"₪",
+        //         "firstAmount":"-0.015",
+        //         "firstAmountBalance":"9",
+        //         "secondAmount":"14.93",
+        //         "secondAmountBalance":"130,233.28",
+        //         "firstCoin":"ETH",
+        //         "secondCoin":"₪"
+        //     }
+        //
         let timestamp = undefined;
         let id = undefined;
         let price = undefined;
@@ -432,14 +596,9 @@ module.exports = class bit2c extends Exchange {
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
-            if (market === undefined) {
-                const marketId = this.safeString (trade, 'pair');
-                if (marketId in this.markets_by_id[marketId]) {
-                    market = this.markets_by_id[marketId];
-                } else if (reference_parts[0] in this.markets_by_id) {
-                    market = this.markets_by_id[reference_parts[0]];
-                }
-            }
+            const marketId = this.safeString (trade, 'pair');
+            market = this.safeMarket (marketId, market);
+            market = this.safeMarket (reference_parts[0], market);
             orderId = reference_parts[1];
             id = reference_parts[2];
             side = this.safeInteger (trade, 'action');
@@ -485,6 +644,60 @@ module.exports = class bit2c extends Exchange {
             'cost': undefined,
             'fee': fee,
         }, market);
+    }
+
+    isFiat (code) {
+        return code === 'NIS';
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bit2c#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bit2c api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fetchDepositAddress() does not support fiat currencies');
+        }
+        const request = {
+            'Coin': currency['id'],
+        };
+        const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        //
+        //     {
+        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx': False
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+        //         'hasTx': False
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        const code = this.safeCurrencyCode (undefined, currency);
+        return {
+            'currency': code,
+            'network': undefined,
+            'address': address,
+            'tag': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

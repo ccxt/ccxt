@@ -15,7 +15,7 @@ symbol = 'ETH/BTC'
 
 def sync_client(exchange_id):
     orderbook = None
-    exchange = getattr(ccxt, exchange_id)({'enableRateLimit': True})
+    exchange = getattr(ccxt, exchange_id)()
     try:
         exchange.load_markets()
         market = exchange.market(symbol)
@@ -27,7 +27,7 @@ def sync_client(exchange_id):
 
 async def async_client(exchange_id):
     orderbook = None
-    exchange = getattr(ccxta, exchange_id)({'enableRateLimit': True})
+    exchange = getattr(ccxta, exchange_id)()
     try:
         await exchange.load_markets()
         market = exchange.market(symbol)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     exchanges = ["kucoin", "bittrex", "bitfinex", "poloniex", "huobipro"]
 
     tic = time.time()
-    a = asyncio.get_event_loop().run_until_complete(multi_orderbooks(exchanges))
+    a = asyncio.run(multi_orderbooks(exchanges))
     print("async call spend:", time.time() - tic)
 
     time.sleep(1)

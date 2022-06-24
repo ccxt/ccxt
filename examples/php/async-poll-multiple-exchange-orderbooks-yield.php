@@ -5,17 +5,9 @@ include_once $root . '/vendor/autoload.php';
 
 use ccxt\async;
 
-$binance = new async\binance([
-    'enableRateLimit' => true,
-]);
-
-$bitfinex = new async\bitfinex2([
-    'enableRateLimit' => true,
-]);
-
-$poloniex = new async\poloniex([
-    'enableRateLimit' => true,
-]);
+$binance = new async\binance();
+$bitfinex = new async\bitfinex2();
+$poloniex = new async\poloniex();
 
 $exchanges = array($binance, $bitfinex, $poloniex);
 

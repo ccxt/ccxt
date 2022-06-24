@@ -9,9 +9,11 @@ const assert = require ('assert')
 
 module.exports = async (exchange, code) => {
 
-    if (exchange.has.fetchTransactions) {
+    const method = 'fetchTransactions'
 
-        const transactions = await exchange.fetchTransactions (code)
+    if (exchange.has[method]) {
+
+        const transactions = await exchange[method] (code)
 
         console.log ('fetched', transactions.length, 'transactions, asserting each...')
 
@@ -26,6 +28,6 @@ module.exports = async (exchange, code) => {
 
     } else {
 
-        console.log ('fetching transactions not supported')
+        console.log (method + '() is not supported')
     }
 }

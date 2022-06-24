@@ -8,6 +8,8 @@ const testTicker = require ('./test.ticker.js')
 
 module.exports = async (exchange, symbol) => {
 
+    const method = 'fetchTickers'
+
     const skippedExchanges = [
         'binance',
         'digifinex',
@@ -15,15 +17,13 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchTickers) {
+    if (exchange.has[method]) {
 
         // log ('fetching all tickers at once...')
-
-        const method = 'fetchTickers'
         let tickers = undefined
 
         try {
@@ -43,7 +43,7 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        console.log ('fetching all tickers at once not supported')
+        console.log (method + '() is not supported')
     }
 }
 

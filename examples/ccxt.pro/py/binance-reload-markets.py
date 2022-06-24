@@ -1,5 +1,5 @@
 import ccxtpro
-from asyncio import get_event_loop, gather
+from asyncio import run, gather
 
 
 print('CCXT Pro version', ccxtpro.__version__)
@@ -28,11 +28,8 @@ async def reload_markets(exchange, delay):
             break
 
 
-async def main(loop):
-    exchange = ccxtpro.binance({
-        'enableRateLimit': True,
-        'asyncio_loop': loop,
-    })
+async def main():
+    exchange = ccxtpro.binance()
     await exchange.load_markets()
     # exchange.verbose = True
     symbol = 'BTC/USDT'
@@ -42,5 +39,4 @@ async def main(loop):
     await exchange.close()
 
 
-loop = get_event_loop()
-loop.run_until_complete(main(loop))
+run(main())

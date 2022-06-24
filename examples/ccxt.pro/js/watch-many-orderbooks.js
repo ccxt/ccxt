@@ -1,11 +1,10 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxtpro = require ('ccxt.pro');
 
 async function watchOrderBook (exchangeId, symbol) {
 
     const exchange = new ccxtpro[exchangeId] ()
-    const symbol = streams[exchangeId]
     while (true) {
         try {
             const orderbook = await exchange.watchOrderBook (symbol)

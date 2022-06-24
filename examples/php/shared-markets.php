@@ -1,10 +1,10 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 // ----------------------------------------------------------------------------
 // an example of how to load markets for each exchange just once
@@ -28,9 +28,7 @@ $keys = array(
 
 $id = 'kraken';
 $exchange_class = "\\ccxt\\{$id}";
-$exchange = new $exchange_class(array(
-    'enableRateLimit' => true,
-));
+$exchange = new $exchange_class();
 
 $markets_on_disk = "./{$id}.markets.json";
 

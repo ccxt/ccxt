@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -18,6 +17,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -28,7 +28,8 @@ class bitstamp(Exchange):
             'id': 'bitstamp',
             'name': 'Bitstamp',
             'countries': ['GB'],
-            'rateLimit': 1000,
+            # 8000 requests per 10 minutes = 8000 / 600 = 13.33333333 requests per second => 1000ms / 13.33333333 = 75ms between requests on average
+            'rateLimit': 75,
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
             'pro': True,
@@ -44,6 +45,9 @@ class bitstamp(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -52,7 +56,6 @@ class bitstamp(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -60,14 +63,17 @@ class bitstamp(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -75,6 +81,7 @@ class bitstamp(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -112,164 +119,195 @@ class bitstamp(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ohlc/{pair}/',
-                        'order_book/{pair}/',
-                        'ticker_hour/{pair}/',
-                        'ticker/{pair}/',
-                        'transactions/{pair}/',
-                        'trading-pairs-info/',
-                    ],
+                    'get': {
+                        'ohlc/{pair}/': 1,
+                        'order_book/{pair}/': 1,
+                        'ticker_hour/{pair}/': 1,
+                        'ticker/{pair}/': 1,
+                        'transactions/{pair}/': 1,
+                        'trading-pairs-info/': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance/',
-                        'balance/{pair}/',
-                        'bch_withdrawal/',
-                        'bch_address/',
-                        'user_transactions/',
-                        'user_transactions/{pair}/',
-                        'open_orders/all/',
-                        'open_orders/{pair}/',
-                        'order_status/',
-                        'cancel_order/',
-                        'cancel_all_orders/',
-                        'cancel_all_orders/{pair}/',
-                        'buy/{pair}/',
-                        'buy/market/{pair}/',
-                        'buy/instant/{pair}/',
-                        'sell/{pair}/',
-                        'sell/market/{pair}/',
-                        'sell/instant/{pair}/',
-                        'btc_withdrawal/',
-                        'btc_address/',
-                        'ripple_withdrawal/',
-                        'ripple_address/',
-                        'ltc_withdrawal/',
-                        'ltc_address/',
-                        'eth_withdrawal/',
-                        'eth_address/',
-                        'xrp_withdrawal/',
-                        'xrp_address/',
-                        'xlm_withdrawal/',
-                        'xlm_address/',
-                        'pax_withdrawal/',
-                        'pax_address/',
-                        'link_withdrawal/',
-                        'link_address/',
-                        'usdc_withdrawal/',
-                        'usdc_address/',
-                        'omg_withdrawal/',
-                        'omg_address/',
-                        'dai_withdrawal/',
-                        'dai_address/',
-                        'knc_withdrawal/',
-                        'knc_address/',
-                        'mkr_withdrawal/',
-                        'mkr_address/',
-                        'zrx_withdrawal/',
-                        'zrx_address/',
-                        'gusd_withdrawal/',
-                        'gusd_address/',
-                        'aave_withdrawal/',
-                        'aave_address/',
-                        'bat_withdrawal/',
-                        'bat_address/',
-                        'uma_withdrawal/',
-                        'uma_address/',
-                        'snx_withdrawal/',
-                        'snx_address/',
-                        'uni_withdrawal/',
-                        'uni_address/',
-                        'yfi_withdrawal/',
-                        'yfi_address',
-                        'audio_withdrawal/',
-                        'audio_address/',
-                        'crv_withdrawal/',
-                        'crv_address/',
-                        'algo_withdrawal/',
-                        'algo_address/',
-                        'comp_withdrawal/',
-                        'comp_address/',
-                        'grt_withdrawal',
-                        'grt_address/',
-                        'usdt_withdrawal/',
-                        'usdt_address/',
-                        'eurt_withdrawal/',
-                        'eurt_address/',
-                        'matic_withdrawal/',
-                        'matic_address/',
-                        'sushi_withdrawal/',
-                        'sushi_address/',
-                        'chz_withdrawal/',
-                        'chz_address/',
-                        'enj_withdrawal/',
-                        'enj_address/',
-                        'alpha_withdrawal/',
-                        'alpha_address/',
-                        'ftt_withdrawal/',
-                        'ftt_address/',
-                        'storj_withdrawal/',
-                        'storj_address/',
-                        'axs_withdrawal/',
-                        'axs_address/',
-                        'sand_withdrawal/',
-                        'sand_address/',
-                        'hbar_withdrawal/',
-                        'hbar_address/',
-                        'rgt_withdrawal/',
-                        'rgt_address/',
-                        'fet_withdrawal/',
-                        'fet_address/',
-                        'skl_withdrawal/',
-                        'skl_address/',
-                        'cel_withdrawal/',
-                        'cel_address/',
-                        'sxp_withdrawal/',
-                        'sxp_address/',
-                        'ada_withdrawal/',
-                        'ada_address/',
-                        'slp_withdrawal/',
-                        'slp_address/',
-                        'ftm_withdrawal/',
-                        'ftm_address/',
-                        'perp_withdrawal/',
-                        'perp_address/',
-                        'dydx_withdrawal/',
-                        'dydx_address/',
-                        'gala_withdrawal/',
-                        'gala_address/',
-                        'shib_withdrawal/',
-                        'shib_address/',
-                        'amp_withdrawal/',
-                        'amp_address/',
-                        'sgb_withdrawal/',
-                        'sgb_address/',
-                        'avax_withdrawal/',
-                        'avax_address/',
-                        'wbtc_withdrawal/',
-                        'wbtc_address/',
-                        'ctsi_withdrawal/',
-                        'ctsi_address/',
-                        'cvx_withdrawal/',
-                        'cvx_address/',
-                        'imx_withdrawal/',
-                        'imx_address/',
-                        'nexo_withdrawal/',
-                        'nexo_address/',
-                        'ust_withdrawal/',
-                        'ust_address/',
-                        'transfer-to-main/',
-                        'transfer-from-main/',
-                        'withdrawal-requests/',
-                        'withdrawal/open/',
-                        'withdrawal/status/',
-                        'withdrawal/cancel/',
-                        'liquidation_address/new/',
-                        'liquidation_address/info/',
-                        'btc_unconfirmed/',
-                        'websockets_token/',
-                    ],
+                    'post': {
+                        'balance/': 1,
+                        'balance/{pair}/': 1,
+                        'bch_withdrawal/': 1,
+                        'bch_address/': 1,
+                        'user_transactions/': 1,
+                        'user_transactions/{pair}/': 1,
+                        'open_orders/all/': 1,
+                        'open_orders/{pair}/': 1,
+                        'order_status/': 1,
+                        'cancel_order/': 1,
+                        'cancel_all_orders/': 1,
+                        'cancel_all_orders/{pair}/': 1,
+                        'buy/{pair}/': 1,
+                        'buy/market/{pair}/': 1,
+                        'buy/instant/{pair}/': 1,
+                        'sell/{pair}/': 1,
+                        'sell/market/{pair}/': 1,
+                        'sell/instant/{pair}/': 1,
+                        'transfer-to-main/': 1,
+                        'transfer-from-main/': 1,
+                        'withdrawal-requests/': 1,
+                        'withdrawal/open/': 1,
+                        'withdrawal/status/': 1,
+                        'withdrawal/cancel/': 1,
+                        'liquidation_address/new/': 1,
+                        'liquidation_address/info/': 1,
+                        'btc_unconfirmed/': 1,
+                        'websockets_token/': 1,
+                        # individual coins
+                        'btc_withdrawal/': 1,
+                        'btc_address/': 1,
+                        'ripple_withdrawal/': 1,
+                        'ripple_address/': 1,
+                        'ltc_withdrawal/': 1,
+                        'ltc_address/': 1,
+                        'eth_withdrawal/': 1,
+                        'eth_address/': 1,
+                        'xrp_withdrawal/': 1,
+                        'xrp_address/': 1,
+                        'xlm_withdrawal/': 1,
+                        'xlm_address/': 1,
+                        'pax_withdrawal/': 1,
+                        'pax_address/': 1,
+                        'link_withdrawal/': 1,
+                        'link_address/': 1,
+                        'usdc_withdrawal/': 1,
+                        'usdc_address/': 1,
+                        'omg_withdrawal/': 1,
+                        'omg_address/': 1,
+                        'dai_withdrawal/': 1,
+                        'dai_address/': 1,
+                        'knc_withdrawal/': 1,
+                        'knc_address/': 1,
+                        'mkr_withdrawal/': 1,
+                        'mkr_address/': 1,
+                        'zrx_withdrawal/': 1,
+                        'zrx_address/': 1,
+                        'gusd_withdrawal/': 1,
+                        'gusd_address/': 1,
+                        'aave_withdrawal/': 1,
+                        'aave_address/': 1,
+                        'bat_withdrawal/': 1,
+                        'bat_address/': 1,
+                        'uma_withdrawal/': 1,
+                        'uma_address/': 1,
+                        'snx_withdrawal/': 1,
+                        'snx_address/': 1,
+                        'uni_withdrawal/': 1,
+                        'uni_address/': 1,
+                        'yfi_withdrawal/': 1,
+                        'yfi_address': 1,
+                        'audio_withdrawal/': 1,
+                        'audio_address/': 1,
+                        'crv_withdrawal/': 1,
+                        'crv_address/': 1,
+                        'algo_withdrawal/': 1,
+                        'algo_address/': 1,
+                        'comp_withdrawal/': 1,
+                        'comp_address/': 1,
+                        'grt_withdrawal': 1,
+                        'grt_address/': 1,
+                        'usdt_withdrawal/': 1,
+                        'usdt_address/': 1,
+                        'eurt_withdrawal/': 1,
+                        'eurt_address/': 1,
+                        'matic_withdrawal/': 1,
+                        'matic_address/': 1,
+                        'sushi_withdrawal/': 1,
+                        'sushi_address/': 1,
+                        'chz_withdrawal/': 1,
+                        'chz_address/': 1,
+                        'enj_withdrawal/': 1,
+                        'enj_address/': 1,
+                        'alpha_withdrawal/': 1,
+                        'alpha_address/': 1,
+                        'ftt_withdrawal/': 1,
+                        'ftt_address/': 1,
+                        'storj_withdrawal/': 1,
+                        'storj_address/': 1,
+                        'axs_withdrawal/': 1,
+                        'axs_address/': 1,
+                        'sand_withdrawal/': 1,
+                        'sand_address/': 1,
+                        'hbar_withdrawal/': 1,
+                        'hbar_address/': 1,
+                        'rgt_withdrawal/': 1,
+                        'rgt_address/': 1,
+                        'fet_withdrawal/': 1,
+                        'fet_address/': 1,
+                        'skl_withdrawal/': 1,
+                        'skl_address/': 1,
+                        'cel_withdrawal/': 1,
+                        'cel_address/': 1,
+                        'sxp_withdrawal/': 1,
+                        'sxp_address/': 1,
+                        'ada_withdrawal/': 1,
+                        'ada_address/': 1,
+                        'slp_withdrawal/': 1,
+                        'slp_address/': 1,
+                        'ftm_withdrawal/': 1,
+                        'ftm_address/': 1,
+                        'perp_withdrawal/': 1,
+                        'perp_address/': 1,
+                        'dydx_withdrawal/': 1,
+                        'dydx_address/': 1,
+                        'gala_withdrawal/': 1,
+                        'gala_address/': 1,
+                        'shib_withdrawal/': 1,
+                        'shib_address/': 1,
+                        'amp_withdrawal/': 1,
+                        'amp_address/': 1,
+                        'sgb_withdrawal/': 1,
+                        'sgb_address/': 1,
+                        'avax_withdrawal/': 1,
+                        'avax_address/': 1,
+                        'wbtc_withdrawal/': 1,
+                        'wbtc_address/': 1,
+                        'ctsi_withdrawal/': 1,
+                        'ctsi_address/': 1,
+                        'cvx_withdrawal/': 1,
+                        'cvx_address/': 1,
+                        'imx_withdrawal/': 1,
+                        'imx_address/': 1,
+                        'nexo_withdrawal/': 1,
+                        'nexo_address/': 1,
+                        'ust_withdrawal/': 1,
+                        'ust_address/': 1,
+                        'ant_withdrawal/': 1,
+                        'ant_address/': 1,
+                        'gods_withdrawal/': 1,
+                        'gods_address/': 1,
+                        'rad_withdrawal/': 1,
+                        'rad_address/': 1,
+                        'band_withdrawal/': 1,
+                        'band_address/': 1,
+                        'inj_withdrawal/': 1,
+                        'inj_address/': 1,
+                        'rly_withdrawal/': 1,
+                        'rly_address/': 1,
+                        'rndr_withdrawal/': 1,
+                        'rndr_address/': 1,
+                        'vega_withdrawal/': 1,
+                        'vega_address/': 1,
+                        '1inch_withdrawal/': 1,
+                        '1inch_address/': 1,
+                        'ens_withdrawal/': 1,
+                        'ens_address/': 1,
+                        'mana_withdrawal/': 1,
+                        'mana_address/': 1,
+                        'lrc_withdrawal/': 1,
+                        'lrc_address/': 1,
+                        'ape_withdrawal/': 1,
+                        'ape_address/': 1,
+                        'mpl_withdrawal/': 1,
+                        'mpl_address/': 1,
+                        'euroc_withdrawal/': 1,
+                        'euroc_address/': 1,
+                    },
                 },
             },
             'fees': {
@@ -336,6 +374,10 @@ class bitstamp(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'UST': 'USTC',
+            },
             'exceptions': {
                 'exact': {
                     'No permission found': PermissionDenied,
@@ -363,6 +405,11 @@ class bitstamp(Exchange):
         })
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitstamp
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = self.fetch_markets_from_cache(params)
         #
         #     [
@@ -416,8 +463,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'base_decimals'),
-                    'price': self.safe_integer(market, 'counter_decimals'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -446,6 +493,7 @@ class bitstamp(Exchange):
         description = self.describe()
         if self.is_fiat(code):
             currencyType = 'fiat'
+        tickSize = self.parse_number(self.parse_precision(self.number_to_string(precision)))
         return {
             'id': id,
             'code': code,
@@ -456,14 +504,14 @@ class bitstamp(Exchange):
             'deposit': None,
             'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
-            'precision': precision,
+            'precision': tickSize,
             'limits': {
                 'amount': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision),
+                    'min': tickSize,
                     'max': None,
                 },
                 'cost': {
@@ -493,6 +541,11 @@ class bitstamp(Exchange):
         return self.safe_value(self.options['fetchMarkets'], 'response')
 
     def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = self.fetch_markets_from_cache(params)
         #
         #     [
@@ -531,6 +584,13 @@ class bitstamp(Exchange):
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         request = {
             'pair': self.market_id(symbol),
@@ -600,9 +660,15 @@ class bitstamp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market, False)
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -672,7 +738,7 @@ class bitstamp(Exchange):
         currencyIds = list(trade.keys())
         numCurrencyIds = len(currencyIds)
         if numCurrencyIds > 2:
-            raise ExchangeError(self.id + ' getMarketFromTrade too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
+            raise ExchangeError(self.id + ' getMarketFromTrade() too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
@@ -749,14 +815,15 @@ class bitstamp(Exchange):
             costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
             symbol = market['symbol']
-        timestamp = self.safe_string_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            if timestamp.find(' ') >= 0:
+        datetimeString = self.safe_string_2(trade, 'date', 'datetime')
+        timestamp = None
+        if datetimeString is not None:
+            if datetimeString.find(' ') >= 0:
                 # iso8601
-                timestamp = self.parse8601(timestamp)
+                timestamp = self.parse8601(datetimeString)
             else:
                 # string unix epoch in seconds
-                timestamp = int(timestamp)
+                timestamp = int(datetimeString)
                 timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
@@ -800,6 +867,14 @@ class bitstamp(Exchange):
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -848,6 +923,15 @@ class bitstamp(Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -906,6 +990,11 @@ class bitstamp(Exchange):
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         self.load_markets()
         response = self.privatePostBalance(params)
         #
@@ -929,6 +1018,12 @@ class bitstamp(Exchange):
         return self.parse_balance(response)
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -960,6 +1055,11 @@ class bitstamp(Exchange):
         return result
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
@@ -979,12 +1079,28 @@ class bitstamp(Exchange):
             'deposit': {},
         }
 
-    def fetch_funding_fees(self, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         balance = self.privatePostBalance(params)
         return self.parse_funding_fees(balance)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
@@ -1010,6 +1126,13 @@ class bitstamp(Exchange):
         })
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -1017,6 +1140,12 @@ class bitstamp(Exchange):
         return self.privatePostCancelOrder(self.extend(request, params))
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {}
@@ -1049,6 +1178,12 @@ class bitstamp(Exchange):
         return self.parse_order_status(self.safe_string(response, 'status'))
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -1082,6 +1217,14 @@ class bitstamp(Exchange):
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'privatePostUserTransactions'
@@ -1097,6 +1240,14 @@ class bitstamp(Exchange):
         return self.parse_trades(result, market, since, limit)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         if limit is not None:
@@ -1135,6 +1286,14 @@ class bitstamp(Exchange):
         return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         if since is not None:
@@ -1468,6 +1627,14 @@ class bitstamp(Exchange):
             }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         request = {}
         if limit is not None:
@@ -1479,6 +1646,14 @@ class bitstamp(Exchange):
         return self.parse_ledger(response, currency, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         market = None
         self.load_markets()
         if symbol is not None:
@@ -1508,6 +1683,12 @@ class bitstamp(Exchange):
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
@@ -1525,6 +1706,15 @@ class bitstamp(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         # For fiat withdrawals please provide all required additional parameters in the 'params'
         # Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -1533,6 +1723,7 @@ class bitstamp(Exchange):
         request = {
             'amount': amount,
         }
+        currency = None
         method = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
@@ -1550,10 +1741,7 @@ class bitstamp(Exchange):
             request['iban'] = address
             request['account_currency'] = currency['id']
         response = getattr(self, method)(self.extend(request, params))
-        return {
-            'info': response,
-            'id': self.safe_string(response, 'id'),
-        }
+        return self.parse_transaction(response, currency)
 
     def nonce(self):
         return self.milliseconds()

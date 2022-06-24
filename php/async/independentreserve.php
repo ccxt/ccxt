@@ -27,6 +27,9 @@ class independentreserve extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -41,13 +44,16 @@ class independentreserve extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -123,21 +129,27 @@ class independentreserve extends Exchange {
             'commonCurrencies' => array(
                 'PLA' => 'PlayChip',
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for independentreserve
+         * @param {dict} $params extra parameters specific to the exchange api endpoint
+         * @return {[dict]} an array of objects representing market data
+         */
         $baseCurrencies = yield $this->publicGetGetValidPrimaryCurrencyCodes ($params);
+        //     ['Xbt', 'Eth', 'Usdt', ...]
         $quoteCurrencies = yield $this->publicGetGetValidSecondaryCurrencyCodes ($params);
+        //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         $limits = yield $this->publicGetGetOrderMinimumVolumes ($params);
         //
         //     {
         //         "Xbt" => 0.0001,
-        //         "Bch" => 0.001,
-        //         "Bsv" => 0.001,
         //         "Eth" => 0.001,
         //         "Ltc" => 0.01,
-        //         "Xrp" => 1,
+        //         "Xrp" => 1.0,
         //     }
         //
         $result = array();
@@ -173,7 +185,10 @@ class independentreserve extends Exchange {
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
-                    'precision' => $this->precision,
+                    'precision' => array(
+                        'amount' => null,
+                        'price' => null,
+                    ),
                     'limits' => array(
                         'leverage' => array(
                             'min' => null,
@@ -214,12 +229,24 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostGetAccounts ($params);
         return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -276,10 +303,16 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market, false);
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -347,22 +380,24 @@ class independentreserve extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-        } else if ($market !== null) {
+        } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
-        if (mb_strpos($orderType, 'Bid') !== false) {
-            $side = 'buy';
-        } else if (mb_strpos($orderType, 'Offer') !== false) {
-            $side = 'sell';
-        }
-        if (mb_strpos($orderType, 'Market') !== false) {
-            $orderType = 'market';
-        } else if (mb_strpos($orderType, 'Limit') !== false) {
-            $orderType = 'limit';
+        if ($orderType !== null) {
+            if (mb_strpos($orderType, 'Bid') !== false) {
+                $side = 'buy';
+            } elseif (mb_strpos($orderType, 'Offer') !== false) {
+                $side = 'sell';
+            }
+            if (mb_strpos($orderType, 'Market') !== false) {
+                $orderType = 'market';
+            } elseif (mb_strpos($orderType, 'Limit') !== false) {
+                $orderType = 'limit';
+            }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
@@ -422,6 +457,12 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {str|null} $symbol unified $symbol of the $market the order was made in
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
@@ -434,6 +475,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $request = $this->ordered(array());
         $market = null;
@@ -453,6 +502,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $request = $this->ordered(array());
         $market = null;
@@ -472,6 +529,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = 50, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
         if ($limit === null) {
@@ -509,7 +574,7 @@ class independentreserve extends Exchange {
         if ($side !== null) {
             if (mb_strpos($side, 'Bid') !== false) {
                 $side = 'buy';
-            } else if (mb_strpos($side, 'Offer') !== false) {
+            } elseif (mb_strpos($side, 'Offer') !== false) {
                 $side = 'sell';
             }
         }
@@ -531,6 +596,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -543,6 +616,11 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostGetBrokerageFees ($params);
         //
@@ -583,6 +661,16 @@ class independentreserve extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {str} $symbol unified $symbol of the $market to create an order in
+         * @param {str} $type 'market' or 'limit'
+         * @param {str} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $capitalizedOrderType = $this->capitalize($type);
@@ -606,6 +694,13 @@ class independentreserve extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $symbol of the market the order was made in
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         yield $this->load_markets();
         $request = array(
             'orderGuid' => $id,

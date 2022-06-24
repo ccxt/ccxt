@@ -14,8 +14,7 @@ require('ansicolor').nice
             'apiKey': 'APIKEY',
             'secret': 'APISECRET',
             'uid': 'ACCOUNTID',
-            'enableRateLimit': true,  // this is required, as documented in the Manual!
-            urls: {
+            'urls': {
                 'api': {
                     'public': apiUrl,
                     'private': apiUrl,
