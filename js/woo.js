@@ -27,6 +27,7 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -73,6 +74,7 @@ module.exports = class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayMargin': true,
                 'setMargin': false,
                 'transfer': true,
                 'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -140,12 +142,12 @@ module.exports = class woo extends Exchange {
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
-                            'interest/repay': 60,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay': 60,
                         },
                         'delete': {
                             'order': 1,
@@ -1729,6 +1731,48 @@ module.exports = class woo extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const currency = this.currency (code);
+        const request = {
+            'token': currency['id'], // interest token that you want to repay
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v1PrivatePostInterestRepay (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "success": true,
+        //     }
+        //
+        return {
+            'id': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     nonce () {
