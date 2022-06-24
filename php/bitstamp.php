@@ -835,14 +835,15 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_string_2($trade, 'date', 'datetime');
-        if ($timestamp !== null) {
-            if (mb_strpos($timestamp, ' ') !== false) {
+        $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
+        $timestamp = null;
+        if ($datetimeString !== null) {
+            if (mb_strpos($datetimeString, ' ') !== false) {
                 // iso8601
-                $timestamp = $this->parse8601($timestamp);
+                $timestamp = $this->parse8601($datetimeString);
             } else {
                 // string unix epoch in seconds
-                $timestamp = intval($timestamp);
+                $timestamp = intval($datetimeString);
                 $timestamp = $timestamp * 1000;
             }
         }

@@ -815,14 +815,15 @@ class bitstamp(Exchange):
             costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
             symbol = market['symbol']
-        timestamp = self.safe_string_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            if timestamp.find(' ') >= 0:
+        datetimeString = self.safe_string_2(trade, 'date', 'datetime')
+        timestamp = None
+        if datetimeString is not None:
+            if datetimeString.find(' ') >= 0:
                 # iso8601
-                timestamp = self.parse8601(timestamp)
+                timestamp = self.parse8601(datetimeString)
             else:
                 # string unix epoch in seconds
-                timestamp = int(timestamp)
+                timestamp = int(datetimeString)
                 timestamp = timestamp * 1000
         # if it is a private trade
         if 'id' in trade:
