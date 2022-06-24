@@ -33,7 +33,7 @@ module.exports = class bitfinex extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
                 'fetchIndexOHLCV': false,
@@ -150,7 +150,6 @@ module.exports = class bitfinex extends Exchange {
                         'offer/new': 6,
                         'offer/status': 6,
                         'offers': 6,
-                        'offers/hist': 90.03, // one request per minute
                         'order/cancel': 0.2,
                         'order/cancel/all': 0.2,
                         'order/cancel/multi': 0.2,
@@ -159,7 +158,7 @@ module.exports = class bitfinex extends Exchange {
                         'order/new/multi': 0.2,
                         'order/status': 0.2,
                         'orders': 0.2,
-                        'orders/hist': 90.03, // one request per minute = 0.1666 => (1000ms /  rateLimit) / 0.01666 = 90.03
+                        // 'orders/hist': 100, endpoint does not work
                         'position/claim': 18,
                         'position/close': 18,
                         'positions': 18,
@@ -1181,31 +1180,6 @@ module.exports = class bitfinex extends Exchange {
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
         }
-        return orders;
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitfinex#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the bitfinex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
-        await this.loadMarkets ();
-        const request = {};
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privatePostOrdersHist (this.extend (request, params));
-        let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
-        }
-        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
         return orders;
     }
 
