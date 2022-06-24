@@ -4251,6 +4251,7 @@ module.exports = class zb extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol']
         }
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
