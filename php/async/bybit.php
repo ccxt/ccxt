@@ -1650,7 +1650,7 @@ class bybit extends Exchange {
             $method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
             $fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
         } else {
-            $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
+            $method = $market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
             $fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
         }
         $fetchFundingRateFromTicker = yield $this->$fundingRateFromTickerMethod (array_merge($request, $params));
