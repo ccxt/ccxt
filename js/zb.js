@@ -3160,7 +3160,7 @@ module.exports = class zb extends Exchange {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'fundingTime');
+            const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
