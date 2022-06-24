@@ -43,7 +43,7 @@ function testDeepExtend() {
             c: { test1: 123, test2: 222 }
         },
         f: [{ 'foo': 'bar' }],
-        g: undefined,
+        g: 123,
         c: 5,
         e: { one: 1, two: 2 },
         h: /abc/g,

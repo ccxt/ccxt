@@ -237,7 +237,9 @@ module.exports = {
                     out[k] = deepExtend (out[k], x[k]);
                 }
             } else {
-                out = x;
+                if (x !== undefined) {
+                    out = x;
+                }
             }
         }
         return out;
