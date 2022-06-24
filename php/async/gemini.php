@@ -23,6 +23,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
