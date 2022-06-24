@@ -93,6 +93,7 @@ module.exports = class kucoinfutures extends kucoin {
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webFront': 'https://futures.kucoin.com/_api/web-front',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -167,6 +168,11 @@ module.exports = class kucoinfutures extends kucoin {
                         'orders/{orderId}': 1,
                         'orders': 4.44,
                         'stopOrders': 1,
+                    },
+                },
+                'webFront': {
+                    'get': {
+                        'contract/{symbol}/funding-rates': 1,
                     },
                 },
             },
