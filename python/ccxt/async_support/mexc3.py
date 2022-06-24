@@ -1750,7 +1750,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
@@ -1789,7 +1789,7 @@ class mexc3(Exchange):
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
             if limit is not None:
                 request['page_size'] = limit
-            method = self.safe_string(self.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
             method = self.safe_string(query, 'method', method)
             ordersOfRegular = []
             ordersOfTrigger = []
@@ -1931,7 +1931,7 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
             response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
             #
             # spot
