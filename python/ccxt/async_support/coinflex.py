@@ -1983,7 +1983,7 @@ class coinflex(Exchange):
         #     }
         #
         currencyId = self.safe_string(transfer, 'asset')
-        timestamp = self.safe_string(transfer, 'transferredAt')
+        timestamp = self.safe_integer(transfer, 'transferredAt')
         fromAccount = self.safe_string(transfer, 'fromAccount')
         toAccount = self.safe_string(transfer, 'toAccount')
         status = self.parse_transaction_status(self.safe_string(transfer, 'status'))
