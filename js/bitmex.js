@@ -374,7 +374,7 @@ module.exports = class bitmex extends Exchange {
                 symbol = id;
                 active = false;
             }
-            const positionId = this.safeString2 (market, 'positionCurrency', 'settlCurrency');
+            const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
             const position = this.safeCurrencyCode (positionId);
             const positionIsQuote = (position === quote);
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
