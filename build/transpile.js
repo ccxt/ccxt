@@ -1262,6 +1262,21 @@ class Transpiler {
 
     // ========================================================================
 
+    defineReferenceCheckItems () {
+        // check for incorrect references, using: node build/transpile --incorrectMethodReferences [--force]
+        const exchange = new Exchange();
+        this.correctionRefrences = {
+            'enabled': process.argv.includes ('--incorrectMethodReferences'),
+            'skipReferencedMethods': {'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,},
+            'whitelistedReferences': {
+                'exchange': {'fetchTicker':{'fetchTickers':0}},
+                'ndax': {'withdraw':{'signIn':0}},
+            },
+            'hasList': exchange.has,
+            'hasListKeys':  Object.keys (exchange.has),
+        };
+    }
+
     transpileMethodsToAllLanguages (className, methods) {
 
         let python2 = []
@@ -1269,14 +1284,8 @@ class Transpiler {
         let php = []
         let phpAsync = []
         let methodNames = []
+        let classNameLower = className.toLowerCase ();
 
-        // check for incorrect references, using: node build/transpile --incorrectMethodReferences [--force]
-        const checkIncorrectMethods = process.argv.includes ('--incorrectMethodReferences');
-        const skipInvalidReferencedMethods = {'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,};
-        const exchangeRef = new Exchange();
-        const exchangeHasItems = exchangeRef.has;
-        const allMethodNames = Object.keys (exchangeHasItems);
-        //
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
             let part = methods[i].trim ()
@@ -1298,35 +1307,40 @@ class Transpiler {
             let method = matches[2]
 
             // check if incorrect method referenced
-            if (checkIncorrectMethods) {
-                if (method in exchangeHasItems) {
-                    for (let i = 0; i < allMethodNames.length; i++) {
-                        const iteratedMethodName = allMethodNames[i];
+            if (this.correctionRefrences['enabled']) {
+                // if current method is in unified methods list
+                if (method in this.correctionRefrences['hasList']) {
+                    for (let i = 0; i < this.correctionRefrences['hasListKeys'].length; i++) {
+                        const iteratedMethodName = this.correctionRefrences['hasListKeys'][i];
                         // skip current method name itself
                         if (method === iteratedMethodName) {
                             continue;
                         }
                         // skip out-of-scope function names
-                        if (iteratedMethodName in skipInvalidReferencedMethods) {
+                        if (iteratedMethodName in this.correctionRefrences['skipReferencedMethods']) {
                             continue;
                         }
-                        // check if other method name (without space between name and brackets) is mentioned in method body. i.e: '... this.fetchOrders() requires symbol ...' sentence appearing in fetchTrades method body.
+                        // skip whitelisted references
+                        if (classNameLower in this.correctionRefrences['whitelistedReferences'] && method in this.correctionRefrences['whitelistedReferences'][classNameLower] && iteratedMethodName in this.correctionRefrences['whitelistedReferences'][classNameLower][method]) {
+                            continue;
+                        }
                         if (
+                            // check if other method name (without space between name and brackets) is mentioned in method body. i.e: '... this.fetchOrders() requires symbol ...' sentence appearing in fetchTrades method body.
                             part.match ( new RegExp ('\'(.*?)' + iteratedMethodName + '\\(\\)(.*?)\'', 'g')) 
                                 &&
                             // If current method is also mentioned, then don't consider such scenarios as mistakes, because there are such valid occasions: Exception('... fetchDepositAddress() can be called only after createDepositAddress()...')
                             ! part.match ( new RegExp ('\'(.*?)' + method + '\\(\\)(.*?)' + iteratedMethodName  + '\\((.*?)\'', 'g')) 
                         ) {
-                            log.red ('Note:! ' + className + '>' + method + '() string references include ' + iteratedMethodName + '()');
+                            log.red ('Note:! ' + classNameLower + '>' + method + '() string references include ' + iteratedMethodName + '()');
                         }
                         // check inside i.e. fetchTrades() for incorrect reference, like `this.safeValue (options, 'fetchOrders')`
                         if ( part.indexOf('ptions, \'' + iteratedMethodName + '\'')> -1) {
-                            log.red ('Note:! ' + className + '>' + method + '() incorrectly uses options of \'' + iteratedMethodName + '\'');
+                            log.red ('Note:! ' + classNameLower + '>' + method + '() incorrectly uses options of \'' + iteratedMethodName + '\'');
                         }
 
                         // check inside i.e. fetchTrades() for incorrect reference, i.e. this.handleWhateverParams ('fetchOrders',...)
                         if ( part.match ( new RegExp ('this\.handle[a-zA-Z] \\(\'' + iteratedMethodName, 'g') ) ) {
-                            log.red ('Note:! ' + className + '>' + method + '() references to string of \'' + iteratedMethodName + '\'');
+                            log.red ('Note:! ' + classNameLower + '>' + method + '() references to string of \'' + iteratedMethodName + '\'');
                         }
                     }
                 }
@@ -1913,6 +1927,7 @@ class Transpiler {
         createFolderRecursively (phpAsyncFolder)
 
         //*
+        this.defineReferenceCheckItems ();
 
         this.transpileBaseMethods ()
 
