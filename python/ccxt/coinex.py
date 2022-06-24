@@ -46,6 +46,7 @@ class coinex(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -95,6 +96,7 @@ class coinex(Exchange):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
@@ -3996,6 +3998,88 @@ class coinex(Exchange):
             'amountBorrowed': self.parse_number(loanAmount),
             'timestamp': timestamp,  # expiry time
             'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.privatePostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "loan_id": 1670
+        #         },
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        transaction = self.parse_margin_loan(data, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        loanId = self.safe_integer(params, 'loan_id')
+        if loanId is not None:
+            request['loan_id'] = loanId
+        response = self.privatePostMarginFlat(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": null,
+        #         "message": "Success"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # borrowMargin
+        #
+        #     {
+        #         "loan_id": 1670
+        #     }
+        #
+        # repayMargin
+        #
+        #     {
+        #         "code": 0,
+        #         "data": null,
+        #         "message": "Success"
+        #     }
+        #
+        return {
+            'id': self.safe_integer(info, 'loan_id'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 
