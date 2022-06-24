@@ -1271,8 +1271,8 @@ class Transpiler {
         let methodNames = []
 
         // check for incorrect references, using: node build/transpile --incorrectMethodReferences [--force]
-        const checkcheckIncorrectMethods = process.argv.includes ('--incorrectMethodReferences');
-        const skippReferencedMethodNames = {'signIn':0, 'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,};
+        const checkIncorrectMethods = process.argv.includes ('--incorrectMethodReferences');
+        const skipInvalidReferencedMethods = {'spot':0, 'margin':0, 'future':0, 'swap':0, 'CORS':0, 'option':0,};
         const exchangeRef = new Exchange();
         const exchangeHasItems = exchangeRef.has;
         const allMethodNames = Object.keys (exchangeHasItems);
@@ -1298,35 +1298,35 @@ class Transpiler {
             let method = matches[2]
 
             // check if incorrect method referenced
-            if (checkcheckIncorrectMethods) {
+            if (checkIncorrectMethods) {
                 if (method in exchangeHasItems) {
                     for (let i = 0; i < allMethodNames.length; i++) {
-                        const currCheckingMethod = allMethodNames[i];
+                        const iteratedMethodName = allMethodNames[i];
                         // skip current method name itself
-                        if (method === currCheckingMethod) {
+                        if (method === iteratedMethodName) {
                             continue;
                         }
-                        // skip incorrect method names
-                        if (currCheckingMethod in skippReferencedMethodNames) {
+                        // skip out-of-scope function names
+                        if (iteratedMethodName in skipInvalidReferencedMethods) {
                             continue;
                         }
-                        // check if other method name [i.e. fetchOrders() without space between name and brackets] is mentioned in method body.
+                        // check if other method name (without space between name and brackets) is mentioned in method body. i.e: '... this.fetchOrders() requires symbol ...' sentence appearing in fetchTrades method body.
                         if (
-                            part.match ( new RegExp ('\'(.*?)' + currCheckingMethod + '\\(\\)(.*?)\'', 'g')) 
+                            part.match ( new RegExp ('\'(.*?)' + iteratedMethodName + '\\(\\)(.*?)\'', 'g')) 
                                 &&
                             // If current method is also mentioned, then don't consider such scenarios as mistakes, because there are such valid occasions: Exception('... fetchDepositAddress() can be called only after createDepositAddress()...')
-                            ! part.match ( new RegExp ('\'(.*?)' + method + '\\(\\)(.*?)' + currCheckingMethod  + '\\((.*?)\'', 'g')) 
+                            ! part.match ( new RegExp ('\'(.*?)' + method + '\\(\\)(.*?)' + iteratedMethodName  + '\\((.*?)\'', 'g')) 
                         ) {
-                            log.red ('Note:! ' + className + '>' + method + '() string references include ' + currCheckingMethod + '()');
+                            log.red ('Note:! ' + className + '>' + method + '() string references include ' + iteratedMethodName + '()');
                         }
-                        // check inside i.e. fetchTrades() for incorrect reference, like `this.safeValue (o[O]ptions, 'fetchOrders')`
-                        if ( part.indexOf('ptions, \'' + currCheckingMethod + '\'')> -1) {
-                            log.red ('Note:! ' + className + '>' + method + '() incorrectly uses options of \'' + currCheckingMethod + '\'');
+                        // check inside i.e. fetchTrades() for incorrect reference, like `this.safeValue (options, 'fetchOrders')`
+                        if ( part.indexOf('ptions, \'' + iteratedMethodName + '\'')> -1) {
+                            log.red ('Note:! ' + className + '>' + method + '() incorrectly uses options of \'' + iteratedMethodName + '\'');
                         }
 
                         // check inside i.e. fetchTrades() for incorrect reference, i.e. this.handleWhateverParams ('fetchOrders',...)
-                        if ( part.match ( new RegExp ('this\.handle[a-zA-Z] \\(\'' + currCheckingMethod, 'g') ) ) {
-                            log.red ('Note:! ' + className + '>' + method + '() references to string of \'' + currCheckingMethod + '\'');
+                        if ( part.match ( new RegExp ('this\.handle[a-zA-Z] \\(\'' + iteratedMethodName, 'g') ) ) {
+                            log.red ('Note:! ' + className + '>' + method + '() references to string of \'' + iteratedMethodName + '\'');
                         }
                     }
                 }
