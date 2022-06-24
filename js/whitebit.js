@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, BadSymbol, BadRequest } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadSymbol, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
@@ -292,15 +292,18 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let messageHash = 'usertrade';
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
-        const trades = await this.watchPrivate (messageHash, 'watchOrders', params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'usertrade:' + symbol;
+        const method = 'deals_subscribe';
+        const reqParams = [
+            market['id'],
+        ];
+        const trades = await this.watchPrivate (messageHash, method, reqParams, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -364,19 +367,22 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let messageHash = 'order';
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + market['id'];
-        }
-        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'orders:' + symbol;
+        const method = 'ordersPending_subscribe';
+        const reqParams = [
+            market['id'],
+        ];
+        const trades = await this.watchPrivate (messageHash, method, reqParams, params);
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limit = trades.getLimit (symbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     handleOrder (client, message, subscription = undefined) {
@@ -527,39 +533,61 @@ module.exports = class whitebit extends ccxt.whitebit {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, method, params = {}) {
-        const options = this.safeValue (this.options, method, {});
-        let expires = this.safeString (options, 'api-expires');
-        if (expires === undefined) {
-            const timeout = parseInt (this.timeout / 1000);
-            expires = this.sum (this.seconds (), timeout);
-            expires = expires.toString ();
-            // we need to memoize these values to avoid generating a new url on each method execution
-            // that would trigger a new connection on each received message
-            this.options[method]['api-expires'] = expires;
-        }
+    async watchPrivate (messageHash, method, reqParams = [], params = {}) {
+        this.checkRequiredCredentials ();
+        await this.authenticate ();
+        return await this.watchPublic (messageHash, method, reqParams, params);
+    }
+
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-        const authParams = {
-            'api-key': this.apiKey,
-            'api-signature': signature,
-            'api-expires': expires,
-        };
-        const signedUrl = url + '?' + this.urlencode (authParams);
-        const request = {
-            'op': 'subscribe',
-            'args': [ messageHash ],
-        };
-        const message = this.extend (request, params);
-        return await this.watch (signedUrl, messageHash, message, messageHash);
+        const messageHash = 'login';
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const authToken = await this.v4PrivatePostProfileWebsocketToken ();
+            //
+            //   {
+            //       websocket_token: '$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y'
+            //   }
+            //
+            const token = this.safeString (authToken, 'websocket_token');
+            future = client.future ('authenticated');
+            const id = this.nonce ();
+            const request = {
+                'id': id,
+                'method': 'authorize',
+                'params': [
+                    token,
+                    'public',
+                ],
+            };
+            const subscription = {
+                'id': id,
+                'method': this.handleAuthenticate,
+            };
+            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+        }
+        return await future;
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        //     { error: null, result: { status: 'success' }, id: 1656084550 }
+        //
+        const future = client.futures['authenticated'];
+        future.resolve (1);
+        return message;
     }
 
     handleErrorMessage (client, message) {
         //
-        //     { error: 'Bearer or HMAC authentication required' }
-        //     { error: 'Error: wrong input' }
+        // {
+        //     error: { code: 1, message: 'invalid argument' },
+        //     result: null,
+        //     id: 1656090882
+        // }
         //
         const error = this.safeInteger (message, 'error');
         try {
@@ -577,13 +605,25 @@ module.exports = class whitebit extends ccxt.whitebit {
 
     handleMessage (client, message) {
         //
+        // auth
+        //    { error: null, result: { status: 'success' }, id: 1656084550 }
+        //
+        // pong
+        //    { error: null, result: 'pong', id: 0 }
         //
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const content = this.safeString (message, 'message');
-        if (content === 'pong') {
-            this.handlePong (client, message);
+        const result = this.safeValue (message, 'result', {});
+        if (result !== undefined) {
+            if (result === 'pong') {
+                this.handlePong (client, message);
+                return;
+            }
+        }
+        const id = this.safeInteger (message, 'id');
+        if (id !== undefined) {
+            this.handleSubscriptionStatus (client, message, id);
             return;
         }
         const methods = {
@@ -602,16 +642,36 @@ module.exports = class whitebit extends ccxt.whitebit {
         }
     }
 
+    handleSubscriptionStatus (client, message, id) {
+        // not every method stores its subscription
+        // as an object so we can't do indeById here
+        const subs = client.subscriptions;
+        const values = Object.values (subs);
+        for (let i = 0; i < values.length; i++) {
+            const subscription = values[i];
+            if (subscription !== true) {
+                const subId = this.safeInteger (subscription, 'id');
+                if ((subId !== undefined) && (subId === id)) {
+                    const method = this.safeValue (subscription, 'method');
+                    if (method !== undefined) {
+                        method.call (this, client, message);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    handlePong (client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
     ping (client) {
         return {
             'id': 0,
             'method': 'ping',
             'params': [],
         };
-    }
-
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
     }
 };
