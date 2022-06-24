@@ -2742,7 +2742,7 @@ class mexc3(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
