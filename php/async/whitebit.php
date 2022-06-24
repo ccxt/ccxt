@@ -647,7 +647,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->safe_string($response, 'timestamp');
+        $timestamp = $this->safe_integer($response, 'timestamp');
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
