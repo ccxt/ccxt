@@ -2053,6 +2053,29 @@ module.exports = class Exchange {
         return rate;
     }
 
+    handleMethodAndParams (marketType = 'spot', methodName = '', defaultImplicitMethod = '', params = {}) {
+        const methodOptions = this.safeValue (this.options, methodName);
+        let chosenMethod = defaultImplicitMethod;
+        let allowedMethods = [];
+        if (methodOptions !== undefined) {
+            // if defined with new way: 'fetchXyz': { 'spot' : { 'method': 'privateGetMarketOrders', 'methods': ['aaa', 'bbb']} }
+            const marketTypeObject = this.safeValue (methodOptions, marketType);
+            const optionsObject = (marketTypeObject !== undefined) ? marketTypeObject : methodOptions;
+            chosenMethod = this.safeString2 (optionsObject, 'defaultMethod', 'method', chosenMethod);
+            allowedMethods = this.safeValue (optionsObject, 'methods', allowedMethods);
+        } else {
+            // if defined with old way: 'fetchXyz': 'privateGetMarketOrders'
+            chosenMethod = this.safeValue (this.options, methodName + 'Method', chosenMethod);
+        }
+        chosenMethod = this.safeString (params, 'method', chosenMethod);
+        // old implementations don't have the correct structure yet, so only check if that array exists
+        if (allowedMethods.length > 0 && !allowedMethods.includes (chosenMethod)) {
+            throw new NotSupported (this.id + ' ' + methodName + ' () chosen method ' + chosenMethod + ' not in supported list: ' + allowedMethods.join (','));
+        }
+        params = this.omit (params, 'method');
+        return [ chosenMethod, params ];
+    }
+
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
