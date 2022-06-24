@@ -1834,7 +1834,7 @@ class mexc3 extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for spot market');
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -1879,7 +1879,7 @@ class mexc3 extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            $method = $this->safe_string($this->options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             $method = $this->safe_string($query, 'method', $method);
             $ordersOfRegular = array();
             $ordersOfTrigger = array();
@@ -2028,7 +2028,7 @@ class mexc3 extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument for spot market');
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
             }
             $response = $this->spotPrivateGetOpenOrders (array_merge($request, $query));
             //
@@ -3036,7 +3036,7 @@ class mexc3 extends Exchange {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'settleTime');
+            $timestamp = $this->safe_integer($entry, 'settleTime');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,

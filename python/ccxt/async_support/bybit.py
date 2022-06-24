@@ -1608,7 +1608,7 @@ class bybit(Exchange):
             method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate'
             fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick'
         else:
-            method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingPrevFundingRate'
+            method = 'publicGetPublicLinearFundingPrevFundingRate' if market['linear'] else 'publicGetV2PublicFundingPrevFundingRate'
             fundingRateFromTickerMethod = 'publicGetV2PublicTickers'
         fetchFundingRateFromTicker = await getattr(self, fundingRateFromTickerMethod)(self.extend(request, params))
         response = await getattr(self, method)(self.extend(request, params))

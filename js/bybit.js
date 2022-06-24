@@ -1657,7 +1657,7 @@ module.exports = class bybit extends Exchange {
             method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
         } else {
-            method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
+            method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
         }
         const fetchFundingRateFromTicker = await this[fundingRateFromTickerMethod] (this.extend (request, params));
