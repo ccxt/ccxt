@@ -550,7 +550,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         let messageHash = 'wallet:';
-        if (method.indexOf ('spot') >= 0) {
+        if (method.indexOf ('Spot') >= 0) {
             messageHash += 'spot';
         } else {
             messageHash += 'contract';
