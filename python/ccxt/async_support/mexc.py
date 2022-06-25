@@ -63,6 +63,7 @@ class mexc(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -74,6 +75,7 @@ class mexc(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
@@ -3276,3 +3278,18 @@ class mexc(Exchange):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
             floor = cap
         return tiers
+
+    async def fetch_position_mode(self, symbol=None, params={}):
+        response = await self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }

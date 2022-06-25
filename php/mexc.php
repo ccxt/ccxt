@@ -54,6 +54,7 @@ class mexc extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -65,6 +66,7 @@ class mexc extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
@@ -3450,5 +3452,21 @@ class mexc extends Exchange {
             $floor = $cap;
         }
         return $tiers;
+    }
+
+    public function fetch_position_mode($symbol = null, $params = array ()) {
+        $response = $this->contractPrivateGetPositionPositionMode ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        $positionMode = $this->safe_integer($response, 'data');
+        return array(
+            'info' => $response,
+            'hedged' => ($positionMode === 1),
+        );
     }
 }
