@@ -92,6 +92,7 @@ class mexc(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -3278,6 +3279,19 @@ class mexc(Exchange):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
             floor = cap
         return tiers
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
 
     def fetch_position_mode(self, symbol=None, params={}):
         response = self.contractPrivateGetPositionPositionMode(params)

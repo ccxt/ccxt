@@ -83,6 +83,7 @@ class mexc extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -3452,6 +3453,20 @@ class mexc extends Exchange {
             $floor = $cap;
         }
         return $tiers;
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        $request = array(
+            'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        );
+        $response = $this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return $response;
     }
 
     public function fetch_position_mode($symbol = null, $params = array ()) {
