@@ -5258,12 +5258,9 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchPositionMode (symbol = undefined, params = {}) {
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositionMode', undefined, params);
         const request = {};
         let method = undefined;
-        let defaultType = 'future';
-        defaultType = this.safeString (this.options, 'defaultType', defaultType);
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         if ((type === 'future') || (type === 'linear')) {
             method = 'fapiPrivateGetPositionSideDual';
             //
@@ -5281,7 +5278,7 @@ module.exports = class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchPositionMode() supports linear and inverse contracts only');
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         const hedged = this.safeValue (response, 'dualSidePosition');
         return {
             'info': response,
