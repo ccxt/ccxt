@@ -87,6 +87,7 @@ class bybit(Exchange):
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -4471,6 +4472,50 @@ class bybit(Exchange):
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         return await getattr(self, method)(self.extend(request, params))
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if market['settle'] == 'USDC':
+            raise NotSupported(self.id + ' setPositionMode() does not support market ' + symbol)
+        if market['inverse'] and not market['future']:
+            raise BadRequest(self.id + ' setPositionMode() must be either a linear swap or an inverse future')
+        method = None
+        mode = None
+        if market['future']:
+            method = 'privatePostFuturesPrivatePositionSwitchMode'
+            if hedged:
+                mode = '3'
+            else:
+                mode = '0'
+        else:
+            # linear
+            method = 'privatePostPrivateLinearPositionSwitchMode'
+            if hedged:
+                mode = 'BothSide'
+            else:
+                mode = 'MergedSingle'
+        request = {
+            'symbol': market['id'],
+            'mode': mode,
+        }
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "ok",
+        #         "ext_code": "",
+        #         "result": null,
+        #         "ext_info": null,
+        #         "time_now": "1577477968.175013",
+        #         "rate_limit_status": 74,
+        #         "rate_limit_reset_ms": 1577477968183,
+        #         "rate_limit": 75
+        #     }
+        #
+        return response
 
     async def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
