@@ -301,7 +301,9 @@ module.exports = class whitebit extends ccxt.whitebit {
         const messageHash = 'usertrade:' + symbol;
         const method = 'deals_subscribe';
         const reqParams = [
-            market['id'],
+            [
+                market['id'],
+            ],
         ];
         const trades = await this.watchPrivate (messageHash, method, reqParams, params);
         if (this.newUpdates) {
@@ -312,58 +314,77 @@ module.exports = class whitebit extends ccxt.whitebit {
 
     handleMyTrades (client, message, subscription = undefined) {
         //
-        // {
-        //     "topic":"usertrade",
-        //     "action":"insert",
-        //     "user_id":"103",
-        //     "symbol":"xht-usdt",
-        //     "data":[
-        //        {
-        //           "size":1,
-        //           "side":"buy",
-        //           "price":0.24,
-        //           "symbol":"xht-usdt",
-        //           "timestamp":"2022-05-13T09:30:15.014Z",
-        //           "order_id":"6065a66e-e9a4-44a3-9726-4f8fa54b6bb6",
-        //           "fee":0.001,
-        //           "fee_coin":"xht",
-        //           "is_same":true
-        //        }
-        //     ],
-        //     "time":1652434215
-        // }
+        //   {
+        //       method: 'deals_update',
+        //       params: [
+        //         1894994106,
+        //         1656151427.729706,
+        //         'LTC_USDT',
+        //         96624037337,
+        //         '56.78',
+        //         '0.16717',
+        //         '0.0094919126',
+        //         ''
+        //       ],
+        //       id: null
+        //   }
         //
-        const channel = this.safeString (message, 'topic');
-        const rawTrades = this.safeValue (message, 'data');
-        // usually the first message is an empty array
-        // when the user does not have any trades yet
-        const dataLength = rawTrades.length;
-        if (dataLength === 0) {
-            return 0;
-        }
+        const trade = this.safeValue (message, 'params');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
-        const marketIds = {};
-        for (let i = 0; i < rawTrades.length; i++) {
-            const trade = rawTrades[i];
-            const parsed = this.parseTrade (trade);
-            stored.append (parsed);
-            const symbol = trade['symbol'];
-            const market = this.market (symbol);
-            const marketId = market['id'];
-            marketIds[marketId] = true;
+        const parsed = this.parseWsTrade (trade);
+        stored.append (parsed);
+        const symbol = trade['symbol'];
+        const messageHash = 'usertrade:' + symbol;
+        client.resolve (this.myTrades, messageHash);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //   [
+        //         1894994106, // id
+        //         1656151427.729706, // deal time
+        //         'LTC_USDT', // symbol
+        //         96624037337, // order id
+        //         '56.78', // price
+        //         '0.16717', // amount
+        //         '0.0094919126', // fee
+        //         '' // client order id
+        //    ]
+        //
+        const orderId = this.safeString (trade, 3);
+        const timestamp = this.safeTimestamp (trade, 1);
+        const id = this.safeString (trade, 0);
+        const price = this.safeString (trade, 4);
+        const amount = this.safeString (trade, 5);
+        const marketId = this.safeString (trade, 2);
+        market = this.safeMarket (marketId, market);
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 6);
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+            };
         }
-        // non-symbol specific
-        client.resolve (this.myTrades, channel);
-        const keys = Object.keys (marketIds);
-        for (let i = 0; i < keys.length; i++) {
-            const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve (this.myTrades, messageHash);
-        }
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': orderId,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -387,98 +408,101 @@ module.exports = class whitebit extends ccxt.whitebit {
 
     handleOrder (client, message, subscription = undefined) {
         //
-        //     {
-        //         topic: 'order',
-        //         action: 'insert',
-        //         user_id: 155328,
-        //         symbol: 'ltc-usdt',
-        //         data: {
-        //             symbol: 'ltc-usdt',
-        //             side: 'buy',
-        //             size: 0.05,
-        //             type: 'market',
-        //             price: 0,
-        //             fee_structure: { maker: 0.1, taker: 0.1 },
-        //             fee_coin: 'ltc',
-        //             id: 'ce38fd48-b336-400b-812b-60c636454231',
-        //             created_by: 155328,
-        //             filled: 0.05,
-        //             method: 'market',
-        //             created_at: '2022-04-11T14:09:00.760Z',
-        //             updated_at: '2022-04-11T14:09:00.760Z',
-        //             status: 'filled'
-        //         },
-        //         time: 1649686140
-        //     }
-        //
-        //    {
-        //        "topic":"order",
-        //        "action":"partial",
-        //        "user_id":155328,
-        //        "data":[
-        //           {
-        //              "created_at":"2022-05-13T08:19:07.694Z",
-        //              "fee":0,
-        //              "meta":{
-        //
-        //              },
-        //              "symbol":"ltc-usdt",
-        //              "side":"buy",
-        //              "size":0.1,
-        //              "type":"limit",
-        //              "price":55,
-        //              "fee_structure":{
-        //                 "maker":0.1,
-        //                 "taker":0.1
-        //              },
-        //              "fee_coin":"ltc",
-        //              "id":"d5e77182-ad4c-4ac9-8ce4-a97f9b43e33c",
-        //              "created_by":155328,
-        //              "filled":0,
-        //              "status":"new",
-        //              "updated_at":"2022-05-13T08:19:07.694Z",
-        //              "stop":null
-        //           }
-        //        ],
-        //        "time":1652430035
+        // {
+        //     method: 'ordersPending_update',
+        //     params: [
+        //       1,
+        //       {
+        //         id: 96433622651,
+        //         market: 'LTC_USDT',
+        //         type: 1,
+        //         side: 2,
+        //         ctime: 1656092215.39375,
+        //         mtime: 1656092215.39375,
+        //         price: '25',
+        //         amount: '0.202',
+        //         taker_fee: '0.001',
+        //         maker_fee: '0.001',
+        //         left: '0.202',
+        //         deal_stock: '0',
+        //         deal_money: '0',
+        //         deal_fee: '0',
+        //         client_order_id: ''
         //       }
+        //     ],
+        //     id: null
+        // }
         //
-        const channel = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data', {});
-        // usually the first message is an empty array
-        const dataLength = data.length;
-        if (dataLength === 0) {
-            return 0;
-        }
+        const params = this.safeValue (message, 'params', []);
+        const data = this.safeValue (params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        let rawOrders = undefined;
-        if (!Array.isArray (data)) {
-            rawOrders = [ data ];
-        } else {
-            rawOrders = data;
-        }
-        const marketIds = {};
-        for (let i = 0; i < rawOrders.length; i++) {
-            const order = rawOrders[i];
-            const parsed = this.parseOrder (order);
-            stored.append (parsed);
-            const symbol = order['symbol'];
-            const market = this.market (symbol);
-            const marketId = market['id'];
-            marketIds[marketId] = true;
-        }
-        // non-symbol specific
-        client.resolve (this.orders, channel);
-        const keys = Object.keys (marketIds);
-        for (let i = 0; i < keys.length; i++) {
-            const marketId = keys[i];
-            const messageHash = channel + ':' + marketId;
-            client.resolve (this.orders, messageHash);
-        }
+        const parsed = this.parseOrder (data);
+        stored.append (parsed);
+        const symbol = parsed['symbol'];
+        const messageHash = 'orders:' + symbol;
+        client.resolve (this.orders, messageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //   {
+        //         id: 96433622651,
+        //         market: 'LTC_USDT',
+        //         type: 1,
+        //         side: 2,
+        //         ctime: 1656092215.39375,
+        //         mtime: 1656092215.39375,
+        //         price: '25',
+        //         amount: '0.202',
+        //         taker_fee: '0.001',
+        //         maker_fee: '0.001',
+        //         left: '0.202',
+        //         deal_stock: '0',
+        //         deal_money: '0',
+        //         deal_fee: '0',
+        //         client_order_id: ''
+        //    }
+        //
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const id = this.safeString (order, 'id');
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_order_id'));
+        const price = this.safeString (order, 'price');
+        const remaining = this.safeString (order, 'left');
+        const amount = this.safeString (order, 'amount');
+        const type = this.safeString (order, 'type');
+        const rawState = this.safeString (order, 'state');
+        const status = this.parseOrderStatusByType (market['type'], rawState);
+        const timestamp = this.safeInteger (order, 'ms_t');
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': timestamp,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async watchBalance (params = {}) {
@@ -633,7 +657,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'candles_update': this.handleOHLCV,
             'order': this.handleOrder,
             'wallet': this.handleBalance,
-            'usertrade': this.handleMyTrades,
+            'deals_update': this.handleMyTrades,
         };
         const topic = this.safeValue (message, 'method');
         const method = this.safeValue (methods, topic);
