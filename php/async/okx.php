@@ -33,6 +33,7 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -105,6 +106,7 @@ class okx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
@@ -5075,6 +5077,98 @@ class okx extends Exchange {
             'amountBorrowed' => $this->safe_number($info, 'liab'),
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'borrow',
+        );
+        $response = yield $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "borrow",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'repay',
+        );
+        $response = yield $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "repay",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "amt" => "102",
+        //         "availLoan" => "97",
+        //         "ccy" => "USDT",
+        //         "loanQuota" => "6000000",
+        //         "posLoan" => "0",
+        //         "side" => "repay",
+        //         "usedLoan" => "97"
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'ccy');
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amt'),
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

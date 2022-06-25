@@ -5,11 +5,11 @@ import { isObject, isNumber, isDictionary, isArray } from './type.js'
 
 // ----------------------------------------------------------------------------
 
-const keys = Object.keys
-    , values = (x) => ((!isArray (x)) ? Object.values (x) : x) // don't copy arrays if they're already arrays
-    , index = (x) => new Set (values (x))
-    , extend = (...args) => Object.assign ({}, ...args) // NB: side-effect free
-    , clone = (x) => (isArray (x) ? Array.from (x) : extend (x)) // clone arrays or objects
+const keys = Object.keys; // eslint-disable-line padding-line-between-statements
+const values = (x) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
+const index = (x) => new Set (values (x));
+const extend = (...args) => Object.assign ({}, ...args); // NB: side-effect free
+const clone = (x) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
 
 // ----------------------------------------------------------------------------
 
@@ -253,6 +253,6 @@ export {
 
     , merge
 
-// ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
 
-}
+};

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.88.47';
+$version = '1.88.94';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.88.47';
+    const VERSION = '1.88.94';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -469,7 +469,7 @@ class Exchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
-        return (is_array($object) && array_key_exists($key, $object)) ? $object[$key] : $default_value;
+        return (is_array($object) && isset($object[$key])) ? $object[$key] : $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here

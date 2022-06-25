@@ -5027,7 +5027,7 @@ class huobi extends Exchange {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'contract_code');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'funding_time');
+            $timestamp = $this->safe_integer($entry, 'funding_time');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,

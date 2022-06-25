@@ -55,6 +55,7 @@ class mexc extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -66,6 +67,7 @@ class mexc extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
@@ -82,6 +84,7 @@ class mexc extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -3172,7 +3175,7 @@ class mexc extends Exchange {
         $result = array();
         for ($i = 0; $i < count($resultList); $i++) {
             $entry = $resultList[$i];
-            $timestamp = $this->safe_string($entry, 'settleTime');
+            $timestamp = $this->safe_integer($entry, 'settleTime');
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
@@ -3311,7 +3314,7 @@ class mexc extends Exchange {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'settleTime');
+            $timestamp = $this->safe_integer($entry, 'settleTime');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
@@ -3451,5 +3454,35 @@ class mexc extends Exchange {
             $floor = $cap;
         }
         return $tiers;
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        $request = array(
+            'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        );
+        $response = yield $this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_position_mode($symbol = null, $params = array ()) {
+        $response = yield $this->contractPrivateGetPositionPositionMode ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        $positionMode = $this->safe_integer($response, 'data');
+        return array(
+            'info' => $response,
+            'hedged' => ($positionMode === 1),
+        );
     }
 }

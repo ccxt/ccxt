@@ -50,6 +50,7 @@ class lbank2 extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -59,6 +60,7 @@ class lbank2 extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -1058,7 +1060,7 @@ class lbank2 extends Exchange {
         //
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'custom_id');
-        $timestamp = $this->safe_string_2($order, 'time', 'create_time');
+        $timestamp = $this->safe_integer_2($order, 'time', 'create_time');
         $rawStatus = $this->safe_string($order, 'status');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);

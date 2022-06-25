@@ -232,6 +232,12 @@ export default class bittrex extends Exchange {
                 'fetchTickers': {
                     'method': 'publicGetMarketsTickers', // publicGetMarketsSummaries
                 },
+                'fetchDeposits': {
+                    'status': 'ok',
+                },
+                'fetchWithdrawals': {
+                    'status': 'ok',
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 // With certain currencies, like
@@ -1326,7 +1332,7 @@ export default class bittrex extends Exchange {
     async fetchDeposit (id, code = undefined, params = {}) {
         /**
          * @method
-         * @name bittrex#fetchWithdrawal
+         * @name bittrex#fetchDeposit
          * @description fetch data on a currency deposit via the deposit id
          * @param {str} id deposit id
          * @param {str|undefined} code filter by currency code
@@ -1370,11 +1376,39 @@ export default class bittrex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetDepositsClosed (this.extend (request, params));
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchDeposits', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetDepositsOpen';
+        } else {
+            method = 'privateGetDepositsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return this.parseTransactions (response, currency, since, limit);
         return this.parseTransactions (response, currency, undefined, limit);
+    }
+
+    async fetchPendingDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingDeposits
+         * @description fetch all pending deposits made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
@@ -1424,42 +1458,70 @@ export default class bittrex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetWithdrawalsClosed (this.extend (request, params));
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchWithdrawals', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetWithdrawalsOpen';
+        } else {
+            method = 'privateGetWithdrawalsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchPendingWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingWithdrawals
+         * @description fetch all pending withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "id": "d00fdf2e-df9e-48f1-....",
-        //         "currencySymbol": "BTC",
-        //         "quantity": "0.00550000",
-        //         "cryptoAddress": "1PhmYjnJPZH5NUwV8AU...",
-        //         "txId": "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        //         "confirmations": 2,
-        //         "updatedAt": "2020-01-12T16:49:30.41Z",
-        //         "completedAt": "2020-01-12T16:49:30.41Z",
-        //         "status": "COMPLETED",
-        //         "source": "BLOCKCHAIN"
-        //     }
+        //      {
+        //          "id": "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        //          "currencySymbol": "ETH",
+        //          "quantity": "0.36487773",
+        //          "cryptoAddress": "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        //          "txId": "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        //          "confirmations": 44,
+        //          "updatedAt": "2017-12-28T13:57:42.753Z",
+        //          "completedAt": "2017-12-28T13:57:42.753Z",
+        //          "status": "COMPLETED",
+        //          "source": "BLOCKCHAIN"
+        //      }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
+        //      {
+        //          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        //          "currencySymbol":"OMG",
+        //          "quantity":"2.67000000",
+        //          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        //          "cryptoAddressTag":"",
+        //          "txCost":"0.10000000",
+        //          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        //          "status":"COMPLETED",
+        //          "createdAt":"2017-12-16T20:46:22.5Z",
+        //          "completedAt":"2017-12-16T20:48:03.887Z",
+        //          "target":"BLOCKCHAIN"
+        //      }
         //
         // withdraw
         //
@@ -1475,6 +1537,14 @@ export default class bittrex extends Exchange {
         const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        const isDeposit = this.safeString (transaction, 'source') === 'BLOCKCHAIN';
+        if (isDeposit) {
+            addressFrom = address;
+        } else {
+            addressTo = address;
+        }
         const txid = this.safeString (transaction, 'txId');
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const opened = this.parse8601 (this.safeString (transaction, 'createdAt'));
@@ -1523,8 +1593,8 @@ export default class bittrex extends Exchange {
             'amount': amount,
             'network': undefined,
             'address': address,
-            'addressTo': undefined,
-            'addressFrom': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,

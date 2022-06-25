@@ -36,8 +36,10 @@ class kraken extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
@@ -167,6 +169,7 @@ class kraken extends Exchange {
                         'Balance' => 1,
                         'CancelAll' => 1,
                         'CancelOrder' => 0,
+                        'CancelOrderBatch' => 0,
                         'ClosedOrders' => 2,
                         'DepositAddresses' => 1,
                         'DepositMethods' => 1,
@@ -1732,6 +1735,29 @@ class kraken extends Exchange {
         return $response;
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids open orders transaction ID (txid) or user reference (userref)
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the kraken api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $request = array(
+            'orders' => $ids,
+        );
+        $response = yield $this->privatePostCancelOrderBatch (array_merge($request, $params));
+        //
+        //     {
+        //         "error" => array(),
+        //         "result" => {
+        //           "count" => 2
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
@@ -2297,10 +2323,15 @@ class kraken extends Exchange {
                 $url .= '?' . $this->urlencode_nested($params);
             }
         } elseif ($api === 'private') {
+            $isCancelOrderBatch = ($path === 'CancelOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
+            if ($isCancelOrderBatch) {
+                $body = $this->json(array_merge(array( 'nonce' => $nonce ), $params));
+            } else {
+                $body = $this->urlencode_nested(array_merge(array( 'nonce' => $nonce ), $params));
+            }
             $auth = $this->encode($nonce . $body);
             $hash = $this->hash($auth, 'sha256', 'binary');
             $binary = $this->encode($url);
@@ -2310,8 +2341,13 @@ class kraken extends Exchange {
             $headers = array(
                 'API-Key' => $this->apiKey,
                 'API-Sign' => $signature,
-                'Content-Type' => 'application/x-www-form-urlencoded',
+                // 'Content-Type' => 'application/x-www-form-urlencoded',
             );
+            if ($isCancelOrderBatch) {
+                $headers['Content-Type'] = 'application/json';
+            } else {
+                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         } else {
             $url = '/' . $path;
         }

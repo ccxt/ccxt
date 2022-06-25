@@ -48,6 +48,7 @@ export default class mexc extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -59,6 +60,7 @@ export default class mexc extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
@@ -75,6 +77,7 @@ export default class mexc extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -3231,7 +3234,7 @@ export default class mexc extends Exchange {
         const result = [];
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             result.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -3374,7 +3377,7 @@ export default class mexc extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -3518,4 +3521,34 @@ export default class mexc extends Exchange {
         }
         return tiers;
     }
-}
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        const request = {
+            'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        };
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return response;
+    }
+
+    async fetchPositionMode (symbol = undefined, params = {}) {
+        const response = await this.contractPrivateGetPositionPositionMode (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        const positionMode = this.safeInteger (response, 'data');
+        return {
+            'info': response,
+            'hedged': (positionMode === 1),
+        };
+    }
+};

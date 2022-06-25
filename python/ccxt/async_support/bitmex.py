@@ -355,7 +355,7 @@ class bitmex(Exchange):
             basequote = baseId + quoteId
             swap = (id == basequote)
             # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
-            # so let's take the quote currency first and then adjust if needed
+            # so let's take the settlCurrency first and then adjust if needed
             type = None
             future = False
             prediction = False
@@ -381,7 +381,7 @@ class bitmex(Exchange):
                 type = 'index'
                 symbol = id
                 active = False
-            positionId = self.safe_string_2(market, 'positionCurrency', 'quoteCurrency')
+            positionId = self.safe_string_2(market, 'positionCurrency', 'underlying')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
             maxOrderQty = self.safe_number(market, 'maxOrderQty')

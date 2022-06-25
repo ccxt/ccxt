@@ -183,6 +183,7 @@ export default class whitebit extends Exchange {
                             'order/stop_market',
                             'order/cancel',
                             'orders',
+                            'profile/websocket_token',
                         ],
                     },
                 },
@@ -654,7 +655,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeString (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 

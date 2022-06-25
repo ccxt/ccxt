@@ -66,6 +66,7 @@ class kucoinfutures(kucoin):
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -74,6 +75,7 @@ class kucoinfutures(kucoin):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -1533,7 +1535,7 @@ class kucoinfutures(kucoin):
         #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
         #     }
         #
-        timestamp = self.safe_string(transfer, 'updatedAt')
+        timestamp = self.safe_integer(transfer, 'updatedAt')
         return {
             'id': self.safe_string(transfer, 'applyId'),
             'timestamp': timestamp,
