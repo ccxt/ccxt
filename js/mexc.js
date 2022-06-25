@@ -3551,4 +3551,4 @@ export default class mexc extends Exchange {
             'hedged': (positionMode === 1),
         };
     }
-};
+}
