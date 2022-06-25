@@ -337,7 +337,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const stored = this.myTrades;
         const parsed = this.parseWsTrade (trade);
         stored.append (parsed);
-        const symbol = trade['symbol'];
+        const symbol = parsed['symbol'];
         const messageHash = 'usertrade:' + symbol;
         client.resolve (this.myTrades, messageHash);
     }
@@ -506,42 +506,55 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchBalance (params = {}) {
-        const messageHash = 'wallet';
-        return await this.watchPrivate (messageHash, 'watchBalance', params);
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        let messageHash = 'wallet:';
+        let method = undefined;
+        if (type === 'spot') {
+            method = 'balanceSpot_subscribe';
+            messageHash += 'spot';
+        } else {
+            method = 'balanceMargin_subscribe';
+            messageHash += 'contract';
+        }
+        const currencies = Object.keys (this.currencies);
+        return await this.watchPrivate (messageHash, method, currencies, params);
     }
 
     handleBalance (client, message) {
         //
-        //     {
-        //         topic: 'wallet',
-        //         action: 'partial',
-        //         user_id: 155328,
-        //         data: {
-        //             eth_balance: 0,
-        //             eth_available: 0,
-        //             usdt_balance: 18.94344188,
-        //             usdt_available: 18.94344188,
-        //             ltc_balance: 0.00005,
-        //             ltc_available: 0.00005,
-        //         },
-        //         time: 1649687396
-        //     }
+        //   {
+        //       "method":"balanceSpot_update",
+        //       "params":[
+        //          {
+        //             "LTC":{
+        //                "available":"0.16587",
+        //                "freeze":"0"
+        //             }
+        //          }
+        //       ],
+        //       "id":null
+        //   }
         //
-        const messageHash = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const keys = Object.keys (data);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const parts = key.split ('_');
-            const currencyId = this.safeString (parts, 0);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = (code in this.balance) ? this.balance[code] : this.account ();
-            const second = this.safeString (parts, 1);
-            const freeOrTotal = (second === 'available') ? 'free' : 'total';
-            account[freeOrTotal] = this.safeString (data, key);
-            this.balance[code] = account;
-        }
+        const method = this.safeString (message, 'method');
+        const data = this.safeValue (message, 'params');
+        const balanceDict = this.safeValue (data, 0);
+        const keys = Object.keys (balanceDict);
+        const currencyId = this.safeValue (keys, 0);
+        const rawBalance = this.safeValue (balanceDict, currencyId);
+        const code = this.safeCurrencyCode (currencyId);
+        const account = (code in this.balance) ? this.balance[code] : this.account ();
+        account['free'] = this.safeString (rawBalance, 'available');
+        account['used'] = this.safeString (rawBalance, 'freeze');
+        this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
+        let messageHash = 'wallet:';
+        if (method.indexOf ('spot') >= 0) {
+            messageHash += 'spot';
+        } else {
+            messageHash += 'contract';
+        }
         client.resolve (this.balance, messageHash);
     }
 
@@ -656,7 +669,8 @@ module.exports = class whitebit extends ccxt.whitebit {
             'depth_update': this.handleOrderBook,
             'candles_update': this.handleOHLCV,
             'order': this.handleOrder,
-            'wallet': this.handleBalance,
+            'balanceSpot_update': this.handleBalance,
+            'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
         };
         const topic = this.safeValue (message, 'method');
