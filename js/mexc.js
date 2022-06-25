@@ -76,6 +76,7 @@ module.exports = class mexc extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -3518,5 +3519,23 @@ module.exports = class mexc extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        let mode = 2;
+        if (hedged) {
+            mode = 1;
+        }
+        const request = {
+            'positionMode': mode, // 1: Hedge，2, 2: One-way, the modification of the position mode must ensure that there are no active orders, planned orders, or unfinished positions, otherwise it cannot be modified. When switching the one-way mode in both directions, the risk limit level will be reset to level 1. If you need to change the call interface, modify
+        };
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return response;
     }
 };
