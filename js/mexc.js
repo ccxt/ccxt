@@ -3522,12 +3522,8 @@ module.exports = class mexc extends Exchange {
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
-        let mode = 2;
-        if (hedged) {
-            mode = 1;
-        }
         const request = {
-            'positionMode': mode, // 1: Hedge，2, 2: One-way, the modification of the position mode must ensure that there are no active orders, planned orders, or unfinished positions, otherwise it cannot be modified. When switching the one-way mode in both directions, the risk limit level will be reset to level 1. If you need to change the call interface, modify
+            'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
         const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
         //
