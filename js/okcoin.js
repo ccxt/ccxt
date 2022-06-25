@@ -16,6 +16,7 @@ module.exports = class okcoin extends ccxt.okcoin {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
