@@ -18,6 +18,8 @@ module.exports = class coinbaseprime extends coinbasepro {
                     'public': 'https://public.sandbox.exchange.coinbase.com',
                     'private': 'https://public.sandbox.exchange.coinbase.com',
                 },
+            'features': {
+            },
                 'logo': 'https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg',
                 'api': {
                     'public': 'https://api.{hostname}',

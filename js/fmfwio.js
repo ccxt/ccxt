@@ -18,6 +18,8 @@ module.exports = class fmfwio extends hitbtc {
                     'public': 'https://api.fmfw.io',
                     'private': 'https://api.fmfw.io',
                 },
+            'features': {
+            },
                 'www': 'https://fmfw.io',
                 'doc': 'https://api.fmfw.io/api/2/explore/',
                 'fees': 'https://fmfw.io/fees-and-limits',

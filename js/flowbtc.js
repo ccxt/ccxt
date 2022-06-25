@@ -19,6 +19,8 @@ module.exports = class flowbtc extends ndax {
                     'public': 'https://api.flowbtc.com.br:8443/ap/',
                     'private': 'https://api.flowbtc.com.br:8443/ap/',
                 },
+            'features': {
+            },
                 'www': 'https://www.flowbtc.com.br',
                 'doc': 'https://www.flowbtc.com.br/api.html',
             },

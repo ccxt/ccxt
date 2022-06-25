@@ -18,6 +18,8 @@ module.exports = class bequant extends hitbtc {
                     'public': 'https://api.bequant.io',
                     'private': 'https://api.bequant.io',
                 },
+            'features': {
+            },
                 'www': 'https://bequant.io',
                 'doc': [
                     'https://api.bequant.io/',

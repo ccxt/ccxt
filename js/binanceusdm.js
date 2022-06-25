@@ -18,6 +18,8 @@ module.exports = class binanceusdm extends binance {
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
             },
+            'features': {
+            },
             'has': {
                 'CORS': undefined,
                 'spot': true,

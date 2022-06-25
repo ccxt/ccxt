@@ -22,6 +22,8 @@ module.exports = class zipmex extends ndax {
                     'private': 'https://apws.zipmex.com:8443/AP',
                     // 'ws': 'wss://apws.zipmex.com/WSGateway'
                 },
+            'features': {
+            },
                 'www': 'https://zipmex.com/',
                 'referral': 'https://trade.zipmex.com/global/accounts/sign-up?aff=KLm7HyCsvN',
                 'fees': 'https://zipmex.com/fee-schedule',

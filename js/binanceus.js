@@ -23,6 +23,8 @@ module.exports = class binanceus extends binance {
                     'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
                 },
+            'features': {
+            },
                 'www': 'https://www.binance.us',
                 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
