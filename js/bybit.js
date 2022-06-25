@@ -4768,7 +4768,7 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' setPositionMode() does not support market ' + symbol);
         }
         if (market['inverse'] && !market['future']) {
-            throw new BadRequest (this.id + ' setPositionMode() must be inverse future');
+            throw new BadRequest (this.id + ' setPositionMode() must be either a linear swap or an inverse future');
         }
         let method = undefined;
         let mode = undefined;
