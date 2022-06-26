@@ -253,6 +253,7 @@ module.exports = class zb extends Exchange {
                                 'Positions/updateAppendUSDValue': 3.334,
                                 'Positions/updateMargin': 3.334,
                                 'setting/setLeverage': 3.334,
+                                'setting/setPositionsMode': 3.334,
                                 'trade/batchOrder': 3.334,
                                 'trade/batchCancelOrder': 3.334,
                                 'trade/cancelAlgos': 3.334,
@@ -4144,6 +4145,56 @@ module.exports = class zb extends Exchange {
             });
         }
         return rates;
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the zb api endpoint
+         * @returns {dict} response from the exchange
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let accountType = undefined;
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setPositionMode() supports swap contracts only');
+        } else {
+            accountType = 1;
+        }
+        const request = {
+            'marketId': market['id'],
+            'positionMode': hedged ? 2 : 1,
+            'futuresAccountType': accountType, // 1: USDT perpetual swaps, 2: QC perpetual futures
+        };
+        const response = await this.contractV2PrivatePostSettingSetPositionsMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "success",
+        //         "data": {
+        //             "userId": 111,
+        //             "marketId": 100,
+        //             "leverage": 20,
+        //             "marginMode": 1,
+        //             "positionsMode": 2,
+        //             "enableAutoAppend": 1,
+        //             "maxAppendAmount": "11212",
+        //             "marginCoins": "qc,usdt,eth",
+        //             "id": 6737268451833817088,
+        //             "createTime": 1606289971312,
+        //             "modifyTime": 0,
+        //             "extend": null
+        //         }
+        //     }
+        //
+        return response;
     }
 
     nonce () {
