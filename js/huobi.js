@@ -914,6 +914,10 @@ module.exports = class huobi extends Exchange {
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
                 },
+                'marginAccounts': {
+                    'cross': 'super-margin',
+                    'isolated': 'margin',
+                },
                 'typesByAccount': {
                     'pro': 'spot',
                     'futures': 'future',
@@ -5141,7 +5145,7 @@ module.exports = class huobi extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'contract_code');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'funding_time');
+            const timestamp = this.safeInteger (entry, 'funding_time');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,
@@ -6641,7 +6645,12 @@ module.exports = class huobi extends Exchange {
     async repayMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const accountId = await this.fetchAccountIdByType ('spot', params);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
+        const accountType = this.getSupportedMapping (marginMode, marginAccounts);
+        const accountId = await this.fetchAccountIdByType (accountType, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -6651,7 +6660,7 @@ module.exports = class huobi extends Exchange {
         //
         //     {
         //         "code":200,
-        //         "Data": [
+        //         "data": [
         //             {
         //                 "repayId":1174424,
         //                 "repayTime":1600747722018
