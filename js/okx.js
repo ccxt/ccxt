@@ -27,6 +27,7 @@ module.exports = class okx extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -99,6 +100,7 @@ module.exports = class okx extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -5673,6 +5675,98 @@ module.exports = class okx extends Exchange {
             'amountBorrowed': this.safeNumber (info, 'liab'),
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            'amt': this.currencyToPrecision (code, amount),
+            'side': 'borrow',
+        };
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "102",
+        //                 "availLoan": "97",
+        //                 "ccy": "USDT",
+        //                 "loanQuota": "6000000",
+        //                 "posLoan": "0",
+        //                 "side": "borrow",
+        //                 "usedLoan": "97"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+        });
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'ccy': currency['id'],
+            'amt': this.currencyToPrecision (code, amount),
+            'side': 'repay',
+        };
+        const response = await this.privatePostAccountBorrowRepay (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "102",
+        //                 "availLoan": "97",
+        //                 "ccy": "USDT",
+        //                 "loanQuota": "6000000",
+        //                 "posLoan": "0",
+        //                 "side": "repay",
+        //                 "usedLoan": "97"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "amt": "102",
+        //         "availLoan": "97",
+        //         "ccy": "USDT",
+        //         "loanQuota": "6000000",
+        //         "posLoan": "0",
+        //         "side": "repay",
+        //         "usedLoan": "97"
+        //     }
+        //
+        const currencyId = this.safeString (info, 'ccy');
+        return {
+            'id': undefined,
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amt'),
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

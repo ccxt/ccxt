@@ -44,8 +44,10 @@ class kraken(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createStopLimitOrder': True,
@@ -175,6 +177,7 @@ class kraken(Exchange):
                         'Balance': 1,
                         'CancelAll': 1,
                         'CancelOrder': 0,
+                        'CancelOrderBatch': 0,
                         'ClosedOrders': 2,
                         'DepositAddresses': 1,
                         'DepositMethods': 1,
@@ -1634,6 +1637,28 @@ class kraken(Exchange):
             raise e
         return response
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: open orders transaction ID(txid) or user reference(userref)
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        request = {
+            'orders': ids,
+        }
+        response = self.privatePostCancelOrderBatch(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #           "count": 2
+        #         }
+        #     }
+        #
+        return response
+
     def cancel_all_orders(self, symbol=None, params={}):
         """
         cancel all open orders
@@ -2163,10 +2188,14 @@ class kraken(Exchange):
                 # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
                 url += '?' + self.urlencode_nested(params)
         elif api == 'private':
+            isCancelOrderBatch = (path == 'CancelOrderBatch')
             self.check_required_credentials()
             nonce = str(self.nonce())
             # urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
+            if isCancelOrderBatch:
+                body = self.json(self.extend({'nonce': nonce}, params))
+            else:
+                body = self.urlencode_nested(self.extend({'nonce': nonce}, params))
             auth = self.encode(nonce + body)
             hash = self.hash(auth, 'sha256', 'binary')
             binary = self.encode(url)
@@ -2176,8 +2205,12 @@ class kraken(Exchange):
             headers = {
                 'API-Key': self.apiKey,
                 'API-Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                # 'Content-Type': 'application/x-www-form-urlencoded',
             }
+            if isCancelOrderBatch:
+                headers['Content-Type'] = 'application/json'
+            else:
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             url = '/' + path
         url = self.urls['api'][api] + url

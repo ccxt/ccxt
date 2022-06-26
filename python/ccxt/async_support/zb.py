@@ -3558,7 +3558,7 @@ class zb(Exchange):
         #         },
         #     ],
         #
-        timestamp = self.safe_string(item, 'createTime')
+        timestamp = self.safe_integer(item, 'createTime')
         direction = None
         changeDirection = self.safe_number(item, 'isIn')
         if changeDirection == 1:

@@ -33,6 +33,7 @@ class gemini(Exchange):
             # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
             'rateLimit': 100,
             'version': 'v1',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

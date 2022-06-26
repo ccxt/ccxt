@@ -26,8 +26,10 @@ module.exports = class kraken extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
@@ -442,6 +444,7 @@ module.exports = class kraken extends Exchange {
                         'Balance': 1,
                         'CancelAll': 1,
                         'CancelOrder': 0,
+                        'CancelOrderBatch': 0,
                         'ClosedOrders': 2,
                         'DepositAddresses': 1,
                         'DepositMethods': 1,
@@ -2037,6 +2040,31 @@ module.exports = class kraken extends Exchange {
         return response;
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids open orders transaction ID (txid) or user reference (userref)
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        const request = {
+            'orders': ids,
+        };
+        const response = await this.privatePostCancelOrderBatch (this.extend (request, params));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //           "count": 2
+        //         }
+        //     }
+        //
+        return response;
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
@@ -2622,10 +2650,15 @@ module.exports = class kraken extends Exchange {
                 url += '?' + this.urlencodeNested (params);
             }
         } else if (api === 'private') {
+            const isCancelOrderBatch = (path === 'CancelOrderBatch');
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            if (isCancelOrderBatch) {
+                body = this.json (this.extend ({ 'nonce': nonce }, params));
+            } else {
+                body = this.urlencodeNested (this.extend ({ 'nonce': nonce }, params));
+            }
             const auth = this.encode (nonce + body);
             const hash = this.hash (auth, 'sha256', 'binary');
             const binary = this.stringToBinary (this.encode (url));
@@ -2635,8 +2668,13 @@ module.exports = class kraken extends Exchange {
             headers = {
                 'API-Key': this.apiKey,
                 'API-Sign': signature,
-                'Content-Type': 'application/x-www-form-urlencoded',
+                // 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            if (isCancelOrderBatch) {
+                headers['Content-Type'] = 'application/json';
+            } else {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
         } else {
             url = '/' + path;
         }

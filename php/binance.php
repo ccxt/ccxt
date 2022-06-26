@@ -2901,7 +2901,7 @@ class binance extends Exchange {
         //
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
+                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];

@@ -48,6 +48,7 @@ class okx(Exchange):
                 'future': True,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': None,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -120,6 +121,7 @@ class okx(Exchange):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -4843,6 +4845,95 @@ class okx(Exchange):
             'amountBorrowed': self.safe_number(info, 'liab'),
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'amt': self.currency_to_precision(code, amount),
+            'side': 'borrow',
+        }
+        response = self.privatePostAccountBorrowRepay(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "102",
+        #                 "availLoan": "97",
+        #                 "ccy": "USDT",
+        #                 "loanQuota": "6000000",
+        #                 "posLoan": "0",
+        #                 "side": "borrow",
+        #                 "usedLoan": "97"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+        })
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'amt': self.currency_to_precision(code, amount),
+            'side': 'repay',
+        }
+        response = self.privatePostAccountBorrowRepay(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "102",
+        #                 "availLoan": "97",
+        #                 "ccy": "USDT",
+        #                 "loanQuota": "6000000",
+        #                 "posLoan": "0",
+        #                 "side": "repay",
+        #                 "usedLoan": "97"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "amt": "102",
+        #         "availLoan": "97",
+        #         "ccy": "USDT",
+        #         "loanQuota": "6000000",
+        #         "posLoan": "0",
+        #         "side": "repay",
+        #         "usedLoan": "97"
+        #     }
+        #
+        currencyId = self.safe_string(info, 'ccy')
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'amt'),
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 

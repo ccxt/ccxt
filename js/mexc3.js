@@ -2301,7 +2301,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -2346,7 +2346,7 @@ module.exports = class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            let method = this.safeString (this.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
             let ordersOfRegular = [];
             let ordersOfTrigger = [];
@@ -2497,7 +2497,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
             const response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
             //
@@ -3537,7 +3537,7 @@ module.exports = class mexc3 extends Exchange {
             const entry = result[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
-            const timestamp = this.safeString (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'settleTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbol,

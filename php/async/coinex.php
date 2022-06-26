@@ -30,6 +30,7 @@ class coinex extends Exchange {
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit' => 2.5,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -38,6 +39,7 @@ class coinex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -87,6 +89,7 @@ class coinex extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
@@ -4191,6 +4194,94 @@ class coinex extends Exchange {
             'amountBorrowed' => $this->parse_number($loanAmount),
             'timestamp' => $timestamp,  // expiry time
             'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'market' => $market['id'],
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->privatePostMarginLoan (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "loan_id" => 1670
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->parse_margin_loan($data, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'market' => $market['id'],
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $loanId = $this->safe_integer($params, 'loan_id');
+        if ($loanId !== null) {
+            $request['loan_id'] = $loanId;
+        }
+        $response = yield $this->privatePostMarginFlat (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null,
+        //         "message" => "Success"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "loan_id" => 1670
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null,
+        //         "message" => "Success"
+        //     }
+        //
+        return array(
+            'id' => $this->safe_integer($info, 'loan_id'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

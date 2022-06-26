@@ -72,6 +72,7 @@ module.exports = class bybit extends Exchange {
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'withdraw': true,
             },
             'features': {
@@ -2020,7 +2021,7 @@ module.exports = class bybit extends Exchange {
             method = 'publicGetPerpetualUsdcOpenapiPublicV1PrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
         } else {
-            method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
+            method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingPrevFundingRate';
             fundingRateFromTickerMethod = 'publicGetV2PublicTickers';
         }
         const fetchFundingRateFromTicker = await this[fundingRateFromTickerMethod] (this.extend (request, params));
@@ -5118,6 +5119,57 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setPositionMode() does not support market ' + symbol);
+        }
+        if (market['inverse'] && !market['future']) {
+            throw new BadRequest (this.id + ' setPositionMode() must be either a linear swap or an inverse future');
+        }
+        let method = undefined;
+        let mode = undefined;
+        if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionSwitchMode';
+            if (hedged) {
+                mode = '3';
+            } else {
+                mode = '0';
+            }
+        } else {
+            // linear
+            method = 'privatePostPrivateLinearPositionSwitchMode';
+            if (hedged) {
+                mode = 'BothSide';
+            } else {
+                mode = 'MergedSingle';
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+            'mode': mode,
+        };
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "ok",
+        //         "ext_code": "",
+        //         "result": null,
+        //         "ext_info": null,
+        //         "time_now": "1577477968.175013",
+        //         "rate_limit_status": 74,
+        //         "rate_limit_reset_ms": 1577477968183,
+        //         "rate_limit": 75
+        //     }
+        //
+        return response;
     }
 
     async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
