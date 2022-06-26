@@ -518,7 +518,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.filterByArray (data, 'symbol', symbols);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
