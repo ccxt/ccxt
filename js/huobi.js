@@ -2802,6 +2802,7 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const request = {};
         let method = undefined;
+        const margin = (type === 'margin');
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2821,10 +2822,16 @@ module.exports = class huobi extends Exchange {
             const accountId = await this.fetchAccountIdByType (type, params);
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+        } else if (margin) {
+            if (isolated) {
+                method = 'spotPrivateGetV1MarginAccountsBalance';
+            } else if (cross) {
+                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            }
         } else if (linear) {
-            if (marginMode === 'isolated') {
+            if (isolated) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } else {
+            } else if (cross) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
             }
         } else if (inverse) {
@@ -2851,6 +2858,59 @@ module.exports = class huobi extends Exchange {
         //             ]
         //         },
         //         "ts":1637644827566
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "id":51015302,
+        //             "type":"cross-margin",
+        //             "state":"working",
+        //             "risk-rate":"2",
+        //             "acct-balance-sum":"100",
+        //             "debt-balance-sum":"0",
+        //             "list":[
+        //                 {"currency":"usdt","type":"trade","balance":"100"},
+        //                 {"currency":"usdt","type":"frozen","balance":"0"},
+        //                 {"currency":"usdt","type":"loan-available","balance":"200"},
+        //                 {"currency":"usdt","type":"transfer-out-available","balance":"-1"},
+        //                 {"currency":"ht","type":"loan-available","balance":"36.60724091"},
+        //                 {"currency":"ht","type":"transfer-out-available","balance":"-1"},
+        //                 {"currency":"btc","type":"trade","balance":"1168.533000000000000000"},
+        //                 {"currency":"btc","type":"frozen","balance":"0.000000000000000000"},
+        //                 {"currency":"btc","type":"loan","balance":"-2.433000000000000000"},
+        //                 {"currency":"btc", "type":"interest", "balance":"-0.000533000000000000"},
+        //                 {"currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"},
+        //                 {"currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000"}
+        //             ]
+        //         },
+        //         "code":200
+        //     }
+        //
+        // isolated margin
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": 18264,
+        //                 "type": "margin",
+        //                 "state": "working",
+        //                 "symbol": "btcusdt",
+        //                 "fl-price": "0",
+        //                 "fl-type": "safe",
+        //                 "risk-rate": "475.952571086994250554",
+        //                 "list": [
+        //                     {"currency": "btc","type": "trade","balance": "1168.533000000000000000"},
+        //                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
+        //                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
+        //                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
+        //                     {"currency": "btc","type": "transfer-out-available","balance": "1163.872174670000000000"},
+        //                     {"currency": "btc","type": "loan-available","balance": "8161.876538350676000000"}
+        //                 ]
+        //             }
+        //         ]
         //     }
         //
         // future, swap isolated
@@ -2941,7 +3001,7 @@ module.exports = class huobi extends Exchange {
         //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data');
-        if (spot) {
+        if (spot || margin) {
             const balances = this.safeValue (data, 'list', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
