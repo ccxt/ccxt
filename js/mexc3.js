@@ -74,7 +74,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -3971,6 +3971,22 @@ module.exports = class mexc3 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async fetchPositionMode (symbol = undefined, params = {}) {
+        const response = await this.contractPrivateGetPositionPositionMode (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        const positionMode = this.safeInteger (response, 'data');
+        return {
+            'info': response,
+            'hedged': (positionMode === 1),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
