@@ -98,7 +98,7 @@ module.exports = class mexc3 extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': undefined,
-                'setPositionMode': undefined,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': true,
@@ -3971,6 +3971,20 @@ module.exports = class mexc3 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        const request = {
+            'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        };
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return response;
     }
 
     async fetchPositionMode (symbol = undefined, params = {}) {
