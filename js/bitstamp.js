@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArrayCache } = require ('./base/Cache');
+const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,6 +14,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': false,
                 'watchTicker': false,
@@ -24,11 +26,19 @@ module.exports = class bitstamp extends ccxt.bitstamp {
                 },
             },
             'options': {
+                'expiresIn': '',
+                'userId': '',
+                'wsSessionToken': '',
                 'watchOrderBook': {
                     'type': 'order_book', // detail_order_book, diff_order_book
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+            },
+            'exceptions': {
+                'exact': {
+                    '4009': AuthenticationError,
+                },
             },
         });
     }
@@ -296,6 +306,106 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         client.resolve (array, channel);
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const channel = 'private-my_orders';
+        const messageHash = channel + '_' + market['id'];
+        const subscription = {
+            'symbol': symbol,
+            'limit': limit,
+            'type': channel,
+            'params': params,
+        };
+        const orders = await this.subscribePrivate (subscription, messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    handleOrders (client, message) {
+        //
+        // {
+        //     "data":{
+        //        "id":"1463471322288128",
+        //        "id_str":"1463471322288128",
+        //        "order_type":1,
+        //        "datetime":"1646127778",
+        //        "microtimestamp":"1646127777950000",
+        //        "amount":0.05,
+        //        "amount_str":"0.05000000",
+        //        "price":1000,
+        //        "price_str":"1000.00"
+        //     },
+        //     "channel":"private-my_orders_ltcusd-4848701",
+        // }
+        //
+        const channel = this.safeString (message, 'channel');
+        const order = this.safeValue (message, 'data', {});
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const subscription = this.safeValue (client.subscriptions, channel);
+        const symbol = this.safeString (subscription, 'symbol');
+        const market = this.market (symbol);
+        const parsed = this.parseWsOrder (order, market);
+        stored.append (parsed);
+        client.resolve (this.orders, channel);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //   {
+        //        "id":"1463471322288128",
+        //        "id_str":"1463471322288128",
+        //        "order_type":1,
+        //        "datetime":"1646127778",
+        //        "microtimestamp":"1646127777950000",
+        //        "amount":0.05,
+        //        "amount_str":"0.05000000",
+        //        "price":1000,
+        //        "price_str":"1000.00"
+        //    }
+        //
+        const id = this.safeString (order, 'id_str');
+        const orderType = this.safeStringLower (order, 'order_type');
+        const price = this.safeString (order, 'price_str');
+        const amount = this.safeString (order, 'amount_str');
+        const side = (orderType === '1') ? 'sell' : 'buy';
+        const timestamp = this.safeIntegerProduct (order, 'datetime', 1000);
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
+    }
+
     handleOrderBookSubscription (client, message, subscription) {
         const type = this.safeString (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
@@ -322,6 +432,11 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //         'event': "bts:subscription_succeeded",
         //         'channel': "detail_order_book_btcusd",
         //         'data': {},
+        //     }
+        //     {
+        //         event: 'bts:subscription_succeeded',
+        //         channel: 'private-my_orders_ltcusd-4848701',
+        //         data: {}
         //     }
         //
         const channel = this.safeString (message, 'channel');
@@ -354,6 +469,22 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //         channel: 'detail_order_book_btcusd'
         //     }
         //
+        // private order
+        //     {
+        //         "data":{
+        //         "id":"1463471322288128",
+        //         "id_str":"1463471322288128",
+        //         "order_type":1,
+        //         "datetime":"1646127778",
+        //         "microtimestamp":"1646127777950000",
+        //         "amount":0.05,
+        //         "amount_str":"0.05000000",
+        //         "price":1000,
+        //         "price_str":"1000.00"
+        //         },
+        //         "channel":"private-my_orders_ltcusd-4848701",
+        //     }
+        //
         const channel = this.safeString (message, 'channel');
         const subscription = this.safeValue (client.subscriptions, channel);
         const type = this.safeString (subscription, 'type');
@@ -363,6 +494,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'order_book': this.handleOrderBook,
             'detail_order_book': this.handleOrderBook,
             'diff_order_book': this.handleOrderBook,
+            'private-my_orders': this.handleOrders,
         };
         const method = this.safeValue (methods, type);
         if (method === undefined) {
@@ -373,6 +505,18 @@ module.exports = class bitstamp extends ccxt.bitstamp {
     }
 
     handleErrorMessage (client, message) {
+        // {
+        //     event: 'bts:error',
+        //     channel: '',
+        //     data: { code: 4009, message: 'Connection is unauthorized.' }
+        // }
+        const event = this.safeString (message, 'event');
+        if (event === 'bts:error') {
+            const feedback = this.id + ' ' + this.json (message);
+            const data = this.safeValue (message, 'data', {});
+            const code = this.safeNumber (data, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
         return message;
     }
 
@@ -406,11 +550,57 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //         channel: 'detail_order_book_btcusd'
         //     }
         //
+        //     {
+        //         event: 'bts:subscription_succeeded',
+        //         channel: 'private-my_orders_ltcusd-4848701',
+        //         data: {}
+        //     }
+        //
         const event = this.safeString (message, 'event');
         if (event === 'bts:subscription_succeeded') {
             return this.handleSubscriptionStatus (client, message);
         } else {
             return this.handleSubject (client, message);
         }
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const time = this.milliseconds ();
+        const expiresIn = this.safeInteger (this.options, 'expiresIn');
+        if (time > expiresIn) {
+            const response = await this.privatePostWebsocketsToken (params);
+            //
+            // {
+            //     "valid_sec":60,
+            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+            //     "user_id":4848701
+            // }
+            //
+            const sessionToken = this.safeString (response, 'token');
+            if (sessionToken !== undefined) {
+                const userId = this.safeNumber (response, 'user_id');
+                const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
+                this.options['expiresIn'] = this.sum (time, validity);
+                this.options['userId'] = userId;
+                this.options['wsSessionToken'] = sessionToken;
+                return response;
+            }
+        }
+    }
+
+    async subscribePrivate (subscription, messageHash, params = {}) {
+        const url = this.urls['api']['ws'];
+        await this.authenticate ();
+        messageHash += '-' + this.options['userId'];
+        const request = {
+            'event': 'bts:subscribe',
+            'data': {
+                'channel': messageHash,
+                'auth': this.options['wsSessionToken'],
+            },
+        };
+        subscription['messageHash'] = messageHash;
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 };

@@ -5,7 +5,9 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bitstamp(Exchange, ccxt.bitstamp):
@@ -15,6 +17,7 @@ class bitstamp(Exchange, ccxt.bitstamp):
             'has': {
                 'ws': True,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTrades': True,
                 'watchOHLCV': False,
                 'watchTicker': False,
@@ -26,11 +29,19 @@ class bitstamp(Exchange, ccxt.bitstamp):
                 },
             },
             'options': {
+                'expiresIn': '',
+                'userId': '',
+                'wsSessionToken': '',
                 'watchOrderBook': {
                     'type': 'order_book',  # detail_order_book, diff_order_book
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+            },
+            'exceptions': {
+                'exact': {
+                    '4009': AuthenticationError,
+                },
             },
         })
 
@@ -271,6 +282,100 @@ class bitstamp(Exchange, ccxt.bitstamp):
         array.append(trade)
         client.resolve(array, channel)
 
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        channel = 'private-my_orders'
+        messageHash = channel + '_' + market['id']
+        subscription = {
+            'symbol': symbol,
+            'limit': limit,
+            'type': channel,
+            'params': params,
+        }
+        orders = await self.subscribe_private(subscription, messageHash, params)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
+
+    def handle_orders(self, client, message):
+        #
+        # {
+        #     "data":{
+        #        "id":"1463471322288128",
+        #        "id_str":"1463471322288128",
+        #        "order_type":1,
+        #        "datetime":"1646127778",
+        #        "microtimestamp":"1646127777950000",
+        #        "amount":0.05,
+        #        "amount_str":"0.05000000",
+        #        "price":1000,
+        #        "price_str":"1000.00"
+        #     },
+        #     "channel":"private-my_orders_ltcusd-4848701",
+        # }
+        #
+        channel = self.safe_string(message, 'channel')
+        order = self.safe_value(message, 'data', {})
+        limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+        if self.orders is None:
+            self.orders = ArrayCacheBySymbolById(limit)
+        stored = self.orders
+        subscription = self.safe_value(client.subscriptions, channel)
+        symbol = self.safe_string(subscription, 'symbol')
+        market = self.market(symbol)
+        parsed = self.parse_ws_order(order, market)
+        stored.append(parsed)
+        client.resolve(self.orders, channel)
+
+    def parse_ws_order(self, order, market=None):
+        #
+        #   {
+        #        "id":"1463471322288128",
+        #        "id_str":"1463471322288128",
+        #        "order_type":1,
+        #        "datetime":"1646127778",
+        #        "microtimestamp":"1646127777950000",
+        #        "amount":0.05,
+        #        "amount_str":"0.05000000",
+        #        "price":1000,
+        #        "price_str":"1000.00"
+        #    }
+        #
+        id = self.safe_string(order, 'id_str')
+        orderType = self.safe_string_lower(order, 'order_type')
+        price = self.safe_string(order, 'price_str')
+        amount = self.safe_string(order, 'amount_str')
+        side = 'sell' if (orderType == '1') else 'buy'
+        timestamp = self.safe_integer_product(order, 'datetime', 1000)
+        market = self.safe_market(None, market)
+        symbol = market['symbol']
+        return self.safe_order({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'type': None,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': None,
+            'amount': amount,
+            'cost': None,
+            'average': None,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
+            'trades': None,
+        }, market)
+
     def handle_order_book_subscription(self, client, message, subscription):
         type = self.safe_string(subscription, 'type')
         symbol = self.safe_string(subscription, 'symbol')
@@ -294,6 +399,11 @@ class bitstamp(Exchange, ccxt.bitstamp):
         #         'event': "bts:subscription_succeeded",
         #         'channel': "detail_order_book_btcusd",
         #         'data': {},
+        #     }
+        #     {
+        #         event: 'bts:subscription_succeeded',
+        #         channel: 'private-my_orders_ltcusd-4848701',
+        #         data: {}
         #     }
         #
         channel = self.safe_string(message, 'channel')
@@ -324,6 +434,22 @@ class bitstamp(Exchange, ccxt.bitstamp):
         #         channel: 'detail_order_book_btcusd'
         #     }
         #
+        # private order
+        #     {
+        #         "data":{
+        #         "id":"1463471322288128",
+        #         "id_str":"1463471322288128",
+        #         "order_type":1,
+        #         "datetime":"1646127778",
+        #         "microtimestamp":"1646127777950000",
+        #         "amount":0.05,
+        #         "amount_str":"0.05000000",
+        #         "price":1000,
+        #         "price_str":"1000.00"
+        #         },
+        #         "channel":"private-my_orders_ltcusd-4848701",
+        #     }
+        #
         channel = self.safe_string(message, 'channel')
         subscription = self.safe_value(client.subscriptions, channel)
         type = self.safe_string(subscription, 'type')
@@ -333,6 +459,7 @@ class bitstamp(Exchange, ccxt.bitstamp):
             'order_book': self.handle_order_book,
             'detail_order_book': self.handle_order_book,
             'diff_order_book': self.handle_order_book,
+            'private-my_orders': self.handle_orders,
         }
         method = self.safe_value(methods, type)
         if method is None:
@@ -341,6 +468,17 @@ class bitstamp(Exchange, ccxt.bitstamp):
             return method(client, message)
 
     def handle_error_message(self, client, message):
+        # {
+        #     event: 'bts:error',
+        #     channel: '',
+        #     data: {code: 4009, message: 'Connection is unauthorized.'}
+        # }
+        event = self.safe_string(message, 'event')
+        if event == 'bts:error':
+            feedback = self.id + ' ' + self.json(message)
+            data = self.safe_value(message, 'data', {})
+            code = self.safe_number(data, 'code')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         return message
 
     def handle_message(self, client, message):
@@ -372,8 +510,50 @@ class bitstamp(Exchange, ccxt.bitstamp):
         #         channel: 'detail_order_book_btcusd'
         #     }
         #
+        #     {
+        #         event: 'bts:subscription_succeeded',
+        #         channel: 'private-my_orders_ltcusd-4848701',
+        #         data: {}
+        #     }
+        #
         event = self.safe_string(message, 'event')
         if event == 'bts:subscription_succeeded':
             return self.handle_subscription_status(client, message)
         else:
             return self.handle_subject(client, message)
+
+    async def authenticate(self, params={}):
+        self.check_required_credentials()
+        time = self.milliseconds()
+        expiresIn = self.safe_integer(self.options, 'expiresIn')
+        if time > expiresIn:
+            response = await self.privatePostWebsocketsToken(params)
+            #
+            # {
+            #     "valid_sec":60,
+            #     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+            #     "user_id":4848701
+            # }
+            #
+            sessionToken = self.safe_string(response, 'token')
+            if sessionToken is not None:
+                userId = self.safe_number(response, 'user_id')
+                validity = self.safe_integer_product(response, 'valid_sec', 1000)
+                self.options['expiresIn'] = self.sum(time, validity)
+                self.options['userId'] = userId
+                self.options['wsSessionToken'] = sessionToken
+                return response
+
+    async def subscribe_private(self, subscription, messageHash, params={}):
+        url = self.urls['api']['ws']
+        await self.authenticate()
+        messageHash += '-' + self.options['userId']
+        request = {
+            'event': 'bts:subscribe',
+            'data': {
+                'channel': messageHash,
+                'auth': self.options['wsSessionToken'],
+            },
+        }
+        subscription['messageHash'] = messageHash
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)

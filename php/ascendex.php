@@ -74,7 +74,7 @@ class ascendex extends \ccxt\async\ascendex {
         );
         $message = array_merge($request, $params);
         yield $this->authenticate($url, $params);
-        return yield $this->watch($url, $messageHash, $message, $messageHash);
+        return yield $this->watch($url, $messageHash, $message, $channel);
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

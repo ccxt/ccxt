@@ -71,7 +71,7 @@ module.exports = class ascendex extends ccxt.ascendex {
         };
         const message = this.extend (request, params);
         await this.authenticate (url, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

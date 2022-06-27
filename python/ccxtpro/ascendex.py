@@ -72,7 +72,7 @@ class ascendex(Exchange, ccxt.ascendex):
         }
         message = self.extend(request, params)
         await self.authenticate(url, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
