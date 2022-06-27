@@ -61,6 +61,17 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {str} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -122,6 +133,15 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -199,6 +219,14 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -209,6 +237,14 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchTickers
+         * @description watches multiple price tickers, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {str} symbol unified symbol of the market to fetch the ticker for
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const method = 'market_subscribe';
         if (symbols === undefined) {
@@ -220,6 +256,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             }
         }
         const messageHash = 'tickers' + symbols.join (':');
+        // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         return await this.watchPublicMultipleSubscription (messageHash, method, symbols, params);
     }
 
@@ -258,14 +295,14 @@ module.exports = class whitebit extends ccxt.whitebit {
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             if (messageHash.indexOf ('tickers') >= 0 && messageHash.indexOf (symbol) >= 0) {
-                // Example: user calls watchTicker with ['LTC/USDT', 'ETH/USDT']
+                // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single symbol at a time
                 // we have to do a reverse lookup into the tickers hashes
                 // and check if the current symbol is a part of one or more
                 // tickers hashes and resolve them
                 // user might have multiple watchTickers promises
-                // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ) and watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
+                // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
                 client.resolve (ticker, messageHash);
             }
@@ -274,6 +311,16 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -332,6 +379,16 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchMyTrades
+         * @description watches trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
@@ -428,6 +485,16 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
@@ -582,6 +649,14 @@ module.exports = class whitebit extends ccxt.whitebit {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name whitebit#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {dict} params extra parameters specific to the whitebit api endpoint
+         * @param {dict} params.type spot or contract if not provided this.options['defaultType'] is used
+         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
