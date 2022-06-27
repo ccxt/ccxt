@@ -31,7 +31,7 @@ module.exports = {
     },
 
     toArray (object) {
-        return Object.values (object);
+        return Array.isArray (object) ? object : JSON.parse (object);
     },
 
     isEmpty (object) {
