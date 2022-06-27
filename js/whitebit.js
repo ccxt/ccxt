@@ -199,11 +199,10 @@ module.exports = class whitebit extends ccxt.whitebit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const marketId = market['id'];
-        const reqParams = [ marketId ];
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
-        return await this.watchPublic (messageHash, method, reqParams, params);
+        // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
+        return await this.watchPublicMultipleSubscription (messageHash, method, symbol, params);
     }
 
     handleTicker (client, message) {
@@ -244,11 +243,8 @@ module.exports = class whitebit extends ccxt.whitebit {
         symbol = market['symbol'];
         const messageHash = 'trades' + ':' + symbol;
         const method = 'trades_subscribe';
-        const reqParams = [ market['id'] ];
-        if (limit !== undefined) {
-            reqParams.push (limit);
-        }
-        const trades = await this.watchPublic (messageHash, method, reqParams, params);
+        // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
+        const trades = await this.watchPublicMultipleSubscription (messageHash, method, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -578,10 +574,57 @@ module.exports = class whitebit extends ccxt.whitebit {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async watchPublicMultipleSubscription (messageHash, method, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const url = this.urls['api']['ws'];
+        const id = this.nonce ();
+        const client = this.safeValue (this.clients, url);
+        let request = undefined;
+        if (client === undefined) {
+            const subscription = {};
+            subscription[marketId] = true;
+            request = {
+                'id': id,
+                'method': method,
+                'params': [ marketId ],
+            };
+            const message = this.extend (request, params);
+            return await this.watch (url, messageHash, message, method, subscription);
+        } else {
+            const subscription = this.safeValue (client.subscriptions, method, {});
+            const marketSubscribed = this.safeValue (subscription, marketId, false);
+            if (marketSubscribed) {
+                // already subscribed to this market
+                return await this.watch (url, messageHash, request, method, subscription);
+            } else {
+                // not subscribed yet, add it
+                subscription[marketId] = true;
+                // resubscribe
+                const resubRequest = {
+                    'id': id,
+                    'method': method,
+                    'params': Object.keys (subscription),
+                };
+                client.subscriptions[method] = undefined;
+                return await this.watch (url, messageHash, resubRequest, method, subscription);
+            }
+        }
+    }
+
     async watchPrivate (messageHash, method, reqParams = [], params = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
-        return await this.watchPublic (messageHash, method, reqParams, params);
+        const url = this.urls['api']['ws'];
+        const id = this.nonce ();
+        const request = {
+            'id': id,
+            'method': method,
+            'params': reqParams,
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async authenticate (params = {}) {
