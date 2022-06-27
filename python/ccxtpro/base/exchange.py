@@ -109,7 +109,7 @@ class Exchange(BaseExchange):
         client = self.client(url)
         future = client.future(message_hash)
 
-        subscribed = subscribe_hash in client.subscriptions
+        subscribed = client.subscriptions.get(subscribe_hash)
 
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
