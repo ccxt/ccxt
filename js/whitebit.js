@@ -42,6 +42,9 @@ module.exports = class whitebit extends ccxt.whitebit {
                 'watchOrderBook': {
                     'priceInterval': 0, // "0" - no interval, available values - "0.00000001", "0.0000001", "0.000001", "0.00001", "0.0001", "0.001", "0.01", "0.1"
                 },
+                'watchOrders': {
+                    'method': 'ordersPending_subscribe', // or ordersExecuted_subscribe
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -64,7 +67,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const interval = this.safeInteger (timeframes, timeframe);
         const marketId = market['id'];
-        // currently there is not way of knowing
+        // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
@@ -432,7 +435,8 @@ module.exports = class whitebit extends ccxt.whitebit {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orders:' + symbol;
-        const method = 'ordersPending_subscribe';
+        const options = this.safeValue (this.options, 'watchOrders', {});
+        const method = this.safeString (options, 'method', 'ordersPending_subscribe');
         const reqParams = [
             market['id'],
         ];
@@ -711,8 +715,9 @@ module.exports = class whitebit extends ccxt.whitebit {
         const url = this.urls['api']['ws'];
         const messageHash = 'login';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future ('authenticated');
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const authToken = await this.v4PrivatePostProfileWebsocketToken ();
             //
             //   {
@@ -720,7 +725,6 @@ module.exports = class whitebit extends ccxt.whitebit {
             //   }
             //
             const token = this.safeString (authToken, 'websocket_token');
-            future = client.future ('authenticated');
             const id = this.nonce ();
             const request = {
                 'id': id,
@@ -800,6 +804,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'depth_update': this.handleOrderBook,
             'candles_update': this.handleOHLCV,
             'ordersPending_update': this.handleOrder,
+            'ordersExecuted_update': this.handleOrder,
             'balanceSpot_update': this.handleBalance,
             'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
