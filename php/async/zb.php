@@ -3130,7 +3130,7 @@ class zb extends Exchange {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'fundingTime');
+            $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
@@ -3703,7 +3703,7 @@ class zb extends Exchange {
         //         ),
         //     ),
         //
-        $timestamp = $this->safe_string($item, 'createTime');
+        $timestamp = $this->safe_integer($item, 'createTime');
         $direction = null;
         $changeDirection = $this->safe_number($item, 'isIn');
         if ($changeDirection === 1) {

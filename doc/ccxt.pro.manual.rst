@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 44 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 46 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -353,6 +353,21 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
+          :target: https://www.coinex.com/register?refer_code=yw5fz
+          :alt: coinex
+     
+     - coinex
+     - `CoinEx <https://www.coinex.com/register?refer_code=yw5fz>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/coinexcom/coinex_exchange_api/wiki
+          :alt: API Version 1
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/168937923-80d6af4a-43b5-4ed9-9d53-31065656be4f.jpg
           :target: https://coinflex.com/user-console/register?shareAccountId=S6Y87a8P
           :alt: coinflex
@@ -478,6 +493,21 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
+          :target: https://gemini.com/
+          :alt: gemini
+     
+     - gemini
+     - `Gemini <https://gemini.com/>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.gemini.com/rest-api
+          :alt: API Version 1
+     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

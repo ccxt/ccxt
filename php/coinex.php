@@ -29,6 +29,7 @@ class coinex extends Exchange {
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit' => 2.5,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -37,6 +38,7 @@ class coinex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -86,6 +88,7 @@ class coinex extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
@@ -1695,6 +1698,10 @@ class coinex extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the coinex api endpoint
+         * @param {float} triggerPrice $price at which to triger stop orders
+         * @param {float} $stopPrice $price at which to triger stop orders
+         * @param {float} $stopLossPrice $price at which to trigger stop-loss orders
+         * @param {float} $takeProfitPrice $price at which to trigger take-profit orders
          * @param {str} $params->timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} $params->postOnly
          * @param {bool} $params->reduceOnly
@@ -1703,7 +1710,9 @@ class coinex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
-        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop_price');
+        $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $option = $this->safe_string($params, 'option');
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $option === 'MAKER_ONLY', $params);
@@ -1720,55 +1729,73 @@ class coinex extends Exchange {
             'market' => $market['id'],
         );
         if ($swap) {
-            $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
-            $side = ($side === 'buy') ? 2 : 1;
-            if ($stopPrice !== null) {
+            if ($stopLossPrice || $takeProfitPrice) {
                 $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
                 if ($stopType === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() $swap stop orders require a stop_type parameter');
+                    $request['stop_type'] = 1;
                 }
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
-                $request['stop_type'] = $this->price_to_precision($symbol, $stopType);
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                $request['side'] = $side;
-                if ($type === 'limit') {
-                    $method = 'perpetualPrivatePostOrderPutStopLimit';
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                } elseif ($type === 'market') {
-                    $method = 'perpetualPrivatePostOrderPutStopMarket';
+                if ($positionId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if (($type !== 'market') || ($stopPrice !== null)) {
-                if ($postOnly) {
-                    $request['option'] = 1;
-                } elseif ($timeInForce !== null) {
-                    if ($timeInForce === 'IOC') {
-                        $timeInForce = 2;
-                    } elseif ($timeInForce === 'FOK') {
-                        $timeInForce = 3;
-                    } else {
-                        $timeInForce = 1;
+                $request['position_id'] = $positionId;
+                if ($stopLossPrice) {
+                    $method = 'perpetualPrivatePostPositionStopLoss';
+                    $request['stop_loss_price'] = $stopLossPrice;
+                } elseif ($takeProfitPrice) {
+                    $method = 'perpetualPrivatePostPositionTakeProfit';
+                    $request['take_profit_price'] = $takeProfitPrice;
+                }
+            } else {
+                $method = 'perpetualPrivatePostOrderPut' . $this->capitalize($type);
+                $side = ($side === 'buy') ? 2 : 1;
+                if ($stopPrice !== null) {
+                    $stopType = $this->safe_integer($params, 'stop_type'); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
+                    if ($stopType === null) {
+                        $request['stop_type'] = 1;
                     }
-                    $request['effect_type'] = $timeInForce; // exchange takes 'IOC' and 'FOK'
-                }
-            }
-            if ($type === 'limit' && $stopPrice === null) {
-                if ($reduceOnly) {
-                    $method = 'perpetualPrivatePostOrderCloseLimit';
-                    $request['position_id'] = $positionId;
-                } else {
-                    $request['side'] = $side;
-                }
-                $request['price'] = $this->price_to_precision($symbol, $price);
-                $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } elseif ($type === 'market' && $stopPrice === null) {
-                if ($reduceOnly) {
-                    $method = 'perpetualPrivatePostOrderCloseMarket';
-                    $request['position_id'] = $positionId;
-                } else {
-                    $request['side'] = $side;
+                    $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+                    $request['stop_type'] = $this->price_to_precision($symbol, $stopType);
                     $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                    $request['side'] = $side;
+                    if ($type === 'limit') {
+                        $method = 'perpetualPrivatePostOrderPutStopLimit';
+                        $request['price'] = $this->price_to_precision($symbol, $price);
+                    } elseif ($type === 'market') {
+                        $method = 'perpetualPrivatePostOrderPutStopMarket';
+                    }
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                }
+                if (($type !== 'market') || ($stopPrice !== null)) {
+                    if ($postOnly) {
+                        $request['option'] = 1;
+                    } elseif ($timeInForce !== null) {
+                        if ($timeInForce === 'IOC') {
+                            $timeInForce = 2;
+                        } elseif ($timeInForce === 'FOK') {
+                            $timeInForce = 3;
+                        } else {
+                            $timeInForce = 1;
+                        }
+                        $request['effect_type'] = $timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+                if ($type === 'limit' && $stopPrice === null) {
+                    if ($reduceOnly) {
+                        $method = 'perpetualPrivatePostOrderCloseLimit';
+                        $request['position_id'] = $positionId;
+                    } else {
+                        $request['side'] = $side;
+                    }
+                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } elseif ($type === 'market' && $stopPrice === null) {
+                    if ($reduceOnly) {
+                        $method = 'perpetualPrivatePostOrderCloseMarket';
+                        $request['position_id'] = $positionId;
+                    } else {
+                        $request['side'] = $side;
+                        $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                    }
                 }
             }
         } else {
@@ -1826,7 +1853,7 @@ class coinex extends Exchange {
             }
             $request['account_id'] = $accountId;
         }
-        $params = $this->omit($params, array( 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
         $response = $this->$method (array_merge($request, $params));
         //
         // Spot and Margin
@@ -4166,6 +4193,94 @@ class coinex extends Exchange {
             'amountBorrowed' => $this->parse_number($loanAmount),
             'timestamp' => $timestamp,  // expiry time
             'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'market' => $market['id'],
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = $this->privatePostMarginLoan (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "loan_id" => 1670
+        //         ),
+        //         "message" => "Success"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->parse_margin_loan($data, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'market' => $market['id'],
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $loanId = $this->safe_integer($params, 'loan_id');
+        if ($loanId !== null) {
+            $request['loan_id'] = $loanId;
+        }
+        $response = $this->privatePostMarginFlat (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null,
+        //         "message" => "Success"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "loan_id" => 1670
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => null,
+        //         "message" => "Success"
+        //     }
+        //
+        return array(
+            'id' => $this->safe_integer($info, 'loan_id'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

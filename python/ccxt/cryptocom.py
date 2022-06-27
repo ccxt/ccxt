@@ -155,6 +155,12 @@ class cryptocom(Exchange):
                             'private/subaccount/get-sub-accounts': 10 / 3,
                             'private/subaccount/get-transfer-history': 10 / 3,
                             'private/subaccount/transfer': 10 / 3,
+                            'private/otc/get-otc-user': 10 / 3,
+                            'private/otc/get-instruments': 10 / 3,
+                            'private/otc/request-quote': 100,
+                            'private/otc/accept-quote': 100,
+                            'private/otc/get-quote-history': 10 / 3,
+                            'private/otc/get-trade-history': 10 / 3,
                         },
                     },
                 },
@@ -513,7 +519,7 @@ class cryptocom(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.filter_by_array(data, 'symbol', symbols)
+        return self.parse_tickers(data, symbols)
 
     def fetch_ticker(self, symbol, params={}):
         """

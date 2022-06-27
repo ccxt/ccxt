@@ -3006,7 +3006,7 @@ class zb(Exchange):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'fundingTime')
+            timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3558,7 +3558,7 @@ class zb(Exchange):
         #         },
         #     ],
         #
-        timestamp = self.safe_string(item, 'createTime')
+        timestamp = self.safe_integer(item, 'createTime')
         direction = None
         changeDirection = self.safe_number(item, 'isIn')
         if changeDirection == 1:

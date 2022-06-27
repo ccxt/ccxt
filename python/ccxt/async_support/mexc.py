@@ -63,6 +63,7 @@ class mexc(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -74,6 +75,7 @@ class mexc(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
@@ -90,6 +92,7 @@ class mexc(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -3007,7 +3010,7 @@ class mexc(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3140,7 +3143,7 @@ class mexc(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3276,3 +3279,31 @@ class mexc(Exchange):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
             floor = cap
         return tiers
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = await self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
+
+    async def fetch_position_mode(self, symbol=None, params={}):
+        response = await self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }

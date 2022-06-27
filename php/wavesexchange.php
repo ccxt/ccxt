@@ -52,6 +52,7 @@ class wavesexchange extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -62,6 +63,7 @@ class wavesexchange extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -1203,7 +1205,7 @@ class wavesexchange extends Exchange {
     public function price_from_precision($symbol, $price) {
         $market = $this->markets[$symbol];
         $wavesPrecision = $this->safe_integer($this->options, 'wavesPrecision', 8);
-        $scale = $wavesPrecision - $this->sum($market['precision']['amount'], $market['precision']['price']);
+        $scale = $this->sum($wavesPrecision, $market['precision']['price']) - $market['precision']['amount'];
         return $this->from_precision($price, $scale);
     }
 

@@ -292,6 +292,8 @@ module.exports = class bitstamp extends Exchange {
                         'ape_address/': 1,
                         'mpl_withdrawal/': 1,
                         'mpl_address/': 1,
+                        'euroc_withdrawal/': 1,
+                        'euroc_address/': 1,
                     },
                 },
             },
@@ -838,14 +840,15 @@ module.exports = class bitstamp extends Exchange {
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
-        let timestamp = this.safeString2 (trade, 'date', 'datetime');
-        if (timestamp !== undefined) {
-            if (timestamp.indexOf (' ') >= 0) {
+        const datetimeString = this.safeString2 (trade, 'date', 'datetime');
+        let timestamp = undefined;
+        if (datetimeString !== undefined) {
+            if (datetimeString.indexOf (' ') >= 0) {
                 // iso8601
-                timestamp = this.parse8601 (timestamp);
+                timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                timestamp = parseInt (timestamp);
+                timestamp = parseInt (datetimeString);
                 timestamp = timestamp * 1000;
             }
         }

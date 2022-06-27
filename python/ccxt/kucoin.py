@@ -71,6 +71,7 @@ class kucoin(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -80,6 +81,8 @@ class kucoin(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrdersByStatus': True,
+                'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -206,7 +209,7 @@ class kucoin(Exchange):
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'orders': 20,  # 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}': 1,
+                        'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1,  # rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
@@ -1276,7 +1279,7 @@ class kucoin(Exchange):
             if stop:
                 method = 'privateDeleteStopOrderCancelOrderByClientOid'
             else:
-                method = 'privateDeleteOrdersClientOrderClientOid'
+                method = 'privateDeleteOrderClientOrderClientOid'
         else:
             if stop:
                 method = 'privateDeleteStopOrderOrderId'
@@ -1563,6 +1566,21 @@ class kucoin(Exchange):
             'average': None,
             'trades': None,
         }, market)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        request = {
+            'orderId': id,
+        }
+        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """

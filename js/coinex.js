@@ -25,6 +25,7 @@ module.exports = class coinex extends Exchange {
             // 40 per 2 seconds => 20 per second => weight = 20
             // 20 per 2 seconds => 10 per second => weight = 40
             'rateLimit': 2.5,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -33,6 +34,7 @@ module.exports = class coinex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -82,6 +84,7 @@ module.exports = class coinex extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -1713,6 +1716,10 @@ module.exports = class coinex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @param {float} triggerPrice price at which to triger stop orders
+         * @param {float} stopPrice price at which to triger stop orders
+         * @param {float} stopLossPrice price at which to trigger stop-loss orders
+         * @param {float} takeProfitPrice price at which to trigger take-profit orders
          * @param {str} params.timeInForce "GTC", "IOC", "FOK", "PO"
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
@@ -1721,7 +1728,9 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop_price');
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const option = this.safeString (params, 'option');
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, option === 'MAKER_ONLY', params);
@@ -1738,55 +1747,73 @@ module.exports = class coinex extends Exchange {
             'market': market['id'],
         };
         if (swap) {
-            method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
-            side = (side === 'buy') ? 2 : 1;
-            if (stopPrice !== undefined) {
+            if (stopLossPrice || takeProfitPrice) {
                 const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
                 if (stopType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() swap stop orders require a stop_type parameter');
+                    request['stop_type'] = 1;
                 }
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
-                request['stop_type'] = this.priceToPrecision (symbol, stopType);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-                request['side'] = side;
-                if (type === 'limit') {
-                    method = 'perpetualPrivatePostOrderPutStopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
-                } else if (type === 'market') {
-                    method = 'perpetualPrivatePostOrderPutStopMarket';
+                if (positionId === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders');
                 }
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            }
-            if ((type !== 'market') || (stopPrice !== undefined)) {
-                if (postOnly) {
-                    request['option'] = 1;
-                } else if (timeInForce !== undefined) {
-                    if (timeInForce === 'IOC') {
-                        timeInForce = 2;
-                    } else if (timeInForce === 'FOK') {
-                        timeInForce = 3;
-                    } else {
-                        timeInForce = 1;
+                request['position_id'] = positionId;
+                if (stopLossPrice) {
+                    method = 'perpetualPrivatePostPositionStopLoss';
+                    request['stop_loss_price'] = stopLossPrice;
+                } else if (takeProfitPrice) {
+                    method = 'perpetualPrivatePostPositionTakeProfit';
+                    request['take_profit_price'] = takeProfitPrice;
+                }
+            } else {
+                method = 'perpetualPrivatePostOrderPut' + this.capitalize (type);
+                side = (side === 'buy') ? 2 : 1;
+                if (stopPrice !== undefined) {
+                    const stopType = this.safeInteger (params, 'stop_type'); // 1: triggered by the latest transaction, 2: mark price, 3: index price
+                    if (stopType === undefined) {
+                        request['stop_type'] = 1;
                     }
-                    request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
-                }
-            }
-            if (type === 'limit' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseLimit';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
-                }
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['amount'] = this.amountToPrecision (symbol, amount);
-            } else if (type === 'market' && stopPrice === undefined) {
-                if (reduceOnly) {
-                    method = 'perpetualPrivatePostOrderCloseMarket';
-                    request['position_id'] = positionId;
-                } else {
-                    request['side'] = side;
+                    request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+                    request['stop_type'] = this.priceToPrecision (symbol, stopType);
                     request['amount'] = this.amountToPrecision (symbol, amount);
+                    request['side'] = side;
+                    if (type === 'limit') {
+                        method = 'perpetualPrivatePostOrderPutStopLimit';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    } else if (type === 'market') {
+                        method = 'perpetualPrivatePostOrderPutStopMarket';
+                    }
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+                if ((type !== 'market') || (stopPrice !== undefined)) {
+                    if (postOnly) {
+                        request['option'] = 1;
+                    } else if (timeInForce !== undefined) {
+                        if (timeInForce === 'IOC') {
+                            timeInForce = 2;
+                        } else if (timeInForce === 'FOK') {
+                            timeInForce = 3;
+                        } else {
+                            timeInForce = 1;
+                        }
+                        request['effect_type'] = timeInForce; // exchange takes 'IOC' and 'FOK'
+                    }
+                }
+                if (type === 'limit' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseLimit';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                    }
+                    request['price'] = this.priceToPrecision (symbol, price);
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                } else if (type === 'market' && stopPrice === undefined) {
+                    if (reduceOnly) {
+                        method = 'perpetualPrivatePostOrderCloseMarket';
+                        request['position_id'] = positionId;
+                    } else {
+                        request['side'] = side;
+                        request['amount'] = this.amountToPrecision (symbol, amount);
+                    }
                 }
             }
         } else {
@@ -1844,7 +1871,7 @@ module.exports = class coinex extends Exchange {
             }
             request['account_id'] = accountId;
         }
-        params = this.omit (params, [ 'account_id', 'reduceOnly', 'position_id', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'stop_price', 'stop_type' ]);
+        params = this.omit (params, [ 'reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Spot and Margin
@@ -4234,6 +4261,94 @@ module.exports = class coinex extends Exchange {
             'amountBorrowed': this.parseNumber (loanAmount),
             'timestamp': timestamp,  // expiry time
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "loan_id": 1670
+        //         },
+        //         "message": "Success"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'market': market['id'],
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const loanId = this.safeInteger (params, 'loan_id');
+        if (loanId !== undefined) {
+            request['loan_id'] = loanId;
+        }
+        const response = await this.privatePostMarginFlat (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null,
+        //         "message": "Success"
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "loan_id": 1670
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "data": null,
+        //         "message": "Success"
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'loan_id'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

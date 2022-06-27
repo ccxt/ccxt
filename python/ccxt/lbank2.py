@@ -60,6 +60,7 @@ class lbank2(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -69,6 +70,7 @@ class lbank2(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -1017,7 +1019,7 @@ class lbank2(Exchange):
         #
         id = self.safe_string_2(order, 'orderId', 'order_id')
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'custom_id')
-        timestamp = self.safe_string_2(order, 'time', 'create_time')
+        timestamp = self.safe_integer_2(order, 'time', 'create_time')
         rawStatus = self.safe_string(order, 'status')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)

@@ -146,6 +146,12 @@ class cryptocom extends Exchange {
                             'private/subaccount/get-sub-accounts' => 10 / 3,
                             'private/subaccount/get-transfer-history' => 10 / 3,
                             'private/subaccount/transfer' => 10 / 3,
+                            'private/otc/get-otc-user' => 10 / 3,
+                            'private/otc/get-instruments' => 10 / 3,
+                            'private/otc/request-quote' => 100,
+                            'private/otc/accept-quote' => 100,
+                            'private/otc/get-quote-history' => 10 / 3,
+                            'private/otc/get-trade-history' => 10 / 3,
                         ),
                     ),
                 ),
@@ -512,7 +518,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'data', array());
-        return $this->filter_by_array($data, 'symbol', $symbols);
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
