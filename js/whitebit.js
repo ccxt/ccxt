@@ -242,8 +242,8 @@ module.exports = class whitebit extends ccxt.whitebit {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'trade' + ':' + symbol;
-        const method = 'trades_request';
+        const messageHash = 'trades' + ':' + symbol;
+        const method = 'trades_subscribe';
         const reqParams = [ market['id'] ];
         if (limit !== undefined) {
             reqParams.push (limit);
@@ -257,22 +257,31 @@ module.exports = class whitebit extends ccxt.whitebit {
 
     handleTrades (client, message) {
         //
-        //     {
-        //         topic: 'trade',
-        //         action: 'partial',
-        //         symbol: 'btc-usdt',
-        //         data: [
-        //             {
-        //                 size: 0.05145,
-        //                 price: 41977.9,
-        //                 side: 'buy',
-        //                 timestamp: '2022-04-11T09:40:10.881Z'
-        //             },
-        //         ]
-        //     }
+        //    {
+        //        "method":"trades_update",
+        //        "params":[
+        //           "BTC_USDT",
+        //           [
+        //              {
+        //                 "id":1900632398,
+        //                 "time":1656320231.404343,
+        //                 "price":"21443.04",
+        //                 "amount":"0.072844",
+        //                 "type":"buy"
+        //              },
+        //              {
+        //                 "id":1900632397,
+        //                 "time":1656320231.400001,
+        //                 "price":"21443.15",
+        //                 "amount":"0.060757",
+        //                 "type":"buy"
+        //              }
+        //           ]
+        //        ]
+        //    }
         //
-        const channel = this.safeString (message, 'topic');
-        const marketId = this.safeString (message, 'symbol');
+        const params = this.safeValue (message, 'params', []);
+        const marketId = this.safeString (params, 0);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -281,14 +290,13 @@ module.exports = class whitebit extends ccxt.whitebit {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeValue (params, 1, []);
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        const messageHash = channel + ':' + marketId;
+        const messageHash = 'trades:' + market['symbol'];
         client.resolve (stored, messageHash);
-        client.resolve (stored, channel);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -626,11 +634,12 @@ module.exports = class whitebit extends ccxt.whitebit {
         //     id: 1656090882
         // }
         //
-        const error = this.safeInteger (message, 'error');
+        const error = this.safeValue (message, 'error');
         try {
             if (error !== undefined) {
+                const code = this.safeString (message, 'code');
                 const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
@@ -665,7 +674,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         }
         const methods = {
             'market_update': this.handleTicker,
-            'trade': this.handleTrades,
+            'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,
             'candles_update': this.handleOHLCV,
             'order': this.handleOrder,
