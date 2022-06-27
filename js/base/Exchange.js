@@ -104,6 +104,12 @@ module.exports = class Exchange extends ccxt.Exchange {
         //                             subscribe -----→ receive
         //
         const future = client.future (messageHash);
+        // read and write subscription, this is done before connecting the client
+        // to avoid race conditions when other parts of the code read or write to the client.subscriptions
+        const clientSubscription = client.subscriptions[subscribeHash];
+        if (!clientSubscription) {
+            client.subscriptions[subscribeHash] = subscription || true;
+        }
         // we intentionally do not use await here to avoid unhandled exceptions
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
@@ -113,8 +119,7 @@ module.exports = class Exchange extends ccxt.Exchange {
         // catch any connection-level exceptions from the client
         // (connection established successfully)
         connected.then (() => {
-            if (!client.subscriptions[subscribeHash]) {
-                client.subscriptions[subscribeHash] = subscription || true;
+            if (!clientSubscription) {
                 const options = this.safeValue (this.options, 'ws');
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {

@@ -76,11 +76,14 @@ trait ClientTrait {
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
         $future = $client->future($message_hash);
+        $subscribed = isset($client->subscriptions[$subscribe_hash]);
+        if (!$subscribed) {
+            $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
+        }
         $connected = $client->connect($backoff_delay);
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
-                if (!isset($client->subscriptions[$subscribe_hash])) {
-                    $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
+                if (!$subscribed) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
                     $options = $this->safe_value($this->options, 'ws');

@@ -109,6 +109,11 @@ class Exchange(BaseExchange):
         client = self.client(url)
         future = client.future(message_hash)
 
+        subscribed = subscribe_hash in client.subscriptions
+
+        if not subscribed:
+            client.subscriptions[subscribe_hash] = subscription or True
+
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
@@ -120,8 +125,7 @@ class Exchange(BaseExchange):
                 # future will already have this exception set to it in self.reset
                 # so we don't set it again here to avoid an InvalidState error
                 return
-            if subscribe_hash not in client.subscriptions:
-                client.subscriptions[subscribe_hash] = subscription or True
+            if not subscribed:
                 # todo: decouple signing from subscriptions
                 options = self.safe_value(self.options, 'ws')
                 cost = self.safe_value(options, 'cost', 1)
