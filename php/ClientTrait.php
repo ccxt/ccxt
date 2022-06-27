@@ -82,7 +82,7 @@ trait ClientTrait {
         }
         $connected = $client->connect($backoff_delay);
         $connected->then(
-            function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
+            function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription, $subscribed) {
                 if (!$subscribed) {
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
