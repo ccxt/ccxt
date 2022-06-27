@@ -644,7 +644,7 @@ module.exports = class bitfinex2 extends ccxt.bitfinex2 {
          * @name bitfinex2#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} params extra parameters specific to the bitfinex2 api endpoint
-         * @param {dict} params.type spot or contract if not provided this.options['defaultType'] is used
+         * @param {str|undefined} params.type spot or contract if not provided this.options['defaultType'] is used
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
