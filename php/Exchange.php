@@ -3441,8 +3441,9 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle ($cost);
         }
-        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
-        return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
+        $this->lastRestRequestTimestamp = static::milliseconds();
+        $request = $this->sign($path, $api, $method, $params, $headers, $body);
+        return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
