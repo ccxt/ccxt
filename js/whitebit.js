@@ -19,7 +19,7 @@ module.exports = class whitebit extends ccxt.whitebit {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
             },
             'urls': {
@@ -202,7 +202,22 @@ module.exports = class whitebit extends ccxt.whitebit {
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        return await this.watchPublicMultipleSubscription (messageHash, method, symbol, params);
+        return await this.watchPublicMultipleSubscription (messageHash, method, [ symbol ], params);
+    }
+
+    async watchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const method = 'market_subscribe';
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        } else {
+            for (let i = 0; i < symbols; i++) {
+                const market = this.market (symbols[i]);
+                symbols.push (market['symbol']);
+            }
+        }
+        const messageHash = 'tickers' + symbols.join (':');
+        return await this.watchPublicMultipleSubscription (messageHash, method, symbols, params);
     }
 
     handleTicker (client, message) {
@@ -233,7 +248,22 @@ module.exports = class whitebit extends ccxt.whitebit {
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker (rawTicker, market);
         this.tickers[symbol] = ticker;
+        // watchTicker
         client.resolve (ticker, messageHash);
+        // watchTickers
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf ('tickers') >= 0 && messageHash.indexOf (symbol) >= 0) {
+                // Example: user calls watchTicker with ['LTC/USDT', 'ETH/USDT']
+                // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
+                // since we only have access to a single symbol at a time
+                // we have to do a reverse lookup into the tickers hashes
+                // and check if the current symbol is a part of one or more
+                // tickers hashes and resolve them
+                client.resolve (ticker, messageHash);
+            }
+        }
         return message;
     }
 
@@ -244,7 +274,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         const messageHash = 'trades' + ':' + symbol;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        const trades = await this.watchPublicMultipleSubscription (messageHash, method, symbol, params);
+        const trades = await this.watchPublicMultipleSubscription (messageHash, method, [ symbol ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -444,7 +474,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const parsed = this.parseOrder (data);
+        const parsed = this.parseWsOrder (data);
         stored.append (parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'orders:' + symbol;
@@ -574,33 +604,44 @@ module.exports = class whitebit extends ccxt.whitebit {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultipleSubscription (messageHash, method, symbol, params = {}) {
+    async watchPublicMultipleSubscription (messageHash, method, symbols = [], params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const client = this.safeValue (this.clients, url);
         let request = undefined;
         if (client === undefined) {
             const subscription = {};
-            subscription[marketId] = true;
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const marketId = market['id'];
+                subscription[marketId] = true;
+            }
             request = {
                 'id': id,
                 'method': method,
-                'params': [ marketId ],
+                'params': Object.keys (subscription),
             };
             const message = this.extend (request, params);
             return await this.watch (url, messageHash, message, method, subscription);
         } else {
             const subscription = this.safeValue (client.subscriptions, method, {});
-            const marketSubscribed = this.safeValue (subscription, marketId, false);
-            if (marketSubscribed) {
-                // already subscribed to this market
+            let isSymbolSubscriptionMissing = false;
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                const marketId = market['id'];
+                const isSubscribed = this.safeValue (subscription, marketId, false);
+                if (!isSubscribed) {
+                    subscription[marketId] = true;
+                    isSymbolSubscriptionMissing = true;
+                }
+            }
+            if (!isSymbolSubscriptionMissing) {
+                // already subscribed to this market(s)
                 return await this.watch (url, messageHash, request, method, subscription);
             } else {
-                // not subscribed yet, add it
-                subscription[marketId] = true;
                 // resubscribe
                 const resubRequest = {
                     'id': id,
@@ -720,7 +761,7 @@ module.exports = class whitebit extends ccxt.whitebit {
             'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,
             'candles_update': this.handleOHLCV,
-            'order': this.handleOrder,
+            'ordersPending_update': this.handleOrder,
             'balanceSpot_update': this.handleBalance,
             'balanceMargin_update': this.handleBalance,
             'deals_update': this.handleMyTrades,
