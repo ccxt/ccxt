@@ -261,6 +261,9 @@ module.exports = class whitebit extends ccxt.whitebit {
                 // we have to do a reverse lookup into the tickers hashes
                 // and check if the current symbol is a part of one or more
                 // tickers hashes and resolve them
+                // user might have multiple watchTickers promises
+                // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ) and watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
+                // and we want to make sure we resolve only the correct ones
                 client.resolve (ticker, messageHash);
             }
         }
@@ -445,7 +448,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         // {
         //     method: 'ordersPending_update',
         //     params: [
-        //       1,
+        //       1, // 1 = new, 2 = update 3 = cancel or execute
         //       {
         //         id: 96433622651,
         //         market: 'LTC_USDT',
@@ -463,7 +466,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         //         deal_fee: '0',
         //         client_order_id: ''
         //       }
-        //     ],
+        //     ]
         //     id: null
         // }
         //
@@ -474,20 +477,21 @@ module.exports = class whitebit extends ccxt.whitebit {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const parsed = this.parseWsOrder (data);
+        const status = this.safeInteger (params, 0);
+        const parsed = this.parseWsOrder (data, status);
         stored.append (parsed);
         const symbol = parsed['symbol'];
         const messageHash = 'orders:' + symbol;
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, status, market = undefined) {
         //
         //   {
         //         id: 96433622651,
         //         market: 'LTC_USDT',
         //         type: 1,
-        //         side: 2,
+        //         side: 2, //1- sell 2-buy
         //         ctime: 1656092215.39375,
         //         mtime: 1656092215.39375,
         //         price: '25',
@@ -498,6 +502,8 @@ module.exports = class whitebit extends ccxt.whitebit {
         //         deal_stock: '0',
         //         deal_money: '0',
         //         deal_fee: '0',
+        //         activation_price: '40',
+        //         activation_condition: 'lte',
         //         client_order_id: ''
         //    }
         //
@@ -508,35 +514,67 @@ module.exports = class whitebit extends ccxt.whitebit {
         const price = this.safeString (order, 'price');
         const remaining = this.safeString (order, 'left');
         const amount = this.safeString (order, 'amount');
-        const type = this.safeString (order, 'type');
-        const rawState = this.safeString (order, 'state');
-        const status = this.parseOrderStatusByType (market['type'], rawState);
-        const timestamp = this.safeInteger (order, 'ms_t');
+        const stopPrice = this.safeString (order, 'activation_price');
+        const rawType = this.safeString (order, 'type');
+        const type = this.parseWsOrderType (rawType);
+        const timestamp = this.safeTimestamp (order, 'ctime');
         const symbol = market['symbol'];
-        const side = this.safeStringLower (order, 'side');
+        const rawSide = this.safeInteger (order, 'side');
+        const side = (rawSide === 1) ? 'sell' : 'buy';
+        const dealFee = this.safeString (order, 'deal_fee');
+        let fee = undefined;
+        if (dealFee !== undefined) {
+            fee = {
+                'cost': this.parseNumber (dealFee),
+                'currency': market['quote'],
+            };
+        }
+        if (status === 1 || status === 2) {
+            status = 'open';
+        } else {
+            if (this.parseNumber (remaining) === this.parseNumber (amount)) {
+                status = 'canceled';
+            } else {
+                status = 'closed';
+            }
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': id,
             'clientOrderId': clientOrderId,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': timestamp,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    parseWsOrderType (status) {
+        const statuses = {
+            '1': 'limit',
+            '2': 'market',
+            '3': 'limit',
+            '4': 'market',
+            '5': 'limit',
+            '6': 'market',
+            '8': 'limit',
+            '10': 'market',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     async watchBalance (params = {}) {
