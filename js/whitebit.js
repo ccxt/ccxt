@@ -85,7 +85,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
         const messageHash = 'candles:' + symbol;
-        const reqParams = [ marketId, interval + 'HERE' ];
+        const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
         if (this.newUpdates) {
