@@ -557,18 +557,20 @@ module.exports = class bybit extends ccxt.bybit {
             const timeframe = this.safeString (topicParts, topicLength - 2);
             const marketIds = {};
             for (let i = 0; i < data.length; i++) {
-                const ohlcv = data[i];
-                const market = this.market (marketId);
-                const symbol = market['symbol'];
-                const parsed = this.parseWsOHLCV (ohlcv, market);
-                let stored = this.safeValue (this.ohlcvs, symbol);
-                if (stored === undefined) {
-                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                    stored = new ArrayCacheByTimestamp (limit);
-                    this.ohlcvs[symbol] = stored;
+                if (data[i].confirm) {
+                    const ohlcv = data[i];
+                    const market = this.market (marketId);
+                    const symbol = market['symbol'];
+                    const parsed = this.parseWsOHLCV (ohlcv, market);
+                    let stored = this.safeValue (this.ohlcvs, symbol);
+                    if (stored === undefined) {
+                        const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                        stored = new ArrayCacheByTimestamp (limit);
+                        this.ohlcvs[symbol] = stored;
+                    }
+                    stored.append (parsed);
+                    marketIds[symbol] = timeframe;
                 }
-                stored.append (parsed);
-                marketIds[symbol] = timeframe;
             }
             const keys = Object.keys (marketIds);
             for (let i = 0; i < keys.length; i++) {
