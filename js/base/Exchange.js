@@ -292,6 +292,7 @@ module.exports = class Exchange {
         this.requiresEddsa = false
         this.precision = {}
         // response handling flags and properties
+        this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
@@ -1798,6 +1799,7 @@ module.exports = class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
             await this.throttle (cost);
         }
+        this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
