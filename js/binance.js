@@ -3512,6 +3512,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
