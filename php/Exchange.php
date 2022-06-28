@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.89.16';
+$version = '1.89.17';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.89.16';
+    const VERSION = '1.89.17';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3441,6 +3441,7 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle ($cost);
         }
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }

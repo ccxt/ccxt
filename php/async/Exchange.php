@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.89.16';
+$version = '1.89.17';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.89.16';
+    const VERSION = '1.89.17';
 
     public static $loop;
     public static $kernel;
@@ -1273,6 +1273,7 @@ class Exchange extends \ccxt\Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield $this->throttle ($cost);
         }
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }

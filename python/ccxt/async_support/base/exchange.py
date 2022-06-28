@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.16'
+__version__ = '1.89.17'
 
 # -----------------------------------------------------------------------------
 
@@ -1118,6 +1118,7 @@ class Exchange(BaseExchange):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             await self.throttle(cost)
+        self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
