@@ -4447,6 +4447,11 @@ module.exports = class gate extends Exchange {
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -4455,10 +4460,19 @@ module.exports = class gate extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
         let method = 'privateMarginPostCrossLoans';
         if (marginMode === 'isolated') {
-            method = 'privateMarginPostLoans';
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['currency_pair'] = market['id'];
+            const rate = this.safeString (params, 'rate');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
+            }
+            request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow';
+            method = 'privateMarginPostLoans';
         }
-        params = this.omit (params, 'marginMode');
+        params = this.omit (params, [ 'marginMode', 'rate' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Cross
