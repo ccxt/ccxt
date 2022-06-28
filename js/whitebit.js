@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { AuthenticationError, BadSymbol, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -52,8 +52,10 @@ module.exports = class whitebit extends ccxt.whitebit {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': BadSymbol, // { error: 'Bearer or HMAC authentication required' }
-                        'Error: wrong input': BadRequest, // { error: 'Error: wrong input' }
+                        '1': BadRequest, // { error: { code: 1, message: 'invalid argument' }, result: null, id: 1656404342 }
+                        '2': BadRequest, // { error: { code: 2, message: 'internal error' }, result: null, id: 1656404075 }
+                        '4': BadRequest, // { error: { code: 4, message: 'method not found' }, result: null, id: 1656404250 }
+                        '6': AuthenticationError, // { error: { code: 6, message: 'require authentication' }, result: null, id: 1656404076 }
                     },
                 },
             },
@@ -83,7 +85,7 @@ module.exports = class whitebit extends ccxt.whitebit {
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
         const messageHash = 'candles:' + symbol;
-        const reqParams = [ marketId, interval ];
+        const reqParams = [ marketId, interval + 'HERE' ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
         if (this.newUpdates) {
@@ -654,7 +656,7 @@ module.exports = class whitebit extends ccxt.whitebit {
          * @name whitebit#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} params extra parameters specific to the whitebit api endpoint
-         * @param {dict} params.type spot or contract if not provided this.options['defaultType'] is used
+         * @param {str|undefined} params.type spot or contract if not provided this.options['defaultType'] is used
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -844,6 +846,10 @@ module.exports = class whitebit extends ccxt.whitebit {
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticated');
+                if ('login' in client.subscriptions) {
+                    delete client.subscriptions['login'];
+                }
                 return false;
             }
         }
