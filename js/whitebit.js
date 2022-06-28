@@ -1794,7 +1794,7 @@ module.exports = class whitebit extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
-                'X-TXC-PAYLOAD': payload,
+                'X-TXC-PAYLOAD': this.decode (payload),
                 'X-TXC-SIGNATURE': signature,
             };
         }
