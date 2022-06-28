@@ -4391,7 +4391,7 @@ module.exports = class gate extends Exchange {
             if (mode === undefined) {
                 throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
             }
-            const id = this.safeString (params, 'loan_id');
+            const id = this.safeString2 (params, 'loan_id', 'id');
             if (id === undefined) {
                 throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
             }
@@ -4400,7 +4400,7 @@ module.exports = class gate extends Exchange {
             request['mode'] = mode;
             request['loan_id'] = id;
         }
-        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id' ]);
+        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
         const response = await this[method] (this.extend (request, params));
         //
         // Cross
