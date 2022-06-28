@@ -1,6 +1,6 @@
 {
   "name": "ccxt-esm",
-  "version": "1.89.16",
+  "version": "1.89.17",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.mjs",
   "type": "module",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/carlosmiei/ccxt"
+    "url": "https://github.com/carlosmiei/ccxt/tree/esm-migration"
   },
   "readme": "README.md",
   "scripts": {
