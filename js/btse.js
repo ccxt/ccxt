@@ -282,11 +282,11 @@ module.exports = class btse extends Exchange {
             const symbol = base + '/' + quote;
             const minQuantity = this.safeNumber (market, 'minOrderSize');
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
-            const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
-            // const minValidPrice = this.safeNumber (market, 'minValidPrice');
+            // const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
+            const minValidPrice = this.safeNumber (market, 'minValidPrice');
             const active = this.safeString (market, 'active');
-            const amountPrecision = this.precisionFromString (this.safeString (market, 'minOrderSize'));
-            const pricePrecision = this.precisionFromString (this.safeString (market, 'minValidPrice'));
+            const amountPrecision = this.precisionFromString (this.safeString (market, 'minSizeIncrement'));
+            const pricePrecision = this.precisionFromString (this.safeString (market, 'minPriceIncrement'));
             const precision = {
                 'amount': amountPrecision,
                 'price': pricePrecision,
@@ -325,10 +325,10 @@ module.exports = class btse extends Exchange {
                 'limits': {
                     'amount': {
                         'min': this.parseNumber (minQuantity),
-                        'max': maxQuantity,
+                        'max': this.parseNumber (maxQuantity),
                     },
                     'price': {
-                        'min': minPriceIncrement,
+                        'min': minValidPrice,
                         'max': undefined,
                     },
                     'cost': {
@@ -404,7 +404,7 @@ module.exports = class btse extends Exchange {
             }
             const minQuantity = this.safeNumber (market, 'minOrderSize');
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
-            const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
+            const minValidPrice = this.safeNumber (market, 'minValidPrice');
             // const minSizeIncrement = this.safeNumber (market, 'minSizeIncrement');
             const active = this.safeString (market, 'active');
             const amountPrecision = this.precisionFromString (this.safeString (market, 'minOrderSize'));
@@ -444,10 +444,10 @@ module.exports = class btse extends Exchange {
                 'limits': {
                     'amount': {
                         'min': this.parseNumber (minQuantity),
-                        'max': maxQuantity,
+                        'max': this.parseNumber (maxQuantity),
                     },
                     'price': {
-                        'min': minPriceIncrement,
+                        'min': minValidPrice,
                         'max': undefined,
                     },
                     'cost': {
