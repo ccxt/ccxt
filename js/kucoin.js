@@ -191,7 +191,7 @@ export default class kucoin extends Exchange {
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'orders': 20, // 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}': 1,
+                        'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1, // rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
@@ -1329,7 +1329,7 @@ export default class kucoin extends Exchange {
             if (stop) {
                 method = 'privateDeleteStopOrderCancelOrderByClientOid';
             } else {
-                method = 'privateDeleteOrdersClientOrderClientOid';
+                method = 'privateDeleteOrderClientOrderClientOid';
             }
         } else {
             if (stop) {

@@ -519,7 +519,7 @@ class cryptocom(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         data = self.safe_value(result, 'data', [])
-        return self.filter_by_array(data, 'symbol', symbols)
+        return self.parse_tickers(data, symbols)
 
     def fetch_ticker(self, symbol, params={}):
         """

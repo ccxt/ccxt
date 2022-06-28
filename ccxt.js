@@ -34,7 +34,7 @@ import * as errors   from './js/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.88.94'
+const version = '1.89.16'
 
 Exchange.ccxtVersion = version
 
