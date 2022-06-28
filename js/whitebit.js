@@ -831,11 +831,11 @@ module.exports = class whitebit extends ccxt.whitebit {
 
     handleErrorMessage (client, message) {
         //
-        // {
-        //     error: { code: 1, message: 'invalid argument' },
-        //     result: null,
-        //     id: 1656090882
-        // }
+        //     {
+        //         error: { code: 1, message: 'invalid argument' },
+        //         result: null,
+        //         id: 1656090882
+        //     }
         //
         const error = this.safeValue (message, 'error');
         try {
