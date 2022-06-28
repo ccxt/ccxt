@@ -4421,24 +4421,21 @@ module.exports = class gate extends Exchange {
         // Isolated
         //
         //     {
-        //         "id": "123435",
-        //         "create_time": "1548000000",
-        //         "expire_time": "1548100000",
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "finished",
         //         "side": "borrow",
-        //         "status": "loaned",
-        //         "currency": "BTC",
-        //         "rate": "0.002",
-        //         "amount": "1.5",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
         //         "days": 10,
-        //         "auto_renew": true,
-        //         "currency_pair": "ETH_BTC",
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
         //         "left": "0",
-        //         "repaid": "0",
-        //         "paid_interest": "0",
-        //         "unpaid_interest": "0",
-        //         "fee_rate": "0.18",
-        //         "orig_id": "123424",
-        //         "text": "t-abc"
+        //         "repaid": "100",
+        //         "paid_interest": "0.003333333333",
+        //         "unpaid_interest": "0"
         //     }
         //
         return this.parseMarginLoan (response, currency);
@@ -4493,24 +4490,21 @@ module.exports = class gate extends Exchange {
         // Isolated
         //
         //     {
-        //         "id": "123435",
-        //         "create_time": "1548000000",
-        //         "expire_time": "1548100000",
-        //         "side": "borrow",
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
         //         "status": "loaned",
-        //         "currency": "BTC",
-        //         "rate": "0.002",
-        //         "amount": "1.5",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
         //         "days": 10,
-        //         "auto_renew": true,
-        //         "currency_pair": "ETH_BTC",
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
         //         "left": "0",
         //         "repaid": "0",
         //         "paid_interest": "0",
-        //         "unpaid_interest": "0",
-        //         "fee_rate": "0.18",
-        //         "orig_id": "123424",
-        //         "text": "t-abc"
+        //         "unpaid_interest": "0.003333333333"
         //     }
         //
         return this.parseMarginLoan (response, currency);
@@ -4536,24 +4530,21 @@ module.exports = class gate extends Exchange {
         // Isolated
         //
         //     {
-        //         "id": "123435",
-        //         "create_time": "1548000000",
-        //         "expire_time": "1548100000",
-        //         "side": "borrow",
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
         //         "status": "loaned",
-        //         "currency": "BTC",
-        //         "rate": "0.002",
-        //         "amount": "1.5",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
         //         "days": 10,
-        //         "auto_renew": true,
-        //         "currency_pair": "ETH_BTC",
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
         //         "left": "0",
         //         "repaid": "0",
         //         "paid_interest": "0",
-        //         "unpaid_interest": "0",
-        //         "fee_rate": "0.18",
-        //         "orig_id": "123424",
-        //         "text": "t-abc"
+        //         "unpaid_interest": "0.003333333333"
         //     }
         //
         const currencyId = this.safeString (info, 'currency');
