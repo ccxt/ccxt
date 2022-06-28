@@ -4549,7 +4549,7 @@ module.exports = class gate extends Exchange {
         //
         const currencyId = this.safeString (info, 'currency');
         const marketId = this.safeString (info, 'currency_pair');
-        const timestamp = this.safeInteger (info, 'create_time');
+        const timestamp = this.safeTimestamp (info, 'create_time');
         return {
             'id': this.safeInteger (info, 'id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
