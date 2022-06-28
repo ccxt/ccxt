@@ -46,6 +46,7 @@ class bittrex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -648,6 +649,28 @@ class bittrex extends Exchange {
         //     }
         //
         return $this->parse_ticker($response, $market);
+    }
+
+    public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetMarketsTickers ($params);
+        //
+        //     array(
+        //       {
+        //         "symbol":"ETH-BTC",
+        //         "lastTradeRate":"0.03284496",
+        //         "bidRate":"0.03284523",
+        //         "askRate":"0.03286857"
+        //       }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
     }
 
     public function parse_trade($trade, $market = null) {

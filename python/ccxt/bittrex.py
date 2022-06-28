@@ -53,6 +53,7 @@ class bittrex(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -640,6 +641,27 @@ class bittrex(Exchange):
         #     }
         #
         return self.parse_ticker(response, market)
+
+    def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetMarketsTickers(params)
+        #
+        #     [
+        #       {
+        #         "symbol":"ETH-BTC",
+        #         "lastTradeRate":"0.03284496",
+        #         "bidRate":"0.03284523",
+        #         "askRate":"0.03286857"
+        #       }
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
 
     def parse_trade(self, trade, market=None):
         #
