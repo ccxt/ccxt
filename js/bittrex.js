@@ -37,7 +37,6 @@ module.exports = class bittrex extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
-                'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -64,6 +63,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchL1OrderBooks': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -654,10 +654,10 @@ module.exports = class bittrex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchBidsAsks (symbols = undefined, params = {}) {
+    async fetchL1OrderBooks (symbols = undefined, params = {}) {
         /**
          * @method
-         * @name bittrex#fetchBidsAsks
+         * @name bittrex#fetchL1OrderBooks
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {dict} params extra parameters specific to the binance api endpoint
