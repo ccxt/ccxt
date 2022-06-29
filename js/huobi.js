@@ -1560,12 +1560,15 @@ module.exports = class huobi extends Exchange {
             let amountPrecision = undefined;
             let costPrecision = undefined;
             if (spot) {
-                pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
-                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
-                costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
+                pricePrecision = this.safeString (market, 'price-precision');
+                pricePrecision = this.parseNumber ('1e-' + pricePrecision);
+                amountPrecision = this.safeString (market, 'amount-precision');
+                amountPrecision = this.parseNumber ('1e-' + amountPrecision);
+                costPrecision = this.safeString (market, 'value-precision');
+                costPrecision = this.parseNumber ('1e-' + costPrecision);
             } else {
                 pricePrecision = this.safeNumber (market, 'price_tick');
-                amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
+                amountPrecision = 1;
             }
             let maker = undefined;
             let taker = undefined;
@@ -2722,8 +2725,9 @@ module.exports = class huobi extends Exchange {
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision')));
+                let precision = this.safeString (chain, 'withdrawPrecision');
                 if (precision !== undefined) {
+                    precision = this.parseNumber ('1e-' + precision);
                     minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
