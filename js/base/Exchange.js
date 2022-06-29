@@ -933,13 +933,13 @@ module.exports = class Exchange {
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
-            if (total === undefined) {
+            if (total === undefined && free !== undefined && used !== undefined) {
                 total = Precise.stringAdd (free, used);
             }
-            if (free === undefined) {
+            if (free === undefined && total !== undefined && used !== undefined) {
                 free = Precise.stringSub (total, used);
             }
-            if (used === undefined) {
+            if (used === undefined && total !== undefined && free !== undefined) {
                 used = Precise.stringSub (total, free);
             }
             balance[code]['free'] = this.parseNumber (free);
