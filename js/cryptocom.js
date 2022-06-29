@@ -843,6 +843,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
+            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
@@ -862,6 +863,42 @@ module.exports = class cryptocom extends Exchange {
         //                     "currency": "CRO"
         //                 }
         //             ]
+        //         }
+        //     }
+        //
+        // margin
+        //     {
+        //         "id": 1656529728178,
+        //         "method": "private/margin/get-account-summary",
+        //         "code": 0,
+        //         "result": {
+        //             "accounts": [
+        //                 {
+        //                     "balance": 0,
+        //                     "available": 0,
+        //                     "order": 0,
+        //                     "borrowed": 0,
+        //                     "position": 0,
+        //                     "positionHomeCurrency": 0,
+        //                     "positionBtc": 0,
+        //                     "lastPriceHomeCurrency": 20111.38,
+        //                     "lastPriceBtc": 1,
+        //                     "currency": "BTC",
+        //                     "accrued_interest": 0,
+        //                     "liquidation_price": 0
+        //                 },
+        //             ],
+        //             "is_liquidating": false,
+        //             "total_balance": 16,
+        //             "total_balance_btc": 0.00079556,
+        //             "equity_value": 16,
+        //             "equity_value_btc": 0.00079556,
+        //             "total_borrowed": 0,
+        //             "total_borrowed_btc": 0,
+        //             "total_accrued_interest": 0,
+        //             "total_accrued_interest_btc": 0,
+        //             "margin_score": "GOOD",
+        //             "currency": "USDT"
         //         }
         //     }
         //
@@ -900,6 +937,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const parser = this.getSupportedMapping (marketType, {
             'spot': 'parseSpotBalance',
+            'margin': 'parseSpotBalance',
             'future': 'parseSwapBalance',
             'swap': 'parseSwapBalance',
         });
@@ -1590,7 +1628,8 @@ module.exports = class cryptocom extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //     {
+        //   {
+        //     response: {
         //       id: '1641032709328',
         //       method: 'private/deriv/get-transfer-history',
         //       code: '0',
@@ -1607,6 +1646,7 @@ module.exports = class cryptocom extends Exchange {
         //         ]
         //       }
         //     }
+        //   }
         //
         const response = this.safeValue (transfer, 'response', {});
         const result = this.safeValue (response, 'result', {});
