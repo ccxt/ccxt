@@ -582,12 +582,13 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //     {
         //       id: 1641026542065,
         //       method: 'private/get-order-history',
