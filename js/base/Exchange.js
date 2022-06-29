@@ -2485,8 +2485,8 @@ module.exports = class Exchange {
     }
 
     safeMarketSymbol (dictionary, key, market = undefined, delimiter = undefined) {
-        const marketId = this.safeString (dictionary, key)
-        return this.safeSymbol (marketId, market, delimiter)
+        const marketId = this.safeString (dictionary, key);
+        return this.safeSymbol (marketId, market, delimiter);
     }
 
     parseFundingRate (contract, market = undefined) {
