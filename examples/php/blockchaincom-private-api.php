@@ -11,6 +11,7 @@ $exchange = new \ccxt\blockchaincom(array(
     'secret' => 'YOUR_SECRET_KEY'
 ));
 
+$withdrawal_beneficiary = 'BENEFICIARY';
 $symbol = 'BTC/USDT';
 $type = 'limit'; // # or 'market', or 'Stop' or 'StopLimit'
 $side = 'buy';
@@ -88,6 +89,25 @@ try {
     $result = $exchange->fetch_withdrawal_whitelist();
     printf("Withdrawal white list" . "\n");
     var_dump( $result[0] );
+    printf("\n--------------------------------------------------------------\n");
+
+    // fetch withdrawal white list by currency
+    $result = $exchange->fetch_withdrawal_whitelist_by_currency('BTC');
+    printf("Withdrawal white list by currency" . "\n");
+    var_dump( $result );
+    printf("\n--------------------------------------------------------------\n");
+
+    // cancel all open orders
+    $result = $exchange->cancel_orders(null);
+    printf("Canceled all open orders" . "\n");
+    var_dump( $result );
+    printf("\n--------------------------------------------------------------\n");
+
+    //withdrawal
+    $params = array( 'beneficiary' => $withdrawal_beneficiary );
+    $result = $exchange->withdraw("BTC", 0.01, "", null, $params);
+    printf("Canceled all open orders" . "\n");
+    var_dump( $result );
     printf("\n--------------------------------------------------------------\n");
 
 } catch (\ccxt\NetworkError $e) {

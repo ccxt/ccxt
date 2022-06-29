@@ -11,6 +11,7 @@ require('ansicolor').nice
         let exchange = new ccxt.blockchaincom({
             'secret': 'YOUR_SECRET_KEY'
         })
+        let withdrawal_beneficiary = 'BENEFICIARY'
 
         try {
 
@@ -61,6 +62,15 @@ require('ansicolor').nice
             // fetch withdrawal white list
             let whiteList = await exchange.fetchWithdrawalWhitelist()
             log('whiteList'.green, asTable(whiteList))
+
+            // cancel all open orders
+            let canceledOrders = await exchange.cancelOrders(null)
+            console.log('Canceled all open orders'.green, canceledOrders);
+
+            // withdrawal
+            const params = { 'beneficiary': withdrawal_beneficiary }
+            let btcWithdraw = await exchange.withdraw("BTC", 0.01, "", undefined, params)
+            log('BTC withdrawal'.green, btcWithdraw)
 
         } catch (e) {
 

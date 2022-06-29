@@ -3,14 +3,16 @@ import ccxt
 
 exchange = ccxt.blockchaincom({
     'secret': 'YOUR_SECRET_KEY',
-    'timeout': 30000
+    'timeout': 30000,
 })
 
 symbol = 'BTC/USDT'
-type = 'limit' # or 'market', or 'Stop' or 'StopLimit'
+type = 'limit' #or 'market', or 'Stop' or 'StopLimit'
 side = 'buy'
 amount = 0.01
 price = 2000
+
+withdrawal_beneficiary = 'BENEFICIARY'
 
 fees = exchange.fetch_trading_fees()
 print(fees)
@@ -69,3 +71,14 @@ print("\n")
 
 white_list = exchange.fetch_withdrawal_whitelist()
 print(white_list)
+
+print("\n")
+
+canceledOrders = exchange.cancel_orders(None)
+print(canceledOrders)
+
+print("\n")
+
+params = { 'beneficiary': withdrawal_beneficiary }
+btcWithdraw = exchange.withdraw("BTC", amount, "", None, params)
+print(btcWithdraw)
