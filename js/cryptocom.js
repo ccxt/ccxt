@@ -1240,6 +1240,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
+            'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
