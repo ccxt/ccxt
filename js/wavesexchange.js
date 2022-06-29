@@ -2212,6 +2212,7 @@ module.exports = class wavesexchange extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let network = undefined;
         [ params, network ] = await this.validateNetworkParams (code, 'withdraw', params);
+        const currency = this.currency (code);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
             const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
@@ -2246,8 +2247,12 @@ module.exports = class wavesexchange extends Exchange {
         }
         await this.signIn ();
         let proxyAddress = undefined;
+        let fee = undefined;
+        let feeAssetId = undefined;
         if (code === 'WAVES' && !isErc20) {
             proxyAddress = address;
+            fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
+            feeAssetId = 'WAVES';
         } else {
             const withdrawAddressRequest = {
                 'address': address,
@@ -2255,42 +2260,50 @@ module.exports = class wavesexchange extends Exchange {
                 'platform': network,
             };
             const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddressPlatform (withdrawAddressRequest);
-            // {
-            //   "type": "withdrawal_addresses",
-            //   "currency": {
-            //     "type": "withdrawal_currency",
-            //     "id": "BTC",
-            //     "waves_asset_id": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-            //     "decimals": 8,
-            //     "status": "active",
-            //     "allowed_amount": {
-            //       "min": 0.001,
-            //       "max": 20
-            //     },
-            //     "fees": {
-            //       "flat": 0.001,
-            //       "rate": 0
-            //     }
-            //   },
-            //   "proxy_addresses": [
-            //     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
-            //   ]
-            // }
-            const currency = this.safeValue (withdrawAddress, 'currency');
-            const allowedAmount = this.safeValue (currency, 'allowed_amount');
+            //
+            //    {
+            //        "type": "withdrawal_addresses",
+            //        "currency": {
+            //            "type": "withdrawal_currency",
+            //            "id": "USDT",
+            //            "platform_id": "BSC",
+            //            "waves_asset_id": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+            //            "platform_asset_id": "0x55d398326f99059fF775485246999027B3197955",
+            //            "decimals": "6",
+            //            "status": "active",
+            //            "allowed_amount": {
+            //                "min": "1",
+            //                "max": "1847684.540885"
+            //            },
+            //            "fees": {
+            //                "flat": "1",
+            //                "rate": "0"
+            //            }
+            //        },
+            //        "proxy_addresses": [
+            //            "3PBxSg2VNMihprCQ2PbS1m5m74h6vcSnyYu"
+            //        ]
+            //    }
+            //
+            const currencyInner = this.safeValue (withdrawAddress, 'currency');
+            const allowedAmount = this.safeValue (currencyInner, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
             if (amount < minimum) {
                 throw new BadRequest (this.id + ' ' + code + ' withdraw failed, amount ' + amount.toString () + ' must be greater than the minimum allowed amount of ' + minimum.toString ());
             }
             const proxyAddresses = this.safeValue (withdrawAddress, 'proxy_addresses', []);
             proxyAddress = this.safeString (proxyAddresses, 0);
+            const precision = this.safeNumber (currencyInner, 'decimals');
+            this.currencies[code]['precision'] = precision;
+            feeAssetId = currency['id'];
+            const feesInner = this.safeValue (currencyInner, 'fees', {});
+            const feeFlat = this.safeString (feesInner, 'flat');
+            const feeValue = Precise.stringMul (feeFlat, '1e+' + this.numberToString (precision));
+            fee = this.parseNumber (feeValue);
         }
-        const fee = this.safeInteger (this.options, 'withdrawFeeWAVES', 100000);  // 0.001 WAVES
-        const feeAssetId = 'WAVES';
         const type = 4;  // transfer
         const version = 2;
         const amountInteger = this.currencyToPrecision (code, amount, network);
-        const currency = this.currency (code);
         const timestamp = this.milliseconds ();
         const byteArray = [
             this.numberToBE (4, 1),
@@ -2333,6 +2346,27 @@ module.exports = class wavesexchange extends Exchange {
         //         "recipient": "3P274YB5qseSE9DTTL3bpSjosZrYBPDpJ8k",
         //         "amount": 0
         //     }
+        //
+        // regular withdraw:
+        //
+        //    {
+        //        "type": "4",
+        //        "id": "Cc94DHvHyJpNAekSLcXFDm7uJ2aY6ydXx1xXXXXb2f67",
+        //        "fee": "1000000",
+        //        "feeAssetId": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "timestamp": "1656499796269",
+        //        "version": "2",
+        //        "sender": "3P81LLX1kk2CSJC9L8C3hnxdXX7XxxXXXXX",
+        //        "senderPublicKey": "DdmzmXf9mty1FBE8AdVGnrncVLEAzP4gR4nWoXXXXxxX",
+        //        "proofs": [
+        //            "54TJuRrF7rND2ji1X1Y89w25ry736XfZ5xk9RoVCMyivtAPesYK7wy9ob8CoJ1k7uAzcRkfNwZkhEiqtXXXx6x5X"
+        //        ],
+        //        "recipient": "3PBxSg2VNMihprCQ2PbS1m5m74h6xxXxxXx",
+        //        "assetId": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "feeAsset": "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //        "amount": "10000001",
+        //        "attachment": ""
+        //    }
         //
         return this.parseTransaction (result, currency);
     }
