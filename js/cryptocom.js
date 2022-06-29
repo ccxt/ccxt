@@ -222,6 +222,7 @@ module.exports = class cryptocom extends Exchange {
                 'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
+                    'margin': 'MARGIN',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
@@ -1503,7 +1504,11 @@ module.exports = class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        const repsonse = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        let method = 'spotPrivatePostPrivateDerivTransfer';
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            method = 'spotPrivatePostPrivateMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "id": 11,
@@ -1511,7 +1516,7 @@ module.exports = class cryptocom extends Exchange {
         //         "code": 0
         //     }
         //
-        return this.parseTransfer (repsonse, currency);
+        return this.parseTransfer (response, currency);
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
