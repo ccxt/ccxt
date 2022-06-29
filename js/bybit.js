@@ -4887,7 +4887,7 @@ module.exports = class bybit extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const isOpenapi = url.indexOf ('openapi') >= 0;
-            const timestamp = this.milliseconds ().toString ();
+            const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
                 if (Object.keys (params).length) {
                     body = this.json (params);
