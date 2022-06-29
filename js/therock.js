@@ -897,23 +897,6 @@ module.exports = class therock extends Exchange {
         };
     }
 
-    async fetchWithdrawal (id, code = undefined, params = {}) {
-        /**
-         * @method
-         * @name therock#fetchWithdrawal
-         * @description fetch data on a currency withdrawal via the withdrawal id
-         * @param {str} id withdrawal id
-         * @param {str|undefined} code not used by therock.fetchWithdrawal
-         * @param {dict} params extra parameters specific to the therock api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
-        const request = {
-            'type': 'withdraw',
-            'transfer_id': id,
-        };
-        return await this.fetchTransactions (code, undefined, undefined, this.extend (request, params));
-    }
-
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
