@@ -26,9 +26,13 @@ module.exports = class therock extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'cancelAllOrders': true,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDeposit': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -50,12 +54,14 @@ module.exports = class therock extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': true,
@@ -104,6 +110,7 @@ module.exports = class therock extends Exchange {
                     },
                     'post': {
                         'atms/withdraw': 1,
+                        'currencies/{currency}/addresses': 1,
                         'funds/{fund_id}/orders': 1,
                     },
                     'delete': {
@@ -890,6 +897,23 @@ module.exports = class therock extends Exchange {
         };
     }
 
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str|undefined} code not used by therock.fetchWithdrawal
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const request = {
+            'type': 'withdraw',
+            'transfer_id': id,
+        };
+        return await this.fetchTransactions (code, undefined, undefined, this.extend (request, params));
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1020,6 +1044,28 @@ module.exports = class therock extends Exchange {
         const transactionTypes = [ 'withdraw', 'atm_payment' ];
         const depositsAndWithdrawals = this.filterByArray (transactions, 'type', transactionTypes, false);
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name therock#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        await this.auth;
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const res = await this.privatePostCurrenciesCurrencyAddresses (this.extend (request, params));
+        //
+        // empty response
+        //
+        return res;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1367,6 +1413,29 @@ module.exports = class therock extends Exchange {
         };
         const response = await this.privateDeleteFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name therock#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the therock api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'fund_id': this.marketId (symbol),
+        };
+        const response = await this.privateDeleteFundsFundIdOrdersRemoveAll (this.extend (request, params));
+        //
+        //  emtpy response
+        //
+        return response;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
