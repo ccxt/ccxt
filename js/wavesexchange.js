@@ -2300,6 +2300,8 @@ module.exports = class wavesexchange extends Exchange {
             const feeFlat = this.safeString (feesInner, 'flat');
             const feeValue = Precise.stringMul (feeFlat, '1e+' + this.numberToString (precision));
             fee = this.parseNumber (feeValue);
+            // lets reduce amount by fee
+            amount = Precise.stringSub (this.numberToString (amount), this.numberToString (fee));
         }
         const type = 4;  // transfer
         const version = 2;
