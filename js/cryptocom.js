@@ -1542,7 +1542,18 @@ module.exports = class cryptocom extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.spotPrivatePostPrivateDerivGetTransferHistory (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //       id: '1641032709328',
@@ -1562,9 +1573,11 @@ module.exports = class cryptocom extends Exchange {
         //       }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const transferList = this.safeValue (result, 'transfer_list', []);
-        return this.parseTransfers (transferList, currency, since, limit, params);
+        const transfer = [];
+        transfer.push ({
+            'response': response,
+        });
+        return this.parseTransfers (transfer, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
@@ -1578,31 +1591,56 @@ module.exports = class cryptocom extends Exchange {
     parseTransfer (transfer, currency = undefined) {
         //
         //     {
-        //       direction: 'IN',
-        //       time: '1641025185223',
-        //       amount: '109.56',
-        //       status: 'COMPLETED',
-        //       information: 'From Spot Wallet',
-        //       currency: 'USDC'
+        //       id: '1641032709328',
+        //       method: 'private/deriv/get-transfer-history',
+        //       code: '0',
+        //       result: {
+        //         transfer_list: [
+        //           {
+        //             direction: 'IN',
+        //             time: '1641025185223',
+        //             amount: '109.56',
+        //             status: 'COMPLETED',
+        //             information: 'From Spot Wallet',
+        //             currency: 'USDC'
+        //           }
+        //         ]
+        //       }
         //     }
         //
-        const timestamp = this.safeInteger (transfer, 'time');
-        const amount = this.safeNumber (transfer, 'amount');
-        const currencyId = this.safeString (transfer, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const information = this.safeString (transfer, 'information');
+        const response = this.safeValue (transfer, 'response', {});
+        const result = this.safeValue (response, 'result', {});
+        const transferList = this.safeValue (result, 'transfer_list', []);
+        let timestamp = undefined;
+        let amount = undefined;
+        let code = undefined;
+        let information = undefined;
+        let status = undefined;
+        for (let i = 0; i < transferList.length; i++) {
+            const entry = transferList[i];
+            timestamp = this.safeInteger (entry, 'time');
+            amount = this.safeNumber (entry, 'amount');
+            const currencyId = this.safeString (entry, 'currency');
+            code = this.safeCurrencyCode (currencyId);
+            information = this.safeString (entry, 'information');
+            const rawStatus = this.safeString (entry, 'status');
+            status = this.parseTransferStatus (rawStatus);
+        }
         let fromAccount = undefined;
         let toAccount = undefined;
         if (information !== undefined) {
             const parts = information.split (' ');
             fromAccount = this.safeStringLower (parts, 1);
-            toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
+            const method = this.safeString (response, 'method');
+            if (method === 'private/margin/get-transfer-history') {
+                toAccount = (fromAccount === 'spot') ? 'margin' : 'spot';
+            } else {
+                toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
+            }
         }
-        const rawStatus = this.safeString (transfer, 'status');
-        const status = this.parseTransferStatus (rawStatus);
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
+            'info': transferList,
+            'id': this.safeString (response, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
