@@ -1034,7 +1034,7 @@ module.exports = class bitfinex extends Exchange {
             request['is_postonly'] = true;
         }
         const response = await this.privatePostOrderNew (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
