@@ -461,7 +461,7 @@ module.exports = class gemini extends Exchange {
             request['limit_asks'] = limit;
         }
         const response = await this.publicGetV1BookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTickerV1 (symbol, params = {}) {
