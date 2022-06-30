@@ -416,8 +416,9 @@ module.exports = class bittrex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'marketSymbol': this.marketId (symbol),
+            'marketSymbol': market['id'],
         };
         if (limit !== undefined) {
             if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -771,7 +772,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'marketSymbol': this.marketId (symbol),
+            'marketSymbol': market['id'],
         };
         const response = await this.publicGetMarketsMarketSymbolTrades (this.extend (request, params));
         //
