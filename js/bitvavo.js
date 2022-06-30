@@ -794,7 +794,7 @@ module.exports = class bitvavo extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response, symbol);
+        const orderbook = this.parseOrderBook (response, market['symbol']);
         orderbook['nonce'] = this.safeInteger (response, 'nonce');
         return orderbook;
     }
