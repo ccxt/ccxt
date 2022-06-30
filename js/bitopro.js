@@ -497,7 +497,7 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market) {
