@@ -4401,7 +4401,7 @@ module.exports = class gate extends Exchange {
             request['loan_id'] = id;
         }
         params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
-        const response = await this[method] (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
         //
         // Cross
         //
@@ -4438,6 +4438,9 @@ module.exports = class gate extends Exchange {
         //         "unpaid_interest": "0"
         //     }
         //
+        if (marginMode === 'cross') {
+            response = response[0];
+        }
         return this.parseMarginLoan (response, currency);
     }
 
@@ -4547,9 +4550,13 @@ module.exports = class gate extends Exchange {
         //         "unpaid_interest": "0.003333333333"
         //     }
         //
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        let timestamp = this.safeInteger (info, 'create_time');
+        if (marginMode === 'isolated') {
+            timestamp = this.safeTimestamp (info, 'create_time');
+        }
         const currencyId = this.safeString (info, 'currency');
         const marketId = this.safeString (info, 'currency_pair');
-        const timestamp = this.safeTimestamp (info, 'create_time');
         return {
             'id': this.safeInteger (info, 'id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
