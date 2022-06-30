@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.89.19';
+$version = '1.89.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.89.19';
+    const VERSION = '1.89.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3375,10 +3375,10 @@ class Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);

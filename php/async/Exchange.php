@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.89.19';
+$version = '1.89.20';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.89.19';
+    const VERSION = '1.89.20';
 
     public static $loop;
     public static $kernel;
@@ -1207,10 +1207,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.19'
+__version__ = '1.89.20'
 
 # -----------------------------------------------------------------------------
 
@@ -1068,9 +1068,9 @@ class Exchange(BaseExchange):
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         result = []
-        array = self.to_array(data)
-        for i in range(0, len(array)):
-            itemOrItems = self.parse_ledger_entry(array[i], currency)
+        arrayData = self.to_array(data)
+        for i in range(0, len(arrayData)):
+            itemOrItems = self.parse_ledger_entry(arrayData[i], currency)
             if isinstance(itemOrItems, list):
                 for j in range(0, len(itemOrItems)):
                     result.append(self.extend(itemOrItems[j], params))
