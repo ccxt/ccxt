@@ -679,10 +679,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
         }
-        if (orderbook['nonce'] === undefined) {
-            orderbook.cache.push (message);
-        } else {
+        if (orderbook['nonce'] !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
+        } else {
+            orderbook.cache.push (message);
         }
     }
 
