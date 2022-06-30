@@ -619,7 +619,7 @@ module.exports = class bitstamp extends Exchange {
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
         const timestamp = parseInt (microtimestamp / 1000);
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
     }
