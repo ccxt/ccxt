@@ -459,8 +459,9 @@ class bitopro(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if limit is not None:
             request['limit'] = limit
@@ -485,7 +486,7 @@ class bitopro(Exchange):
         #         ]
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market):
         #
