@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.22'
+__version__ = '1.89.23'
 
 # -----------------------------------------------------------------------------
 
@@ -403,11 +403,11 @@ class Exchange(BaseExchange):
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
-            if total is None:
+            if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
-            if free is None:
+            if (free is None) and (total is not None) and (used is not None):
                 free = Precise.string_sub(total, used)
-            if used is None:
+            if (used is None) and (total is not None) and (free is not None):
                 used = Precise.string_sub(total, free)
             balance[code]['free'] = self.parse_number(free)
             balance[code]['used'] = self.parse_number(used)

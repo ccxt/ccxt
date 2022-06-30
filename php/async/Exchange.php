@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.89.22';
+$version = '1.89.23';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.89.22';
+    const VERSION = '1.89.23';
 
     public static $loop;
     public static $kernel;
@@ -407,13 +407,13 @@ class Exchange extends \ccxt\Exchange {
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
-            if ($total === null) {
+            if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
-            if ($free === null) {
+            if (($free === null) && ($total !== null) && ($used !== null)) {
                 $free = Precise::string_sub($total, $used);
             }
-            if ($used === null) {
+            if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
             $balance[$code]['free'] = $this->parse_number($free);
