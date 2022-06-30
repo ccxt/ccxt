@@ -635,7 +635,7 @@ module.exports = class bybit extends ccxt.bybit {
             timestamp = this.safeIntegerProduct (ohlcv, 'timestamp', 0.001);
         }
         return [
-            timestamp,
+            this.safeNumber2 (ohlcv, 'start', 't'),
             this.safeNumber2 (ohlcv, 'open', 'o'),
             this.safeNumber2 (ohlcv, 'high', 'h'),
             this.safeNumber2 (ohlcv, 'low', 'l'),
