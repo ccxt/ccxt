@@ -58,6 +58,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': true,
@@ -2060,6 +2061,30 @@ module.exports = class cryptocom extends Exchange {
         };
     }
 
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2083,10 +2108,23 @@ module.exports = class cryptocom extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
+        // borrowMargin
+        //
         //     {
         //         "id": 1656619578559,
         //         "method": "private/margin/borrow",
         //         "code": 0
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
         //     }
         //
         return {
