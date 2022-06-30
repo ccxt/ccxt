@@ -676,7 +676,7 @@ module.exports = class hitbtc extends Exchange {
             request['limit'] = limit; // default = 100, 0 = unlimited
         }
         const response = await this.publicGetOrderbookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'size');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bid', 'ask', 'price', 'size');
     }
 
     parseTicker (ticker, market = undefined) {
