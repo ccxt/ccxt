@@ -1734,9 +1734,9 @@ module.exports = class Exchange {
 
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
-        const array = this.toArray (data);
-        for (let i = 0; i < array.length; i++) {
-            const itemOrItems = this.parseLedgerEntry (array[i], currency);
+        const arrayData = this.toArray (data);
+        for (let i = 0; i < arrayData.length; i++) {
+            const itemOrItems = this.parseLedgerEntry (arrayData[i], currency);
             if (Array.isArray (itemOrItems)) {
                 for (let j = 0; j < itemOrItems.length; j++) {
                     result.push (this.extend (itemOrItems[j], params));
