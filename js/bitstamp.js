@@ -286,14 +286,14 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         const trade = this.parseTrade (data, market);
-        let array = this.safeValue (this.trades, symbol);
-        if (array === undefined) {
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            array = new ArrayCache (limit);
-            this.trades[symbol] = array;
+            tradesArray = new ArrayCache (limit);
+            this.trades[symbol] = tradesArray;
         }
-        array.append (trade);
-        client.resolve (array, channel);
+        tradesArray.append (trade);
+        client.resolve (tradesArray, channel);
     }
 
     handleOrderBookSubscription (client, message, subscription) {
