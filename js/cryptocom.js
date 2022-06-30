@@ -23,6 +23,7 @@ module.exports = class cryptocom extends Exchange {
                 'swap': undefined, // has but not fully implemented
                 'future': undefined, // has but not fully implemented
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -2056,6 +2057,46 @@ module.exports = class cryptocom extends Exchange {
             'updated': updated,
             'internal': undefined,
             'fee': fee,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
         };
     }
 
