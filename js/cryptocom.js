@@ -483,6 +483,77 @@ module.exports = class cryptocom extends Exchange {
         return result;
     }
 
+    async fetchLastPrices (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetPublicGetTrades',
+            // in future/swap, they have a bug, as it doesnt allow for all symbols
+            // 'future': 'derivativesPublicGetPublicGetTrades',
+            // 'swap': 'derivativesPublicGetPublicGetTrades',
+        });
+        if (marketType !== 'spot') {
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
+        }
+        const response = await this[method] (query);
+        // spot
+        //
+        //    {
+        //        "code": "0",
+        //        "method": "public/get-trades",
+        //        "result": {
+        //            "data": [
+        //                {
+        //                    "d": "1737159152398252258",
+        //                    "s": "BUY",
+        //                    "p": "0.0177",
+        //                    "q": "0",
+        //                    "i": "AUDIO_USDT",
+        //                    "t": "1656684067152",
+        //                    "dataTime": "1656684067152"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseLastPrices (data, symbols);
+    }
+
+    parseLastPrice (info, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "d": "1737159152398252258", // trade id
+        //         "s": "BUY",
+        //         "p": "0.0177",
+        //         "q": "0",
+        //         "i": "AUDIO_USDT",
+        //         "t": "1656684067152",
+        //         "dataTime": "1656684067152" // can be ignored
+        //     }
+        //
+        const marketId = this.safeString (info, 'i');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (info, 't');
+        const price = this.safeNumber (info, 'p');
+        const baseVolume = this.safeNumber (info, 'q');
+        const side = this.safeString (info, 's');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': price,
+            'side': (side === 'BUY') ? 'buy' : 'sell',
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': info,
+        };
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
