@@ -34,7 +34,7 @@ module.exports = class okx extends Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
-                'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -1973,6 +1973,8 @@ module.exports = class okx extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the okx api endpoint
+         * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
+         * @param {bool|undefined} params.postOnly true to place a post only order
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1989,7 +1991,7 @@ module.exports = class okx extends Exchange {
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
             'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
-            // 'reduceOnly': false, // MARGIN orders only
+            // 'reduceOnly': false,
             //
             // 'triggerPx': 10, // stopPrice (trigger orders)
             // 'orderPx': 10, // Order price if -1, the order will be executed at the market price. (trigger orders)
