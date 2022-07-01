@@ -564,6 +564,9 @@ module.exports = class blockchaincom extends Exchange {
     async cancelOrders (ids, symbol = undefined, params = {}) {
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
+        if (ids !== null) {
+            throw new ExchangeError ('This method does not support a list of ids, just send null to cancel all open orders. If symbol is provided, it will cancel all open orders of specified symbol');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': marketId,
