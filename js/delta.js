@@ -821,8 +821,9 @@ module.exports = class delta extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit;
@@ -847,7 +848,7 @@ module.exports = class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrderBook (result, symbol, undefined, 'buy', 'sell', 'price', 'size');
+        return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
@@ -1278,8 +1279,8 @@ module.exports = class delta extends Exchange {
         const market = this.market (symbol);
         const request = {
             'product_id': market['numericId'],
-            // 'limit_price': this.priceToPrecision (symbol, price),
-            'size': this.amountToPrecision (symbol, amount),
+            // 'limit_price': this.priceToPrecision (market['symbol'], price),
+            'size': this.amountToPrecision (market['symbol'], amount),
             'side': side,
             'order_type': orderType,
             // 'client_order_id': 'string',
@@ -1288,7 +1289,7 @@ module.exports = class delta extends Exchange {
             // 'reduce_only': 'false', // 'true',
         };
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision (symbol, price);
+            request['limit_price'] = this.priceToPrecision (market['symbol'], price);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
