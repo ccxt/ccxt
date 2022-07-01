@@ -675,9 +675,10 @@ module.exports = class bittrex extends ccxt.bittrex {
         //
         const marketId = this.safeString (message, 'marketSymbol');
         const symbol = this.safeSymbol (marketId, undefined, '-');
+        const limit = this.safeInteger (message, 'depth');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+            orderbook = this.orderBook ({}, limit);
         }
         if (orderbook['nonce'] !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
