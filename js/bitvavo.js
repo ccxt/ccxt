@@ -770,8 +770,9 @@ module.exports = class bitvavo extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit;
@@ -793,7 +794,7 @@ module.exports = class bitvavo extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response, symbol);
+        const orderbook = this.parseOrderBook (response, market['symbol']);
         orderbook['nonce'] = this.safeInteger (response, 'nonce');
         return orderbook;
     }

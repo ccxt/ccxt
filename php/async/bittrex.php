@@ -413,14 +413,15 @@ class bittrex extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'marketSymbol' => $this->market_id($symbol),
+            'marketSymbol' => $market['id'],
         );
         if ($limit !== null) {
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -444,7 +445,7 @@ class bittrex extends Exchange {
         //     }
         //
         $sequence = $this->safe_integer($this->last_response_headers, 'Sequence');
-        $orderbook = $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'rate', 'quantity');
+        $orderbook = $this->parse_order_book($response, $market['symbol'], null, 'bid', 'ask', 'rate', 'quantity');
         $orderbook['nonce'] = $sequence;
         return $orderbook;
     }
@@ -762,7 +763,7 @@ class bittrex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'marketSymbol' => $this->market_id($symbol),
+            'marketSymbol' => $market['id'],
         );
         $response = yield $this->publicGetMarketsMarketSymbolTrades (array_merge($request, $params));
         //
