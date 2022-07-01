@@ -3635,6 +3635,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @param {str|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -3700,6 +3701,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @param {str} id withdrawal id
          * @param {str|undefined} code unified currency code of the currency withdrawn, default is undefined
          * @param {dict} params extra parameters specific to the okx api endpoint
