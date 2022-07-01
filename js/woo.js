@@ -193,41 +193,6 @@ module.exports = class woo extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'network-aliases': {
-                    'ALGO': 'ALGO',
-                    'ATOM': 'ATOM',
-                    'AVAXC': 'AVAXC',
-                    'BNB': 'BEP2',
-                    'BSC': 'BEP20',
-                    'BTC': 'BTC',
-                    'BCHSV': 'BSV',
-                    'EOS': 'EOS',
-                    'ETH': 'ERC20',
-                    'HECO': 'HRC20',
-                    'MATIC': 'POLYGON',
-                    'ONT': 'ONT',
-                    'SOL': 'SPL',
-                    'TERRA': 'TERRA',
-                    'TRON': 'TRC20',
-                },
-                // network-aliases for titles are removed (just in case, if needed: pastebin.com/raw/BvgKViPN )
-                'network-aliases-for-protocol': {
-                    'ALGO': 'ALGO',
-                    'ATOM': 'ATOM',
-                    'C Chain': 'AVAXC',
-                    'BEP2': 'BEP2',
-                    'BEP20': 'BEP20',
-                    'BTC': 'BTC',
-                    'BSV': 'BSV',
-                    'EOS': 'EOS',
-                    'ERC20': 'ERC20',
-                    'HECO': 'HRC20',
-                    'Polygon': 'POLYGON',
-                    'ONT': 'ONT',
-                    'SOL': 'SPL',
-                    'TERRA': 'TERRA',
-                    'TRON': 'TRC20',
-                },
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
                     'HT': 'ERC20',
@@ -235,11 +200,6 @@ module.exports = class woo extends Exchange {
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
                 },
-                'defaultNetworkCodePriorities': [
-                    'TRC20',
-                    'ERC20',
-                    'BSC20',
-                ],
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
                     // 'USDT': 'TRC20',
@@ -289,12 +249,7 @@ module.exports = class woo extends Exchange {
          * @param {dict} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PublicGetInfo',
-            'swap': 'v1PublicGetFutures',
-        });
-        const response = await this[method] (query);
+        const response = await this.v1PublicGetInfo (params);
         //
         // {
         //     rows: [
@@ -332,10 +287,12 @@ module.exports = class woo extends Exchange {
             let settleId = undefined;
             let settle = undefined;
             let symbol = base + '/' + quote;
+            let contractSize = undefined;
             if (isSwap) {
                 settleId = this.safeString (parts, 2);
                 settle = this.safeCurrencyCode (settleId);
                 symbol = base + '/' + quote + ':' + settle;
+                contractSize = this.parseNumber ('1');
             }
             result.push ({
                 'id': marketId,
@@ -356,7 +313,7 @@ module.exports = class woo extends Exchange {
                 'contract': isSwap,
                 'linear': undefined,
                 'inverse': undefined,
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -411,12 +368,7 @@ module.exports = class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PublicGetMarketTrades',
-            'swap': 'v1PublicGetMarketTrades',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PublicGetMarketTrades (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -489,16 +441,7 @@ module.exports = class woo extends Exchange {
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
-        let id = this.safeString (trade, 'id');
-        if (id === undefined) { // reconstruct artificially, if it doesn't exist
-            if (timestamp !== undefined) {
-                const amountStr = (amount === undefined) ? '' : amount;
-                const sideStr = (side === undefined) ? '' : side;
-                const priceStr = (price === undefined) ? '' : price;
-                const marketIdStr = this.safeString (market, 'id', '');
-                id = this.numberToString (timestamp) + '-' + marketIdStr + '-' + sideStr + '-' + amountStr + '-' + priceStr;
-            }
-        }
+        const id = this.safeString (trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString (trade, 'is_maker') === '1';
@@ -592,13 +535,8 @@ module.exports = class woo extends Exchange {
          * @param {dict} params extra parameters specific to the woo api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        let method = undefined;
         const result = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
-        method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PublicGetToken',
-        });
-        const tokenResponse = await this[method] (query);
+        const tokenResponse = await this.v1PublicGetToken (params);
         //
         // {
         //     rows: [
@@ -631,10 +569,8 @@ module.exports = class woo extends Exchange {
         //     success: true
         // }
         //
-        method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PublicGetTokenNetwork',
-        });
-        const tokenNetworkResponse = await this[method] (query);
+        // only make one request for currrencies...
+        // const tokenNetworkResponse = await this.v1PublicGetTokenNetwork (params);
         //
         // {
         //     rows: [
@@ -662,84 +598,62 @@ module.exports = class woo extends Exchange {
         // }
         //
         const tokenRows = this.safeValue (tokenResponse, 'rows', []);
-        const tokenNetworkRows = this.safeValue (tokenNetworkResponse, 'rows', []);
-        const networksByCurrencyId = this.groupBy (tokenNetworkRows, 'token');
-        for (let i = 0; i < tokenRows.length; i++) {
-            const currency = tokenRows[i];
-            const id = this.safeString (currency, 'balance_token');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'fullname');
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals')));
-            const chainedTokenCode = this.safeString (currency, 'token');
-            const parts = chainedTokenCode.split ('_');
-            const chainNameId = this.safeString (parts, 0, chainedTokenCode);
-            const chainCode = this.safeString (this.options['network-aliases'], chainNameId, chainNameId);
-            if (!(code in result)) {
-                const networks = this.safeValue (networksByCurrencyId, id, []);
-                const resultingNetworks = {};
-                for (let j = 0; j < networks.length; j++) {
-                    const networkEntry = networks[j];
-                    const networkId = this.safeString (networkEntry, 'protocol');
-                    const networkIdManualMatched = this.safeString (this.options['network-aliases-for-tokens'], networkId, networkId);
-                    const networkCode = this.safeString2 (this.options['network-aliases-for-protocol'], chainNameId, chainNameId, networkIdManualMatched);
-                    const depositEnabled = this.safeInteger (networkEntry, 'allow_deposit', 0);
-                    const withdrawEnabled = this.safeInteger (networkEntry, 'allow_withdraw', 0);
-                    resultingNetworks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
-                                'max': undefined,
-                            },
-                            'deposit': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                        'active': undefined,
-                        'deposit': depositEnabled,
-                        'withdraw': withdrawEnabled,
-                        'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
-                        'precision': undefined, // will be filled down below
-                        'info': networkEntry,
-                    };
-                }
-                const networksKeys = Object.keys (resultingNetworks);
-                const firstNetworkKey = networksKeys[0];
-                const networkLength = networksKeys.length;
-                result[code] = {
-                    'id': id,
-                    'name': name,
-                    'code': code,
-                    'precision': (networkLength === 1) ? precision : undefined, // will be filled down below
-                    'active': undefined,
-                    'fee': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['fee'] : undefined,
-                    'networks': resultingNetworks,
+        const networksByCurrencyId = this.groupBy (tokenRows, 'balance_token');
+        const currencyIds = Object.keys (networksByCurrencyId);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const networks = networksByCurrencyId[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            let name = undefined;
+            const resultingNetworks = {};
+            for (let j = 0; j < networks.length; j++) {
+                const network = networks[j];
+                name = this.safeString (network, 'fullname');
+                const networkId = this.safeString (network, 'token');
+                const splitted = networkId.split ('_');
+                const unifiedNetwork = splitted[0];
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (network, 'decimals')));
+                resultingNetworks[unifiedNetwork] = {
+                    'id': networkId,
+                    'network': unifiedNetwork,
                     'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'deposit': {
                             'min': undefined,
                             'max': undefined,
                         },
-                        'withdraw': {
-                            'min': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['limits']['withdraw']['min'] : undefined,
-                            'max': undefined,
-                        },
                     },
-                    'info': {}, // will be filled down below
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision, // will be filled down below
+                    'info': network,
                 };
             }
-            const networkKeys = Object.keys (result[code]['networks']);
-            const firstNetworkKey = this.safeString (networkKeys, 0);
-            // now add the precision info from token-object
-            if (chainCode in result[code]['networks']) {
-                result[code]['networks'][chainCode]['precision'] = precision;
-            } else {
-                // else chainCode will be the only token slug, which has only 1 supported network
-                result[code]['networks'][firstNetworkKey]['precision'] = precision;
-            }
-            // now add the info object specifically for the item
-            result[code]['info'][chainedTokenCode] = currency;
+            result[code] = {
+                'id': currencyId,
+                'name': name,
+                'code': code,
+                'precision': undefined,
+                'active': undefined,
+                'fee': undefined,
+                'networks': resultingNetworks,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': networks, // will be filled down below
+            };
         }
         return result;
     }
@@ -793,12 +707,7 @@ module.exports = class woo extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivatePostOrder',
-            'swap': 'v1PrivatePostOrder',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
@@ -844,12 +753,7 @@ module.exports = class woo extends Exchange {
             market = this.market (symbol);
         }
         request['symbol'] = market['id'];
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateDeleteOrder',
-            'swap': 'v1PrivateDeleteOrder',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateDeleteOrder (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -879,12 +783,7 @@ module.exports = class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateDeleteOrders',
-            'swap': 'v1PrivateDeleteOrders',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -906,7 +805,6 @@ module.exports = class woo extends Exchange {
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         let chosenSpotMethod = undefined;
         if (clientOrderId) {
@@ -916,11 +814,7 @@ module.exports = class woo extends Exchange {
             chosenSpotMethod = 'v1PrivateGetOrderOid';
             request['oid'] = id;
         }
-        const method = this.getSupportedMapping (marketType, {
-            'spot': chosenSpotMethod,
-            'swap': chosenSpotMethod,
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[chosenSpotMethod] (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -956,7 +850,7 @@ module.exports = class woo extends Exchange {
         //     ]
         // }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -980,12 +874,7 @@ module.exports = class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetOrders',
-            'swap': 'v1PrivateGetOrders',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1111,12 +1000,7 @@ module.exports = class woo extends Exchange {
             limit = Math.min (limit, 1000);
             request['max_level'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetOrderbookSymbol',
-            'swap': 'v1PrivateGetOrderbookSymbol',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
         // {
         //   success: true,
@@ -1158,12 +1042,7 @@ module.exports = class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetKline',
-            'swap': 'v1PrivateGetKline',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1230,12 +1109,7 @@ module.exports = class woo extends Exchange {
         const request = {
             'oid': id,
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetOrderOidTrades',
-            'swap': 'v1PrivateGetOrderOidTrades',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1279,12 +1153,7 @@ module.exports = class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetClientTrades',
-            'swap': 'v1PrivateGetClientTrades',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetClientTrades (this.extend (request, params));
         // {
         //     "success": true,
         //     "meta": {
@@ -1368,11 +1237,7 @@ module.exports = class woo extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v2PrivateGetClientHolding',
-        });
-        const response = await this[method] (query);
+        const response = await this.v2PrivateGetClientHolding (params);
         //
         // {
         //     holding: [
@@ -1429,19 +1294,13 @@ module.exports = class woo extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeValue (params, 'network', networkCodeDefault);
+        const networkCode = this.safeString (params, 'network', networkCodeDefault);
         params = this.omit (params, 'network');
-        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
-        const networkId = this.getKeyByValue (networkAliases, networkCode);
-        const codeForExchange = networkId + '_' + currency['code'];
+        const codeForExchange = networkCode + '_' + currency['code'];
         const request = {
             'token': codeForExchange,
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchDepositAddress', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetAssetDeposit',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     success: true,
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
@@ -1991,7 +1850,7 @@ module.exports = class woo extends Exchange {
             'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
             'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
-            'previousFundingDatetime': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
         };
     }
 
@@ -2115,7 +1974,10 @@ module.exports = class woo extends Exchange {
         //
         const result = this.safeValue (response, 'application');
         const leverage = this.safeNumber (result, 'leverage');
-        return leverage;
+        return {
+            'info': response,
+            'leverage': leverage,
+        };
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
@@ -2200,20 +2062,21 @@ module.exports = class woo extends Exchange {
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
-        const pendingLongQty = this.safeString (position, 'pending_long_qty');
-        const pendingShortQty = this.safeString (position, 'pending_short_qty');
-        const size = this.safeString (position, 'holding');
+        let size = this.safeString (position, 'holding');
         let side = undefined;
-        if (Precise.stringGt (pendingLongQty, '0')) {
+        if (Precise.stringGt (size, '0')) {
             side = 'long';
-        } else if (Precise.stringLt (pendingShortQty, '0')) {
+        } else {
             side = 'short';
         }
-        const unrealisedPnl = this.safeString (position, 'pnl_24_h');
         const contractSize = this.safeString (market, 'contractSize');
-        const marketPrice = this.safeString (position, 'mark_price');
-        const notional = Precise.stringMul (size, marketPrice);
+        const markPrice = this.safeString (position, 'mark_price');
         const timestamp = this.safeTimestamp (position, 'timestamp');
+        const entryPrice = this.safeString (position, 'average_open_price');
+        const priceDifference = Precise.stringSub (markPrice, entryPrice);
+        const unrealisedPnl = Precise.stringMul (priceDifference, size);
+        size = Precise.stringAbs (size);
+        const notional = Precise.stringMul (size, markPrice);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -2223,17 +2086,17 @@ module.exports = class woo extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber (position, 'average_open_price'),
+            'entryPrice': this.parseNumber (entryPrice),
             'notional': this.parseNumber (notional),
             'leverage': undefined,
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
             'marginRatio': undefined,
-            'liquidationPrice': undefined,
-            'markPrice': marketPrice,
+            'liquidationPrice': this.safeNumber (position, 'est_liq_price'),
+            'markPrice': this.parseNumber (markPrice),
             'collateral': undefined,
-            'marginMode': 'isolated',
+            'marginMode': 'cross',
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
@@ -2241,33 +2104,16 @@ module.exports = class woo extends Exchange {
     }
 
     defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
-        // at first, try to find if user or exchange has defined default networks for the specific currency
-        const defaultNetworkCodeForCurrencies = this.safeValue (this.options, 'defaultNetworkCodeForCurrencies');
-        if (defaultNetworkCodeForCurrencies !== undefined) {
-            const defaultNetworkCode = this.safeStringUpper (defaultNetworkCodeForCurrencies, code);
-            if (defaultNetworkCode !== undefined) {
-                return defaultNetworkCode;
-            }
-        }
-        // if not found by above 'defaultNetworkCodeForCurrencies' for specific currency, then try with `defaultNetworkCodePriorities`
         const currencyItem = this.currency (code);
         const networks = currencyItem['networks'];
-        const defaultNetworkCodePriorities = this.safeValue (this.options, 'defaultNetworkCodePriorities');
-        if (defaultNetworkCodePriorities !== undefined) {
-            // itterate according to priority networks
-            const networksKeys = Object.keys (networks);
-            const networksKeysLength = networksKeys.length;
-            if (networksKeysLength > 0) {
-                for (let i = 0; i < defaultNetworkCodePriorities.length; i++) {
-                    const networkCode = defaultNetworkCodePriorities[i];
-                    if (networkCode in networks) {
-                        return networkCode;
-                    }
-                }
+        const networkKeys = Object.keys (networks);
+        for (let i = 0; i < networkKeys.length; i++) {
+            const network = networkKeys[i];
+            if (network === 'ETH') {
+                return network;
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        const networkKeys = Object.keys (networks);
         return this.safeValue (networkKeys, 0);
     }
 };
