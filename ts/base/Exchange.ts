@@ -194,7 +194,7 @@ export class Exchange {
     id = undefined
 
     markets = {}
-    has = undefined
+    has = {}
 
     status = undefined
 
@@ -2774,8 +2774,8 @@ export class Exchange {
     }
 
     safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter);
-        return market['symbol'];
+        const safeMarket = this.safeMarket (marketId, market, delimiter);
+        return safeMarket['symbol'];
     }
 
     parseFundingRate (contract, market = undefined) {
