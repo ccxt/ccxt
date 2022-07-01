@@ -292,12 +292,13 @@ class therock(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         orderbook = self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1260,8 +1261,9 @@ class therock(Exchange):
         self.load_markets()
         if type == 'market':
             price = 0
+        market = self.market(symbol)
         request = {
-            'fund_id': self.market_id(symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,
