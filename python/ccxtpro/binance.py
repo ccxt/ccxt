@@ -507,13 +507,13 @@ class binance(Exchange, ccxt.binance):
         event = self.safe_string(message, 'e')
         messageHash = lowerCaseId + '@' + event
         trade = self.parse_trade(message, market)
-        array = self.safe_value(self.trades, symbol)
-        if array is None:
+        tradesArray = self.safe_value(self.trades, symbol)
+        if tradesArray is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            array = ArrayCache(limit)
-        array.append(trade)
-        self.trades[symbol] = array
-        client.resolve(array, messageHash)
+            tradesArray = ArrayCache(limit)
+        tradesArray.append(trade)
+        self.trades[symbol] = tradesArray
+        client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

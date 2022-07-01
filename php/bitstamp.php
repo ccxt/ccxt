@@ -275,7 +275,7 @@ class bitstamp extends \ccxt\async\bitstamp {
     public function handle_trade($client, $message) {
         //
         //     {
-        //         $data => $array(
+        //         $data => array(
         //             buy_order_id => 1207733769326592,
         //             amount_str => "0.14406384",
         //             timestamp => "1583691851",
@@ -299,14 +299,14 @@ class bitstamp extends \ccxt\async\bitstamp {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $trade = $this->parse_trade($data, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
-            $this->trades[$symbol] = $array;
+            $tradesArray = new ArrayCache ($limit);
+            $this->trades[$symbol] = $tradesArray;
         }
-        $array->append ($trade);
-        $client->resolve ($array, $channel);
+        $tradesArray->append ($trade);
+        $client->resolve ($tradesArray, $channel);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

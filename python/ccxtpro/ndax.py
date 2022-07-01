@@ -149,20 +149,20 @@ class ndax(Exchange, ccxt.ndax):
         for i in range(0, len(payload)):
             trade = self.parse_trade(payload[i])
             symbol = trade['symbol']
-            array = self.safe_value(self.trades, symbol)
-            if array is None:
+            tradesArray = self.safe_value(self.trades, symbol)
+            if tradesArray is None:
                 limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                array = ArrayCache(limit)
-            array.append(trade)
-            self.trades[symbol] = array
+                tradesArray = ArrayCache(limit)
+            tradesArray.append(trade)
+            self.trades[symbol] = tradesArray
             updates[symbol] = True
         symbols = list(updates.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             messageHash = name + ':' + market['id']
-            array = self.safe_value(self.trades, symbol)
-            client.resolve(array, messageHash)
+            tradesArray = self.safe_value(self.trades, symbol)
+            client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
