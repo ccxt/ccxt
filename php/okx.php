@@ -36,7 +36,7 @@ class okx extends Exchange {
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'createDepositAddress' => null,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
                 'createStopLimitOrder' => true,
@@ -54,7 +54,7 @@ class okx extends Exchange {
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
@@ -3510,6 +3510,7 @@ class okx extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {str|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
@@ -3576,6 +3577,30 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency $deposit via the $deposit $id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
+         * @param {str} $id $deposit $id
+         * @param {str|null} $code filter by $currency $code
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'depId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data');
+        $deposit = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($deposit, $currency);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
