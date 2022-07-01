@@ -2223,9 +2223,9 @@ module.exports = class binance extends Exchange {
 
     async fetchLastPrices (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', undefined, params);
         let method = undefined;
-        if (type === 'future') {
+        if (marketType === 'future') {
             method = 'fapiPublicGetTickerPrice';
             //
             //     [
@@ -2237,7 +2237,7 @@ module.exports = class binance extends Exchange {
             //         ...
             //     ]
             //
-        } else if (type === 'delivery') {
+        } else if (marketType === 'delivery') {
             method = 'dapiPublicGetTickerPrice';
             //
             //     [
@@ -2249,7 +2249,7 @@ module.exports = class binance extends Exchange {
             //         }
             //     ]
             //
-        } else if (type === 'spot') {
+        } else if (marketType === 'spot') {
             method = 'publicGetTickerPrice';
             //
             //     [
@@ -2261,7 +2261,7 @@ module.exports = class binance extends Exchange {
             //     ]
             //
         } else {
-            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + marketType + ' markets yet');
         }
         const response = await this[method] (query);
         return this.parseLastPrices (response, symbols);
@@ -2303,6 +2303,7 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'price': price,
+            'side': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': info,
