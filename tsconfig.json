@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+    //   "target": "es6",
+      "allowJs": true,
+      "outDir": "./js",
+      "checkJs": true,
+      "removeComments": false,  
+      // "rootDir": "./",
+      "moduleResolution": "node", 
+      "strictNullChecks": false,
+    },
+    "include": [
+        "./ts/**/*"
+    ],
+    "exclude": [
+        "ts/static_dependencies/*"
+      ]
+}

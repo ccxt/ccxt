@@ -31,31 +31,31 @@ const getValueFromKeysInArray = (object, array) => object[array.find ((k) => pro
 const asFloat = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
 const asInteger = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
-const safeFloat = (o, k, $default, n = asFloat (prop (o, k))) => (isNumber (n) ? n : $default);
-const safeInteger = (o, k, $default, n = asInteger (prop (o, k))) => (isNumber (n) ? n : $default);
-const safeIntegerProduct = (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n) ? parseInt (n * $factor) : $default);
-const safeTimestamp = (o, k, $default, n = asFloat (prop (o, k))) => (isNumber (n) ? parseInt (n * 1000) : $default);
-const safeValue = (o, k, $default, x = prop (o, k)) => (hasProps (x) ? x : $default);
-const safeString = (o, k, $default, x = prop (o, k)) => (isStringCoercible (x) ? String (x) : $default);
-const safeStringLower = (o, k, $default, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
-const safeStringUpper = (o, k, $default, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
+const safeFloat = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? n : $default);
+const safeInteger = (o, k, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? n : $default);
+const safeIntegerProduct = (o, k, $factor, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
+const safeTimestamp = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
+const safeValue = (o, k, $default?, x = prop (o, k)) => (hasProps (x) ? x : $default);
+const safeString = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x) : $default);
+const safeStringLower = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
+const safeStringUpper = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
 /*  .............................................   */
-const safeFloat2 = (o, k1, k2, $default, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
-const safeInteger2 = (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
-const safeIntegerProduct2 = (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * $factor) : $default);
-const safeTimestamp2 = (o, k1, k2, $default, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * 1000) : $default);
-const safeValue2 = (o, k1, k2, $default, x = prop2 (o, k1, k2)) => (hasProps (x) ? x : $default);
-const safeString2 = (o, k1, k2, $default, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x) : $default);
-const safeStringLower2 = (o, k1, k2, $default, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
-const safeStringUpper2 = (o, k1, k2, $default, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
-const safeFloatN = (o, k, $default, n = asFloat (getValueFromKeysInArray (o, k))) => (isNumber (n) ? n : $default);
-const safeIntegerN = (o, k, $default, n = asInteger (getValueFromKeysInArray (o, k))) => (isNumber (n) ? n : $default);
-const safeIntegerProductN = (o, k, $factor, $default, n = asInteger (getValueFromKeysInArray (o, k))) => (isNumber (n) ? parseInt (n * $factor) : $default);
-const safeTimestampN = (o, k, $default, n = asFloat (getValueFromKeysInArray (o, k))) => (isNumber (n) ? parseInt (n * 1000) : $default);
-const safeValueN = (o, k, $default, x = getValueFromKeysInArray (o, k)) => (hasProps (x) ? x : $default);
-const safeStringN = (o, k, $default, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x) : $default);
-const safeStringLowerN = (o, k, $default, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
-const safeStringUpperN = (o, k, $default, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
+const safeFloat2 = (o, k1, k2, $default?, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
+const safeInteger2 = (o, k1, k2, $default?, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
+const safeIntegerProduct2 = (o, k1, k2, $factor, $default?, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
+const safeTimestamp2 = (o, k1, k2, $default?, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
+const safeValue2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (hasProps (x) ? x : $default);
+const safeString2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x) : $default);
+const safeStringLower2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
+const safeStringUpper2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
+const safeFloatN = (o, k, $default?, n = asFloat (getValueFromKeysInArray (o, k))) => (isNumber (n) ? n : $default);
+const safeIntegerN = (o, k, $default?, n = asInteger (getValueFromKeysInArray (o, k))) => (isNumber (n) ? n : $default);
+const safeIntegerProductN = (o, k, $factor, $default?, n = asInteger (getValueFromKeysInArray (o, k))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
+const safeTimestampN = (o, k, $default?, n = asFloat (getValueFromKeysInArray (o, k))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
+const safeValueN = (o, k, $default?, x = getValueFromKeysInArray (o, k)) => (hasProps (x) ? x : $default);
+const safeStringN = (o, k, $default?, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x) : $default);
+const safeStringLowerN = (o, k, $default?, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
+const safeStringUpperN = (o, k, $default?, x = getValueFromKeysInArray (o, k)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
 
 export {
     isNumber
