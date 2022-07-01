@@ -293,7 +293,7 @@ export default class btcex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetGetInstruments (params);
+        const response= await (this as any).publicGetGetInstruments (params);
         const markets = this.safeValue (response, 'result', []);
         //
         //     {
@@ -500,7 +500,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response= await (this as any).publicGetTickers (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -537,7 +537,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        const response= await (this as any).publicGetGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -605,7 +605,7 @@ export default class btcex extends Exchange {
             request['start_timestamp'] = since;
             request['end_timestamp'] = this.sum (request['start_timestamp'], limit * timeframeInMilliseconds);
         }
-        const response = await this.publicGetGetTradingviewChartData (this.extend (request, params));
+        const response= await (this as any).publicGetGetTradingviewChartData (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -707,7 +707,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 10
         }
-        const response = await this.publicGetGetLastTradesByInstrument (this.extend (request, params));
+        const response= await (this as any).publicGetGetLastTradesByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -746,7 +746,7 @@ export default class btcex extends Exchange {
             // 'refresh_token': '', // Required for grant type refresh_token
             // 'signature': '', // Required for grant type client_signature
         };
-        const response = await this.publicPostAuth (this.extend (request, params));
+        const response= await (this as any).publicPostAuth (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -924,7 +924,7 @@ export default class btcex extends Exchange {
         const request = {
             'asset_type': [ assetType ],
         };
-        const response = await this.privatePostGetAssetsInfo (this.extend (request, params));
+        const response= await (this as any).privatePostGetAssetsInfo (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1176,7 +1176,7 @@ export default class btcex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetGetOrderState (this.extend (request, params));
+        const response= await (this as any).privateGetGetOrderState (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1280,7 +1280,7 @@ export default class btcex extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privatePostCancel (this.extend (request, params));
+        const response= await (this as any).privatePostCancel (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1307,7 +1307,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.privatePostCancelAllByInstrument (this.extend (request, params));
+        const response= await (this as any).privatePostCancelAllByInstrument (this.extend (request, params));
         //
         //     {
         //         "id":"1647686580",
@@ -1331,7 +1331,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.privateGetGetOpenOrdersByInstrument (this.extend (request, params));
+        const response= await (this as any).privateGetGetOpenOrdersByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1378,7 +1378,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response = await this.privateGetGetOrderHistoryByInstrument (this.extend (request, params));
+        const response= await (this as any).privateGetGetOrderHistoryByInstrument (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1427,7 +1427,7 @@ export default class btcex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 20
         }
-        const response = await this.privateGetGetUserTradesByOrder (this.extend (request, params));
+        const response= await (this as any).privateGetGetUserTradesByOrder (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
         //     {
@@ -1597,7 +1597,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.privateGetGetPosition (this.extend (request, params));
+        const response= await (this as any).privateGetGetPosition (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1644,7 +1644,7 @@ export default class btcex extends Exchange {
             'currency': 'PERPETUAL',
             // 'kind' : '', // option, future, spot, margin,perpetual The order kind
         };
-        const response = await this.privateGetGetPositions (this.extend (request, params));
+        const response= await (this as any).privateGetGetPositions (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         //
         //     {
@@ -1767,7 +1767,7 @@ export default class btcex extends Exchange {
         const request = {
             'coin_type': currency['id'],
         };
-        const response = await this.privateGetGetDepositRecord (this.extend (request, params));
+        const response= await (this as any).privateGetGetDepositRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1803,7 +1803,7 @@ export default class btcex extends Exchange {
             'coin_type': currency['id'],
             // 'withdraw_id': 0,
         };
-        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        const response= await (this as any).privateGetGetWithdrawRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {
@@ -1838,7 +1838,7 @@ export default class btcex extends Exchange {
             'coin_type': currency['id'],
             'withdraw_id': id,
         };
-        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        const response= await (this as any).privateGetGetWithdrawRecord (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         //
         //     {

@@ -368,7 +368,7 @@ export default class wavesexchange extends Exchange {
     }
 
     async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const response = await this.getFeesForAsset (symbol, side, amount, price);
+        const response= await (this as any).getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES",
@@ -411,7 +411,7 @@ export default class wavesexchange extends Exchange {
             // as a result someone can create a fake token called BTC
             // we use this mapping to determine the real tokens
             // https://docs.waves.exchange/en/waves-matcher/matcher-api#asset-pair
-            const response = await this.matcherGetMatcherSettings ();
+            const response= await (this as any).matcherGetMatcherSettings ();
             // {
             //   "orderVersions": [
             //     1,
@@ -478,7 +478,7 @@ export default class wavesexchange extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.marketGetTickers ();
+        const response= await (this as any).marketGetTickers ();
         //
         //   [
         //       {
@@ -586,7 +586,7 @@ export default class wavesexchange extends Exchange {
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
         }, params);
-        const response = await this.matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
+        const response= await (this as any).matcherGetMatcherOrderbookAmountAssetPriceAsset (request);
         const timestamp = this.safeInteger (response, 'timestamp');
         const bids = this.parseOrderBookSide (this.safeValue (response, 'bids'), market, limit);
         const asks = this.parseOrderBookSide (this.safeValue (response, 'asks'), market, limit);
@@ -730,7 +730,7 @@ export default class wavesexchange extends Exchange {
                 'password': seconds + ':' + signature,
                 'client_id': clientId,
             };
-            const response = await this.privatePostOauth2Token (request);
+            const response= await (this as any).privatePostOauth2Token (request);
             // { access_token: 'eyJhbGciOXJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5MTk3NTA1NywiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkOWI5IiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.B-XwexBnUAzbWknVN68RKT0ZP5w6Qk1SKJ8usL3OIwDEzCUUX9PjW-5TQHmiCRcA4oft8lqXEiCwEoNfsblCo_jTpRo518a1vZkIbHQk0-13Dm1K5ewGxfxAwBk0g49odcbKdjl64TN1yM_PO1VtLVuiTeZP-XF-S42Uj-7fcO-r7AulyQLuTE0uo-Qdep8HDCk47rduZwtJOmhFbCCnSgnLYvKWy3CVTeldsR77qxUY-vy8q9McqeP7Id-_MWnsob8vWXpkeJxaEsw1Fke1dxApJaJam09VU8EB3ZJWpkT7V8PdafIrQGeexx3jhKKxo7rRb4hDV8kfpVoCgkvFan',
             //   token_type: 'bearer',
             //   refresh_token: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D',
@@ -815,7 +815,7 @@ export default class wavesexchange extends Exchange {
         const request = {
             'pairs': market['id'],
         };
-        const response = await this.publicGetPairs (this.extend (request, params));
+        const response= await (this as any).publicGetPairs (this.extend (request, params));
         //
         //     {
         //         "__type":"list",
@@ -854,7 +854,7 @@ export default class wavesexchange extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetPairs (params);
+        const response= await (this as any).publicGetPairs (params);
         //
         //     {
         //         "__type":"list",
@@ -917,7 +917,7 @@ export default class wavesexchange extends Exchange {
             const timeEnd = this.sum (since, duration * limit);
             request['timeEnd'] = timeEnd.toString ();
         }
-        const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
+        const response= await (this as any).publicGetCandlesBaseIdQuoteId (this.extend (request, params));
         //
         //     {
         //         "__type": "list",
@@ -1019,7 +1019,7 @@ export default class wavesexchange extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, [ 'network' ]);
-        const supportedCurrencies = await this.privateGetPlatforms ();
+        const supportedCurrencies= await (this as any).privateGetPlatforms ();
         //
         //     {
         //       "type": "list",
@@ -1077,7 +1077,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'currency': code,
             };
-            response = await this.privateGetDepositAddressesCurrency (this.extend (request, params));
+            response= await (this as any).privateGetDepositAddressesCurrency (this.extend (request, params));
         } else {
             const supportedNetworks = networksByCurrency[code];
             if (!(network in supportedNetworks)) {
@@ -1088,7 +1088,7 @@ export default class wavesexchange extends Exchange {
                 const request = {
                     'publicKey': this.apiKey,
                 };
-                const response = await this.nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
+                const response= await (this as any).nodeGetAddressesPublicKeyPublicKey (this.extend (request, request));
                 const address = this.safeString (response, 'address');
                 return {
                     'address': address,
@@ -1102,7 +1102,7 @@ export default class wavesexchange extends Exchange {
                     'currency': code,
                     'platform': network,
                 };
-                response = await this.privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
+                response= await (this as any).privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
             }
         }
         //
@@ -1149,7 +1149,7 @@ export default class wavesexchange extends Exchange {
         if (matcherPublicKey) {
             return matcherPublicKey;
         } else {
-            const response = await this.matcherGetMatcher ();
+            const response= await (this as any).matcherGetMatcher ();
             // remove trailing quotes from string response
             this.options['matcherPublicKey'] = response.slice (1, response.length - 1);
             return this.options['matcherPublicKey'];
@@ -1250,7 +1250,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const matcherPublicKey = await this.getMatcherPublicKey ();
+        const matcherPublicKey= await (this as any).getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         const isMarketOrder = (type === 'market');
@@ -1261,7 +1261,7 @@ export default class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const matcherFees = await this.getFeesForAsset (symbol, side, amount, price);
+        const matcherFees= await (this as any).getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES", // varies depending on the trading pair
@@ -1288,7 +1288,7 @@ export default class wavesexchange extends Exchange {
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
-        const balances = await this.fetchBalance ();
+        const balances= await (this as any).fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
                 throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
@@ -1384,11 +1384,11 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         if (isMarketOrder) {
-            const response = await this.matcherPostMatcherOrderbookMarket (body);
+            const response= await (this as any).matcherPostMatcherOrderbookMarket (body);
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
         } else {
-            const response = await this.matcherPostMatcherOrderbook (body);
+            const response= await (this as any).matcherPostMatcherOrderbook (body);
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
         }
@@ -1407,7 +1407,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
-        const wavesAddress = await this.getWavesAddress ();
+        const wavesAddress= await (this as any).getWavesAddress ();
         const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
             'orderId': id,
@@ -1473,7 +1473,7 @@ export default class wavesexchange extends Exchange {
             'publicKey': this.apiKey,
             'orderId': id,
         };
-        const response = await this.matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
+        const response= await (this as any).matcherGetMatcherOrderbookPublicKeyOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1511,7 +1511,7 @@ export default class wavesexchange extends Exchange {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
-        const response = await this.matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (this.extend (request, params));
+        const response= await (this as any).matcherGetMatcherOrderbookBaseIdQuoteIdPublicKeyPublicKey (this.extend (request, params));
         // [ { id: '3KicDeWayY2mdrRoYdCkP3gUAoUZUNT1AA6GAtWuPLfa',
         //     type: 'sell',
         //     orderType: 'limit',
@@ -1547,12 +1547,12 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address = await this.getWavesAddress ();
+        const address= await (this as any).getWavesAddress ();
         const request = {
             'address': address,
             'activeOnly': true,
         };
-        const response = await this.forwardGetMatcherOrdersAddress (request);
+        const response= await (this as any).forwardGetMatcherOrdersAddress (request);
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1573,12 +1573,12 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address = await this.getWavesAddress ();
+        const address= await (this as any).getWavesAddress ();
         const request = {
             'address': address,
             'closedOnly': true,
         };
-        const response = await this.forwardGetMatcherOrdersAddress (request);
+        const response= await (this as any).forwardGetMatcherOrdersAddress (request);
         // [
         //   {
         //     "id": "9aXcxvXai73jbAm7tQNnqaQ2PwUjdmWuyjvRTKAHsw4f",
@@ -1739,7 +1739,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'publicKey': this.apiKey,
             };
-            const response = await this.nodeGetAddressesPublicKeyPublicKey (request);
+            const response= await (this as any).nodeGetAddressesPublicKeyPublicKey (request);
             this.options['wavesAddress'] = this.safeString (response, 'address');
             return this.options['wavesAddress'];
         } else {
@@ -1764,11 +1764,11 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
-        const wavesAddress = await this.getWavesAddress ();
+        const wavesAddress= await (this as any).getWavesAddress ();
         const request = {
             'address': wavesAddress,
         };
-        const totalBalance = await this.nodeGetAssetsBalanceAddress (request);
+        const totalBalance= await (this as any).nodeGetAssetsBalanceAddress (request);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "balances": [
@@ -1833,7 +1833,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'ids': assetIds,
             };
-            const response = await this.publicGetAssets (request);
+            const response= await (this as any).publicGetAssets (request);
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
@@ -1859,7 +1859,7 @@ export default class wavesexchange extends Exchange {
             'signature': signature,
             'timestamp': currentTimestamp.toString (),
         };
-        const reservedBalance = await this.matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
+        const reservedBalance= await (this as any).matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
         // { WAVES: 200300000 }
         const reservedKeys = Object.keys (reservedBalance);
         for (let i = 0; i < reservedKeys.length; i++) {
@@ -1878,7 +1878,7 @@ export default class wavesexchange extends Exchange {
         const wavesRequest = {
             'address': wavesAddress,
         };
-        const wavesTotal = await this.nodeGetAddressesBalanceAddress (wavesRequest);
+        const wavesTotal= await (this as any).nodeGetAddressesBalanceAddress (wavesRequest);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "confirmations": 0,
@@ -1910,7 +1910,7 @@ export default class wavesexchange extends Exchange {
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
-        const address = await this.getWavesAddress ();
+        const address= await (this as any).getWavesAddress ();
         const request = {
             'sender': address,
         };
@@ -1920,7 +1920,7 @@ export default class wavesexchange extends Exchange {
             request['amountAsset'] = market['baseId'];
             request['priceAsset'] = market['quoteId'];
         }
-        const response = await this.publicGetTransactionsExchange (request);
+        const response= await (this as any).publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         //
         //      {
@@ -2014,7 +2014,7 @@ export default class wavesexchange extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response = await this.publicGetTransactionsExchange (request);
+        const response= await (this as any).publicGetTransactionsExchange (request);
         const data = this.safeValue (response, 'data');
         //
         //      {
@@ -2209,7 +2209,7 @@ export default class wavesexchange extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
-            const supportedCurrencies = await this.privateGetWithdrawCurrencies ();
+            const supportedCurrencies= await (this as any).privateGetWithdrawCurrencies ();
             const currencies = {};
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
@@ -2248,7 +2248,7 @@ export default class wavesexchange extends Exchange {
                 'address': address,
                 'currency': code,
             };
-            const withdrawAddress = await this.privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            const withdrawAddress= await (this as any).privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             const currency = this.safeValue (withdrawAddress, 'currency');
             const allowedAmount = this.safeValue (currency, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
@@ -2317,7 +2317,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        const result = await this.nodePostTransactionsBroadcast (request);
+        const result= await (this as any).nodePostTransactionsBroadcast (request);
         //
         //     {
         //         "id": "string",

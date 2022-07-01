@@ -241,7 +241,7 @@ export default class timex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetMarkets (params);
+        const response= await (this as any).publicGetMarkets (params);
         //
         //     [
         //         {
@@ -278,7 +278,7 @@ export default class timex extends Exchange {
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const response= await (this as any).publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -326,7 +326,7 @@ export default class timex extends Exchange {
         const request = {
             'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response= await (this as any).publicGetTickers (this.extend (request, params));
         //
         //     [
         //         {
@@ -363,7 +363,7 @@ export default class timex extends Exchange {
             'market': market['id'],
             'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        const response= await (this as any).publicGetTickers (this.extend (request, params));
         //
         //     [
         //         {
@@ -403,7 +403,7 @@ export default class timex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderbookV2 (this.extend (request, params));
+        const response= await (this as any).publicGetOrderbookV2 (this.extend (request, params));
         //
         //     {
         //         "timestamp":"2019-12-05T00:21:09.538",
@@ -465,7 +465,7 @@ export default class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default is 100
         }
-        const response = await this.publicGetTrades (this.extend (request, query));
+        const response= await (this as any).publicGetTrades (this.extend (request, query));
         //
         //     [
         //         {
@@ -512,7 +512,7 @@ export default class timex extends Exchange {
         } else {
             request['till'] = this.iso8601 (this.milliseconds ());
         }
-        const response = await this.publicGetCandles (this.extend (request, params));
+        const response= await (this as any).publicGetCandles (this.extend (request, params));
         //
         //     [
         //         {
@@ -556,7 +556,7 @@ export default class timex extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.tradingGetBalances (params);
+        const response= await (this as any).tradingGetBalances (params);
         //
         //     [
         //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -617,7 +617,7 @@ export default class timex extends Exchange {
         } else {
             request['price'] = 0;
         }
-        const response = await this.tradingPostOrders (this.extend (request, query));
+        const response= await (this as any).tradingPostOrders (this.extend (request, query));
         //
         //     {
         //         "orders": [
@@ -656,7 +656,7 @@ export default class timex extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.tradingPutOrders (this.extend (request, params));
+        const response= await (this as any).tradingPutOrders (this.extend (request, params));
         //
         //     {
         //         "changedOrders": [
@@ -724,7 +724,7 @@ export default class timex extends Exchange {
         const request = {
             'id': ids,
         };
-        const response = await this.tradingDeleteOrders (this.extend (request, params));
+        const response= await (this as any).tradingDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "changedOrders": [
@@ -765,7 +765,7 @@ export default class timex extends Exchange {
         const request = {
             'orderHash': id,
         };
-        const response = await this.historyGetOrdersDetails (request);
+        const response= await (this as any).historyGetOrdersDetails (request);
         //
         //     {
         //         "order": {
@@ -833,7 +833,7 @@ export default class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.tradingGetOrders (this.extend (request, query));
+        const response= await (this as any).tradingGetOrders (this.extend (request, query));
         //
         //     {
         //         "orders": [
@@ -893,7 +893,7 @@ export default class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.historyGetOrders (this.extend (request, query));
+        const response= await (this as any).historyGetOrders (this.extend (request, query));
         //
         //     {
         //         "orders": [
@@ -959,7 +959,7 @@ export default class timex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.historyGetTrades (this.extend (request, query));
+        const response= await (this as any).historyGetTrades (this.extend (request, query));
         //
         //     {
         //         "trades": [
@@ -1013,7 +1013,7 @@ export default class timex extends Exchange {
         const request = {
             'markets': market['id'],
         };
-        const response = await this.tradingGetFees (this.extend (request, params));
+        const response= await (this as any).tradingGetFees (this.extend (request, params));
         //
         //     [
         //         {

@@ -132,7 +132,7 @@ export default class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         }
         await this.loadMarkets ();
-        const orderbook = await this.publicGetOrderBook (params);
+        const orderbook= await (this as any).publicGetOrderBook (params);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -195,7 +195,7 @@ export default class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetTicker (params);
+        const ticker= await (this as any).publicGetTicker (params);
         //
         // {
         //     "volume": "2836.47827985",
@@ -257,7 +257,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'time': 'minute',
         };
-        const response = await this.publicGetTransactions (this.extend (request, params));
+        const response= await (this as any).publicGetTransactions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -285,7 +285,7 @@ export default class bitstamp1 extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const response = await this.privatePostBalance (params);
+        const response= await (this as any).privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -350,7 +350,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        const response= await (this as any).privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 
@@ -374,7 +374,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'id': pair,
         };
-        const response = await this.privatePostOpenOrdersId (this.extend (request, params));
+        const response= await (this as any).privatePostOpenOrdersId (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 

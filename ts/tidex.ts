@@ -167,7 +167,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the tidex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.webGetCurrency (params);
+        const response= await (this as any).webGetCurrency (params);
         //
         //     [
         //         {
@@ -253,7 +253,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetInfo (params);
+        const response= await (this as any).publicGetInfo (params);
         //
         //     {
         //         "server_time":1615861869,
@@ -367,7 +367,7 @@ export default class tidex extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetInfoExt (params);
+        const response= await (this as any).privatePostGetInfoExt (params);
         //
         //     {
         //         "success":1,
@@ -415,7 +415,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
+        const response= await (this as any).publicGetDepthPair (this.extend (request, params));
         const market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -453,7 +453,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
-        const response = await this.publicGetDepthPair (this.extend (request, params));
+        const response= await (this as any).publicGetDepthPair (this.extend (request, params));
         const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -531,7 +531,7 @@ export default class tidex extends Exchange {
         const request = {
             'pair': ids,
         };
-        const response = await this.publicGetTickerPair (this.extend (request, params));
+        const response= await (this as any).publicGetTickerPair (this.extend (request, params));
         const result = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -552,7 +552,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the tidex api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const tickers = await this.fetchTickers ([ symbol ], params);
+        const tickers= await (this as any).fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
@@ -631,7 +631,7 @@ export default class tidex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTradesPair (this.extend (request, params));
+        const response= await (this as any).publicGetTradesPair (this.extend (request, params));
         if (Array.isArray (response)) {
             const numElements = response.length;
             if (numElements === 0) {
@@ -667,7 +667,7 @@ export default class tidex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        const response = await this.privatePostTrade (this.extend (request, params));
+        const response= await (this as any).privatePostTrade (this.extend (request, params));
         let id = undefined;
         let status = 'open';
         let filledString = '0.0';
@@ -787,7 +787,7 @@ export default class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response = await this.privatePostOrderInfo (this.extend (request, params));
+        const response= await (this as any).privatePostOrderInfo (this.extend (request, params));
         id = id.toString ();
         const result = this.safeValue (response, 'return', {});
         const order = this.safeValue (result, id);
@@ -812,7 +812,7 @@ export default class tidex extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await this.privatePostActiveOrders (this.extend (request, params));
+        const response= await (this as any).privatePostActiveOrders (this.extend (request, params));
         //
         //     {
         //         "success":1,
@@ -873,7 +873,7 @@ export default class tidex extends Exchange {
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostTradeHistory (this.extend (request, params));
+        const response= await (this as any).privatePostTradeHistory (this.extend (request, params));
         const trades = this.safeValue (response, 'return', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -902,7 +902,7 @@ export default class tidex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
+        const response= await (this as any).privatePostCreateWithdraw (this.extend (request, params));
         //
         //     {
         //         "success":1,

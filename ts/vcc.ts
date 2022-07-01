@@ -179,7 +179,7 @@ export default class vcc extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetExchangeInfo (params);
+        const response= await (this as any).publicGetExchangeInfo (params);
         //
         //     {
         //         "message":null,
@@ -289,7 +289,7 @@ export default class vcc extends Exchange {
          * @param {object} params extra parameters specific to the vcc api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicGetAssets (params);
+        const response= await (this as any).publicGetAssets (params);
         //
         //     {
         //         "message":null,
@@ -356,7 +356,7 @@ export default class vcc extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, this.omit (params, 'symbol'));
-        const response = await this.privateGetTradingFeeSymbol (request);
+        const response= await (this as any).privateGetTradingFeeSymbol (request);
         //
         //     {
         //         takeLiquidityRate: '0.001',
@@ -399,7 +399,7 @@ export default class vcc extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
+        const response= await (this as any).privateGetBalance (params);
         //
         //     {
         //         "message":null,
@@ -468,7 +468,7 @@ export default class vcc extends Exchange {
             request['from'] = start;
             request['to'] = this.sum (start, limit * duration);
         }
-        const response = await this.publicGetChartBars (this.extend (request, params));
+        const response= await (this as any).publicGetChartBars (this.extend (request, params));
         //
         //     [
         //         {"low":"415805323.0000000000","high":"415805323.0000000000","open":"415805323.0000000000","close":"415805323.0000000000","time":"1605845940000","volume":"0.0065930000","opening_time":1605845963263,"closing_time":1605845963263},
@@ -502,7 +502,7 @@ export default class vcc extends Exchange {
             }
             request['depth'] = limit;
         }
-        const response = await this.publicGetOrderbookMarketPair (this.extend (request, params));
+        const response= await (this as any).publicGetOrderbookMarketPair (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -581,7 +581,7 @@ export default class vcc extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
+        const response= await (this as any).publicGetTicker (params);
         //
         //     {
         //         "message":null,
@@ -705,7 +705,7 @@ export default class vcc extends Exchange {
         if (limit !== undefined) {
             request['count'] = Math.min (1000, limit);
         }
-        const response = await this.publicGetTradesMarketPair (this.extend (request, params));
+        const response= await (this as any).publicGetTradesMarketPair (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -754,7 +754,7 @@ export default class vcc extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = await this.privateGetTransactions (this.extend (request, params));
+        const response= await (this as any).privateGetTransactions (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -988,7 +988,7 @@ export default class vcc extends Exchange {
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
         params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response= await (this as any).privatePostOrders (this.extend (request, params));
         //
         // ceiling_market order
         //
@@ -1057,7 +1057,7 @@ export default class vcc extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privatePutOrdersOrderIdCancel (this.extend (request, params));
+        const response= await (this as any).privatePutOrdersOrderIdCancel (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1226,7 +1226,7 @@ export default class vcc extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const response= await (this as any).privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -1390,7 +1390,7 @@ export default class vcc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (1000, limit); // max 1000
         }
-        const response = await this.privateGetOrdersTrades (this.extend (request, params));
+        const response= await (this as any).privateGetOrdersTrades (this.extend (request, params));
         //
         //     {
         //         "message":null,
@@ -1442,7 +1442,7 @@ export default class vcc extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetDepositAddress (this.extend (request, params));
+        const response= await (this as any).privateGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "dataVersion":"6d72fb82a9c613c8166581a887e1723ce5a937ff",

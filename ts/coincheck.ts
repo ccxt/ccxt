@@ -185,7 +185,7 @@ export default class coincheck extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccountsBalance (params);
+        const response= await (this as any).privateGetAccountsBalance (params);
         return this.parseBalance (response);
     }
 
@@ -206,7 +206,7 @@ export default class coincheck extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privateGetExchangeOrdersOpens (params);
+        const response= await (this as any).privateGetExchangeOrdersOpens (params);
         const rawOrders = this.safeValue (response, 'orders', []);
         const parsedOrders = this.parseOrders (rawOrders, market, since, limit);
         const result = [];
@@ -280,7 +280,7 @@ export default class coincheck extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetOrderBooks (this.extend (request, params));
+        const response= await (this as any).publicGetOrderBooks (this.extend (request, params));
         return this.parseOrderBook (response, symbol);
     }
 
@@ -340,7 +340,7 @@ export default class coincheck extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker = await this.publicGetTicker (this.extend (request, params));
+        const ticker= await (this as any).publicGetTicker (this.extend (request, params));
         //
         // {
         //     "last":4192632.0,
@@ -471,7 +471,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetExchangeOrdersTransactionsPagination (this.extend (request, params));
+        const response= await (this as any).privateGetExchangeOrdersTransactionsPagination (this.extend (request, params));
         //
         //      {
         //          "success": true,
@@ -517,7 +517,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response= await (this as any).publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "id": "206849494",
@@ -541,7 +541,7 @@ export default class coincheck extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetAccounts (params);
+        const response= await (this as any).privateGetAccounts (params);
         //
         //     {
         //         success: true,
@@ -606,7 +606,7 @@ export default class coincheck extends Exchange {
             request['rate'] = price;
             request['amount'] = amount;
         }
-        const response = await this.privatePostExchangeOrders (this.extend (request, params));
+        const response= await (this as any).privatePostExchangeOrders (this.extend (request, params));
         const id = this.safeString (response, 'id');
         return {
             'info': response,
@@ -651,7 +651,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetDepositMoney (this.extend (request, params));
+        const response= await (this as any).privateGetDepositMoney (this.extend (request, params));
         // {
         //   "success": true,
         //   "deposits": [
@@ -699,7 +699,7 @@ export default class coincheck extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetWithdraws (this.extend (request, params));
+        const response= await (this as any).privateGetWithdraws (this.extend (request, params));
         //  {
         //   "success": true,
         //   "pagination": {

@@ -208,7 +208,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime (params);
+        const response= await (this as any).publicGetTime (params);
         //
         //     {
         //         "data": {
@@ -233,7 +233,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response= await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "id": "XLM",
@@ -337,7 +337,7 @@ export default class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
         };
-        const response = await this.privatePostAccountsAccountIdAddresses (this.extend (request, params));
+        const response= await (this as any).privatePostAccountsAccountIdAddresses (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -400,7 +400,7 @@ export default class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const sells = await this.privateGetAccountsAccountIdSells (this.extend (request, query));
+        const sells= await (this as any).privateGetAccountsAccountIdSells (this.extend (request, query));
         return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
@@ -419,12 +419,12 @@ export default class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const buys = await this.privateGetAccountsAccountIdBuys (this.extend (request, query));
+        const buys= await (this as any).privateGetAccountsAccountIdBuys (this.extend (request, query));
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
+        const request= await (this as any).prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const response = await this[method] (this.extend (request, query));
@@ -661,7 +661,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.fetchCurrenciesFromCache (params);
+        const response= await (this as any).fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         const exchangeRates = this.safeValue (response, 'exchangeRates', {});
         const data = this.safeValue (currencies, 'data', []);
@@ -739,8 +739,8 @@ export default class coinbase extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await this.publicGetCurrencies (params);
-            const exchangeRates = await this.publicGetExchangeRates (params);
+            const currencies= await (this as any).publicGetCurrencies (params);
+            const exchangeRates= await (this as any).publicGetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'currencies': currencies,
                 'exchangeRates': exchangeRates,
@@ -758,7 +758,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.fetchCurrenciesFromCache (params);
+        const response= await (this as any).fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         //
         //     {
@@ -839,7 +839,7 @@ export default class coinbase extends Exchange {
         const request = {
             // 'currency': 'USD',
         };
-        const response = await this.publicGetExchangeRates (this.extend (request, params));
+        const response= await (this as any).publicGetExchangeRates (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -882,15 +882,15 @@ export default class coinbase extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
-        const spot = await this.publicGetPricesSymbolSpot (request);
+        const spot= await (this as any).publicGetPricesSymbolSpot (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const buy = await this.publicGetPricesSymbolBuy (request);
+        const buy= await (this as any).publicGetPricesSymbolBuy (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const sell = await this.publicGetPricesSymbolSell (request);
+        const sell= await (this as any).publicGetPricesSymbolSell (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
@@ -991,7 +991,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response= await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination":{
@@ -1051,12 +1051,12 @@ export default class coinbase extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
+        const request= await (this as any).prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response= await (this as any).privateGetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
@@ -1423,7 +1423,7 @@ export default class coinbase extends Exchange {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            accountId = await this.findAccountId (code);
+            accountId= await (this as any).findAccountId (code);
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
             }

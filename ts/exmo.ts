@@ -309,7 +309,7 @@ export default class exmo extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostMarginPairList (params);
+        const response= await (this as any).privatePostMarginPairList (params);
         //
         //     {
         //         pairs: [{
@@ -363,7 +363,7 @@ export default class exmo extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetPairSettings (params);
+        const response= await (this as any).publicGetPairSettings (params);
         //
         //     {
         //         BTC_USD: {
@@ -427,7 +427,7 @@ export default class exmo extends Exchange {
          * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        const currencyList= await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -436,7 +436,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList= await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -506,7 +506,7 @@ export default class exmo extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         //
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        const currencyList= await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -515,7 +515,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList= await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -626,7 +626,7 @@ export default class exmo extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetPairSettings (params);
+        const response= await (this as any).publicGetPairSettings (params);
         //
         //     {
         //         "BTC_USD":{
@@ -751,7 +751,7 @@ export default class exmo extends Exchange {
                 request['to'] = parseInt (to / 1000);
             }
         }
-        const response = await this.publicGetCandlesHistory (this.extend (request, params));
+        const response= await (this as any).publicGetCandlesHistory (this.extend (request, params));
         //
         //     {
         //         "candles":[
@@ -815,7 +815,7 @@ export default class exmo extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostUserInfo (params);
+        const response= await (this as any).privatePostUserInfo (params);
         //
         //     {
         //         "uid":131685,
@@ -849,7 +849,7 @@ export default class exmo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response= await (this as any).publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
         return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
     }
@@ -883,7 +883,7 @@ export default class exmo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response= await (this as any).publicGetOrderBook (this.extend (request, params));
         const result = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -949,7 +949,7 @@ export default class exmo extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
+        const response= await (this as any).publicGetTicker (params);
         //
         //     {
         //         "ADA_BTC":{
@@ -987,7 +987,7 @@ export default class exmo extends Exchange {
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
+        const response= await (this as any).publicGetTicker (params);
         const market = this.market (symbol);
         return this.parseTicker (response[market['id']], market);
     }
@@ -1094,7 +1094,7 @@ export default class exmo extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response= await (this as any).publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "ETH_BTC":[
@@ -1156,7 +1156,7 @@ export default class exmo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostUserTrades (this.extend (request, params));
+        const response= await (this as any).privatePostUserTrades (this.extend (request, params));
         let result = [];
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1290,7 +1290,7 @@ export default class exmo extends Exchange {
         const request = {
             'order_id': id.toString (),
         };
-        const response = await this.privatePostOrderTrades (this.extend (request, params));
+        const response= await (this as any).privatePostOrderTrades (this.extend (request, params));
         //
         //     {
         //         "type": "buy",
@@ -1337,7 +1337,7 @@ export default class exmo extends Exchange {
         const request = {
             'order_id': id.toString (),
         };
-        const response = await this.privatePostOrderTrades (this.extend (request, params));
+        const response= await (this as any).privatePostOrderTrades (this.extend (request, params));
         //
         //     {
         //         "type": "buy",
@@ -1383,7 +1383,7 @@ export default class exmo extends Exchange {
             const market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const response = await this.privatePostUserOpenOrders (params);
+        const response= await (this as any).privatePostUserOpenOrders (params);
         const marketIds = Object.keys (response);
         let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -1569,7 +1569,7 @@ export default class exmo extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const response = await this.privatePostUserCancelledOrders (this.extend (request, params));
+        const response= await (this as any).privatePostUserCancelledOrders (this.extend (request, params));
         //
         //     [{
         //         "order_id": "27056153840",
@@ -1595,7 +1595,7 @@ export default class exmo extends Exchange {
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostDepositAddress (params);
+        const response= await (this as any).privatePostDepositAddress (params);
         const depositAddress = this.safeString (response, code);
         let address = undefined;
         let tag = undefined;
@@ -1657,7 +1657,7 @@ export default class exmo extends Exchange {
             request['transport'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
+        const response= await (this as any).privatePostWithdrawCrypt (this.extend (request, params));
         return this.parseTransaction (response, currency);
     }
 
@@ -1821,7 +1821,7 @@ export default class exmo extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.privatePostWalletHistory (this.extend (request, params));
+        const response= await (this as any).privatePostWalletHistory (this.extend (request, params));
         //
         //     {
         //       "result": true,
@@ -1878,7 +1878,7 @@ export default class exmo extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        const response= await (this as any).privatePostWalletOperations (this.extend (request, params));
         //
         //     {
         //         "items": [
@@ -1929,7 +1929,7 @@ export default class exmo extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        const response= await (this as any).privatePostWalletOperations (this.extend (request, params));
         //
         //     {
         //         "items": [
@@ -1981,7 +1981,7 @@ export default class exmo extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        const response= await (this as any).privatePostWalletOperations (this.extend (request, params));
         //
         //     {
         //         "items": [
@@ -2036,7 +2036,7 @@ export default class exmo extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privatePostWalletOperations (this.extend (request, params));
+        const response= await (this as any).privatePostWalletOperations (this.extend (request, params));
         //
         //     {
         //         "items": [

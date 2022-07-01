@@ -507,7 +507,7 @@ export default class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetV2PublicTime (params);
+        const response= await (this as any).publicGetV2PublicTime (params);
         //
         //     {
         //         ret_code: 0,
@@ -540,7 +540,7 @@ export default class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetAssetV1PrivateCoinInfoQuery (params);
+        const response= await (this as any).privateGetAssetV1PrivateCoinInfoQuery (params);
         //
         //     {
         //         "ret_code":0,
@@ -654,7 +654,7 @@ export default class bybit extends Exchange {
         if (type === 'spot') {
             // spot and swap ids are equal
             // so they can't be loaded together
-            const spotMarkets = await this.fetchSpotMarkets (params);
+            const spotMarkets= await (this as any).fetchSpotMarkets (params);
             return spotMarkets;
         }
         let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
@@ -667,7 +667,7 @@ export default class bybit extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.publicGetSpotV1Symbols (params);
+        const response= await (this as any).publicGetSpotV1Symbols (params);
         //
         //     {
         //         "ret_code":0,
@@ -759,7 +759,7 @@ export default class bybit extends Exchange {
     }
 
     async fetchSwapAndFutureMarkets (params) {
-        const response = await this.publicGetV2PublicSymbols (params);
+        const response= await (this as any).publicGetV2PublicSymbols (params);
         //     {
         //         "ret_code":0,
         //         "ret_msg":"OK",
@@ -931,8 +931,8 @@ export default class bybit extends Exchange {
     }
 
     async fetchUSDCMarkets (params) {
-        const linearOptionsResponse = await this.publicGetOptionUsdcOpenapiPublicV1Symbols (params);
-        const usdcLinearPerpetualSwaps = await this.publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
+        const linearOptionsResponse= await (this as any).publicGetOptionUsdcOpenapiPublicV1Symbols (params);
+        const usdcLinearPerpetualSwaps= await (this as any).publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
         //
         // USDC linear options
         //     {
@@ -2680,7 +2680,7 @@ export default class bybit extends Exchange {
             const request = {
                 'orderId': id,
             };
-            const response = await this.privateGetSpotV1Order (this.extend (params, request));
+            const response= await (this as any).privateGetSpotV1Order (this.extend (params, request));
             const result = this.safeValue (response, 'result', {});
             return this.parseOrder (result);
         }
@@ -2703,7 +2703,7 @@ export default class bybit extends Exchange {
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
-            const orders = await this.fetchOrders (symbol, undefined, undefined, params);
+            const orders= await (this as any).fetchOrders (symbol, undefined, undefined, params);
             const order = this.safeValue (orders, 0);
             if (order === undefined) {
                 throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
@@ -2781,7 +2781,7 @@ export default class bybit extends Exchange {
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
         }
-        const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        const response= await (this as any).privatePostSpotV1Order (this.extend (request, params));
         //    {
         //        "ret_code":0,
         //        "ret_msg":"",
@@ -3918,7 +3918,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetAssetV1PrivateDepositAddress (this.extend (request, params));
+        const response= await (this as any).privateGetAssetV1PrivateDepositAddress (this.extend (request, params));
         //
         //     {
         //         ret_code: '0',
@@ -3962,7 +3962,7 @@ export default class bybit extends Exchange {
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const response= await (this as any).fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
         if (network === undefined) {
             result = this.safeValue (response, code);
@@ -4024,7 +4024,7 @@ export default class bybit extends Exchange {
         }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response= await (this as any).privateGetV2PrivateWalletFundRecords (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4090,7 +4090,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
+        const response= await (this as any).privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4241,7 +4241,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response= await (this as any).privateGetV2PrivateWalletFundRecords (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -4370,7 +4370,7 @@ export default class bybit extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privatePostAssetV1PrivateWithdraw (this.extend (request, params));
+        const response= await (this as any).privatePostAssetV1PrivateWithdraw (this.extend (request, params));
         //
         //     {
         //         "ret_code":0,
@@ -4832,7 +4832,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        const response= await (this as any).publicGetV2PublicOpenInterest (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,

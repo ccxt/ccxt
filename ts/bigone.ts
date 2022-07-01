@@ -176,7 +176,7 @@ export default class bigone extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetAssetPairs (params);
+        const response= await (this as any).publicGetAssetPairs (params);
         //
         //     {
         //         "code":0,
@@ -342,7 +342,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
+        const response= await (this as any).publicGetAssetPairsAssetPairNameTicker (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -378,7 +378,7 @@ export default class bigone extends Exchange {
             const ids = this.marketIds (symbols);
             request['pair_names'] = ids.join (',');
         }
-        const response = await this.publicGetAssetPairsTickers (this.extend (request, params));
+        const response= await (this as any).publicGetAssetPairsTickers (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -426,7 +426,7 @@ export default class bigone extends Exchange {
          * @param {object} params extra parameters specific to the bigone api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetPing (params);
+        const response= await (this as any).publicGetPing (params);
         //
         //     {
         //         "data": {
@@ -457,7 +457,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 200
         }
-        const response = await this.publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
+        const response= await (this as any).publicGetAssetPairsAssetPairNameDepth (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -631,7 +631,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
+        const response= await (this as any).publicGetAssetPairsAssetPairNameTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -706,7 +706,7 @@ export default class bigone extends Exchange {
             const end = this.sum (since, limit * duration * 1000);
             request['time'] = this.iso8601 (end);
         }
-        const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
+        const response= await (this as any).publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
         //
         //     {
         //         code: 0,
@@ -879,7 +879,7 @@ export default class bigone extends Exchange {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response= await (this as any).privatePostOrders (this.extend (request, params));
         //
         //    {
         //        "id": 10,
@@ -910,7 +910,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privatePostOrdersIdCancel (this.extend (request, params));
+        const response= await (this as any).privatePostOrdersIdCancel (this.extend (request, params));
         //    {
         //        "id": 10,
         //        "asset_pair_name": "EOS-BTC",
@@ -941,7 +941,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_pair_name': market['id'],
         };
-        const response = await this.privatePostOrdersCancel (this.extend (request, params));
+        const response= await (this as any).privatePostOrdersCancel (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -968,7 +968,7 @@ export default class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'id': id };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response= await (this as any).privateGetOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
     }
@@ -999,7 +999,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await this.privateGetOrders (this.extend (request, params));
+        const response= await (this as any).privateGetOrders (this.extend (request, params));
         //
         //    {
         //        "code":0,
@@ -1047,7 +1047,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 200
         }
-        const response = await this.privateGetTrades (this.extend (request, params));
+        const response= await (this as any).privateGetTrades (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1180,7 +1180,7 @@ export default class bigone extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const response= await (this as any).privateGetAssetsAssetSymbolAddress (this.extend (request, params));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1339,7 +1339,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await this.privateGetDeposits (this.extend (request, params));
+        const response= await (this as any).privateGetDeposits (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1391,7 +1391,7 @@ export default class bigone extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 50
         }
-        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        const response= await (this as any).privateGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1444,7 +1444,7 @@ export default class bigone extends Exchange {
             // 'type': type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
             // 'sub_acccunt': '', // when type is NORMAL, it should be empty, and when type is others it is required
         };
-        const response = await this.privatePostTransfer (this.extend (request, params));
+        const response= await (this as any).privatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1515,7 +1515,7 @@ export default class bigone extends Exchange {
             request['memo'] = tag;
         }
         // requires write permission on the wallet
-        const response = await this.privatePostWithdrawals (this.extend (request, params));
+        const response= await (this as any).privatePostWithdrawals (this.extend (request, params));
         //
         //     {
         //         "code":0,

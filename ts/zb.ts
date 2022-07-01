@@ -699,7 +699,7 @@ export default class zb extends Exchange {
          * @param {object} params extra parameters specific to the zb api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.spotV1PublicGetGetFeeInfo (params);
+        const response= await (this as any).spotV1PublicGetGetFeeInfo (params);
         //
         //     {
         //         "code":1000,
@@ -1182,7 +1182,7 @@ export default class zb extends Exchange {
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetGetPayinAddress (params);
+        const response= await (this as any).spotV1PrivateGetGetPayinAddress (params);
         //
         //     {
         //         "code": 1000,
@@ -1228,7 +1228,7 @@ export default class zb extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.spotV1PrivateGetGetUserAddress (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetGetUserAddress (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1334,7 +1334,7 @@ export default class zb extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.spotV1PublicGetAllTicker (params);
+        const response= await (this as any).spotV1PublicGetAllTicker (params);
         const result = {};
         const marketsByIdWithoutUnderscore = {};
         const marketIds = Object.keys (this.markets_by_id);
@@ -3139,7 +3139,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.contractV2PublicGetFundingRate (this.extend (request, params));
+        const response= await (this as any).contractV2PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3189,7 +3189,7 @@ export default class zb extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.contractV1PublicGetFundingRate (this.extend (request, params));
+        const response= await (this as any).contractV1PublicGetFundingRate (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3258,7 +3258,7 @@ export default class zb extends Exchange {
          * @returns {dict} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.contractV2PublicGetPremiumIndex (params);
+        const response= await (this as any).contractV2PublicGetPremiumIndex (params);
         //
         //     {
         //         "code": 10000,
@@ -3315,7 +3315,7 @@ export default class zb extends Exchange {
             'receiveAddr': address,
             'safePwd': password,
         };
-        const response = await this.spotV1PrivateGetWithdraw (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetWithdraw (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3357,7 +3357,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.spotV1PrivateGetGetWithdrawRecord (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetGetWithdrawRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3415,7 +3415,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.spotV1PrivateGetGetChargeRecord (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetGetChargeRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -3470,7 +3470,7 @@ export default class zb extends Exchange {
             // 'marketId': market['id'],
             // 'side': params['side'],
         };
-        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        const response= await (this as any).contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3541,7 +3541,7 @@ export default class zb extends Exchange {
             // 'marketId': market['id'],
             // 'side': params['side'],
         };
-        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        const response= await (this as any).contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3813,7 +3813,7 @@ export default class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
+        const response= await (this as any).contractV2PrivateGetFundGetBill (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -3955,7 +3955,7 @@ export default class zb extends Exchange {
             'type': type, // 1 increase, 0 reduce
             'futuresAccountType': 1, // 1: USDT Perpetual Futures
         };
-        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
+        const response= await (this as any).contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -4063,7 +4063,7 @@ export default class zb extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetGetLoans (this.extend (request, params));
         //
         //     {
         //         code: '1000',
@@ -4110,7 +4110,7 @@ export default class zb extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.spotV1PrivateGetGetLoans (this.extend (request, params));
+        const response= await (this as any).spotV1PrivateGetGetLoans (this.extend (request, params));
         //
         //     {
         //         code: '1000',

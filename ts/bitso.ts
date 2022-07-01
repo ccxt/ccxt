@@ -188,7 +188,7 @@ export default class bitso extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetLedger (this.extend (request, params));
+        const response= await (this as any).privateGetLedger (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -337,7 +337,7 @@ export default class bitso extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response = await this.publicGetAvailableBooks (params);
+        const response= await (this as any).publicGetAvailableBooks (params);
         //
         //     {
         //         "success":true,
@@ -498,7 +498,7 @@ export default class bitso extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
+        const response= await (this as any).privateGetBalance (params);
         //
         //     {
         //       "success": true,
@@ -541,7 +541,7 @@ export default class bitso extends Exchange {
         const request = {
             'book': this.marketId (symbol),
         };
-        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const response= await (this as any).publicGetOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'payload');
         const timestamp = this.parse8601 (this.safeString (orderbook, 'updated_at'));
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
@@ -606,7 +606,7 @@ export default class bitso extends Exchange {
         const request = {
             'book': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response= await (this as any).publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'payload');
         //
         //     {
@@ -657,7 +657,7 @@ export default class bitso extends Exchange {
             request['end'] = now;
             request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
         }
-        const response = await this.publicGetOhlc (this.extend (request, params));
+        const response= await (this as any).publicGetOhlc (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -820,7 +820,7 @@ export default class bitso extends Exchange {
         const request = {
             'book': market['id'],
         };
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response= await (this as any).publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
@@ -833,7 +833,7 @@ export default class bitso extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFees (params);
+        const response= await (this as any).privateGetFees (params);
         //
         //    {
         //        success: true,
@@ -930,7 +930,7 @@ export default class bitso extends Exchange {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades (this.extend (request, params));
+        const response= await (this as any).privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
@@ -957,7 +957,7 @@ export default class bitso extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrders (this.extend (request, params));
+        const response= await (this as any).privatePostOrders (this.extend (request, params));
         const id = this.safeString (response['payload'], 'oid');
         return {
             'info': response,
@@ -1003,7 +1003,7 @@ export default class bitso extends Exchange {
         const request = {
             'oids': oids,
         };
-        const response = await this.privateDeleteOrders (this.extend (request, params));
+        const response= await (this as any).privateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1031,7 +1031,7 @@ export default class bitso extends Exchange {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.');
         }
-        const response = await this.privateDeleteOrdersAll (params);
+        const response= await (this as any).privateDeleteOrdersAll (params);
         //
         //     {
         //         success: true,
@@ -1136,7 +1136,7 @@ export default class bitso extends Exchange {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response= await (this as any).privateGetOpenOrders (this.extend (request, params));
         const orders = this.parseOrders (response['payload'], market, since, limit);
         return orders;
     }
@@ -1181,7 +1181,7 @@ export default class bitso extends Exchange {
         const request = {
             'oid': id,
         };
-        const response = await this.privateGetOrderTradesOid (this.extend (request, params));
+        const response= await (this as any).privateGetOrderTradesOid (this.extend (request, params));
         return this.parseTrades (response['payload'], market);
     }
 
@@ -1199,7 +1199,7 @@ export default class bitso extends Exchange {
         const request = {
             'fid': id,
         };
-        const response = await this.privateGetFundingsFid (this.extend (request, params));
+        const response= await (this as any).privateGetFundingsFid (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -1240,7 +1240,7 @@ export default class bitso extends Exchange {
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFundings (params);
+        const response= await (this as any).privateGetFundings (params);
         //
         //     {
         //         success: true,
@@ -1282,7 +1282,7 @@ export default class bitso extends Exchange {
         const request = {
             'fund_currency': currency['id'],
         };
-        const response = await this.privateGetFundingDestination (this.extend (request, params));
+        const response= await (this as any).privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag = undefined;
         if (address.indexOf ('?dt=') >= 0) {
@@ -1310,7 +1310,7 @@ export default class bitso extends Exchange {
          * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFees (params);
+        const response= await (this as any).privateGetFees (params);
         //
         //    {
         //        success: true,

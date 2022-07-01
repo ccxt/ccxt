@@ -356,7 +356,7 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicSystemGetTime (params);
+        const response= await (this as any).publicSystemGetTime (params);
         //
         //     {
         //         "message":"OK",
@@ -384,7 +384,7 @@ export default class bitmart extends Exchange {
         let type = this.safeString (options, 'type', defaultType);
         type = this.safeString (params, 'type', type);
         params = this.omit (params, 'type');
-        const response = await this.publicSystemGetService (params);
+        const response= await (this as any).publicSystemGetService (params);
         //
         //     {
         //         "message": "OK",
@@ -438,7 +438,7 @@ export default class bitmart extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.publicSpotGetSymbolsDetails (params);
+        const response= await (this as any).publicSpotGetSymbolsDetails (params);
         //
         //     {
         //         "message":"OK",
@@ -535,7 +535,7 @@ export default class bitmart extends Exchange {
     }
 
     async fetchContractMarkets (params = {}) {
-        const response = await this.publicContractGetTickers (params);
+        const response= await (this as any).publicContractGetTickers (params);
         //
         //    {
         //        "message": "OK",
@@ -656,8 +656,8 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const spot = await this.fetchSpotMarkets (params);
-        const contract = await this.fetchContractMarkets (params);
+        const spot= await (this as any).fetchSpotMarkets (params);
+        const contract= await (this as any).fetchContractMarkets (params);
         return this.arrayConcat (spot, contract);
     }
 
@@ -675,7 +675,7 @@ export default class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateAccountGetWithdrawCharge (this.extend (request, params));
+        const response= await (this as any).privateAccountGetWithdrawCharge (this.extend (request, params));
         //
         //     {
         //         message: 'OK',
@@ -905,7 +905,7 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response = await this.publicAccountGetCurrencies (params);
+        const response= await (this as any).publicAccountGetCurrencies (params);
         //
         //     {
         //         "message":"OK",
@@ -972,7 +972,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrderBook () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsBook (this.extend (request, params));
+        const response= await (this as any).publicSpotGetSymbolsBook (this.extend (request, params));
         //
         // spot
         //
@@ -1144,7 +1144,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsTrades (this.extend (request, params));
+        const response= await (this as any).publicSpotGetSymbolsTrades (this.extend (request, params));
         //
         // spot
         //
@@ -1298,7 +1298,7 @@ export default class bitmart extends Exchange {
         } else if ((type === 'swap') || (type === 'future')) {
             throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.publicSpotGetSymbolsKline (this.extend (request, params));
+        const response= await (this as any).publicSpotGetSymbolsKline (this.extend (request, params));
         //
         // spot
         //
@@ -1365,7 +1365,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchMyTrades () does not accept swap or future markets, only spot markets are allowed');
         }
-        const response = await this.privateSpotGetTrades (this.extend (request, query));
+        const response= await (this as any).privateSpotGetTrades (this.extend (request, query));
         //
         // spot
         //
@@ -1450,7 +1450,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrderTrades () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetTrades (this.extend (request, query));
+        const response= await (this as any).privateSpotGetTrades (this.extend (request, query));
         //
         // spot
         //
@@ -1842,7 +1842,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotPostCancelOrder (this.extend (request, params));
+        const response= await (this as any).privateSpotPostCancelOrder (this.extend (request, params));
         //
         // spot
         //
@@ -1923,7 +1923,7 @@ export default class bitmart extends Exchange {
             'symbol': market['id'],
             'side': side, // 'buy' or 'sell'
         };
-        const response = await this.privateSpotPostCancelOrders (this.extend (request, params));
+        const response= await (this as any).privateSpotPostCancelOrders (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1972,7 +1972,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrders (this.extend (request, query));
+        const response= await (this as any).privateSpotGetOrders (this.extend (request, query));
         //
         // spot
         //
@@ -2106,7 +2106,7 @@ export default class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrderDetail (this.extend (request, query));
+        const response= await (this as any).privateSpotGetOrderDetail (this.extend (request, query));
         //
         // spot
         //
@@ -2199,7 +2199,7 @@ export default class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
+        const response= await (this as any).privateAccountGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2274,7 +2274,7 @@ export default class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
+        const response= await (this as any).privateAccountPostWithdrawApply (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -2309,7 +2309,7 @@ export default class bitmart extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
+        const response= await (this as any).privateAccountGetDepositWithdrawHistory (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2353,7 +2353,7 @@ export default class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        const response= await (this as any).privateAccountGetDepositWithdrawDetail (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2409,7 +2409,7 @@ export default class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        const response= await (this as any).privateAccountGetDepositWithdrawDetail (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
