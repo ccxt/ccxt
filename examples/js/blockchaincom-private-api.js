@@ -63,6 +63,10 @@ require('ansicolor').nice
             let whiteList = await exchange.fetchWithdrawalWhitelist()
             log('whiteList'.green, asTable(whiteList))
 
+            // fetch withdrawal white list by currency
+            let btcWhiteList = await exchange.fetchWithdrawalWhitelistByCurrency('BTC')
+            log('whiteListByCurrency'.green, asTable(btcWhiteList))
+
             // cancel all open orders
             let canceledOrders = await exchange.cancelOrders(null)
             console.log('Canceled all open orders'.green, canceledOrders);

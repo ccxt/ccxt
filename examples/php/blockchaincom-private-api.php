@@ -97,6 +97,12 @@ try {
     var_dump( $result );
     printf("\n--------------------------------------------------------------\n");
 
+    // fetch withdrawal white list by currency
+    $result = $exchange->fetch_withdrawal_whitelist_by_currency('BTC');
+    printf("Withdrawal whitelist by currency" . "\n");
+    var_dump( $result );
+    printf("\n--------------------------------------------------------------\n");
+
     // cancel all open orders
     $result = $exchange->cancel_orders(null);
     printf("Canceled all open orders" . "\n");

@@ -1,4 +1,3 @@
-from time import process_time_ns
 import ccxt
 
 exchange = ccxt.blockchaincom({
@@ -71,6 +70,11 @@ print("\n")
 
 white_list = exchange.fetch_withdrawal_whitelist()
 print(white_list)
+
+print("\n")
+
+white_list_by_currency = exchange.fetch_withdrawal_whitelist_by_currency('BTC')
+print(white_list_by_currency)
 
 print("\n")
 

@@ -821,8 +821,9 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchWithdrawalWhitelistByCurrency (currency, params = {}) {
         await this.loadMarkets ();
+        currency = this.currency (currency);
         const request = {
-            'currency': this.currencyId (currency),
+            'currency': currency['id'],
         };
         const response = await this.privateGetWhitelistCurrency (this.extend (request, params));
         const result = [];
