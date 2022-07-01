@@ -45,6 +45,7 @@
     "mixcoins":      { "skip": true },
     "mercado":       { "skip": true },
     "mexc":          { "skip": true },
+    "mexc3":         { "skip": true },
     "qtrade":        { "skip": true },
     "rightbtc":      { "skip": true },
     "stex":          { "skip": true },
