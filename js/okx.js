@@ -98,7 +98,7 @@ module.exports = class okx extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
-                'fetchWithdrawalWhitelist': undefined,
+                'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
