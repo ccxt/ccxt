@@ -3562,6 +3562,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {str|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -3635,6 +3636,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchDeposit
          * @description fetch data on a currency deposit via the deposit id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {str} id deposit id
          * @param {str|undefined} code filter by currency code
          * @param {dict} params extra parameters specific to the okx api endpoint
