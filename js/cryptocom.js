@@ -19,7 +19,7 @@ module.exports = class cryptocom extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully implemented
+                'margin': true,
                 'swap': undefined, // has but not fully implemented
                 'future': undefined, // has but not fully implemented
                 'option': undefined,
@@ -30,6 +30,10 @@ module.exports = class cryptocom extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -2213,6 +2217,64 @@ module.exports = class cryptocom extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.spotPrivatePostPrivateMarginGetUserConfig (params);
+        //
+        //     {
+        //         "id": 1656707947456,
+        //         "method": "private/margin/get-user-config",
+        //         "code": 0,
+        //         "result": {
+        //             "stake_amount": 6,
+        //             "currency_configs": [
+        //                 {
+        //                     "currency": "AGLD",
+        //                     "hourly_rate": 0.00003334,
+        //                     "max_borrow_limit": 342.4032393,
+        //                     "min_borrow_limit": 30
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rates = this.safeValue (data, 'currency_configs', []);
+        return this.parseBorrowRates (rates, 'currency');
+    }
+
+    parseBorrowRates (info, codeKey) {
+        //
+        //     {
+        //         "currency": "AGLD",
+        //         "hourly_rate": 0.00003334,
+        //         "max_borrow_limit": 342.4032393,
+        //         "min_borrow_limit": 30
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const rates = [];
+        for (let i = 0; i < info.length; i++) {
+            const entry = info[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'rate': this.safeNumber (entry, 'hourly_rate'),
+                'period': 3600000, // 1-Hour
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {
