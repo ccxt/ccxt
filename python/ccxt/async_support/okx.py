@@ -49,6 +49,7 @@ class okx(Exchange):
                 'future': True,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': None,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -121,6 +122,7 @@ class okx(Exchange):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -1958,17 +1960,18 @@ class okx(Exchange):
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
-                    notional = self.safe_number(params, 'sz')
+                    notional = self.safe_number_2(params, 'cost', 'sz')
                     createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
                             if notional is None:
                                 notional = amount * price
                         elif notional is None:
-                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter(the exchange-specific behaviour)")
+                            raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
                     request['sz'] = self.cost_to_precision(symbol, notional)
+                    params = self.omit(params, ['cost', 'sz'])
             if marketIOC and contract:
                 request['ordType'] = 'optimal_limit_ioc'
         else:
@@ -4844,6 +4847,95 @@ class okx(Exchange):
             'amountBorrowed': self.safe_number(info, 'liab'),
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'amt': self.currency_to_precision(code, amount),
+            'side': 'borrow',
+        }
+        response = await self.privatePostAccountBorrowRepay(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "102",
+        #                 "availLoan": "97",
+        #                 "ccy": "USDT",
+        #                 "loanQuota": "6000000",
+        #                 "posLoan": "0",
+        #                 "side": "borrow",
+        #                 "usedLoan": "97"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+        })
+
+    async def repay_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'ccy': currency['id'],
+            'amt': self.currency_to_precision(code, amount),
+            'side': 'repay',
+        }
+        response = await self.privatePostAccountBorrowRepay(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "102",
+        #                 "availLoan": "97",
+        #                 "ccy": "USDT",
+        #                 "loanQuota": "6000000",
+        #                 "posLoan": "0",
+        #                 "side": "repay",
+        #                 "usedLoan": "97"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "amt": "102",
+        #         "availLoan": "97",
+        #         "ccy": "USDT",
+        #         "loanQuota": "6000000",
+        #         "posLoan": "0",
+        #         "side": "repay",
+        #         "usedLoan": "97"
+        #     }
+        #
+        currencyId = self.safe_string(info, 'ccy')
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'amt'),
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 

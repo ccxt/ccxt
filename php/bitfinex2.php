@@ -47,6 +47,7 @@ class bitfinex2 extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -54,6 +55,7 @@ class bitfinex2 extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -971,15 +973,16 @@ class bitfinex2 extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the $order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the $order book for
          * @param {int|null} $limit the maximum $amount of $order book entries to return
          * @param {dict} $params extra parameters specific to the bitfinex2 api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$order-book-structure $order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$order-book-structure $order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $precision = $this->safe_value($this->options, 'precision', 'R0');
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
             'precision' => $precision,
         );
         if ($limit !== null) {
@@ -989,7 +992,7 @@ class bitfinex2 extends Exchange {
         $orderbook = $this->publicGetBookSymbolPrecision ($fullRequest);
         $timestamp = $this->milliseconds();
         $result = array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'bids' => array(),
             'asks' => array(),
             'timestamp' => $timestamp,

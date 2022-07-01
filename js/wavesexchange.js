@@ -46,6 +46,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -56,6 +57,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -1211,7 +1213,7 @@ module.exports = class wavesexchange extends Exchange {
     priceFromPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        const scale = wavesPrecision - this.sum (market['precision']['amount'], market['precision']['price']);
+        const scale = this.sum (wavesPrecision, market['precision']['price']) - market['precision']['amount'];
         return this.fromPrecision (price, scale);
     }
 

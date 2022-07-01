@@ -56,6 +56,7 @@ class kucoinfutures extends kucoin {
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -64,6 +65,7 @@ class kucoinfutures extends kucoin {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -1584,7 +1586,7 @@ class kucoinfutures extends kucoin {
         //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
         //     }
         //
-        $timestamp = $this->safe_string($transfer, 'updatedAt');
+        $timestamp = $this->safe_integer($transfer, 'updatedAt');
         return array(
             'id' => $this->safe_string($transfer, 'applyId'),
             'timestamp' => $timestamp,

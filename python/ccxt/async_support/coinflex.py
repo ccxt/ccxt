@@ -957,12 +957,12 @@ class coinflex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = self.safe_string(entry, 'marketCode')
-            timestamp = self.safe_string(entry, 'timestamp')
+            timestamp = self.safe_integer(entry, 'timestamp')
             result.append({
                 'symbol': self.safe_symbol(marketId, market),
                 'code': None,
-                'timestamp': self.parse8601(timestamp),
-                'datetime': timestamp,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
                 'id': None,
                 'amount': self.safe_number(entry, 'payment'),
                 'info': entry,
@@ -1579,8 +1579,8 @@ class coinflex(Exchange):
         """
         await self.load_markets()
         positions = await self.fetch_positions(None, params)
-        array = self.filter_by_symbol(positions, symbol)
-        return self.safe_value(array, 0)  # exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
+        symbolPositions = self.filter_by_symbol(positions, symbol)
+        return self.safe_value(symbolPositions, 0)  # exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
 
     async def fetch_positions(self, symbols=None, params={}):
         """
@@ -1983,7 +1983,7 @@ class coinflex(Exchange):
         #     }
         #
         currencyId = self.safe_string(transfer, 'asset')
-        timestamp = self.safe_string(transfer, 'transferredAt')
+        timestamp = self.safe_integer(transfer, 'transferredAt')
         fromAccount = self.safe_string(transfer, 'fromAccount')
         toAccount = self.safe_string(transfer, 'toAccount')
         status = self.parse_transaction_status(self.safe_string(transfer, 'status'))

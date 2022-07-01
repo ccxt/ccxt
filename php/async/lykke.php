@@ -48,6 +48,7 @@ class lykke extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -58,6 +59,7 @@ class lykke extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -531,7 +533,7 @@ class lykke extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($payload, 0, array());
-        $timestamp = $this->safe_string($orderbook, 'timestamp');
+        $timestamp = $this->safe_integer($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'p', 'v');
     }
 

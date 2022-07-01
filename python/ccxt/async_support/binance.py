@@ -50,6 +50,7 @@ class binance(Exchange):
                 'future': True,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -121,6 +122,7 @@ class binance(Exchange):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -838,6 +840,7 @@ class binance(Exchange):
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
+                'defaultMarginMode': 'cross',  # cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 # not an error
@@ -2816,7 +2819,7 @@ class binance(Exchange):
         #
         if uppercaseType == 'MARKET':
             if market['spot']:
-                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
+                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', True)
                 if quoteOrderQty:
                     quoteOrderQty = self.safe_value_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
@@ -3338,6 +3341,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
@@ -3345,12 +3349,15 @@ class binance(Exchange):
         response = None
         request = {}
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        until = self.safe_integer(params, 'until')
         if code in legalMoney:
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
             if since is not None:
                 request['beginTime'] = since
+            if until is not None:
+                request['endTime'] = until
             raw = await self.sapiGetFiatOrders(self.extend(request, params))
             response = self.safe_value(raw, 'data')
             #     {
@@ -3379,7 +3386,10 @@ class binance(Exchange):
             if since is not None:
                 request['startTime'] = since
                 # max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = self.sum(since, 7776000000)
+                endTime = self.sum(since, 7776000000)
+                if until is not None:
+                    endTime = min(endTime, until)
+                request['endTime'] = endTime
             if limit is not None:
                 request['limit'] = limit
             response = await self.sapiGetCapitalDepositHisrec(self.extend(request, params))
@@ -5672,6 +5682,87 @@ class binance(Exchange):
             'amountBorrowed': self.safe_number(info, 'principal'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def repay_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+            request['isIsolated'] = 'TRUE'
+            request['symbol'] = market['id']
+        params = self.omit(params, 'marginMode')
+        response = await self.sapiPostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            request['isIsolated'] = 'TRUE'
+            request['symbol'] = market['id']
+        params = self.omit(params, 'marginMode')
+        response = await self.sapiPostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        return {
+            'id': self.safe_integer(info, 'tranId'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 

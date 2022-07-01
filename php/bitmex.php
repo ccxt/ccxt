@@ -351,7 +351,7 @@ class bitmex extends Exchange {
             $basequote = $baseId . $quoteId;
             $swap = ($id === $basequote);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
-            // so let's take the $quote currency first and then adjust if needed
+            // so let's take the settlCurrency first and then adjust if needed
             $type = null;
             $future = false;
             $prediction = false;
@@ -378,7 +378,7 @@ class bitmex extends Exchange {
                 $symbol = $id;
                 $active = false;
             }
-            $positionId = $this->safe_string_2($market, 'positionCurrency', 'quoteCurrency');
+            $positionId = $this->safe_string_2($market, 'positionCurrency', 'underlying');
             $position = $this->safe_currency_code($positionId);
             $positionIsQuote = ($position === $quote);
             $maxOrderQty = $this->safe_number($market, 'maxOrderQty');

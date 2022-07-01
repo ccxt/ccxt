@@ -52,6 +52,7 @@ class whitebit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
@@ -59,6 +60,7 @@ class whitebit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -189,6 +191,7 @@ class whitebit extends Exchange {
                             'order/stop_market',
                             'order/cancel',
                             'orders',
+                            'profile/websocket_token',
                         ),
                     ),
                 ),
@@ -646,7 +649,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->safe_string($response, 'timestamp');
+        $timestamp = $this->safe_integer($response, 'timestamp');
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
@@ -1748,7 +1751,7 @@ class whitebit extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-TXC-APIKEY' => $this->apiKey,
-                'X-TXC-PAYLOAD' => $payload,
+                'X-TXC-PAYLOAD' => $this->decode($payload),
                 'X-TXC-SIGNATURE' => $signature,
             );
         }

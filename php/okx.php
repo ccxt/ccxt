@@ -32,6 +32,7 @@ class okx extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -104,6 +105,7 @@ class okx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => true,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
@@ -2012,7 +2014,7 @@ class okx extends Exchange {
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote currency
-                    $notional = $this->safe_number($params, 'sz');
+                    $notional = $this->safe_number_2($params, 'cost', 'sz');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
@@ -2020,12 +2022,13 @@ class okx extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } elseif ($notional === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'sz' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
                         }
                     } else {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
                 }
             }
             if ($marketIOC && $contract) {
@@ -5072,6 +5075,98 @@ class okx extends Exchange {
             'amountBorrowed' => $this->safe_number($info, 'liab'),
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'borrow',
+        );
+        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "borrow",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'ccy' => $currency['id'],
+            'amt' => $this->currency_to_precision($code, $amount),
+            'side' => 'repay',
+        );
+        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "102",
+        //                 "availLoan" => "97",
+        //                 "ccy" => "USDT",
+        //                 "loanQuota" => "6000000",
+        //                 "posLoan" => "0",
+        //                 "side" => "repay",
+        //                 "usedLoan" => "97"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "amt" => "102",
+        //         "availLoan" => "97",
+        //         "ccy" => "USDT",
+        //         "loanQuota" => "6000000",
+        //         "posLoan" => "0",
+        //         "side" => "repay",
+        //         "usedLoan" => "97"
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'ccy');
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amt'),
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

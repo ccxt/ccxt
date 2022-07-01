@@ -641,13 +641,14 @@ class hitbtc(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit'] = limit  # default = 100, 0 = unlimited
         response = await self.publicGetOrderbookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'size')
+        return self.parse_order_book(response, market['symbol'], None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])

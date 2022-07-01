@@ -51,6 +51,7 @@ class poloniex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -61,6 +62,7 @@ class poloniex(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -472,13 +474,14 @@ class poloniex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
         }
         if limit is not None:
             request['depth'] = limit  # 100
         response = self.publicGetReturnOrderBook(self.extend(request, params))
-        orderbook = self.parse_order_book(response, symbol)
+        orderbook = self.parse_order_book(response, market['symbol'])
         orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
 

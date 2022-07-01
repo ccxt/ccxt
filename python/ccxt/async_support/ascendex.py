@@ -77,6 +77,7 @@ class ascendex(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
@@ -147,6 +148,7 @@ class ascendex(Exchange):
                             'futures/market-data': 1,
                             'futures/funding-rates': 1,
                             'risk-limit-info': 1,
+                            'exchange-info': 1,
                         },
                     },
                     'private': {
@@ -633,6 +635,29 @@ class ascendex(Exchange):
             })
         return result
 
+    async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the ascendex server
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the ascendex server
+        """
+        request = {
+            'requestTime': self.milliseconds(),
+        }
+        response = await self.v1PublicGetExchangeInfo(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "requestTimeEcho": 1656560463601,
+        #            "requestReceiveAt": 1656560464331,
+        #            "latency": 730
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.safe_integer(data, 'requestReceiveAt')
+
     async def fetch_accounts(self, params={}):
         """
         fetch all the accounts associated with a profile
@@ -672,10 +697,11 @@ class ascendex(Exchange):
         ]
 
     def parse_balance(self, response):
+        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -727,7 +753,7 @@ class ascendex(Exchange):
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         })
-        if accountCategory == 'cash':
+        if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
         response = await getattr(self, method)(self.extend(request, query))
         #

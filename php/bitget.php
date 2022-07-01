@@ -2902,7 +2902,8 @@ class bitget extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if (!$signed && ($method === 'GET')) {
             $keys = is_array($query) ? array_keys($query) : array();
-            if (strlen($keys)) {
+            $keysLength = is_array($keys) ? count($keys) : 0;
+            if ($keysLength > 0) {
                 $url = $url . '?' . $this->urlencode($query);
             }
         }

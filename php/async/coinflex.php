@@ -985,12 +985,12 @@ class coinflex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'marketCode');
-            $timestamp = $this->safe_string($entry, 'timestamp');
+            $timestamp = $this->safe_integer($entry, 'timestamp');
             $result[] = array(
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'code' => null,
-                'timestamp' => $this->parse8601($timestamp),
-                'datetime' => $timestamp,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
                 'id' => null,
                 'amount' => $this->safe_number($entry, 'payment'),
                 'info' => $entry,
@@ -1648,8 +1648,8 @@ class coinflex extends Exchange {
          */
         yield $this->load_markets();
         $positions = yield $this->fetch_positions(null, $params);
-        $array = $this->filter_by_symbol($positions, $symbol);
-        return $this->safe_value($array, 0); // exchange doesn't seem to have hedge mode, so the $array will contain only one position per symbol
+        $symbolPositions = $this->filter_by_symbol($positions, $symbol);
+        return $this->safe_value($symbolPositions, 0); // exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -2075,7 +2075,7 @@ class coinflex extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($transfer, 'asset');
-        $timestamp = $this->safe_string($transfer, 'transferredAt');
+        $timestamp = $this->safe_integer($transfer, 'transferredAt');
         $fromAccount = $this->safe_string($transfer, 'fromAccount');
         $toAccount = $this->safe_string($transfer, 'toAccount');
         $status = $this->parse_transaction_status($this->safe_string($transfer, 'status'));

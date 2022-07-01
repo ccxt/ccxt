@@ -39,6 +39,7 @@ class huobi extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => null,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -113,6 +114,7 @@ class huobi extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -820,6 +822,7 @@ class huobi extends Exchange {
                     // err-code
                     '403' => '\\ccxt\\AuthenticationError',  // array("status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344)
                     '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
+                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
                     '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
                     '1036' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986)
@@ -827,11 +830,12 @@ class huobi extends Exchange {
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
+                    '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
-                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
+                    '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
                     'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
@@ -919,6 +923,10 @@ class huobi extends Exchange {
                     'grid-trading' => 'grid-trading',
                     'deposit-earning' => 'deposit-earning',
                     'otc-options' => 'otc-options',
+                ),
+                'marginAccounts' => array(
+                    'cross' => 'super-margin',
+                    'isolated' => 'margin',
                 ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
@@ -2782,6 +2790,7 @@ class huobi extends Exchange {
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $request = array();
         $method = null;
+        $margin = ($type === 'margin');
         $spot = ($type === 'spot');
         $future = ($type === 'future');
         $swap = ($type === 'swap');
@@ -2801,10 +2810,16 @@ class huobi extends Exchange {
             $accountId = yield $this->fetch_account_id_by_type($type, $params);
             $request['account-id'] = $accountId;
             $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+        } elseif ($margin) {
+            if ($isolated) {
+                $method = 'spotPrivateGetV1MarginAccountsBalance';
+            } elseif ($cross) {
+                $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            }
         } elseif ($linear) {
-            if ($marginMode === 'isolated') {
+            if ($isolated) {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } else {
+            } elseif ($cross) {
                 $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
             }
         } elseif ($inverse) {
@@ -2831,6 +2846,59 @@ class huobi extends Exchange {
         //             )
         //         ),
         //         "ts":1637644827566
+        //     }
+        //
+        // $cross $margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":array(
+        //             "id":51015302,
+        //             "type":"cross-$margin",
+        //             "state":"working",
+        //             "risk-rate":"2",
+        //             "acct-$balance-sum":"100",
+        //             "debt-$balance-sum":"0",
+        //             "list":array(
+        //                 array("currency":"usdt","type":"trade","balance":"100"),
+        //                 array("currency":"usdt","type":"frozen","balance":"0"),
+        //                 array("currency":"usdt","type":"loan-available","balance":"200"),
+        //                 array("currency":"usdt","type":"transfer-out-available","balance":"-1"),
+        //                 array("currency":"ht","type":"loan-available","balance":"36.60724091"),
+        //                 array("currency":"ht","type":"transfer-out-available","balance":"-1"),
+        //                 array("currency":"btc","type":"trade","balance":"1168.533000000000000000"),
+        //                 array("currency":"btc","type":"frozen","balance":"0.000000000000000000"),
+        //                 array("currency":"btc","type":"loan","balance":"-2.433000000000000000"),
+        //                 array("currency":"btc", "type":"interest", "balance":"-0.000533000000000000"),
+        //                 array("currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"),
+        //                 array("currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000")
+        //             )
+        //         ),
+        //         "code":200
+        //     }
+        //
+        // $isolated $margin
+        //
+        //     {
+        //         "data" => array(
+        //             {
+        //                 "id" => 18264,
+        //                 "type" => "margin",
+        //                 "state" => "working",
+        //                 "symbol" => "btcusdt",
+        //                 "fl-price" => "0",
+        //                 "fl-$type" => "safe",
+        //                 "risk-rate" => "475.952571086994250554",
+        //                 "list" => array(
+        //                     array("currency" => "btc","type" => "trade","balance" => "1168.533000000000000000"),
+        //                     array("currency" => "btc","type" => "frozen","balance" => "0.000000000000000000"),
+        //                     array("currency" => "btc","type" => "loan","balance" => "-2.433000000000000000"),
+        //                     array("currency" => "btc","type" => "interest","balance" => "-0.000533000000000000"),
+        //                     array("currency" => "btc","type" => "transfer-out-available","balance" => "1163.872174670000000000"),
+        //                     array("currency" => "btc","type" => "loan-available","balance" => "8161.876538350676000000")
+        //                 )
+        //             }
+        //         )
         //     }
         //
         // $future, $swap $isolated
@@ -2921,7 +2989,7 @@ class huobi extends Exchange {
         //
         $result = array( 'info' => $response );
         $data = $this->safe_value($response, 'data');
-        if ($spot) {
+        if ($spot || $margin) {
             $balances = $this->safe_value($data, 'list', array());
             for ($i = 0; $i < count($balances); $i++) {
                 $balance = $balances[$i];
@@ -5027,7 +5095,7 @@ class huobi extends Exchange {
             $entry = $result[$i];
             $marketId = $this->safe_string($entry, 'contract_code');
             $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_string($entry, 'funding_time');
+            $timestamp = $this->safe_integer($entry, 'funding_time');
             $rates[] = array(
                 'info' => $entry,
                 'symbol' => $symbol,
@@ -6456,6 +6524,118 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
+        );
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $method = null;
+        if ($marginMode === 'isolated') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+            $method = 'privatePostMarginOrders';
+        } elseif ($marginMode === 'cross') {
+            $method = 'privatePostCrossMarginOrders';
+        }
+        $params = $this->omit($params, 'marginMode');
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => null
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "data" => 1000
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $params = $this->omit($params, 'marginMode');
+        $marginAccounts = $this->safe_value($this->options, 'marginAccounts', array());
+        $accountType = $this->get_supported_mapping($marginMode, $marginAccounts);
+        $accountId = yield $this->fetch_account_id_by_type($accountType, $params);
+        $request = array(
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'accountId' => $accountId,
+        );
+        $response = yield $this->v2PrivatePostAccountRepayment (array_merge($request, $params));
+        //
+        //     {
+        //         "code":200,
+        //         "data" => array(
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'Data', array());
+        $loan = $this->safe_value($data, 0);
+        $transaction = $this->parse_margin_loan($loan, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        // borrowMargin cross
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => null
+        //     }
+        //
+        // borrowMargin isolated
+        //
+        //     {
+        //         "data" => 1000
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "repayId":1174424,
+        //         "repayTime":1600747722018
+        //     }
+        //
+        $timestamp = $this->safe_integer($info, 'repayTime');
+        return array(
+            'id' => $this->safe_integer_2($info, 'repayId', 'data'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
         );
     }
 

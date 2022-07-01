@@ -50,7 +50,11 @@ module.exports = class woo extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+<<<<<<< HEAD
                 'fetchLeverage': true,
+=======
+                'fetchMarginMode': false,
+>>>>>>> master
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -62,8 +66,12 @@ module.exports = class woo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+<<<<<<< HEAD
                 'fetchPosition': true,
                 'fetchPositions': true,
+=======
+                'fetchPositionMode': false,
+>>>>>>> master
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,

@@ -292,6 +292,8 @@ module.exports = class bitstamp extends Exchange {
                         'ape_address/': 1,
                         'mpl_withdrawal/': 1,
                         'mpl_address/': 1,
+                        'euroc_withdrawal/': 1,
+                        'euroc_address/': 1,
                     },
                 },
             },
@@ -594,8 +596,9 @@ module.exports = class bitstamp extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
         //
@@ -616,7 +619,7 @@ module.exports = class bitstamp extends Exchange {
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
         const timestamp = parseInt (microtimestamp / 1000);
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
     }
@@ -838,14 +841,15 @@ module.exports = class bitstamp extends Exchange {
             feeCurrency = market['quote'];
             symbol = market['symbol'];
         }
-        let timestamp = this.safeString2 (trade, 'date', 'datetime');
-        if (timestamp !== undefined) {
-            if (timestamp.indexOf (' ') >= 0) {
+        const datetimeString = this.safeString2 (trade, 'date', 'datetime');
+        let timestamp = undefined;
+        if (datetimeString !== undefined) {
+            if (datetimeString.indexOf (' ') >= 0) {
                 // iso8601
-                timestamp = this.parse8601 (timestamp);
+                timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                timestamp = parseInt (timestamp);
+                timestamp = parseInt (datetimeString);
                 timestamp = timestamp * 1000;
             }
         }

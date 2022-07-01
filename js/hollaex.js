@@ -55,6 +55,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -67,6 +68,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchOrderBooks': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -432,9 +434,9 @@ module.exports = class hollaex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         };
         const response = await this.publicGetOrderbooks (this.extend (request, params));
         //
@@ -456,9 +458,9 @@ module.exports = class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        const orderbook = this.safeValue (response, marketId);
+        const orderbook = this.safeValue (response, market['id']);
         const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {

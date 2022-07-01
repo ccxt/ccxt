@@ -35,12 +35,14 @@ class latoken extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -177,6 +179,7 @@ class latoken extends Exchange {
                     'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // array("message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE")
                     'ORDER_VALIDATION' => '\\ccxt\\InvalidOrder', // array("message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE")
+                    'BAD_TICKS' => '\\ccxt\\InvalidOrder', // array("status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false)
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")

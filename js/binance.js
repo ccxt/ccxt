@@ -27,6 +27,7 @@ module.exports = class binance extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': true,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -98,6 +99,7 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -815,6 +817,7 @@ module.exports = class binance extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultMarginMode': 'cross', // cross, isolated
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -2915,7 +2918,7 @@ module.exports = class binance extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -3509,6 +3512,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -3516,6 +3520,7 @@ module.exports = class binance extends Exchange {
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const until = this.safeInteger (params, 'until');
         if (code in legalMoney) {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -3523,6 +3528,9 @@ module.exports = class binance extends Exchange {
             request['transactionType'] = 0;
             if (since !== undefined) {
                 request['beginTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
@@ -3553,7 +3561,11 @@ module.exports = class binance extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = this.sum (since, 7776000000);
+                let endTime = this.sum (since, 7776000000);
+                if (until !== undefined) {
+                    endTime = Math.min (endTime, until);
+                }
+                request['endTime'] = endTime;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -6105,6 +6117,96 @@ module.exports = class binance extends Exchange {
             'amountBorrowed': this.safeNumber (info, 'principal'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
+            request['isIsolated'] = 'TRUE';
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this.sapiPostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['isIsolated'] = 'TRUE';
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this.sapiPostMarginLoan (this.extend (request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'tranId'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

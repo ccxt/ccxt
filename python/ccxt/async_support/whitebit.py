@@ -60,6 +60,7 @@ class whitebit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -67,6 +68,7 @@ class whitebit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -197,6 +199,7 @@ class whitebit(Exchange):
                             'order/stop_market',
                             'order/cancel',
                             'orders',
+                            'profile/websocket_token',
                         ],
                     },
                 },
@@ -640,7 +643,7 @@ class whitebit(Exchange):
         #          ]
         #      }
         #
-        timestamp = self.safe_string(response, 'timestamp')
+        timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -1664,7 +1667,7 @@ class whitebit(Exchange):
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': self.apiKey,
-                'X-TXC-PAYLOAD': payload,
+                'X-TXC-PAYLOAD': self.decode(payload),
                 'X-TXC-SIGNATURE': signature,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

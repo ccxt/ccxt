@@ -62,6 +62,7 @@ class bitfinex2(Exchange):
                 'fetchDepositAddress': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -69,6 +70,7 @@ class bitfinex2(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchStatus': True,
                 'fetchTickers': True,
                 'fetchTime': False,
@@ -958,8 +960,9 @@ class bitfinex2(Exchange):
         """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'precision': precision,
         }
         if limit is not None:
@@ -968,7 +971,7 @@ class bitfinex2(Exchange):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,

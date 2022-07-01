@@ -41,6 +41,7 @@ class bitfinex extends Exchange {
                 'fetchDeposits' => null,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -48,6 +49,7 @@ class bitfinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -755,21 +757,22 @@ class bitfinex extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitfinex api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit_bids'] = $limit;
             $request['limit_asks'] = $limit;
         }
         $response = yield $this->publicGetBookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -982,19 +985,20 @@ class bitfinex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $symbol unified $symbol of the $market to create an order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitfinex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $params = $this->omit($params, array( 'postOnly' ));
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
@@ -1011,7 +1015,7 @@ class bitfinex extends Exchange {
             $request['is_postonly'] = true;
         }
         $response = yield $this->privatePostOrderNew (array_merge($request, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {

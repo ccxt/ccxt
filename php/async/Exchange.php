@@ -32,11 +32,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.88.22';
+$version = '1.89.34';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.88.22';
+    const VERSION = '1.89.34';
 
     public static $loop;
     public static $kernel;
@@ -407,13 +407,13 @@ class Exchange extends \ccxt\Exchange {
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
-            if ($total === null) {
+            if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
-            if ($free === null) {
+            if (($free === null) && ($total !== null) && ($used !== null)) {
                 $free = Precise::string_sub($total, $used);
             }
-            if ($used === null) {
+            if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
             $balance[$code]['free'] = $this->parse_number($free);
@@ -1207,10 +1207,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
@@ -1273,6 +1273,7 @@ class Exchange extends \ccxt\Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             yield $this->throttle ($cost);
         }
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         return yield $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
@@ -2103,5 +2104,22 @@ class Exchange extends \ccxt\Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchPremiumIndexOHLCV () is not supported yet');
         }
+    }
+
+    public function handle_time_in_force($params = array ()) {
+        /**
+         * @ignore
+         * * Must add $timeInForce to $this->options to use this method
+         * @return {str} returns the exchange specific value for $timeInForce
+         */
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce'); // supported values GTC, IOC, PO
+        if ($timeInForce !== null) {
+            $exchangeValue = $this->safe_string($this->options['timeInForce'], $timeInForce);
+            if ($exchangeValue === null) {
+                throw new ExchangeError($this->id . ' does not support $timeInForce "' . $timeInForce . '"');
+            }
+            return $exchangeValue;
+        }
+        return null;
     }
 }

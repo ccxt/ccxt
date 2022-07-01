@@ -142,6 +142,12 @@ module.exports = class cryptocom extends Exchange {
                             'private/subaccount/get-sub-accounts': 10 / 3,
                             'private/subaccount/get-transfer-history': 10 / 3,
                             'private/subaccount/transfer': 10 / 3,
+                            'private/otc/get-otc-user': 10 / 3,
+                            'private/otc/get-instruments': 10 / 3,
+                            'private/otc/request-quote': 100,
+                            'private/otc/accept-quote': 100,
+                            'private/otc/get-quote-history': 10 / 3,
+                            'private/otc/get-trade-history': 10 / 3,
                         },
                     },
                 },
@@ -512,7 +518,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const data = this.safeValue (result, 'data', []);
-        return this.filterByArray (data, 'symbol', symbols);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchTicker (symbol, params = {}) {

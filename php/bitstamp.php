@@ -295,6 +295,8 @@ class bitstamp extends Exchange {
                         'ape_address/' => 1,
                         'mpl_withdrawal/' => 1,
                         'mpl_address/' => 1,
+                        'euroc_withdrawal/' => 1,
+                        'euroc_address/' => 1,
                     ),
                 ),
             ),
@@ -585,14 +587,15 @@ class bitstamp extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitstamp api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = $this->publicGetOrderBookPair (array_merge($request, $params));
         //
@@ -613,7 +616,7 @@ class bitstamp extends Exchange {
         //
         $microtimestamp = $this->safe_integer($response, 'microtimestamp');
         $timestamp = intval($microtimestamp / 1000);
-        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
+        $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $microtimestamp;
         return $orderbook;
     }
@@ -833,14 +836,15 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_string_2($trade, 'date', 'datetime');
-        if ($timestamp !== null) {
-            if (mb_strpos($timestamp, ' ') !== false) {
+        $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
+        $timestamp = null;
+        if ($datetimeString !== null) {
+            if (mb_strpos($datetimeString, ' ') !== false) {
                 // iso8601
-                $timestamp = $this->parse8601($timestamp);
+                $timestamp = $this->parse8601($datetimeString);
             } else {
                 // string unix epoch in seconds
-                $timestamp = intval($timestamp);
+                $timestamp = intval($datetimeString);
                 $timestamp = $timestamp * 1000;
             }
         }

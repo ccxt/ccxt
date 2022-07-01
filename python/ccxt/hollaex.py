@@ -62,6 +62,7 @@ class hollaex(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -74,6 +75,7 @@ class hollaex(Exchange):
                 'fetchOrderBooks': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -424,9 +426,9 @@ class hollaex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         }
         response = self.publicGetOrderbooks(self.extend(request, params))
         #
@@ -448,9 +450,9 @@ class hollaex(Exchange):
         #         # ...
         #     }
         #
-        orderbook = self.safe_value(response, marketId)
+        orderbook = self.safe_value(response, market['id'])
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         """

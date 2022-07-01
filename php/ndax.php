@@ -65,6 +65,7 @@ class ndax extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -1268,40 +1269,27 @@ class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        $id = $this->safe_string_2($order, 'ReplacementOrderId', 'OrderId');
         $timestamp = $this->safe_integer($order, 'ReceiveTime');
-        $lastTradeTimestamp = $this->safe_integer($order, 'LastUpdatedTime');
         $marketId = $this->safe_string($order, 'Instrument');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $side = $this->safe_string_lower($order, 'Side');
-        $type = $this->safe_string_lower($order, 'OrderType');
-        $clientOrderId = $this->safe_string_2($order, 'ReplacementClOrdId', 'ClientOrderId');
-        $price = $this->safe_string($order, 'Price');
-        $amount = $this->safe_string($order, 'OrigQuantity');
-        $filled = $this->safe_string($order, 'QuantityExecuted');
-        $cost = $this->safe_string($order, 'GrossValueExecuted');
-        $average = $this->safe_string($order, 'AvgPrice');
-        $stopPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice')));
-        $status = $this->parse_order_status($this->safe_string($order, 'OrderState'));
         return $this->safe_order(array(
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'id' => $this->safe_string_2($order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId' => $this->safe_string_2($order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
+            'lastTradeTimestamp' => $this->safe_integer($order, 'LastUpdatedTime'),
+            'status' => $this->parse_order_status($this->safe_string($order, 'OrderState')),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'type' => $this->safe_string_lower($order, 'OrderType'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => $stopPrice,
-            'cost' => $cost,
-            'amount' => $amount,
-            'filled' => $filled,
-            'average' => $average,
+            'side' => $this->safe_string_lower($order, 'Side'),
+            'price' => $this->safe_string($order, 'Price'),
+            'stopPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'StopPrice'))),
+            'cost' => $this->safe_string($order, 'GrossValueExecuted'),
+            'amount' => $this->safe_string($order, 'OrigQuantity'),
+            'filled' => $this->safe_string($order, 'QuantityExecuted'),
+            'average' => $this->safe_string($order, 'AvgPrice'),
             'remaining' => null,
             'fee' => null,
             'trades' => null,

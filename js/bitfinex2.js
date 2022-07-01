@@ -43,6 +43,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -50,6 +51,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
+                'fetchPositionMode': false,
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
@@ -988,8 +990,9 @@ module.exports = class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const precision = this.safeValue (this.options, 'precision', 'R0');
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'precision': precision,
         };
         if (limit !== undefined) {
@@ -999,7 +1002,7 @@ module.exports = class bitfinex2 extends Exchange {
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
