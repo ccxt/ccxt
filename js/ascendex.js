@@ -68,6 +68,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
@@ -138,6 +139,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/market-data': 1,
                             'futures/funding-rates': 1,
                             'risk-limit-info': 1,
+                            'exchange-info': 1,
                         },
                     },
                     'private': {
@@ -634,6 +636,32 @@ module.exports = class ascendex extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the ascendex server
+         * @param {dict} params extra parameters specific to the ascendex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the ascendex server
+         */
+        const request = {
+            'requestTime': this.milliseconds (),
+        };
+        const response = await this.v1PublicGetExchangeInfo (this.extend (request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "data": {
+        //            "requestTimeEcho": 1656560463601,
+        //            "requestReceiveAt": 1656560464331,
+        //            "latency": 730
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.safeInteger (data, 'requestReceiveAt');
     }
 
     async fetchAccounts (params = {}) {
