@@ -1684,12 +1684,22 @@ module.exports = class cryptocom extends Exchange {
         let toAccount = undefined;
         if (information !== undefined) {
             const parts = information.split (' ');
-            fromAccount = this.safeStringLower (parts, 1);
+            const direction = this.safeStringLower (parts, 0);
             const method = this.safeString (response, 'method');
-            if (method === 'private/margin/get-transfer-history') {
-                toAccount = (fromAccount === 'spot') ? 'margin' : 'spot';
-            } else {
-                toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
+            if (direction === 'from') {
+                fromAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    toAccount = 'margin';
+                } else {
+                    toAccount = 'derivative';
+                }
+            } else if (direction === 'to') {
+                toAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    fromAccount = 'margin';
+                } else {
+                    fromAccount = 'derivative';
+                }
             }
         }
         return {
