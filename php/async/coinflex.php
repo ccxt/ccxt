@@ -1648,8 +1648,8 @@ class coinflex extends Exchange {
          */
         yield $this->load_markets();
         $positions = yield $this->fetch_positions(null, $params);
-        $array = $this->filter_by_symbol($positions, $symbol);
-        return $this->safe_value($array, 0); // exchange doesn't seem to have hedge mode, so the $array will contain only one position per symbol
+        $symbolPositions = $this->filter_by_symbol($positions, $symbol);
+        return $this->safe_value($symbolPositions, 0); // exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

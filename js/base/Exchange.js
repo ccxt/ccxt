@@ -361,6 +361,7 @@ export class Exchange {
         this.requiresEddsa = false
         this.precision = {}
         // response handling flags and properties
+        this.lastRestRequestTimestamp = 0
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
@@ -1001,13 +1002,13 @@ export class Exchange {
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
-            if (total === undefined) {
+            if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
-            if (free === undefined) {
+            if ((free === undefined) && (total !== undefined) && (used !== undefined)) {
                 free = Precise.stringSub (total, used);
             }
-            if (used === undefined) {
+            if ((used === undefined) && (total !== undefined) && (free !== undefined)) {
                 used = Precise.stringSub (total, free);
             }
             balance[code]['free'] = this.parseNumber (free);
@@ -1802,9 +1803,9 @@ export class Exchange {
 
     parseLedger (data, currency = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
-        const array = this.toArray (data);
-        for (let i = 0; i < array.length; i++) {
-            const itemOrItems = this.parseLedgerEntry (array[i], currency);
+        const arrayData = this.toArray (data);
+        for (let i = 0; i < arrayData.length; i++) {
+            const itemOrItems = this.parseLedgerEntry (arrayData[i], currency);
             if (Array.isArray (itemOrItems)) {
                 for (let j = 0; j < itemOrItems.length; j++) {
                     result.push (this.extend (itemOrItems[j], params));
@@ -1867,6 +1868,7 @@ export class Exchange {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
             await this.throttle (cost);
         }
+        this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }

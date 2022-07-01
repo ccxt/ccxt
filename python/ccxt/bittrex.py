@@ -53,6 +53,7 @@ class bittrex(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -418,8 +419,9 @@ class bittrex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         if limit is not None:
             if (limit != 1) and (limit != 25) and (limit != 500):
@@ -441,7 +443,7 @@ class bittrex(Exchange):
         #     }
         #
         sequence = self.safe_integer(self.last_response_headers, 'Sequence')
-        orderbook = self.parse_order_book(response, symbol, None, 'bid', 'ask', 'rate', 'quantity')
+        orderbook = self.parse_order_book(response, market['symbol'], None, 'bid', 'ask', 'rate', 'quantity')
         orderbook['nonce'] = sequence
         return orderbook
 
@@ -641,6 +643,27 @@ class bittrex(Exchange):
         #
         return self.parse_ticker(response, market)
 
+    def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetMarketsTickers(params)
+        #
+        #     [
+        #       {
+        #         "symbol":"ETH-BTC",
+        #         "lastTradeRate":"0.03284496",
+        #         "bidRate":"0.03284523",
+        #         "askRate":"0.03286857"
+        #       }
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
+
     def parse_trade(self, trade, market=None):
         #
         # public fetchTrades
@@ -726,7 +749,7 @@ class bittrex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         response = self.publicGetMarketsMarketSymbolTrades(self.extend(request, params))
         #

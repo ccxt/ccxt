@@ -3341,6 +3341,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
@@ -3348,12 +3349,15 @@ class binance(Exchange):
         response = None
         request = {}
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        until = self.safe_integer(params, 'until')
         if code in legalMoney:
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
             if since is not None:
                 request['beginTime'] = since
+            if until is not None:
+                request['endTime'] = until
             raw = await self.sapiGetFiatOrders(self.extend(request, params))
             response = self.safe_value(raw, 'data')
             #     {
@@ -3382,7 +3386,10 @@ class binance(Exchange):
             if since is not None:
                 request['startTime'] = since
                 # max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = self.sum(since, 7776000000)
+                endTime = self.sum(since, 7776000000)
+                if until is not None:
+                    endTime = min(endTime, until)
+                request['endTime'] = endTime
             if limit is not None:
                 request['limit'] = limit
             response = await self.sapiGetCapitalDepositHisrec(self.extend(request, params))

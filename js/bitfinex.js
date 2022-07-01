@@ -771,15 +771,16 @@ export default class bitfinex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
         const response = await this.publicGetBookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1011,10 +1012,11 @@ export default class bitfinex extends Exchange {
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const postOnly = this.safeValue (params, 'postOnly', false);
         params = this.omit (params, [ 'postOnly' ]);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
             'type': this.safeString (this.options['orderTypes'], type, type),
@@ -1031,7 +1033,7 @@ export default class bitfinex extends Exchange {
             request['is_postonly'] = true;
         }
         const response = await this.privatePostOrderNew (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {

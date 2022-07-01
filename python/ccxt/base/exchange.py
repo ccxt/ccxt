@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.16'
+__version__ = '1.89.24'
 
 # -----------------------------------------------------------------------------
 
@@ -1894,11 +1894,11 @@ class Exchange(object):
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
-            if total is None:
+            if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
-            if free is None:
+            if (free is None) and (total is not None) and (used is not None):
                 free = Precise.string_sub(total, used)
-            if used is None:
+            if (used is None) and (total is not None) and (free is not None):
                 used = Precise.string_sub(total, free)
             balance[code]['free'] = self.parse_number(free)
             balance[code]['used'] = self.parse_number(used)
@@ -2559,9 +2559,9 @@ class Exchange(object):
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         result = []
-        array = self.to_array(data)
-        for i in range(0, len(array)):
-            itemOrItems = self.parse_ledger_entry(array[i], currency)
+        arrayData = self.to_array(data)
+        for i in range(0, len(arrayData)):
+            itemOrItems = self.parse_ledger_entry(arrayData[i], currency)
             if isinstance(itemOrItems, list):
                 for j in range(0, len(itemOrItems)):
                     result.append(self.extend(itemOrItems[j], params))
@@ -2609,6 +2609,7 @@ class Exchange(object):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
             self.throttle(cost)
+        self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
