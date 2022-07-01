@@ -29,6 +29,7 @@ module.exports = class cryptocom extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -2134,6 +2135,82 @@ module.exports = class cryptocom extends Exchange {
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let currency = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656705829020,
+        //         "method": "private/margin/get-interest-history",
+        //         "code": 0,
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "loan_id": "2643528867803765921",
+        //                     "currency": "USDT",
+        //                     "interest": 0.00000004,
+        //                     "time": 1656702899559,
+        //                     "stake_amount": 6,
+        //                     "interest_rate": 0.000025
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rows = this.safeValue (data, 'list', []);
+        let interest = undefined;
+        for (let i = 0; i < rows.length; i++) {
+            interest = this.parseBorrowInterests (rows, market);
+        }
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "loan_id": "2643528867803765921",
+        //         "currency": "USDT",
+        //         "interest": 0.00000004,
+        //         "time": 1656702899559,
+        //         "stake_amount": 6,
+        //         "interest_rate": 0.000025
+        //     },
+        //
+        const timestamp = this.safeInteger (info, 'time');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'symbol': symbol,
+            'marginMode': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interest_rate'), // hourly interest rate
+            'amountBorrowed': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'info': info,
         };
     }
