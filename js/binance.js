@@ -61,6 +61,7 @@ module.exports = class binance extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': undefined,
+                'fetchLastPrices': true,
                 'fetchLedger': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -2218,6 +2219,94 @@ module.exports = class binance extends Exchange {
         }
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
+    }
+
+    async fetchLastPrices (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLastPrices', undefined, params);
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPublicGetTickerPrice';
+            //
+            //     [
+            //         {
+            //             "symbol": "LTCBTC",
+            //             "price": "4.00000200"
+            //             "time": 1589437530011
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetTickerPrice';
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSD_200626",
+            //             "ps": "9647.8",
+            //             "price": "9647.8",
+            //             "time": 1591257246176
+            //         }
+            //     ]
+            //
+        } else if (type === 'spot') {
+            method = 'publicGetTickerPrice';
+            //
+            //     [
+            //         {
+            //             "symbol": "LTCBTC",
+            //             "price": "4.00000200"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchLastPrices() does not support ' + type + ' markets yet');
+        }
+        const response = await this[method] (query);
+        return this.parseLastPrices (response, symbols);
+    }
+
+    parseLastPrice (info, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "price": "4.00000200"
+        //     }
+        //
+        // usdm (swap/future)
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "price": "6000.01",
+        //         "time": 1589437530011   // Transaction time
+        //     }
+        //
+        //
+        // coinm (swap/future)
+        //
+        //     {
+        //         "symbol": "BTCUSD_200626", // symbol ("BTCUSD_200626", "BTCUSD_PERP", etc..)
+        //         "ps": "BTCUSD", // pair
+        //         "price": "9647.8",
+        //         "time": 1591257246176
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (info, 'time');
+        const price = this.safeNumber (info, 'price');
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': price,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': info,
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

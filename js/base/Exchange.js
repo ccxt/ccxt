@@ -2407,6 +2407,45 @@ module.exports = class Exchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
+    parseLastPrices (pricesData, symbols = undefined, params = {}) {
+        //
+        // the value of tickers is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'marketId1': { ... },
+        //         'marketId2': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'market': 'marketId1', ... },
+        //         { 'market': 'marketId2', ... },
+        //         ...
+        //     ]
+        //
+        const results = [];
+        if (Array.isArray (pricesData)) {
+            for (let i = 0; i < pricesData.length; i++) {
+                const priceData = this.extend (this.parseLastPrice (pricesData[i]), params);
+                results.push (priceData);
+            }
+        } else {
+            const marketIds = Object.keys (pricesData);
+            for (let i = 0; i < marketIds.length; i++) {
+                const marketId = marketIds[i];
+                const market = this.safeMarket (marketId);
+                const priceData = this.extend (this.parseLastPrice (pricesData[marketId], market), params);
+                results.push (priceData);
+            }
+        }
+        symbols = this.marketSymbols (symbols);
+        return this.filterByArray (results, 'symbol', symbols);
+    }
+
     parseTickers (tickers, symbols = undefined, params = {}) {
         //
         // the value of tickers is either a dict or a list
