@@ -105,7 +105,7 @@ module.exports = class okx extends Exchange {
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
-                'setMargin': undefined,
+                'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
