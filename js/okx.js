@@ -961,11 +961,8 @@ module.exports = class okx extends Exchange {
                 optionType = (optionType === 'P') ? 'put' : 'call';
             }
         }
-        const tickSize = this.safeString (market, 'tickSz');
-        const minAmountString = this.safeString (market, 'minSz');
-        const minAmount = this.parseNumber (minAmountString);
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        const precisionPrice = this.parseNumber (tickSize);
+        const precisionPrice = this.safeNumber (market, 'tickSz');
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         return this.extend (fees, {
@@ -1002,7 +999,7 @@ module.exports = class okx extends Exchange {
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {
-                    'min': minAmount,
+                    'min': this.safeNumber (market, 'minSz'),
                     'max': undefined,
                 },
                 'price': {
