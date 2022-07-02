@@ -682,8 +682,8 @@ class bitbank(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            request['pair'] = market['id']
             market = self.market(symbol)
+            request['pair'] = market['id']
         if limit is not None:
             request['count'] = limit
         if since is not None:

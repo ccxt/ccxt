@@ -702,8 +702,8 @@ class bitbank extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $request['pair'] = $market['id'];
             $market = $this->market($symbol);
+            $request['pair'] = $market['id'];
         }
         if ($limit !== null) {
             $request['count'] = $limit;
