@@ -599,7 +599,7 @@ class digifinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($response, 'date');
-        return $this->parse_order_book($response, $symbol, $timestamp);
+        return $this->parse_order_book($response, $market['symbol'], $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -960,14 +960,14 @@ class digifinex extends Exchange {
         $request = array(
             'market' => $orderType,
             'symbol' => $market['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $this->amount_to_precision($market['symbol'], $amount),
             // 'post_only' => 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no $market taking
         );
         $suffix = '';
         if ($type === 'market') {
             $suffix = '_market';
         } else {
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $request['type'] = $side . $suffix;
         $response = $this->privatePostMarketOrderNew (array_merge($request, $params));
@@ -979,7 +979,7 @@ class digifinex extends Exchange {
         //
         $result = $this->parse_order($response, $market);
         return array_merge($result, array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'side' => $side,
             'type' => $type,
             'amount' => $amount,

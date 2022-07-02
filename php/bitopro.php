@@ -455,14 +455,15 @@ class bitopro extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitopro api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -488,7 +489,7 @@ class bitopro extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade($trade, $market) {

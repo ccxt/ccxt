@@ -160,7 +160,7 @@ class btcbox extends Exchange {
             $request['coin'] = $market['baseId'];
         }
         $response = $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol);
+        return $this->parse_order_book($response, $market['symbol']);
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -419,8 +419,9 @@ class bittrex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         if limit is not None:
             if (limit != 1) and (limit != 25) and (limit != 500):
@@ -442,7 +443,7 @@ class bittrex(Exchange):
         #     }
         #
         sequence = self.safe_integer(self.last_response_headers, 'Sequence')
-        orderbook = self.parse_order_book(response, symbol, None, 'bid', 'ask', 'rate', 'quantity')
+        orderbook = self.parse_order_book(response, market['symbol'], None, 'bid', 'ask', 'rate', 'quantity')
         orderbook['nonce'] = sequence
         return orderbook
 
@@ -748,7 +749,7 @@ class bittrex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         response = self.publicGetMarketsMarketSymbolTrades(self.extend(request, params))
         #

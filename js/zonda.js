@@ -1369,7 +1369,7 @@ module.exports = class zonda extends Exchange {
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {

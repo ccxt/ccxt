@@ -298,13 +298,14 @@ class bitbank(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = await self.publicGetPairDepth(self.extend(request, params))
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'executed_at')

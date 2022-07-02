@@ -291,19 +291,20 @@ class bitbank extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitbank api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = yield $this->publicGetPairDepth (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

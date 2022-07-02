@@ -452,14 +452,15 @@ class gemini(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = await self.publicGetV1BookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker_v1(self, symbol, params={}):
         await self.load_markets()
@@ -1067,11 +1068,12 @@ class gemini(Exchange):
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is None:
             clientOrderId = self.nonce()
+        market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
         priceString = self.price_to_precision(symbol, price)
         request = {
             'client_order_id': str(clientOrderId),
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'amount': amountString,
             'price': priceString,
             'side': side,

@@ -423,14 +423,15 @@ class novadax extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the novadax api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default 10, max 20
@@ -457,7 +458,7 @@ class novadax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
+        return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks');
     }
 
     public function parse_trade($trade, $market = null) {

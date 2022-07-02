@@ -1346,7 +1346,7 @@ class zonda extends Exchange {
         );
         // array( status => 'Fail', errors => array( 'NOT_RECOGNIZED_OFFER_TYPE' ) )  -- if required $params are missing
         // array( status => 'Ok', errors => array() )
-        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
+        return yield $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params));
     }
 
     public function is_fiat($currency) {
