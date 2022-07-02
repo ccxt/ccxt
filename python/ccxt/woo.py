@@ -34,6 +34,7 @@ class woo(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -85,6 +86,7 @@ class woo(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'transfer': True,
@@ -173,6 +175,7 @@ class woo(Exchange):
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
                         },
@@ -1563,6 +1566,45 @@ class woo(Exchange):
             'CANCELED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        currency = self.currency(code)
+        request = {
+            'token': currency['id'],  # interest token that you want to repay
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.v1PrivatePostInterestRepay(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "success": True,
+        #     }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def nonce(self):
         return self.milliseconds()

@@ -29,6 +29,7 @@ class woo extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -80,6 +81,7 @@ class woo extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
@@ -168,6 +170,7 @@ class woo extends Exchange {
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay' => 60,
                             'client/account_mode' => 120,
                             'client/leverage' => 120,
                         ),
@@ -1637,6 +1640,48 @@ class woo extends Exchange {
             'CANCELED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'token' => $currency['id'], // interest token that you want to repay
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = $this->v1PrivatePostInterestRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "success" => true,
+        //     }
+        //
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
     }
 
     public function nonce() {
