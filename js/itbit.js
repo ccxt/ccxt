@@ -144,11 +144,12 @@ module.exports = class itbit extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        return this.parseOrderBook (orderbook, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {

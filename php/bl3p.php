@@ -158,7 +158,7 @@ class bl3p extends Exchange {
         );
         $response = $this->publicGetMarketOrderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price_int', 'amount_int');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     public function parse_ticker($ticker, $market = null) {

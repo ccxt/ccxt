@@ -603,11 +603,12 @@ module.exports = class liquid extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'id': this.marketId (symbol),
+            'id': market['id'],
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -975,17 +976,18 @@ module.exports = class liquid extends Exchange {
         await this.loadMarkets ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        const market = this.market (symbol);
         const request = {
             'order_type': type,
-            'product_id': this.marketId (symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
         };
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
         if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //

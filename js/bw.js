@@ -523,7 +523,7 @@ module.exports = class bw extends Exchange {
         //
         const orderbook = this.safeValue (response, 'datas', []);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTrade (trade, market = undefined) {

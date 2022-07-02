@@ -703,6 +703,14 @@ class aax(Exchange):
         }, market)
 
     async def set_margin(self, symbol, amount, params={}):
+        """
+        Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+        see https://www.aax.com/apidoc/index.html#modify-isolated-position-margin
+        :param str symbol: unified market symbol of the market to set margin in
+        :param float amount: the amount to set the margin to
+        :param dict params: parameters specific to the aax api endpoint
+        :returns dict: A `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {

@@ -150,11 +150,12 @@ module.exports = class paymium extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'currency': this.marketId (symbol),
+            'currency': market['id'],
         };
         const response = await this.publicGetDataCurrencyDepth (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -392,9 +393,10 @@ module.exports = class paymium extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'type': this.capitalize (type) + 'Order',
-            'currency': this.marketId (symbol),
+            'currency': market['id'],
             'direction': side,
             'amount': amount,
         };

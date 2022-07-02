@@ -316,7 +316,7 @@ class bitbns(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, symbol, timestamp)
+        return self.parse_order_book(response, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #

@@ -317,13 +317,14 @@ class coinfalcon(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'level': '3',
         }
         response = self.publicGetMarketsMarketOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        return self.parse_order_book(data, symbol, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
