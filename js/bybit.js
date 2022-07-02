@@ -1497,7 +1497,7 @@ module.exports = class bybit extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[number]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);

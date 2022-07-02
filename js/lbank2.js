@@ -666,7 +666,7 @@ module.exports = class lbank2 extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {number|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the lbank2 api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @returns {[[number]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         // endpoint doesnt work
         await this.loadMarkets ();
