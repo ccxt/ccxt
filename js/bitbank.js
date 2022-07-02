@@ -723,8 +723,8 @@ module.exports = class bitbank extends Exchange {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            request['pair'] = market['id'];
             market = this.market (symbol);
+            request['pair'] = market['id'];
         }
         if (limit !== undefined) {
             request['count'] = limit;
