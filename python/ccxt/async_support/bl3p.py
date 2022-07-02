@@ -155,7 +155,7 @@ class bl3p(Exchange):
         }
         response = await self.publicGetMarketOrderbook(self.extend(request, params))
         orderbook = self.safe_value(response, 'data')
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price_int', 'amount_int')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def parse_ticker(self, ticker, market=None):
         #

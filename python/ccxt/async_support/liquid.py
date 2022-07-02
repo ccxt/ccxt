@@ -41,12 +41,14 @@ class liquid(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -589,11 +591,12 @@ class liquid(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         response = await self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, market['symbol'], None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -927,16 +930,17 @@ class liquid(Exchange):
         await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        market = self.market(symbol)
         request = {
             'order_type': type,
-            'product_id': self.market_id(symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
         }
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {

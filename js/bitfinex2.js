@@ -990,8 +990,9 @@ module.exports = class bitfinex2 extends Exchange {
          */
         await this.loadMarkets ();
         const precision = this.safeValue (this.options, 'precision', 'R0');
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'precision': precision,
         };
         if (limit !== undefined) {
@@ -1001,7 +1002,7 @@ module.exports = class bitfinex2 extends Exchange {
         const orderbook = await this.publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,

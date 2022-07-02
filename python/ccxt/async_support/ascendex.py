@@ -77,6 +77,7 @@ class ascendex(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
@@ -147,6 +148,7 @@ class ascendex(Exchange):
                             'futures/market-data': 1,
                             'futures/funding-rates': 1,
                             'risk-limit-info': 1,
+                            'exchange-info': 1,
                         },
                     },
                     'private': {
@@ -632,6 +634,29 @@ class ascendex(Exchange):
                 'info': market,
             })
         return result
+
+    async def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the ascendex server
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns int: the current integer timestamp in milliseconds from the ascendex server
+        """
+        request = {
+            'requestTime': self.milliseconds(),
+        }
+        response = await self.v1PublicGetExchangeInfo(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "requestTimeEcho": 1656560463601,
+        #            "requestReceiveAt": 1656560464331,
+        #            "latency": 730
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.safe_integer(data, 'requestReceiveAt')
 
     async def fetch_accounts(self, params={}):
         """

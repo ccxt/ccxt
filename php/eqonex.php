@@ -541,7 +541,7 @@ class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 0, 1, $market);
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 0, 1, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

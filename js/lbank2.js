@@ -48,6 +48,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -57,6 +58,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -477,7 +479,7 @@ module.exports = class lbank2 extends Exchange {
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.milliseconds ();
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTrade (trade, market = undefined) {

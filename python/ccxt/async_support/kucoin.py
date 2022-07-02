@@ -71,6 +71,7 @@ class kucoin(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -81,6 +82,7 @@ class kucoin(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrdersByStatus': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -207,7 +209,7 @@ class kucoin(Exchange):
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'orders': 20,  # 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}': 1,
+                        'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1,  # rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
@@ -1094,9 +1096,9 @@ class kucoin(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
-        request = {'symbol': marketId}
+        request = {'symbol': market['id']}
         method = 'publicGetMarketOrderbookLevelLevelLimit'
         isAuthenticated = self.check_required_credentials(False)
         response = None
@@ -1145,7 +1147,7 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
-        orderbook = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
@@ -1277,7 +1279,7 @@ class kucoin(Exchange):
             if stop:
                 method = 'privateDeleteStopOrderCancelOrderByClientOid'
             else:
-                method = 'privateDeleteOrdersClientOrderClientOid'
+                method = 'privateDeleteOrderClientOrderClientOid'
         else:
             if stop:
                 method = 'privateDeleteStopOrderOrderId'

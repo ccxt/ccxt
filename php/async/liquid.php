@@ -35,12 +35,14 @@ class liquid extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -592,17 +594,18 @@ class liquid extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the liquid api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'id' => $this->market_id($symbol),
+            'id' => $market['id'],
         );
         $response = yield $this->publicGetProductsIdPriceLevels (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'buy_price_levels', 'sell_price_levels');
+        return $this->parse_order_book($response, $market['symbol'], null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -945,28 +948,29 @@ class liquid extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $symbol unified $symbol of the $market to create an order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the liquid api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+        $market = $this->market($symbol);
         $request = array(
             'order_type' => $type,
-            'product_id' => $this->market_id($symbol),
+            'product_id' => $market['id'],
             'side' => $side,
-            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'quantity' => $this->amount_to_precision($market['symbol'], $amount),
         );
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
         if (($type === 'limit') || ($type === 'limit_post_only') || ($type === 'market_with_range') || ($type === 'stop')) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $response = yield $this->privatePostOrders (array_merge($request, $params));
         //

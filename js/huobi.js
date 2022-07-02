@@ -31,6 +31,7 @@ module.exports = class huobi extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -105,6 +106,7 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -812,6 +814,7 @@ module.exports = class huobi extends Exchange {
                     // err-code
                     '403': AuthenticationError,  // {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
                     '1010': AccountNotEnabled, // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder, // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
                     '1036': InvalidOrder, // {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
@@ -819,11 +822,12 @@ module.exports = class huobi extends Exchange {
                     '1041': InvalidOrder, // {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940}
                     '1047': InsufficientFunds, // {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1048': InsufficientFunds,  // {"status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864}
+                    '1051': InvalidOrder, // {"status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876}
                     '1066': BadSymbol, // {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder, // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
-                    '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1094': InvalidOrder, // {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     '1220': AccountNotEnabled, // {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1461': InvalidOrder, // {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234}
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest, // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest, // {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -911,6 +915,10 @@ module.exports = class huobi extends Exchange {
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
+                },
+                'marginAccounts': {
+                    'cross': 'super-margin',
+                    'isolated': 'margin',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -1560,15 +1568,12 @@ module.exports = class huobi extends Exchange {
             let amountPrecision = undefined;
             let costPrecision = undefined;
             if (spot) {
-                pricePrecision = this.safeString (market, 'price-precision');
-                pricePrecision = this.parseNumber ('1e-' + pricePrecision);
-                amountPrecision = this.safeString (market, 'amount-precision');
-                amountPrecision = this.parseNumber ('1e-' + amountPrecision);
-                costPrecision = this.safeString (market, 'value-precision');
-                costPrecision = this.parseNumber ('1e-' + costPrecision);
+                pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
+                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
+                costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
             } else {
                 pricePrecision = this.safeNumber (market, 'price_tick');
-                amountPrecision = 1;
+                amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
             }
             let maker = undefined;
             let taker = undefined;
@@ -2725,9 +2730,8 @@ module.exports = class huobi extends Exchange {
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                let precision = this.safeString (chain, 'withdrawPrecision');
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision')));
                 if (precision !== undefined) {
-                    precision = this.parseNumber ('1e-' + precision);
                     minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
@@ -2800,6 +2804,7 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const request = {};
         let method = undefined;
+        const margin = (type === 'margin');
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2819,10 +2824,16 @@ module.exports = class huobi extends Exchange {
             const accountId = await this.fetchAccountIdByType (type, params);
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+        } else if (margin) {
+            if (isolated) {
+                method = 'spotPrivateGetV1MarginAccountsBalance';
+            } else if (cross) {
+                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            }
         } else if (linear) {
-            if (marginMode === 'isolated') {
+            if (isolated) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
-            } else {
+            } else if (cross) {
                 method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
             }
         } else if (inverse) {
@@ -2849,6 +2860,59 @@ module.exports = class huobi extends Exchange {
         //             ]
         //         },
         //         "ts":1637644827566
+        //     }
+        //
+        // cross margin
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "id":51015302,
+        //             "type":"cross-margin",
+        //             "state":"working",
+        //             "risk-rate":"2",
+        //             "acct-balance-sum":"100",
+        //             "debt-balance-sum":"0",
+        //             "list":[
+        //                 {"currency":"usdt","type":"trade","balance":"100"},
+        //                 {"currency":"usdt","type":"frozen","balance":"0"},
+        //                 {"currency":"usdt","type":"loan-available","balance":"200"},
+        //                 {"currency":"usdt","type":"transfer-out-available","balance":"-1"},
+        //                 {"currency":"ht","type":"loan-available","balance":"36.60724091"},
+        //                 {"currency":"ht","type":"transfer-out-available","balance":"-1"},
+        //                 {"currency":"btc","type":"trade","balance":"1168.533000000000000000"},
+        //                 {"currency":"btc","type":"frozen","balance":"0.000000000000000000"},
+        //                 {"currency":"btc","type":"loan","balance":"-2.433000000000000000"},
+        //                 {"currency":"btc", "type":"interest", "balance":"-0.000533000000000000"},
+        //                 {"currency":"btc", "type":"transfer-out-available", "balance":"1163.872174670000000000"},
+        //                 {"currency":"btc", "type":"loan-available", "balance":"8161.876538350676000000"}
+        //             ]
+        //         },
+        //         "code":200
+        //     }
+        //
+        // isolated margin
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "id": 18264,
+        //                 "type": "margin",
+        //                 "state": "working",
+        //                 "symbol": "btcusdt",
+        //                 "fl-price": "0",
+        //                 "fl-type": "safe",
+        //                 "risk-rate": "475.952571086994250554",
+        //                 "list": [
+        //                     {"currency": "btc","type": "trade","balance": "1168.533000000000000000"},
+        //                     {"currency": "btc","type": "frozen","balance": "0.000000000000000000"},
+        //                     {"currency": "btc","type": "loan","balance": "-2.433000000000000000"},
+        //                     {"currency": "btc","type": "interest","balance": "-0.000533000000000000"},
+        //                     {"currency": "btc","type": "transfer-out-available","balance": "1163.872174670000000000"},
+        //                     {"currency": "btc","type": "loan-available","balance": "8161.876538350676000000"}
+        //                 ]
+        //             }
+        //         ]
         //     }
         //
         // future, swap isolated
@@ -2939,7 +3003,7 @@ module.exports = class huobi extends Exchange {
         //
         const result = { 'info': response };
         const data = this.safeValue (response, 'data');
-        if (spot) {
+        if (spot || margin) {
             const balances = this.safeValue (data, 'list', []);
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
@@ -6530,6 +6594,118 @@ module.exports = class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
+        };
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = undefined;
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+            method = 'privatePostMarginOrders';
+        } else if (marginMode === 'cross') {
+            method = 'privatePostCrossMarginOrders';
+        }
+        params = this.omit (params, 'marginMode');
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "data": 1000
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
+        const accountType = this.getSupportedMapping (marginMode, marginAccounts);
+        const accountId = await this.fetchAccountIdByType (accountType, params);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'accountId': accountId,
+        };
+        const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'Data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        // borrowMargin isolated
+        //
+        //     {
+        //         "data": 1000
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "repayId":1174424,
+        //         "repayTime":1600747722018
+        //     }
+        //
+        const timestamp = this.safeInteger (info, 'repayTime');
+        return {
+            'id': this.safeInteger2 (info, 'repayId', 'data'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
         };
     }
 

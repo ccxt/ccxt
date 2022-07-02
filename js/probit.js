@@ -48,6 +48,7 @@ module.exports = class probit extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -57,6 +58,7 @@ module.exports = class probit extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -527,7 +529,7 @@ module.exports = class probit extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataBySide = this.groupBy (data, 'side');
-        return this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
+        return this.parseOrderBook (dataBySide, market['symbol'], undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

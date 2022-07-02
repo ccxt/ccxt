@@ -451,7 +451,7 @@ module.exports = class bytetrade extends Exchange {
         }
         const response = await this.marketGetDepth (this.extend (request, params));
         const timestamp = this.safeValue (response, 'timestamp');
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         return orderbook;
     }
 

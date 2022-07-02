@@ -46,6 +46,7 @@ class ripio extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenInterestHistory' => false,
@@ -54,6 +55,7 @@ class ripio extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -444,14 +446,15 @@ class ripio extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the ripio api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = $this->publicGetOrderbookPair (array_merge($request, $params));
         //
@@ -469,7 +472,7 @@ class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        $orderbook = $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
+        $orderbook = $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         $orderbook['nonce'] = $this->safe_integer($response, 'updated_id');
         return $orderbook;
     }

@@ -753,14 +753,15 @@ class bitfinex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -966,10 +967,11 @@ class bitfinex(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['postOnly'])
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
@@ -984,7 +986,7 @@ class bitfinex(Exchange):
         if postOnly:
             request['is_postonly'] = True
         response = self.privatePostOrderNew(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()

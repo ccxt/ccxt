@@ -22,6 +22,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -444,21 +445,22 @@ class gemini extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the gemini api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit_bids'] = $limit;
             $request['limit_asks'] = $limit;
         }
         $response = $this->publicGetV1BookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker_v1($symbol, $params = array ()) {
@@ -1077,11 +1079,11 @@ class gemini extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $symbol unified $symbol of the $market to create an order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the gemini api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1094,11 +1096,12 @@ class gemini extends Exchange {
         if ($clientOrderId === null) {
             $clientOrderId = $this->nonce();
         }
+        $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
         $priceString = $this->price_to_precision($symbol, $price);
         $request = array(
             'client_order_id' => (string) $clientOrderId,
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
             'amount' => $amountString,
             'price' => $priceString,
             'side' => $side,
