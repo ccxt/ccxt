@@ -1066,6 +1066,47 @@ module.exports = class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        const marginMode = this.safeString (params, 'marginMode');
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTradingLimits requires params["marginMode"] to be set to "cross", "isolated", or "cash"');
+        }
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const request = {
+                'instId': this.marketId (symbol),
+                'tdMode': marginMode,
+            };
+            const response = await this.privateGetAccountMaxSize (request, params);
+            const data = this.safeValue (response, 'data');
+            result[symbol] = this.parseTradingLimits (this.safeValue (data, 0, []), symbol);
+        }
+        return result;
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        const market = this.market (symbol);
+        const maxSell = this.safeString (limits, 'maxSell');
+        const maxBuy = this.safeString (limits, 'maxBuy');
+        return {
+            'info': limits,
+            'limits': {
+                'amount': {
+                    'min': market['limits']['amount']['min'],
+                    'max': this.parseNumber (Precise.stringMax (maxBuy, maxSell)),
+                },
+            },
+        };
+    }
+
     safeNetwork (networkId) {
         const networksById = {
             'Bitcoin': 'BTC',
