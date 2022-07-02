@@ -2656,4 +2656,49 @@ module.exports = class Exchange {
         }
         return undefined;
     }
+
+    async fetchMyTradesBySide (side, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.has['fetchMyTrades']) {
+            const response = await this.fetchMyTrades (symbol, since, limit, params);
+            const trades = [];
+            for (let i = 0; i < response.length; i++) {
+                const trade = response[i];
+                const tradeSide = this.safeString (trade, 'side');
+                if (side === tradeSide) {
+                    trades.push (trade);
+                }
+            }
+            return trades;
+        } else {
+            throw new NotSupported (this.id + ' fetchMy' + this.capitalize (side) + 's is not yet supported');
+        }
+    }
+
+    async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchMyBuys
+         * @description fetch all buy trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the exchange api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        return await this.fetchMyTradesBySide ('buy', symbol, since, limit, params);
+    }
+
+    async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+        * @method
+        * @name exchange#fetchMySells
+        * @description fetch all sell trades made by the user
+        * @param {str|undefined} symbol unified market symbol
+        * @param {int|undefined} since the earliest time in ms to fetch trades for
+        * @param {int|undefined} limit the maximum number of trades structures to retrieve
+        * @param {dict} params extra parameters specific to the exchange api endpoint
+        * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+        */
+        return await this.fetchMyTradesBySide ('sell', symbol, since, limit, params);
+    }
 };
