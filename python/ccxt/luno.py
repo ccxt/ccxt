@@ -318,12 +318,13 @@ class luno(Exchange):
         if limit is not None:
             if limit <= 100:
                 method += 'Top'  # get just the top of the orderbook when limit is low
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
     def parse_order_status(self, status):
         statuses = {
@@ -733,21 +734,22 @@ class luno(Exchange):
         """
         self.load_markets()
         method = 'privatePost'
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if type == 'market':
             method += 'Marketorder'
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = float(self.amount_to_precision(symbol, amount))
+                request['counter_volume'] = float(self.amount_to_precision(market['symbol'], amount))
             else:
-                request['base_volume'] = float(self.amount_to_precision(symbol, amount))
+                request['base_volume'] = float(self.amount_to_precision(market['symbol'], amount))
         else:
             method += 'Postorder'
-            request['volume'] = float(self.amount_to_precision(symbol, amount))
-            request['price'] = float(self.price_to_precision(symbol, price))
+            request['volume'] = float(self.amount_to_precision(market['symbol'], amount))
+            request['price'] = float(self.price_to_precision(market['symbol'], price))
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = getattr(self, method)(self.extend(request, params))
         return {
