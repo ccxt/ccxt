@@ -12,6 +12,7 @@
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "bitmex":        { "skip": true },
+    "bitso":         { "skip": true },
     "bitstamp1":     { "skip": true },
     "btcmarkets":    { "skip": true },
     "btctradeua":    { "skip": true },
