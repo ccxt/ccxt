@@ -1317,7 +1317,7 @@ class zonda(Exchange):
         }
         # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
         # {status: 'Ok', errors: []}
-        return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
+        return await self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
         fiatCurrencies = {

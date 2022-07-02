@@ -450,8 +450,9 @@ class ripio(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = self.publicGetOrderbookPair(self.extend(request, params))
         #
@@ -469,7 +470,7 @@ class ripio(Exchange):
         #         "updated_id":47225
         #     }
         #
-        orderbook = self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
+        orderbook = self.parse_order_book(response, market['symbol'], None, 'buy', 'sell', 'price', 'amount')
         orderbook['nonce'] = self.safe_integer(response, 'updated_id')
         return orderbook
 

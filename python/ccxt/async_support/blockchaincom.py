@@ -321,23 +321,25 @@ class blockchaincom(Exchange):
         :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     async def fetch_l2_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetL2Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     def parse_ticker(self, ticker, market=None):
         #

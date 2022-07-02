@@ -330,7 +330,7 @@ module.exports = class btcturk extends Exchange {
         //     }
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker, market = undefined) {
