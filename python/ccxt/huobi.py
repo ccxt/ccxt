@@ -1546,15 +1546,12 @@ class huobi(Exchange):
             amountPrecision = None
             costPrecision = None
             if spot:
-                pricePrecision = self.safe_string(market, 'price-precision')
-                pricePrecision = self.parse_number('1e-' + pricePrecision)
-                amountPrecision = self.safe_string(market, 'amount-precision')
-                amountPrecision = self.parse_number('1e-' + amountPrecision)
-                costPrecision = self.safe_string(market, 'value-precision')
-                costPrecision = self.parse_number('1e-' + costPrecision)
+                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision')))
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision')))
+                costPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision')))
             else:
                 pricePrecision = self.safe_number(market, 'price_tick')
-                amountPrecision = 1
+                amountPrecision = self.parse_number('1')  # other markets have step size of 1 contract
             maker = None
             taker = None
             if spot:
@@ -2617,9 +2614,8 @@ class huobi(Exchange):
                 withdrawEnabled = (withdrawStatus == 'allowed')
                 depositEnabled = (depositStatus == 'allowed')
                 active = withdrawEnabled and depositEnabled
-                precision = self.safe_string(chain, 'withdrawPrecision')
+                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision')))
                 if precision is not None:
-                    precision = self.parse_number('1e-' + precision)
                     minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True

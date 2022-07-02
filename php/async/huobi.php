@@ -1570,15 +1570,12 @@ class huobi extends Exchange {
             $amountPrecision = null;
             $costPrecision = null;
             if ($spot) {
-                $pricePrecision = $this->safe_string($market, 'price-precision');
-                $pricePrecision = $this->parse_number('1e-' . $pricePrecision);
-                $amountPrecision = $this->safe_string($market, 'amount-precision');
-                $amountPrecision = $this->parse_number('1e-' . $amountPrecision);
-                $costPrecision = $this->safe_string($market, 'value-precision');
-                $costPrecision = $this->parse_number('1e-' . $costPrecision);
+                $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'price-precision')));
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount-precision')));
+                $costPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'value-precision')));
             } else {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
-                $amountPrecision = 1;
+                $amountPrecision = $this->parse_number('1'); // other $markets have step size of 1 $contract
             }
             $maker = null;
             $taker = null;
@@ -2717,9 +2714,8 @@ class huobi extends Exchange {
                 $withdrawEnabled = ($withdrawStatus === 'allowed');
                 $depositEnabled = ($depositStatus === 'allowed');
                 $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->safe_string($chain, 'withdrawPrecision');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision')));
                 if ($precision !== null) {
-                    $precision = $this->parse_number('1e-' . $precision);
                     $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
                 }
                 if ($withdrawEnabled && !$withdraw) {
