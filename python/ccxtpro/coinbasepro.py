@@ -153,13 +153,13 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             # therefore we resolve 'matches' here instead of 'match'
             type = 'matches'
             messageHash = type + ':' + marketId
-            array = self.safe_value(self.trades, symbol)
-            if array is None:
+            tradesArray = self.safe_value(self.trades, symbol)
+            if tradesArray is None:
                 tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-                array = ArrayCache(tradesLimit)
-                self.trades[symbol] = array
-            array.append(trade)
-            client.resolve(array, messageHash)
+                tradesArray = ArrayCache(tradesLimit)
+                self.trades[symbol] = tradesArray
+            tradesArray.append(trade)
+            client.resolve(tradesArray, messageHash)
         return message
 
     def handle_my_trade(self, client, message):
@@ -168,13 +168,13 @@ class coinbasepro(Exchange, ccxt.coinbasepro):
             trade = self.parse_ws_trade(message)
             type = 'myTrades'
             messageHash = type + ':' + marketId
-            array = self.myTrades
-            if array is None:
+            tradesArray = self.myTrades
+            if tradesArray is None:
                 limit = self.safe_integer(self.options, 'myTradesLimit', 1000)
-                array = ArrayCacheBySymbolById(limit)
-                self.myTrades = array
-            array.append(trade)
-            client.resolve(array, messageHash)
+                tradesArray = ArrayCacheBySymbolById(limit)
+                self.myTrades = tradesArray
+            tradesArray.append(trade)
+            client.resolve(tradesArray, messageHash)
         return message
 
     def parse_ws_trade(self, trade):

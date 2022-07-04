@@ -130,12 +130,12 @@ class ndax extends \ccxt\async\ndax {
     }
 
     public function handle_trades($client, $message) {
-        $payload = $this->safe_value($message, 'o', $array());
+        $payload = $this->safe_value($message, 'o', array());
         //
         // initial snapshot
         //
-        //     $array(
-        //         $array(
+        //     array(
+        //         array(
         //             6913253,       //  0 TradeId
         //             8,             //  1 ProductPairCode
         //             0.03340802,    //  2 Quantity
@@ -151,26 +151,26 @@ class ndax extends \ccxt\async\ndax {
         //     )
         //
         $name = 'SubscribeTrades';
-        $updates = $array();
+        $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
             $trade = $this->parse_trade($payload[$i]);
             $symbol = $trade['symbol'];
-            $array = $this->safe_value($this->trades, $symbol);
-            if ($array === null) {
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $array = new ArrayCache ($limit);
+                $tradesArray = new ArrayCache ($limit);
             }
-            $array->append ($trade);
-            $this->trades[$symbol] = $array;
+            $tradesArray->append ($trade);
+            $this->trades[$symbol] = $tradesArray;
             $updates[$symbol] = true;
         }
-        $symbols = is_array($updates) ? array_keys($updates) : $array();
+        $symbols = is_array($updates) ? array_keys($updates) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
             $market = $this->market($symbol);
             $messageHash = $name . ':' . $market['id'];
-            $array = $this->safe_value($this->trades, $symbol);
-            $client->resolve ($array, $messageHash);
+            $tradesArray = $this->safe_value($this->trades, $symbol);
+            $client->resolve ($tradesArray, $messageHash);
         }
     }
 

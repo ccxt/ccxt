@@ -151,7 +151,7 @@ class ascendex extends \ccxt\async\ascendex {
         // {
         //     m => 'trades',
         //     $symbol => 'BTC/USDT',
-        //     data => $array(
+        //     data => array(
         //       {
         //         p => '40744.28',
         //         q => '0.00150',
@@ -169,19 +169,19 @@ class ascendex extends \ccxt\async\ascendex {
         $market = $this->market($symbol);
         $rawData = $this->safe_value($message, 'data');
         if ($rawData === null) {
-            $rawData = $array();
+            $rawData = array();
         }
         $trades = $this->parse_trades($rawData, $market);
-        $array = $this->safe_value($this->trades, $symbol);
-        if ($array === null) {
+        $tradesArray = $this->safe_value($this->trades, $symbol);
+        if ($tradesArray === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $array = new ArrayCache ($limit);
+            $tradesArray = new ArrayCache ($limit);
         }
         for ($i = 0; $i < count($trades); $i++) {
-            $array->append ($trades[$i]);
+            $tradesArray->append ($trades[$i]);
         }
-        $this->trades[$symbol] = $array;
-        $client->resolve ($array, $messageHash);
+        $this->trades[$symbol] = $tradesArray;
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {

@@ -21,12 +21,12 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, method, 'test skipped')
+        log (exchange.id, method + '() test skipped')
         return
     }
 
     if (!exchange.has[method]) {
-        log (exchange.id, method, 'is not supported or not implemented yet')
+        log (exchange.id, method + '() is not supported')
         return
     }
 

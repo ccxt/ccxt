@@ -152,13 +152,13 @@ module.exports = class ndax extends ccxt.ndax {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade (payload[i]);
             const symbol = trade['symbol'];
-            let array = this.safeValue (this.trades, symbol);
-            if (array === undefined) {
+            let tradesArray = this.safeValue (this.trades, symbol);
+            if (tradesArray === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-                array = new ArrayCache (limit);
+                tradesArray = new ArrayCache (limit);
             }
-            array.append (trade);
-            this.trades[symbol] = array;
+            tradesArray.append (trade);
+            this.trades[symbol] = tradesArray;
             updates[symbol] = true;
         }
         const symbols = Object.keys (updates);
@@ -166,8 +166,8 @@ module.exports = class ndax extends ccxt.ndax {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const messageHash = name + ':' + market['id'];
-            const array = this.safeValue (this.trades, symbol);
-            client.resolve (array, messageHash);
+            const tradesArray = this.safeValue (this.trades, symbol);
+            client.resolve (tradesArray, messageHash);
         }
     }
 
