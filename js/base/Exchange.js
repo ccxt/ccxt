@@ -1538,6 +1538,20 @@ module.exports = class Exchange {
         return result;
     }
 
+    async fetchL1OrderBooks (symbols, params = {}) {
+        throw new NotSupported (this.id + ' fetchL1OrderBooks() is not supported yet');
+    }
+
+    parseL1OrderBooks (l1OrderBooks, symbols = undefined) {
+        l1OrderBooks = this.toArray (l1OrderBooks);
+        const result = {};
+        for (let i = 0; i < l1OrderBooks.length; i++) {
+            const orderBook = this.parseL1OrderBook (l1OrderBooks[i], undefined);
+            result[orderBook['symbol']] = orderBook;
+        }
+        return result;
+    }
+
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         const orderbook = await this.fetchOrderBook (symbol, limit, params);
         return this.extend (orderbook, {

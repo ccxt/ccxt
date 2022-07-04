@@ -2244,6 +2244,45 @@ module.exports = class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    async fetchL1OrderBooks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchL1OrderBooks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const query = this.omit (params, 'type');
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPublicGetTickerBookTicker';
+        } else if (type === 'delivery') {
+            method = 'dapiPublicGetTickerBookTicker';
+        } else {
+            method = 'publicGetTickerBookTicker';
+        }
+        const response = await this[method] (query);
+        return this.parseL1OrderBooks (response, symbols);
+    }
+
+    parseL1OrderBook (l1OrderBook, market = undefined) {
+        const marketId = this.safeString (l1OrderBook, 'symbol');
+        const timestamp = undefined;
+        return {
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'bidPrice': this.safeNumber (l1OrderBook, 'bidPrice'),
+            'bidVolume': this.safeNumber (l1OrderBook, 'bidQty'),
+            'askPrice': this.safeNumber (l1OrderBook, 'askPrice'),
+            'askVolume': this.safeNumber (l1OrderBook, 'askQty'),
+        };
+    }
+
     parseOHLCV (ohlcv, market = undefined) {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
