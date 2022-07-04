@@ -199,7 +199,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (response, 'transactTime');
-        return parseInt (transactTime / 1000000);
+        return parseInt ((transactTime / 1000000).toString());
     }
 
     async fetchMarkets (params = {}) {
@@ -914,7 +914,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (ohlcv, 'transactTime');
-        const timestamp = parseInt (transactTime / 1000000);
+        const timestamp = parseInt ((transactTime / 1000000).toString());
         const buyVolume = this.safeNumber (ohlcv, 'buyVolume');
         const sellVolume = this.safeNumber (ohlcv, 'sellVolume');
         const volume = this.sum (buyVolume, sellVolume);
@@ -1065,7 +1065,7 @@ export default class xena extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
-        const timestamp = parseInt (transactTime / 1000000);
+        const timestamp = parseInt ((transactTime / 1000000).toString());
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);

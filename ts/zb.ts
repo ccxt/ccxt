@@ -557,7 +557,7 @@ export default class zb extends Exchange {
         //         },
         //     }
         //
-        let promises = [ this.spotV1PublicGetMarkets (params), this.contractV2PublicGetConfigMarketList (params) ];
+        let promises = [ (this as any).spotV1PublicGetMarkets (params), (this as any).contractV2PublicGetConfigMarketList (params) ];
         promises = await Promise.all (promises);
         const markets = promises[0];
         const contracts = promises[1];
@@ -3101,7 +3101,7 @@ export default class zb extends Exchange {
             'leverage': leverage,
             'futuresAccountType': accountType, // 1: USDT perpetual swaps
         };
-        return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
+        return await (this as any).contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

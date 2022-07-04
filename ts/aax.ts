@@ -1302,13 +1302,13 @@ export default class aax extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['orderType'] = orderType;
-        let method = undefined;
+        let method: string | undefined = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
         } else if (market['contract']) {
             method = 'privatePostFuturesOrders';
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method as any] (this.extend (request, params));
         //
         // spot
         //

@@ -95,6 +95,7 @@ const {
     , binaryToBase64
     , rsa
     , strip
+    , toArray
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -240,6 +241,8 @@ export class Exchange {
 
     name = undefined
 
+    lastRestRequestTimestamp = undefined
+
     deepExtend = deepExtend
     isNode = isNode
     keys = keys
@@ -329,6 +332,7 @@ export class Exchange {
     binaryToBase64 = binaryToBase64
     rsa = rsa
     strip = strip
+    toArray = toArray
 
     describe () {
         return {
@@ -1814,16 +1818,16 @@ export class Exchange {
         if (symbols === undefined) {
             return symbols;
         }
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.symbol (symbols[i]));
         }
         return result;
     }
 
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+    parseBidsAsks (bidasks, priceKey: number | string = 0, amountKey = 1) {
         bidasks = this.toArray (bidasks);
-        const result = [];
+        const result: any[] = [];
         for (let i = 0; i < bidasks.length; i++) {
             result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey));
         }
@@ -2110,7 +2114,7 @@ export class Exchange {
                 this.accounts= await (this as any).fetchAccounts (params);
             }
         }
-        this.accountsById = this.indexBy (this.accounts, 'id');
+        this.accountsById = this.indexBy (this.accounts, 'id') as any;
         return this.accounts;
     }
 
@@ -2153,7 +2157,7 @@ export class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey: string | number = 0, amountKey = 1) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         return [ price, amount ];
@@ -2741,9 +2745,9 @@ export class Exchange {
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result = [];
+        let result:any[] = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
+            const address = this.extend ((this as any).parseDepositAddress (addresses[i]), params);
             result.push (address);
         }
         if (codes !== undefined) {
@@ -2754,10 +2758,10 @@ export class Exchange {
     }
 
     parseBorrowInterests (response, market = undefined) {
-        const interests = [];
+        const interests: any[] = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
-            interests.push (this.parseBorrowInterest (row, market));
+            interests.push ((this as any).parseBorrowInterest (row, market));
         }
         return interests;
     }

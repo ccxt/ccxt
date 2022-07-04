@@ -364,7 +364,7 @@ export default class wavesexchange extends Exchange {
             'amount': amount,
             'price': price,
         }, params);
-        return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
+        return await (this as any).matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
     async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -1408,7 +1408,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredKeys ();
         await this.signIn ();
         const wavesAddress= await (this as any).getWavesAddress ();
-        const response = await this.forwardPostMatcherOrdersWavesAddressCancel ({
+        const response = await (this as any).forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
             'orderId': id,
         });
