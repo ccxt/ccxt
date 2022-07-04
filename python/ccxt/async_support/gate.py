@@ -80,6 +80,7 @@ class gate(Exchange):
                 'swap': True,
                 'future': True,
                 'option': None,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
@@ -126,6 +127,7 @@ class gate(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -4123,6 +4125,193 @@ class gate(Exchange):
             initialMarginRatio = Precise.string_add(initialMarginRatio, initialMarginUnit)
             floor = cap
         return tiers
+
+    async def repay_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privateMarginPostCrossRepayments'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+            mode = self.safe_string(params, 'mode')  # 'all' or 'partial'
+            if mode is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires a mode parameter for isolated margin')
+            id = self.safe_string_2(params, 'loan_id', 'id')
+            if id is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires an id parameter for isolated margin')
+            method = 'privateMarginPostLoansLoanIdRepayment'
+            request['currency_pair'] = market['id']
+            request['mode'] = mode
+            request['loan_id'] = id
+        params = self.omit(params, ['marginMode', 'mode', 'loan_id', 'id'])
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     [
+        #         {
+        #             "id": "17",
+        #             "create_time": 1620381696159,
+        #             "update_time": 1620381696159,
+        #             "currency": "EOS",
+        #             "amount": "110.553635",
+        #             "text": "web",
+        #             "status": 2,
+        #             "repaid": "110.506649705159",
+        #             "repaid_interest": "0.046985294841",
+        #             "unpaid_interest": "0.0000074393366667"
+        #         }
+        #     ]
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "finished",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "100",
+        #         "paid_interest": "0.003333333333",
+        #         "unpaid_interest": "0"
+        #     }
+        #
+        if marginMode == 'cross':
+            response = response[0]
+        return self.parse_margin_loan(response, currency)
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        method = 'privateMarginPostCrossLoans'
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            request['currency_pair'] = market['id']
+            rate = self.safe_string(params, 'rate')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a rate parameter for isolated margin')
+            request['rate'] = rate  # Only rates '0.0002', '0.002' are supported.
+            request['side'] = 'borrow'
+            method = 'privateMarginPostLoans'
+        params = self.omit(params, ['marginMode', 'rate'])
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "id": "17",
+        #         "create_time": 1620381696159,
+        #         "update_time": 1620381696159,
+        #         "currency": "EOS",
+        #         "amount": "110.553635",
+        #         "text": "web",
+        #         "status": 2,
+        #         "repaid": "110.506649705159",
+        #         "repaid_interest": "0.046985294841",
+        #         "unpaid_interest": "0.0000074393366667"
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "loaned",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "0",
+        #         "paid_interest": "0",
+        #         "unpaid_interest": "0.003333333333"
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # Cross
+        #
+        #     {
+        #         "id": "17",
+        #         "create_time": 1620381696159,
+        #         "update_time": 1620381696159,
+        #         "currency": "EOS",
+        #         "amount": "110.553635",
+        #         "text": "web",
+        #         "status": 2,
+        #         "repaid": "110.506649705159",
+        #         "repaid_interest": "0.046985294841",
+        #         "unpaid_interest": "0.0000074393366667"
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "loaned",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "0",
+        #         "paid_interest": "0",
+        #         "unpaid_interest": "0.003333333333"
+        #     }
+        #
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        timestamp = self.safe_integer(info, 'create_time')
+        if marginMode == 'isolated':
+            timestamp = self.safe_timestamp(info, 'create_time')
+        currencyId = self.safe_string(info, 'currency')
+        marketId = self.safe_string(info, 'currency_pair')
+        return {
+            'id': self.safe_integer(info, 'id'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'amount'),
+            'symbol': self.safe_symbol(marketId, None),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
