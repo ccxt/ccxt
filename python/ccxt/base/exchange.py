@@ -288,6 +288,8 @@ class Exchange(object):
         'fetchIndexOHLCV': None,
         'fetchL1OrderBooks': None,
         'fetchL2OrderBook': None,
+        'fetchL3OrderBook': None,
+        'fetchLastPrices': None,
         'fetchLedger': None,
         'fetchLedgerEntry': None,
         'fetchLeverageTiers': None,
