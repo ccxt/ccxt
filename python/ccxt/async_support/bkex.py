@@ -605,7 +605,7 @@ class bkex(Exchange):
         # }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_order_book(data, symbol, None, 'bid', 'ask')
+        return self.parse_order_book(data, market['symbol'], None, 'bid', 'ask')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

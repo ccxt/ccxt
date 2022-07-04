@@ -279,7 +279,7 @@ class coinone extends Exchange {
         );
         $response = $this->publicGetOrderbook (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($response, 'timestamp');
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bid', 'ask', 'price', 'qty');
+        return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -487,11 +487,11 @@ class coinone extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $symbol unified $symbol of the $market to create an order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the coinone api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -499,9 +499,10 @@ class coinone extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
             'price' => $price,
-            'currency' => $this->market_id($symbol),
+            'currency' => $market['id'],
             'qty' => $amount,
         );
         $method = 'privatePostOrder' . $this->capitalize($type) . $this->capitalize($side);

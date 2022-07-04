@@ -289,11 +289,12 @@ module.exports = class zaif extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -461,8 +462,9 @@ module.exports = class zaif extends Exchange {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
+        const market = this.market (symbol);
         const request = {
-            'currency_pair': this.marketId (symbol),
+            'currency_pair': market['id'],
             'action': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
             'price': price,

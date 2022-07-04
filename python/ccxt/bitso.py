@@ -524,13 +524,14 @@ class bitso(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'book': self.market_id(symbol),
+            'book': market['id'],
         }
         response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'payload')
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -904,14 +905,15 @@ class bitso(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'book': self.market_id(symbol),
+            'book': market['id'],
             'side': side,
             'type': type,
-            'major': self.amount_to_precision(symbol, amount),
+            'major': self.amount_to_precision(market['symbol'], amount),
         }
         if type == 'limit':
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         response = self.privatePostOrders(self.extend(request, params))
         id = self.safe_string(response['payload'], 'oid')
         return {

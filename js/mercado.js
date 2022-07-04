@@ -256,7 +256,7 @@ module.exports = class mercado extends Exchange {
             'coin': market['base'],
         };
         const response = await this.publicGetCoinOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -440,23 +440,24 @@ module.exports = class mercado extends Exchange {
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'coin_pair': this.marketId (symbol),
+            'coin_pair': market['id'],
         };
         let method = this.capitalize (side) + 'Order';
         if (type === 'limit') {
             method = 'privatePostPlace' + method;
-            request['limit_price'] = this.priceToPrecision (symbol, price);
-            request['quantity'] = this.amountToPrecision (symbol, amount);
+            request['limit_price'] = this.priceToPrecision (market['symbol'], price);
+            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
         } else {
             method = 'privatePostPlaceMarket' + method;
             if (side === 'buy') {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
-                request['cost'] = this.priceToPrecision (symbol, amount * price);
+                request['cost'] = this.priceToPrecision (market['symbol'], amount * price);
             } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
+                request['quantity'] = this.amountToPrecision (market['symbol'], amount);
             }
         }
         const response = await this[method] (this.extend (request, params));

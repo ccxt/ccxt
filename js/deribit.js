@@ -1432,7 +1432,7 @@ module.exports = class deribit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger (result, 'timestamp');
         const nonce = this.safeInteger (result, 'change_id');
-        const orderbook = this.parseOrderBook (result, symbol, timestamp);
+        const orderbook = this.parseOrderBook (result, market['symbol'], timestamp);
         orderbook['nonce'] = nonce;
         return orderbook;
     }
