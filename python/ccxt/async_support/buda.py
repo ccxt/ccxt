@@ -593,7 +593,7 @@ class buda(Exchange):
         }
         response = await self.publicGetMarketsMarketOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'order_book')
-        return self.parse_order_book(orderbook, symbol)
+        return self.parse_order_book(orderbook, market['symbol'])
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -718,8 +718,9 @@ class buda(Exchange):
         """
         await self.load_markets()
         side = 'Bid' if (side == 'buy') else 'Ask'
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'price_type': type,
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),

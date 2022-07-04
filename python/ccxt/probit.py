@@ -62,6 +62,7 @@ class probit(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -71,6 +72,7 @@ class probit(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -523,7 +525,7 @@ class probit(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         dataBySide = self.group_by(data, 'side')
-        return self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
+        return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
     def fetch_tickers(self, symbols=None, params={}):
         """

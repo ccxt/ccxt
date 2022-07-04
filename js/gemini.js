@@ -452,15 +452,16 @@ module.exports = class gemini extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
         const response = await this.publicGetV1BookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTickerV1 (symbol, params = {}) {
@@ -1112,11 +1113,12 @@ module.exports = class gemini extends Exchange {
         if (clientOrderId === undefined) {
             clientOrderId = this.nonce ();
         }
+        const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const request = {
             'client_order_id': clientOrderId.toString (),
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'amount': amountString,
             'price': priceString,
             'side': side,

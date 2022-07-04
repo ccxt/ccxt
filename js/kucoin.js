@@ -192,7 +192,7 @@ module.exports = class kucoin extends Exchange {
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
                         'orders': 20, // 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}': 1,
+                        'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1, // rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
@@ -1133,9 +1133,9 @@ module.exports = class kucoin extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = { 'symbol': marketId };
+        const request = { 'symbol': market['id'] };
         let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
@@ -1188,7 +1188,7 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
@@ -1330,7 +1330,7 @@ module.exports = class kucoin extends Exchange {
             if (stop) {
                 method = 'privateDeleteStopOrderCancelOrderByClientOid';
             } else {
-                method = 'privateDeleteOrdersClientOrderClientOid';
+                method = 'privateDeleteOrderClientOrderClientOid';
             }
         } else {
             if (stop) {

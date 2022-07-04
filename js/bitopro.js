@@ -469,8 +469,9 @@ module.exports = class bitopro extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -496,7 +497,7 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market) {

@@ -54,6 +54,7 @@ class probit extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -63,6 +64,7 @@ class probit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -525,7 +527,7 @@ class probit extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataBySide = $this->group_by($data, 'side');
-        return $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
+        return $this->parse_order_book($dataBySide, $market['symbol'], null, 'buy', 'sell', 'price', 'quantity');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

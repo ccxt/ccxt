@@ -960,8 +960,9 @@ class bitfinex2(Exchange):
         """
         await self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'precision': precision,
         }
         if limit is not None:
@@ -970,7 +971,7 @@ class bitfinex2(Exchange):
         orderbook = await self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,

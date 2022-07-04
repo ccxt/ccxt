@@ -321,7 +321,7 @@ class btcturk(Exchange):
         #     }
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(data, 'timestamp')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
     def parse_ticker(self, ticker, market=None):
         #

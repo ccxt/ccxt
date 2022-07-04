@@ -591,11 +591,12 @@ class liquid(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         response = self.publicGetProductsIdPriceLevels(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'buy_price_levels', 'sell_price_levels')
+        return self.parse_order_book(response, market['symbol'], None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -929,16 +930,17 @@ class liquid(Exchange):
         self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
+        market = self.market(symbol)
         request = {
             'order_type': type,
-            'product_id': self.market_id(symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
         }
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
         if (type == 'limit') or (type == 'limit_post_only') or (type == 'market_with_range') or (type == 'stop'):
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         response = self.privatePostOrders(self.extend(request, params))
         #
         #     {

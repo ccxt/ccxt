@@ -325,7 +325,7 @@ class btcturk extends Exchange {
         //     }
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
+        return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
     public function parse_ticker($ticker, $market = null) {

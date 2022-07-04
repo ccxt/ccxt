@@ -3092,6 +3092,14 @@ class phemex extends Exchange {
     }
 
     public function set_margin($symbol, $amount, $params = array ()) {
+        /**
+         * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+         * @param {str} $symbol unified $market $symbol of the $market to set margin in
+         * @param {float} $amount the $amount to set the margin to
+         * @param {dict} $params parameters specific to the phemex api endpoint
+         * @return {dict} A {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

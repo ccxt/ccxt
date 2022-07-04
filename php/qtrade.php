@@ -59,6 +59,7 @@ class qtrade extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -69,6 +70,7 @@ class qtrade extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -422,14 +424,14 @@ class qtrade extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) $prices, volumes and other $data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum $amount of order book entries to return
          * @param {dict} $params extra parameters specific to the qtrade api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
-        $marketId = $this->market_id($symbol);
-        $request = array( 'market_string' => $marketId );
+        $market = $this->market($symbol);
+        $request = array( 'market_string' => $market['id'] );
         $response = $this->publicGetOrderbookMarketString (array_merge($request, $params));
         //
         //     {
@@ -467,7 +469,7 @@ class qtrade extends Exchange {
             $orderbook[$side] = $result;
         }
         $timestamp = $this->safe_integer_product($data, 'last_change', 0.001);
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -817,7 +819,7 @@ class qtrade extends Exchange {
         $marketData = $this->safe_value($data, 'market', array());
         return array(
             'info' => $marketData,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($marketData, 'maker_fee'),
             'taker' => $this->safe_number($marketData, 'taker_fee'),
             'percentage' => true,
@@ -897,9 +899,9 @@ class qtrade extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $this->amount_to_precision($market['symbol'], $amount),
             'market_id' => $market['numericId'],
-            'price' => $this->price_to_precision($symbol, $price),
+            'price' => $this->price_to_precision($market['symbol'], $price),
         );
         $method = ($side === 'sell') ? 'privatePostSellLimit' : 'privatePostBuyLimit';
         $response = $this->$method (array_merge($request, $params));
