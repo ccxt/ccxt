@@ -90,7 +90,7 @@ const truncate_regExpCache = []
 function precisionFromString (str) {
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1) {
-        const numStr = str.replace (/\de/, '');
+        const numStr = str.replace (/\de/, '')
         return parseInt (numStr) * -1
     } else {
         // default strings like '0.0001'
