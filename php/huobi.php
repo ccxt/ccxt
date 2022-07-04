@@ -881,6 +881,7 @@ class huobi extends \ccxt\async\huobi {
         //         accountId => 44234548,
         //         orderPrice => '100',
         //         orderSize => '0.05',
+        //         orderValue => '3.71676361', // $market-buy only
         //         $symbol => 'ethusdt',
         //         $type => 'buy-limit',
         //         orderId => '478861479986886',
@@ -1018,6 +1019,7 @@ class huobi extends \ccxt\async\huobi {
         if ($side === null) {
             $side = $this->safe_string($order, 'direction');
         }
+        $cost = $this->safe_string($order, 'orderValue');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -1035,7 +1037,7 @@ class huobi extends \ccxt\async\huobi {
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => null,
-            'cost' => null,
+            'cost' => $cost,
             'fee' => $fee,
             'average' => $avgPrice,
             'trades' => $rawTrades,

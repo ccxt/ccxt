@@ -822,6 +822,7 @@ class huobi(Exchange, ccxt.huobi):
         #         accountId: 44234548,
         #         orderPrice: '100',
         #         orderSize: '0.05',
+        #         orderValue: '3.71676361',  # market-buy only
         #         symbol: 'ethusdt',
         #         type: 'buy-limit',
         #         orderId: '478861479986886',
@@ -955,6 +956,7 @@ class huobi(Exchange, ccxt.huobi):
         side = self.safe_string_lower(typeSide, 0)
         if side is None:
             side = self.safe_string(order, 'direction')
+        cost = self.safe_string(order, 'orderValue')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -972,7 +974,7 @@ class huobi(Exchange, ccxt.huobi):
             'amount': amount,
             'filled': filled,
             'remaining': None,
-            'cost': None,
+            'cost': cost,
             'fee': fee,
             'average': avgPrice,
             'trades': rawTrades,
