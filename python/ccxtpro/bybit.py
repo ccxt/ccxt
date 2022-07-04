@@ -606,7 +606,7 @@ class bybit(Exchange, ccxt.bybit):
         #
         timestamp = self.safe_integer(ohlcv, 't')
         if timestamp is None:
-            timestamp = self.safe_integer_product(ohlcv, 'timestamp', 0.001)
+            timestamp = self.safe_timestamp(ohlcv, 'start')
         return [
             timestamp,
             self.safe_number_2(ohlcv, 'open', 'o'),
