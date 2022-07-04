@@ -33,6 +33,7 @@ module.exports = class binance extends Exchange {
                 'cancelOrders': undefined,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
@@ -2930,7 +2931,9 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        const postOnly = this.isPostOnly (initialUppercaseType, false, params);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (reduceOnly !== undefined) {
@@ -2957,8 +2960,6 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const initialUppercaseType = type.toUpperCase ();
-        let uppercaseType = initialUppercaseType;
         const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -3093,6 +3094,9 @@ module.exports = class binance extends Exchange {
         }
         if (timeInForceIsRequired) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (market['contract'] && postOnly) {
+            request['timeInForce'] = 'GTX';
         }
         if (stopPriceIsRequired) {
             if (stopPrice === undefined) {
