@@ -3128,6 +3128,16 @@ export default class phemex extends Exchange {
     }
 
     async setMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name phemex#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
+         * @param {str} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {dict} params parameters specific to the phemex api endpoint
+         * @returns {dict} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

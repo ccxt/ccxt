@@ -36,7 +36,7 @@ class okx extends Exchange {
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'createDepositAddress' => null,
+                'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
                 'createStopLimitOrder' => true,
@@ -54,7 +54,7 @@ class okx extends Exchange {
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposit' => null,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
@@ -72,8 +72,6 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -101,15 +99,15 @@ class okx extends Exchange {
                 'fetchTransactions' => null,
                 'fetchTransfer' => true,
                 'fetchTransfers' => false,
-                'fetchWithdrawal' => null,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => null,
+                'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
-                'signIn' => null,
+                'signIn' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -3510,6 +3508,7 @@ class okx extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * @param {str|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
@@ -3578,9 +3577,34 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency $deposit via the $deposit $id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$deposit-history
+         * @param {str} $id $deposit $id
+         * @param {str|null} $code filter by $currency $code
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'depId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $data = $this->safe_value($response, 'data');
+        $deposit = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($deposit, $currency);
+    }
+
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * @param {str|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
@@ -3639,6 +3663,51 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency $withdrawal via the $withdrawal $id
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-$withdrawal-history
+         * @param {str} $id $withdrawal $id
+         * @param {str|null} $code unified $currency $code of the $currency withdrawn, default is null
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'wdId' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['ccy'] = $currency['id'];
+        }
+        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        //
+        //    {
+        //        $code => '0',
+        //        $data => array(
+        //            {
+        //                chain => 'USDT-TRC20',
+        //                clientId => '',
+        //                fee => '0.8',
+        //                ccy => 'USDT',
+        //                amt => '54.561',
+        //                txId => '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
+        //                from => 'example@email.com',
+        //                to => 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
+        //                state => '2',
+        //                ts => '1641376485000',
+        //                wdId => '25147041'
+        //            }
+        //        ),
+        //        msg => ''
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $withdrawal = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($withdrawal);
     }
 
     public function parse_transaction_status($status) {

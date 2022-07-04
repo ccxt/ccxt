@@ -79,8 +79,6 @@ class huobi extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -821,6 +819,7 @@ class huobi extends Exchange {
                     // err-code
                     '403' => '\\ccxt\\AuthenticationError',  // array("status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344)
                     '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
+                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
                     '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
                     '1036' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986)
@@ -828,11 +827,12 @@ class huobi extends Exchange {
                     '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
                     '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1048' => '\\ccxt\\InsufficientFunds',  // array("status":"error","err_code":1048,"err_msg":"Insufficient close amount available.","ts":1652772408864)
+                    '1051' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1051,"err_msg":"No orders to cancel.","ts":1652552125876)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
-                    '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
+                    '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
                     'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
@@ -1566,15 +1566,12 @@ class huobi extends Exchange {
             $amountPrecision = null;
             $costPrecision = null;
             if ($spot) {
-                $pricePrecision = $this->safe_string($market, 'price-precision');
-                $pricePrecision = $this->parse_number('1e-' . $pricePrecision);
-                $amountPrecision = $this->safe_string($market, 'amount-precision');
-                $amountPrecision = $this->parse_number('1e-' . $amountPrecision);
-                $costPrecision = $this->safe_string($market, 'value-precision');
-                $costPrecision = $this->parse_number('1e-' . $costPrecision);
+                $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'price-precision')));
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount-precision')));
+                $costPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'value-precision')));
             } else {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
-                $amountPrecision = 1;
+                $amountPrecision = $this->parse_number('1'); // other $markets have step size of 1 $contract
             }
             $maker = null;
             $taker = null;
@@ -2713,9 +2710,8 @@ class huobi extends Exchange {
                 $withdrawEnabled = ($withdrawStatus === 'allowed');
                 $depositEnabled = ($depositStatus === 'allowed');
                 $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->safe_string($chain, 'withdrawPrecision');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision')));
                 if ($precision !== null) {
-                    $precision = $this->parse_number('1e-' . $precision);
                     $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
                 }
                 if ($withdrawEnabled && !$withdraw) {

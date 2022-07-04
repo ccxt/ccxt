@@ -319,7 +319,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {

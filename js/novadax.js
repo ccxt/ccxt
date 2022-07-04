@@ -435,8 +435,9 @@ export default class novadax extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 20
@@ -463,7 +464,7 @@ export default class novadax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks');
     }
 
     parseTrade (trade, market = undefined) {

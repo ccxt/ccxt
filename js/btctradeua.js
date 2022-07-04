@@ -195,7 +195,7 @@ export default class btctradeua extends Exchange {
                 orderbook['asks'] = asks['list'];
             }
         }
-        return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'currency_trade');
+        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     parseTicker (ticker, market = undefined) {

@@ -459,8 +459,9 @@ export default class ripio extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this.publicGetOrderbookPair (this.extend (request, params));
         //
@@ -478,7 +479,7 @@ export default class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        const orderbook = this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
+        const orderbook = this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
         orderbook['nonce'] = this.safeInteger (response, 'updated_id');
         return orderbook;
     }

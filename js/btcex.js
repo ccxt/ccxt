@@ -555,7 +555,7 @@ export default class btcex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (result, 'timestamp');
-        return this.parseOrderBook (result, symbol, timestamp);
+        return this.parseOrderBook (result, market['symbol'], timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

@@ -509,8 +509,9 @@ export default class lykke extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'assetPairId': this.marketId (symbol),
+            'assetPairId': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit; // default 0
@@ -542,7 +543,7 @@ export default class lykke extends Exchange {
         //
         const orderbook = this.safeValue (payload, 0, {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
     parseTrade (trade, market) {
@@ -788,10 +789,10 @@ export default class lykke extends Exchange {
         const query = {
             'assetPairId': market['id'],
             'side': this.capitalize (side),
-            'volume': parseFloat (this.amountToPrecision (symbol, amount)),
+            'volume': parseFloat (this.amountToPrecision (market['symbol'], amount)),
         };
         if (type === 'limit') {
-            query['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            query['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
         }
         const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
@@ -827,7 +828,7 @@ export default class lykke extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

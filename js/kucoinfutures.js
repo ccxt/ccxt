@@ -689,7 +689,7 @@ export default class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
-        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
@@ -1485,8 +1485,9 @@ export default class kucoinfutures extends kucoin {
          * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
@@ -1505,7 +1506,7 @@ export default class kucoinfutures extends kucoin {
         const fundingTimestamp = this.safeNumber (data, 'timePoint');
         return {
             'info': data,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,

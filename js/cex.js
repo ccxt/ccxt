@@ -468,15 +468,16 @@ export default class cex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit;
         }
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -744,8 +745,9 @@ export default class cex extends Exchange {
             }
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
             'type': side,
             'amount': amount,
         };
@@ -784,7 +786,7 @@ export default class cex extends Exchange {
             'lastTradeTimestamp': undefined,
             'type': type,
             'side': this.safeString (response, 'type'),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'status': status,
             'price': this.safeNumber (response, 'price'),
             'amount': placedAmount,

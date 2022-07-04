@@ -696,8 +696,9 @@ export default class bitpanda extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'instrument_code': this.marketId (symbol),
+            'instrument_code': market['id'],
             // level 1 means only the best bid and ask
             // level 2 is a compiled order book up to market precision
             // level 3 is a full orderbook
@@ -765,7 +766,7 @@ export default class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined) {

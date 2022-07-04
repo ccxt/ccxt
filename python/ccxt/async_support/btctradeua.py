@@ -183,7 +183,7 @@ class btctradeua(Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'currency_trade')
 
     def parse_ticker(self, ticker, market=None):
         #

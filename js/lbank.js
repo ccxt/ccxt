@@ -341,12 +341,13 @@ export default class lbank extends Exchange {
         if (limit !== undefined) {
             size = Math.min (limit, size);
         }
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'size': size,
         };
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTrade (trade, market = undefined) {

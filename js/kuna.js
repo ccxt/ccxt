@@ -424,7 +424,7 @@ export default class kuna extends Exchange {
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -691,8 +691,9 @@ export default class kuna extends Exchange {
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,
@@ -701,8 +702,6 @@ export default class kuna extends Exchange {
             request['price'] = price.toString ();
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const marketId = this.safeValue (response, 'market');
-        const market = this.safeValue (this.markets_by_id, marketId);
         return this.parseOrder (response, market);
     }
 

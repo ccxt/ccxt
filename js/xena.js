@@ -566,8 +566,9 @@ export default class xena extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit;
@@ -604,7 +605,7 @@ export default class xena extends Exchange {
         if (lastUpdateTime !== undefined) {
             timestamp = parseInt (lastUpdateTime / 1000000);
         }
-        return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return this.parseOrderBook (mdEntriesByType, market['symbol'], timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     async fetchAccounts (params = {}) {

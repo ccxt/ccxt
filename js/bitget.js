@@ -2950,7 +2950,8 @@ export default class bitget extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (!signed && (method === 'GET')) {
             const keys = Object.keys (query);
-            if (keys.length) {
+            const keysLength = keys.length;
+            if (keysLength > 0) {
                 url = url + '?' + this.urlencode (query);
             }
         }

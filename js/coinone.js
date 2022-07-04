@@ -283,7 +283,7 @@ export default class coinone extends Exchange {
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'qty');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -511,9 +511,10 @@ export default class coinone extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'price': price,
-            'currency': this.marketId (symbol),
+            'currency': market['id'],
             'qty': amount,
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);

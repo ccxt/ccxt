@@ -328,14 +328,15 @@ export default class coinmate extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -348,15 +349,16 @@ export default class coinmate extends Exchange {
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -714,7 +716,7 @@ export default class coinmate extends Exchange {
         const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
         return {
             'info': data,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': maker,
             'taker': taker,
             'percentage': true,
@@ -879,8 +881,9 @@ export default class coinmate extends Exchange {
          */
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
+        const market = this.market (symbol);
         const request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
         };
         if (type === 'market') {
             if (side === 'buy') {

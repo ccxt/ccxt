@@ -483,14 +483,15 @@ export default class poloniex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit; // 100
         }
         const response = await this.publicGetReturnOrderBook (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response, symbol);
+        const orderbook = this.parseOrderBook (response, market['symbol']);
         orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
     }

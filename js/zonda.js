@@ -541,8 +541,9 @@ export default class zonda extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
         //
@@ -566,7 +567,7 @@ export default class zonda extends Exchange {
         const rawAsks = this.safeValue (response, 'sell', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
             'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
@@ -1368,7 +1369,7 @@ export default class zonda extends Exchange {
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {

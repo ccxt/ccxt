@@ -583,7 +583,7 @@ export default class cdax extends Exchange {
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, symbol, timestamp);
+            const result = this.parseOrderBook (tick, market['symbol'], timestamp);
             result['nonce'] = this.safeInteger (tick, 'version');
             return result;
         }
@@ -1397,7 +1397,7 @@ export default class cdax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

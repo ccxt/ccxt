@@ -606,7 +606,7 @@ export default class crex24 extends Exchange {
         //                     { price: 0.03124, volume: 2.63462933 },
         //                     { price: 0.069, volume: 0.004 }            ] }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
     parseTicker (ticker, market = undefined) {

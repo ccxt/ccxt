@@ -633,7 +633,7 @@ export default class bkex extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data, symbol, undefined, 'bid', 'ask');
+        return this.parseOrderBook (data, market['symbol'], undefined, 'bid', 'ask');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
