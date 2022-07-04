@@ -154,6 +154,7 @@ class bytetrade extends Exchange {
                 '48' => 'Blocktonic',
                 '133' => 'TerraCredit',
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'vertify error' => '\\ccxt\\AuthenticationError', // typo on the exchange side, 'vertify'
                 'verify error' => '\\ccxt\\AuthenticationError', // private key signature is incorrect
@@ -237,7 +238,6 @@ class bytetrade extends Exchange {
             $active = $this->safe_value($currency, 'active');
             $limits = $this->safe_value($currency, 'limits');
             $deposit = $this->safe_value($limits, 'deposit');
-            $amountPrecision = $this->safe_integer($currency, 'basePrecision');
             $maxDeposit = $this->safe_string($deposit, 'max');
             if (Precise::string_equals($maxDeposit, '-1')) {
                 $maxDeposit = null;
@@ -254,7 +254,7 @@ class bytetrade extends Exchange {
                 'active' => $active,
                 'deposit' => null,
                 'withdraw' => null,
-                'precision' => $amountPrecision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'basePrecision'))),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
@@ -371,8 +371,8 @@ class bytetrade extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($precision, 'amount'),
-                    'price' => $this->safe_integer($precision, 'price'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'amount'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'price'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -448,7 +448,7 @@ class bytetrade extends Exchange {
         }
         $response = yield $this->marketGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_value($response, 'timestamp');
-        $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
+        $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         return $orderbook;
     }
 
@@ -881,7 +881,7 @@ class bytetrade extends Exchange {
         $amountTruncated = $this->amount_to_precision($symbol, $amount);
         $amountTruncatedPrecise = new Precise ($amountTruncated);
         $amountTruncatedPrecise->reduce ();
-        $amountTruncatedPrecise->decimals -= $baseCurrency['precision'];
+        $amountTruncatedPrecise->decimals -= $this->precision_from_string($this->number_to_string($baseCurrency['precision']));
         $amountChain = (string) $amountTruncatedPrecise;
         $amountChainString = $this->number_to_string($amountChain);
         $quoteId = $market['quoteId'];
@@ -889,7 +889,7 @@ class bytetrade extends Exchange {
         $priceRounded = $this->price_to_precision($symbol, $price);
         $priceRoundedPrecise = new Precise ($priceRounded);
         $priceRoundedPrecise->reduce ();
-        $priceRoundedPrecise->decimals -= $quoteCurrency['precision'];
+        $priceRoundedPrecise->decimals -= $this->precision_from_string($this->number_to_string($quoteCurrency['precision']));
         $priceChain = (string) $priceRoundedPrecise;
         $priceChainString = $this->number_to_string($priceChain);
         $now = $this->milliseconds();

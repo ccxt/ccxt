@@ -36,6 +36,7 @@ class kuna extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -44,6 +45,7 @@ class kuna extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -420,7 +422,7 @@ class kuna extends Exchange {
         }
         $orderbook = yield $this->publicGetDepth (array_merge($request, $params));
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -673,8 +675,9 @@ class kuna extends Exchange {
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'market' => $this->market_id($symbol),
+            'market' => $market['id'],
             'side' => $side,
             'volume' => (string) $amount,
             'ord_type' => $type,
@@ -683,8 +686,6 @@ class kuna extends Exchange {
             $request['price'] = (string) $price;
         }
         $response = yield $this->privatePostOrders (array_merge($request, $params));
-        $marketId = $this->safe_value($response, 'market');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
         return $this->parse_order($response, $market);
     }
 

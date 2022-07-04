@@ -44,6 +44,7 @@ module.exports = class luno extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -53,6 +54,7 @@ module.exports = class luno extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -333,12 +335,13 @@ module.exports = class luno extends Exchange {
                 method += 'Top'; // get just the top of the orderbook when limit is low
             }
         }
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this[method] (this.extend (request, params));
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'volume');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     parseOrderStatus (status) {
@@ -798,22 +801,23 @@ module.exports = class luno extends Exchange {
          */
         await this.loadMarkets ();
         let method = 'privatePost';
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         if (type === 'market') {
             method += 'Marketorder';
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
+                request['counter_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
             } else {
-                request['base_volume'] = parseFloat (this.amountToPrecision (symbol, amount));
+                request['base_volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
             }
         } else {
             method += 'Postorder';
-            request['volume'] = parseFloat (this.amountToPrecision (symbol, amount));
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['volume'] = parseFloat (this.amountToPrecision (market['symbol'], amount));
+            request['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
         }
         const response = await this[method] (this.extend (request, params));

@@ -2806,7 +2806,8 @@ class bitget(Exchange):
         query = self.omit(params, self.extract_params(path))
         if not signed and (method == 'GET'):
             keys = list(query.keys())
-            if len(keys):
+            keysLength = len(keys)
+            if keysLength > 0:
                 url = url + '?' + self.urlencode(query)
         if signed:
             self.check_required_credentials()

@@ -519,7 +519,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($result, 'data', array());
-        return $this->filter_by_array($data, 'symbol', $symbols);
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

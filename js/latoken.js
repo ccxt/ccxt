@@ -33,12 +33,14 @@ module.exports = class latoken extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -818,7 +820,7 @@ module.exports = class latoken extends Exchange {
         //
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': this.safeNumber (response, 'makerFee'),
             'taker': this.safeNumber (response, 'takerFee'),
         };
@@ -842,7 +844,7 @@ module.exports = class latoken extends Exchange {
         //
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': this.safeNumber (response, 'makerFee'),
             'taker': this.safeNumber (response, 'takerFee'),
         };

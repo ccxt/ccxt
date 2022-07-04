@@ -36,6 +36,7 @@ module.exports = class therock extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -45,6 +46,7 @@ module.exports = class therock extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionMode': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -297,12 +299,13 @@ module.exports = class therock extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'id': this.marketId (symbol),
+            'id': market['id'],
         };
         const orderbook = await this.publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1338,8 +1341,9 @@ module.exports = class therock extends Exchange {
         if (type === 'market') {
             price = 0;
         }
+        const market = this.market (symbol);
         const request = {
-            'fund_id': this.marketId (symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,

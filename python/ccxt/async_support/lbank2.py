@@ -60,6 +60,7 @@ class lbank2(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -69,6 +70,7 @@ class lbank2(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -472,7 +474,7 @@ class lbank2(Exchange):
         response = await self.publicGetDepth(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #

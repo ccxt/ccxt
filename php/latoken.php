@@ -35,12 +35,14 @@ class latoken extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -802,7 +804,7 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );
@@ -826,7 +828,7 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );

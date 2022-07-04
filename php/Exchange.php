@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.88.68';
+$version = '1.89.98';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.88.68';
+    const VERSION = '1.89.98';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2369,13 +2369,13 @@ class Exchange {
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
-            if ($total === null) {
+            if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
-            if ($free === null) {
+            if (($free === null) && ($total !== null) && ($used !== null)) {
                 $free = Precise::string_sub($total, $used);
             }
-            if ($used === null) {
+            if (($used === null) && ($total !== null) && ($free !== null)) {
                 $used = Precise::string_sub($total, $free);
             }
             $balance[$code]['free'] = $this->parse_number($free);
@@ -3169,10 +3169,10 @@ class Exchange {
     }
 
     public function parse_ledger($data, $currency = null, $since = null, $limit = null, $params = array ()) {
-        $result = $array();
-        $array = $this->to_array($data);
-        for ($i = 0; $i < count($array); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($array[$i], $currency);
+        $result = array();
+        $arrayData = $this->to_array($data);
+        for ($i = 0; $i < count($arrayData); $i++) {
+            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
             if (gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems))) {
                 for ($j = 0; $j < count($itemOrItems); $j++) {
                     $result[] = array_merge($itemOrItems[$j], $params);
@@ -3235,8 +3235,9 @@ class Exchange {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
             $this->throttle($cost);
         }
-        $request = $this->sign($path, $api, $method, $params, $headers, $body);
-        return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+        $this->lastRestRequestTimestamp = $this->milliseconds ();
+        $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+        return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
     public function request($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {

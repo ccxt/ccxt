@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
@@ -25,10 +26,11 @@ class woo extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => true,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelWithdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -46,12 +48,14 @@ class woo extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
-                'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -63,6 +67,9 @@ class woo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
+                'fetchPositionMode' => false,
+                'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
@@ -75,6 +82,8 @@ class woo extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayMargin' => true,
+                'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
                 'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -95,14 +104,15 @@ class woo extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api' => array(
+                    'pub' => 'https://api-pub.woo.org',
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                 ),
-                // TEST (stating) api ( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at this moment, even thou
-                // 'test' => array(
-                //     'public' => 'http://api.staging.woo.org',
-                //     'private' => 'http://api.staging.woo.org',
-                // ),
+                'test' => array(
+                    'pub' => 'https://api-pub.staging.woo.org',
+                    'public' => 'https://api.staging.woo.org',
+                    'private' => 'https://api.staging.woo.org',
+                ),
                 'www' => 'https://woo.org/',
                 'doc' => array(
                     'https://docs.woo.org/',
@@ -114,6 +124,11 @@ class woo extends Exchange {
             ),
             'api' => array(
                 'v1' => array(
+                    'pub' => array(
+                        'get' => array(
+                            'hist/kline' => 10,
+                        ),
+                    ),
                     'public' => array(
                         'get' => array(
                             'info' => 1,
@@ -121,6 +136,11 @@ class woo extends Exchange {
                             'market_trades' => 1,
                             'token' => 1,
                             'token_network' => 1,
+                            'funding_rates' => 1,
+                            'funding_rate/{symbol}' => 1,
+                            'funding_rate_history' => 1,
+                            'futures' => 1,
+                            'futures/{symbol}' => 1,
                         ),
                     ),
                     'private' => array(
@@ -143,11 +163,17 @@ class woo extends Exchange {
                             'token_interest/{token}' => 60,
                             'interest/history' => 60,
                             'interest/repay' => 60,
+                            'funding_fee/history' => 30,
+                            'positions' => 30,
+                            'position/{symbol}' => 30,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
                             'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay' => 60,
+                            'client/account_mode' => 120,
+                            'client/leverage' => 120,
                         ),
                         'delete' => array(
                             'order' => 1,
@@ -175,52 +201,12 @@ class woo extends Exchange {
             ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
-                'network-aliases' => array(
-                    'ALGO' => 'ALGO',
-                    'ATOM' => 'ATOM',
-                    'AVAXC' => 'AVAXC',
-                    'BNB' => 'BEP2',
-                    'BSC' => 'BEP20',
-                    'BTC' => 'BTC',
-                    'BCHSV' => 'BSV',
-                    'EOS' => 'EOS',
-                    'ETH' => 'ERC20',
-                    'HECO' => 'HRC20',
-                    'MATIC' => 'POLYGON',
-                    'ONT' => 'ONT',
-                    'SOL' => 'SPL',
-                    'TERRA' => 'TERRA',
-                    'TRON' => 'TRC20',
-                ),
-                // network-aliases for titles are removed (is_array(case, if needed => pastebin.com/raw/BvgKViPN ) && array_key_exists(just, case, if needed => pastebin.com/raw/BvgKViPN ))
-                'network-aliases-for-protocol' => array(
-                    'ALGO' => 'ALGO',
-                    'ATOM' => 'ATOM',
-                    'C Chain' => 'AVAXC',
-                    'BEP2' => 'BEP2',
-                    'BEP20' => 'BEP20',
-                    'BTC' => 'BTC',
-                    'BSV' => 'BSV',
-                    'EOS' => 'EOS',
-                    'ERC20' => 'ERC20',
-                    'HECO' => 'HRC20',
-                    'Polygon' => 'POLYGON',
-                    'ONT' => 'ONT',
-                    'SOL' => 'SPL',
-                    'TERRA' => 'TERRA',
-                    'TRON' => 'TRC20',
-                ),
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens' => array(
                     'HT' => 'ERC20',
                     'OMG' => 'ERC20',
                     'UATOM' => 'ATOM',
                     'ZRX' => 'ZRX',
-                ),
-                'defaultNetworkCodePriorities' => array(
-                    'TRC20',
-                    'ERC20',
-                    'BSC20',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -269,11 +255,7 @@ class woo extends Exchange {
          * @param {dict} $params extra parameters specific to the exchange api endpoint
          * @return {[dict]} an array of objects representing $market $data
          */
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PublicGetInfo',
-        ));
-        $response = yield $this->$method ($query);
+        $response = yield $this->v1PublicGetInfo ($params);
         //
         // {
         //     rows => [
@@ -295,42 +277,49 @@ class woo extends Exchange {
         //     success => true
         // }
         //
-        $data = $this->safe_value($response, 'rows', array());
         $result = array();
+        $data = $this->safe_value($response, 'rows', array());
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $marketId = $this->safe_string($market, 'symbol');
             $parts = explode('_', $marketId);
             $marketTypeVal = $this->safe_string_lower($parts, 0);
             $isSpot = $marketTypeVal === 'spot';
-            $isSwap = false;
-            $isFuture = false;
-            $isOption = false;
+            $isSwap = $marketTypeVal === 'perp';
             $baseId = $this->safe_string($parts, 1);
             $quoteId = $this->safe_string($parts, 2);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settleId = null;
+            $settle = null;
             $symbol = $base . '/' . $quote;
+            $contractSize = null;
+            if ($isSwap) {
+                $settleId = $this->safe_string($parts, 2);
+                $settle = $this->safe_currency_code($settleId);
+                $symbol = $base . '/' . $quote . ':' . $settle;
+                $contractSize = $this->parse_number('1');
+            }
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => null,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null,
+                'settleId' => $settleId,
                 'type' => $marketTypeVal,
                 'spot' => $isSpot,
                 'margin' => true,
-                'swap' => false,
+                'swap' => $isSwap,
                 'future' => false,
                 'option' => false,
                 'active' => null,
-                'contract' => $isSwap || $isFuture || $isOption,
+                'contract' => $isSwap,
                 'linear' => null,
                 'inverse' => null,
-                'contractSize' => null,
+                'contractSize' => $contractSize,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -383,11 +372,7 @@ class woo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PublicGetMarketTrades',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PublicGetMarketTrades (array_merge($request, $params));
         //
         // {
         //     success => true,
@@ -461,15 +446,6 @@ class woo extends Exchange {
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
-        if ($id === null) { // reconstruct artificially, if it doesn't exist
-            if ($timestamp !== null) {
-                $amountStr = ($amount === null) ? '' : $amount;
-                $sideStr = ($side === null) ? '' : $side;
-                $priceStr = ($price === null) ? '' : $price;
-                $marketIdStr = $this->safe_string($market, 'id', '');
-                $id = $this->number_to_string($timestamp) . '-' . $marketIdStr . '-' . $sideStr . '-' . $amountStr . '-' . $priceStr;
-            }
-        }
         $takerOrMaker = null;
         if ($isFromFetchOrder) {
             $isMaker = $this->safe_string($trade, 'is_maker') === '1';
@@ -559,13 +535,8 @@ class woo extends Exchange {
          * @param {dict} $params extra parameters specific to the woo api endpoint
          * @return {dict} an associative dictionary of currencies
          */
-        $method = null;
         $result = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchCurrencies', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PublicGetToken',
-        ));
-        $tokenResponse = yield $this->$method ($query);
+        $tokenResponse = yield $this->v1PublicGetToken ($params);
         //
         // {
         //     rows => array(
@@ -598,10 +569,8 @@ class woo extends Exchange {
         //     success => true
         // }
         //
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PublicGetTokenNetwork',
-        ));
-        $tokenNetworkResponse = yield $this->$method ($query);
+        // only make one request for currrencies...
+        // $tokenNetworkResponse = yield $this->v1PublicGetTokenNetwork ($params);
         //
         // {
         //     rows => array(
@@ -629,84 +598,62 @@ class woo extends Exchange {
         // }
         //
         $tokenRows = $this->safe_value($tokenResponse, 'rows', array());
-        $tokenNetworkRows = $this->safe_value($tokenNetworkResponse, 'rows', array());
-        $networksByCurrencyId = $this->group_by($tokenNetworkRows, 'token');
-        for ($i = 0; $i < count($tokenRows); $i++) {
-            $currency = $tokenRows[$i];
-            $id = $this->safe_string($currency, 'balance_token');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'fullname');
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-            $chainedTokenCode = $this->safe_string($currency, 'token');
-            $parts = explode('_', $chainedTokenCode);
-            $chainNameId = $this->safe_string($parts, 0, $chainedTokenCode);
-            $chainCode = $this->safe_string($this->options['network-aliases'], $chainNameId, $chainNameId);
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $networks = $this->safe_value($networksByCurrencyId, $id, array());
-                $resultingNetworks = array();
-                for ($j = 0; $j < count($networks); $j++) {
-                    $networkEntry = $networks[$j];
-                    $networkId = $this->safe_string($networkEntry, 'protocol');
-                    $networkIdManualMatched = $this->safe_string($this->options['network-aliases-for-tokens'], $networkId, $networkId);
-                    $networkCode = $this->safe_string_2($this->options['network-aliases-for-protocol'], $chainNameId, $chainNameId, $networkIdManualMatched);
-                    $depositEnabled = $this->safe_integer($networkEntry, 'allow_deposit', 0);
-                    $withdrawEnabled = $this->safe_integer($networkEntry, 'allow_withdraw', 0);
-                    $resultingNetworks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
-                        'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                        'precision' => null, // will be filled down below
-                        'info' => $networkEntry,
-                    );
-                }
-                $networksKeys = is_array($resultingNetworks) ? array_keys($resultingNetworks) : array();
-                $firstNetworkKey = $networksKeys[0];
-                $networkLength = is_array($networksKeys) ? count($networksKeys) : 0;
-                $result[$code] = array(
-                    'id' => $id,
-                    'name' => $name,
-                    'code' => $code,
-                    'precision' => ($networkLength === 1) ? $precision : null, // will be filled down below
-                    'active' => null,
-                    'fee' => ($networkLength === 1) ? $resultingNetworks[$firstNetworkKey]['fee'] : null,
-                    'networks' => $resultingNetworks,
+        $networksByCurrencyId = $this->group_by($tokenRows, 'balance_token');
+        $currencyIds = is_array($networksByCurrencyId) ? array_keys($networksByCurrencyId) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $networks = $networksByCurrencyId[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $name = null;
+            $resultingNetworks = array();
+            for ($j = 0; $j < count($networks); $j++) {
+                $network = $networks[$j];
+                $name = $this->safe_string($network, 'fullname');
+                $networkId = $this->safe_string($network, 'token');
+                $splitted = explode('_', $networkId);
+                $unifiedNetwork = $splitted[0];
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($network, 'decimals')));
+                $resultingNetworks[$unifiedNetwork] = array(
+                    'id' => $networkId,
+                    'network' => $unifiedNetwork,
                     'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'deposit' => array(
                             'min' => null,
                             'max' => null,
                         ),
-                        'withdraw' => array(
-                            'min' => ($networkLength === 1) ? $resultingNetworks[$firstNetworkKey]['limits']['withdraw']['min'] : null,
-                            'max' => null,
-                        ),
                     ),
-                    'info' => array(), // will be filled down below
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $precision, // will be filled down below
+                    'info' => $network,
                 );
             }
-            $networkKeys = is_array($result[$code]['networks']) ? array_keys($result[$code]['networks']) : array();
-            $firstNetworkKey = $this->safe_string($networkKeys, 0);
-            // now add the $precision info from token-object
-            if (is_array($result[$code]['networks']) && array_key_exists($chainCode, $result[$code]['networks'])) {
-                $result[$code]['networks'][$chainCode]['precision'] = $precision;
-            } else {
-                // else $chainCode will be the only token slug, which has only 1 supported network
-                $result[$code]['networks'][$firstNetworkKey]['precision'] = $precision;
-            }
-            // now add the info object specifically for the item
-            $result[$code]['info'][$chainedTokenCode] = $currency;
+            $result[$code] = array(
+                'id' => $currencyId,
+                'name' => $name,
+                'code' => $code,
+                'precision' => null,
+                'active' => null,
+                'fee' => null,
+                'networks' => $resultingNetworks,
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $networks, // will be filled down below
+            );
         }
         return $result;
     }
@@ -726,7 +673,7 @@ class woo extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'order_type' => strtoupper($type),
+            'order_type' => strtoupper($type), // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side' => strtoupper($side),
         );
         if ($price !== null) {
@@ -758,11 +705,7 @@ class woo extends Exchange {
             $request['client_order_id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
-        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivatePostOrder',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivatePostOrder (array_merge($request, $params));
         // {
         //     success => true,
         //     timestamp => '1641383206.489',
@@ -791,7 +734,7 @@ class woo extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         yield $this->load_markets();
-        $request = null;
+        $request = array();
         $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $clientOrderIdExchangeSpecific = $this->safe_string_2($params, 'client_order_id', $clientOrderIdUnified);
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
@@ -806,11 +749,7 @@ class woo extends Exchange {
             $market = $this->market($symbol);
         }
         $request['symbol'] = $market['id'];
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateDeleteOrder',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateDeleteOrder (array_merge($request, $params));
         //
         // array( success => true, status => 'CANCEL_SENT' )
         //
@@ -838,11 +777,13 @@ class woo extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateDeleteOrders',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateDeleteOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "status":"CANCEL_ALL_SENT"
+        //     }
+        //
         return $response;
     }
 
@@ -856,7 +797,6 @@ class woo extends Exchange {
         yield $this->load_markets();
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         $request = array();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         $chosenSpotMethod = null;
         if ($clientOrderId) {
@@ -866,10 +806,7 @@ class woo extends Exchange {
             $chosenSpotMethod = 'v1PrivateGetOrderOid';
             $request['oid'] = $id;
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => $chosenSpotMethod,
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->$chosenSpotMethod (array_merge($request, $params));
         //
         // {
         //     success => true,
@@ -905,7 +842,7 @@ class woo extends Exchange {
         //     )
         // }
         //
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -927,11 +864,38 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetOrders',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "meta":array(
+        //             "total":1,
+        //             "records_per_page":100,
+        //             "current_page":1
+        //         ),
+        //         "rows":array(
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "status":"FILLED",
+        //                 "side":"SELL",
+        //                 "created_time":"1611617776.000",
+        //                 "updated_time":"1611617776.000",
+        //                 "order_id":52121167,
+        //                 "order_tag":"default",
+        //                 "price":null,
+        //                 "type":"MARKET",
+        //                 "quantity":0.002,
+        //                 "amount":null,
+        //                 "visible":0,
+        //                 "executed":0.002,
+        //                 "total_fee":0.01732885,
+        //                 "fee_asset":"USDT",
+        //                 "client_order_id":null,
+        //                 "average_executed_price":28881.41
+        //             }
+        //         )
+        //     }
+        //
         $data = $this->safe_value($response, 'rows');
         return $this->parse_orders($data, $market, $since, $limit, $params);
     }
@@ -996,6 +960,11 @@ class woo extends Exchange {
                 'FILLED' => 'closed',
                 'CANCEL_SENT' => 'canceled',
                 'CANCEL_ALL_SENT' => 'canceled',
+                'CANCELLED' => 'canceled',
+                'PARTIAL_FILLED' => 'open',
+                'REJECTED' => 'rejected',
+                'INCOMPLETE' => 'open',
+                'COMPLETED' => 'closed',
             );
             return $this->safe_string($statuses, $status, $status);
         }
@@ -1019,11 +988,7 @@ class woo extends Exchange {
             $limit = min ($limit, 1000);
             $request['max_level'] = $limit;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetOrderbookSymbol',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetOrderbookSymbol (array_merge($request, $params));
         //
         // {
         //   success => true,
@@ -1063,11 +1028,7 @@ class woo extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetKline',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetKline (array_merge($request, $params));
         // {
         //     success => true,
         //     rows => array(
@@ -1132,11 +1093,7 @@ class woo extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetOrderOidTrades',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetOrderOidTrades (array_merge($request, $params));
         // {
         //     success => true,
         //     rows => array(
@@ -1178,11 +1135,7 @@ class woo extends Exchange {
         if ($since !== null) {
             $request['start_t'] = $since;
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetClientTrades',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetClientTrades (array_merge($request, $params));
         // {
         //     "success" => true,
         //     "meta" => array(
@@ -1257,16 +1210,12 @@ class woo extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {dict} $params extra parameters specific to the woo api endpoint
          * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v2PrivateGetClientHolding',
-        ));
-        $response = yield $this->$method ($query);
+        $response = yield $this->v2PrivateGetClientHolding ($params);
         //
         // {
         //     holding => array(
@@ -1317,23 +1266,17 @@ class woo extends Exchange {
          * @param {dict} $params extra parameters specific to the woo api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
-        // this $method is TODO because of networks unification
+        // this method is TODO because of networks unification
         yield $this->load_markets();
         $currency = $this->currency($code);
         $networkCodeDefault = $this->default_network_code_for_currency($code);
-        $networkCode = $this->safe_value($params, 'network', $networkCodeDefault);
+        $networkCode = $this->safe_string($params, 'network', $networkCodeDefault);
         $params = $this->omit($params, 'network');
-        $networkAliases = $this->safe_value($this->options, 'network-aliases', array());
-        $networkId = $this->getKeyByValue ($networkAliases, $networkCode);
-        $codeForExchange = $networkId . '_' . $currency['code'];
+        $codeForExchange = $networkCode . '_' . $currency['code'];
         $request = array(
             'token' => $codeForExchange,
         );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchDepositAddress', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'v1PrivateGetAssetDeposit',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
+        $response = yield $this->v1PrivateGetAssetDeposit (array_merge($request, $params));
         // {
         //     success => true,
         //     $address => '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
@@ -1516,6 +1459,17 @@ class woo extends Exchange {
             'type' => 'BALANCE',
         );
         list($currency, $rows) = yield $this->get_asset_history_rows($code, $since, $limit, array_merge($request, $params));
+        //
+        //     {
+        //         "rows":array(),
+        //         "meta":array(
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         ),
+        //         "success":true
+        //     }
+        //
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
@@ -1689,6 +1643,48 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'token' => $currency['id'], // interest token that you want to repay
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = yield $this->v1PrivatePostInterestRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "success" => true,
+        //     }
+        //
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
@@ -1744,34 +1740,386 @@ class woo extends Exchange {
         }
     }
 
-    public function default_network_code_for_currency($code) {
-        // at first, try to find if user or exchange has defined default $networks for the specific currency
-        $defaultNetworkCodeForCurrencies = $this->safe_value($this->options, 'defaultNetworkCodeForCurrencies');
-        if ($defaultNetworkCodeForCurrencies !== null) {
-            $defaultNetworkCode = $this->safe_string_upper($defaultNetworkCodeForCurrencies, $code);
-            if ($defaultNetworkCode !== null) {
-                return $defaultNetworkCode;
-            }
+    public function parse_income($income, $market = null) {
+        //
+        //     {
+        //         "id":666666,
+        //         "symbol":"PERP_BTC_USDT",
+        //         "funding_rate":0.00001198,
+        //         "mark_price":28941.04000000,
+        //         "funding_fee":0.00069343,
+        //         "payment_type":"Pay",
+        //         "status":"COMPLETED",
+        //         "created_time":"1653616000.666",
+        //         "updated_time":"1653616000.605"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $amount = $this->safe_number($income, 'funding_fee');
+        $code = $this->safe_currency_code('USD');
+        $id = $this->safe_string($income, 'id');
+        $timestamp = $this->safe_timestamp($income, 'updated_time');
+        $rate = $this->safe_number($income, 'funding_rate');
+        return array(
+            'info' => $income,
+            'symbol' => $symbol,
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $id,
+            'amount' => $amount,
+            'rate' => $rate,
+        );
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
         }
-        // if not found by above 'defaultNetworkCodeForCurrencies' for specific currency, then try with `$defaultNetworkCodePriorities`
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_t'] = $since;
+        }
+        $response = yield $this->v1PrivateGetFundingFeeHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "rows":array(
+        //             {
+        //                 "id":666666,
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00001198,
+        //                 "mark_price":28941.04000000,
+        //                 "funding_fee":0.00069343,
+        //                 "payment_type":"Pay",
+        //                 "status":"COMPLETED",
+        //                 "created_time":"1653616000.666",
+        //                 "updated_time":"1653616000.605"
+        //             }
+        //         ),
+        //         "meta":array(
+        //             "total":235,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         ),
+        //         "success":true
+        //     }
+        //
+        $result = $this->safe_value($response, 'rows', array());
+        return $this->parse_incomes($result, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //         {
+        //             "symbol":"PERP_AAVE_USDT",
+        //             "est_funding_rate":-0.00003447,
+        //             "est_funding_rate_timestamp":1653633959001,
+        //             "last_funding_rate":-0.00002094,
+        //             "last_funding_rate_timestamp":1653631200000,
+        //             "next_funding_time":1653634800000
+        //         }
+        //
+        //
+        $symbol = $this->safe_string($fundingRate, 'symbol');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
+        $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
+        $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($fundingRate, 'est_funding_rate'),
+            'fundingTimestamp' => $estFundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($estFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => $this->safe_number($fundingRate, 'last_funding_rate'),
+            'previousFundingTimestamp' => $lastFundingRateTimestamp,
+            'previousFundingDatetime' => $this->iso8601($lastFundingRateTimestamp),
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->v1PublicGetFundingRateSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "timestamp":1653640572711,
+        //         "symbol":"PERP_BTC_USDT",
+        //         "est_funding_rate":0.00000738,
+        //         "est_funding_rate_timestamp":1653640559003,
+        //         "last_funding_rate":0.00000629,
+        //         "last_funding_rate_timestamp":1653638400000,
+        //         "next_funding_time":1653642000000
+        //     }
+        //
+        return $this->parse_funding_rate($response, $market);
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v1PublicGetFundingRates ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "rows":array(
+        //             {
+        //                 "symbol":"PERP_AAVE_USDT",
+        //                 "est_funding_rate":-0.00003447,
+        //                 "est_funding_rate_timestamp":1653633959001,
+        //                 "last_funding_rate":-0.00002094,
+        //                 "last_funding_rate_timestamp":1653631200000,
+        //                 "next_funding_time":1653634800000
+        //             }
+        //         ),
+        //         "timestamp":1653633985646
+        //     }
+        //
+        $rows = $this->safe_value($response, 'rows', array());
+        $result = $this->parse_funding_rates($rows);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['start_t'] = intval($since / 1000);
+        }
+        $response = yield $this->v1PublicGetFundingRateHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "meta":array(
+        //             "total":2464,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         ),
+        //         "rows":array(
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00000629,
+        //                 "funding_rate_timestamp":1653638400000,
+        //                 "next_funding_time":1653642000000
+        //             }
+        //         ),
+        //         "timestamp":1653640814885
+        //     }
+        //
+        $result = $this->safe_value($response, 'rows');
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $timestamp = $this->safe_integer($entry, 'funding_rate_timestamp');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $this->safe_symbol($marketId),
+                'fundingRate' => $this->safe_number($entry, 'funding_rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v1PrivateGetClientInfo ($params);
+        // //
+        //     {
+        //         "success" => true,
+        //         "application" => array(
+        //             "application_id" => "8935820a-6600-4c2c-9bc3-f017d89aa173",
+        //             "account" => "CLIENT_ACCOUNT_01",
+        //             "alias" => "CLIENT_ACCOUNT_01",
+        //             "account_mode":"FUTURES" //account mode
+        //             "leverage" => 5,
+        //             "taker_fee_rate" => 0,
+        //             "maker_fee_rate" => 0,
+        //             "interest_rate" => 0,
+        //             "futures_leverage" => 5,
+        //             "futures_taker_fee_rate" => 0,
+        //             "futures_maker_fee_rate" => 0,
+        //             "otpauth" => false
+        //         ),
+        //         "margin_rate" => 1000
+        //     }
+        //
+        $result = $this->safe_value($response, 'application');
+        $leverage = $this->safe_number($result, 'leverage');
+        return array(
+            'info' => $response,
+            'leverage' => $leverage,
+        );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        if (($leverage < 1) || ($leverage > 20)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
+        }
+        $request = array(
+            'leverage' => $leverage,
+        );
+        return yield $this->v1PrivatePostClientLeverage (array_merge($request, $params));
+    }
+
+    public function fetch_position($symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->v1PrivateGetPositionSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "symbol":"PERP_ETC_USDT",
+        //         "holding":0.0,
+        //         "pnl_24_h":0,
+        //         "settle_price":0.0,
+        //         "average_open_price":0,
+        //         "success":true,
+        //         "mark_price":22.6955,
+        //         "pending_short_qty":0.0,
+        //         "pending_long_qty":0.0,
+        //         "fee_24_h":0,
+        //         "timestamp":"1652231044.920"
+        //     }
+        //
+        return $this->parse_position($response, $market);
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v1PrivateGetPositions ($params);
+        //
+        //     {
+        //         "positions":array(
+        //             {
+        //                 "symbol":"PERP_ETC_USDT",
+        //                 "holding":0.0,
+        //                 "pending_long_qty":0.0,
+        //                 "pending_short_qty":0.0,
+        //                 "settle_price":0.0,
+        //                 "average_open_price":0,
+        //                 "timestamp":"1652231044.920",
+        //                 "mark_price":22.68,
+        //                 "pnl_24_h":0,
+        //                 "fee_24_h":0
+        //             }
+        //         ),
+        //         "initial_margin_ratio":1000,
+        //         "current_margin_ratio":1000,
+        //         "maintenance_margin_ratio":1000,
+        //         "success":true
+        //     }
+        //
+        $result = $this->safe_value($response, 'positions', array());
+        return $this->parse_positions($result, $symbols);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "symbol":"PERP_ETC_USDT",
+        //         "holding":0.0,
+        //         "pending_long_qty":0.0,
+        //         "pending_short_qty":0.0,
+        //         "settle_price":0.0,
+        //         "average_open_price":0,
+        //         "timestamp":"1652231044.920",
+        //         "mark_price":22.68,
+        //         "pnl_24_h":0,
+        //         "fee_24_h":0
+        //     }
+        //
+        $contract = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($contract, $market);
+        $size = $this->safe_string($position, 'holding');
+        $side = null;
+        if (Precise::string_gt($size, '0')) {
+            $side = 'long';
+        } else {
+            $side = 'short';
+        }
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $markPrice = $this->safe_string($position, 'mark_price');
+        $timestamp = $this->safe_timestamp($position, 'timestamp');
+        $entryPrice = $this->safe_string($position, 'average_open_price');
+        $priceDifference = Precise::string_sub($markPrice, $entryPrice);
+        $unrealisedPnl = Precise::string_mul($priceDifference, $size);
+        $size = Precise::string_abs($size);
+        $notional = Precise::string_mul($size, $markPrice);
+        return array(
+            'info' => $position,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'entryPrice' => $this->parse_number($entryPrice),
+            'notional' => $this->parse_number($notional),
+            'leverage' => null,
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'contracts' => $this->parse_number($size),
+            'contractSize' => $this->parse_number($contractSize),
+            'marginRatio' => null,
+            'liquidationPrice' => $this->safe_number($position, 'est_liq_price'),
+            'markPrice' => $this->parse_number($markPrice),
+            'collateral' => null,
+            'marginMode' => 'cross',
+            'marginType' => null,
+            'side' => $side,
+            'percentage' => null,
+        );
+    }
+
+    public function default_network_code_for_currency($code) {
         $currencyItem = $this->currency($code);
         $networks = $currencyItem['networks'];
-        $defaultNetworkCodePriorities = $this->safe_value($this->options, 'defaultNetworkCodePriorities');
-        if ($defaultNetworkCodePriorities !== null) {
-            // itterate according to priority $networks
-            $networksKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksKeysLength = is_array($networksKeys) ? count($networksKeys) : 0;
-            if ($networksKeysLength > 0) {
-                for ($i = 0; $i < count($defaultNetworkCodePriorities); $i++) {
-                    $networkCode = $defaultNetworkCodePriorities[$i];
-                    if (is_array($networks) && array_key_exists($networkCode, $networks)) {
-                        return $networkCode;
-                    }
-                }
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        for ($i = 0; $i < count($networkKeys); $i++) {
+            $network = $networkKeys[$i];
+            if ($network === 'ETH') {
+                return $network;
             }
         }
-        // if it was not returned according to above options, then return the first network of currency
-        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        // if it was not returned according to above options, then return the first $network of currency
         return $this->safe_value($networkKeys, 0);
     }
 }

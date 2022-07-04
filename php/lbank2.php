@@ -50,6 +50,7 @@ class lbank2 extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -59,6 +60,7 @@ class lbank2 extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -471,7 +473,7 @@ class lbank2 extends Exchange {
         $response = $this->publicGetDepth (array_merge($request, $params));
         $orderbook = $response['data'];
         $timestamp = $this->milliseconds();
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {

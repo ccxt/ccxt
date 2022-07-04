@@ -59,6 +59,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -72,6 +73,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
@@ -96,7 +98,7 @@ module.exports = class mexc3 extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': undefined,
-                'setPositionMode': undefined,
+                'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': true,
@@ -198,6 +200,7 @@ module.exports = class mexc3 extends Exchange {
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -214,6 +217,7 @@ module.exports = class mexc3 extends Exchange {
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -1855,7 +1859,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument for spot market');
             }
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -1900,7 +1904,7 @@ module.exports = class mexc3 extends Exchange {
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
-            let method = this.safeString (this.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
             let ordersOfRegular = [];
             let ordersOfTrigger = [];
@@ -2051,7 +2055,7 @@ module.exports = class mexc3 extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for spot market');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
             const response = await this.spotPrivateGetOpenOrders (this.extend (request, query));
             //
@@ -3967,6 +3971,36 @@ module.exports = class mexc3 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        const request = {
+            'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        };
+        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return response;
+    }
+
+    async fetchPositionMode (symbol = undefined, params = {}) {
+        const response = await this.contractPrivateGetPositionPositionMode (params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        const positionMode = this.safeInteger (response, 'data');
+        return {
+            'info': response,
+            'hedged': (positionMode === 1),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

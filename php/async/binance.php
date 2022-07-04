@@ -75,8 +75,6 @@ class binance extends Exchange {
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -2902,7 +2900,7 @@ class binance extends Exchange {
         //
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
+                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQty = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
@@ -3476,6 +3474,7 @@ class binance extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @param {int|null} $params->until the latest time in ms to fetch deposits for
          * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         yield $this->load_markets();
@@ -3483,6 +3482,7 @@ class binance extends Exchange {
         $response = null;
         $request = array();
         $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+        $until = $this->safe_integer($params, 'until');
         if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -3490,6 +3490,9 @@ class binance extends Exchange {
             $request['transactionType'] = 0;
             if ($since !== null) {
                 $request['beginTime'] = $since;
+            }
+            if ($until !== null) {
+                $request['endTime'] = $until;
             }
             $raw = yield $this->sapiGetFiatOrders (array_merge($request, $params));
             $response = $this->safe_value($raw, 'data');
@@ -3520,7 +3523,11 @@ class binance extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                $request['endTime'] = $this->sum($since, 7776000000);
+                $endTime = $this->sum($since, 7776000000);
+                if ($until !== null) {
+                    $endTime = min ($endTime, $until);
+                }
+                $request['endTime'] = $endTime;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;

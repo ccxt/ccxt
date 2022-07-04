@@ -46,6 +46,7 @@ module.exports = class itbit extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
@@ -54,6 +55,7 @@ module.exports = class itbit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -142,11 +144,12 @@ module.exports = class itbit extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        return this.parseOrderBook (orderbook, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {

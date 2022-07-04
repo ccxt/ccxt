@@ -42,12 +42,12 @@ module.exports = class binance extends Exchange {
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistories': undefined,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
-                'fetchClosedOrder': undefined,
+                'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
@@ -60,15 +60,13 @@ module.exports = class binance extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLedger': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyBuys': undefined,
-                'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': true,
@@ -101,6 +99,7 @@ module.exports = class binance extends Exchange {
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
@@ -2918,7 +2917,7 @@ module.exports = class binance extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -3512,6 +3511,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {dict} params extra parameters specific to the binance api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for
          * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -3519,6 +3519,7 @@ module.exports = class binance extends Exchange {
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const until = this.safeInteger (params, 'until');
         if (code in legalMoney) {
             if (code !== undefined) {
                 currency = this.currency (code);
@@ -3526,6 +3527,9 @@ module.exports = class binance extends Exchange {
             request['transactionType'] = 0;
             if (since !== undefined) {
                 request['beginTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             const raw = await this.sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
@@ -3556,7 +3560,11 @@ module.exports = class binance extends Exchange {
             if (since !== undefined) {
                 request['startTime'] = since;
                 // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-                request['endTime'] = this.sum (since, 7776000000);
+                let endTime = this.sum (since, 7776000000);
+                if (until !== undefined) {
+                    endTime = Math.min (endTime, until);
+                }
+                request['endTime'] = endTime;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;

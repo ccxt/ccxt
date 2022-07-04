@@ -46,12 +46,14 @@ class latoken(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -784,7 +786,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -807,7 +809,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }

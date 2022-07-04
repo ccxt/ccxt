@@ -55,6 +55,7 @@ class kucoin extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -64,6 +65,8 @@ class kucoin extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrdersByStatus' => true,
+                'fetchOrderTrades' => true,
+                'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -190,7 +193,7 @@ class kucoin extends Exchange {
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
                         'orders' => 20, // 3/3s = 1/s => cost = 20/1
-                        'orders/client-order/{clientOid}' => 1,
+                        'order/client-order/{clientOid}' => 1,
                         'orders/{orderId}' => 1, // rateLimit => 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}' => 1,
                         'stop-order/cancelOrderByClientOid' => 1,
@@ -1101,15 +1104,15 @@ class kucoin extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the kucoin api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
-        $marketId = $this->market_id($symbol);
+        $market = $this->market($symbol);
         $level = $this->safe_integer($params, 'level', 2);
-        $request = array( 'symbol' => $marketId );
+        $request = array( 'symbol' => $market['id'] );
         $method = 'publicGetMarketOrderbookLevelLevelLimit';
         $isAuthenticated = $this->check_required_credentials(false);
         $response = null;
@@ -1162,7 +1165,7 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'time');
-        $orderbook = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', $level - 2, $level - 1);
+        $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', $level - 2, $level - 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
         return $orderbook;
     }
@@ -1300,7 +1303,7 @@ class kucoin extends Exchange {
             if ($stop) {
                 $method = 'privateDeleteStopOrderCancelOrderByClientOid';
             } else {
-                $method = 'privateDeleteOrdersClientOrderClientOid';
+                $method = 'privateDeleteOrderClientOrderClientOid';
             }
         } else {
             if ($stop) {
@@ -1611,6 +1614,22 @@ class kucoin extends Exchange {
             'average' => null,
             'trades' => null,
         ), $market);
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the kucoin api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
+        $request = array(
+            'orderId' => $id,
+        );
+        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

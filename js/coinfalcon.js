@@ -328,13 +328,14 @@ module.exports = class coinfalcon extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'level': '3',
         };
         const response = await this.publicGetMarketsMarketOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 'price', 'size');
+        return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
     parseTrade (trade, market = undefined) {
