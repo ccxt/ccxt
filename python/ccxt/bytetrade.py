@@ -11,6 +11,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -156,6 +157,7 @@ class bytetrade(Exchange):
                 '48': 'Blocktonic',
                 '133': 'TerraCredit',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'vertify error': AuthenticationError,  # typo on the exchange side, 'vertify'
                 'verify error': AuthenticationError,  # private key signature is incorrect
@@ -237,7 +239,6 @@ class bytetrade(Exchange):
             active = self.safe_value(currency, 'active')
             limits = self.safe_value(currency, 'limits')
             deposit = self.safe_value(limits, 'deposit')
-            amountPrecision = self.safe_integer(currency, 'basePrecision')
             maxDeposit = self.safe_string(deposit, 'max')
             if Precise.string_equals(maxDeposit, '-1'):
                 maxDeposit = None
@@ -252,7 +253,7 @@ class bytetrade(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': amountPrecision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'basePrecision'))),
                 'fee': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
@@ -362,8 +363,8 @@ class bytetrade(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(precision, 'amount'),
-                    'price': self.safe_integer(precision, 'price'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(precision, 'amount'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(precision, 'price'))),
                 },
                 'limits': {
                     'leverage': {
@@ -841,7 +842,7 @@ class bytetrade(Exchange):
         amountTruncated = self.amount_to_precision(symbol, amount)
         amountTruncatedPrecise = Precise(amountTruncated)
         amountTruncatedPrecise.reduce()
-        amountTruncatedPrecise.decimals -= baseCurrency['precision']
+        amountTruncatedPrecise.decimals -= self.precision_from_string(self.number_to_string(baseCurrency['precision']))
         amountChain = str(amountTruncatedPrecise)
         amountChainString = self.number_to_string(amountChain)
         quoteId = market['quoteId']
@@ -849,7 +850,7 @@ class bytetrade(Exchange):
         priceRounded = self.price_to_precision(symbol, price)
         priceRoundedPrecise = Precise(priceRounded)
         priceRoundedPrecise.reduce()
-        priceRoundedPrecise.decimals -= quoteCurrency['precision']
+        priceRoundedPrecise.decimals -= self.precision_from_string(self.number_to_string(quoteCurrency['precision']))
         priceChain = str(priceRoundedPrecise)
         priceChainString = self.number_to_string(priceChain)
         now = self.milliseconds()
