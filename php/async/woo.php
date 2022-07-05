@@ -1382,7 +1382,7 @@ class woo extends Exchange {
             'account' => $this->safe_string($item, 'account'),
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tx_id'),
-            'status' => $this->parse_transaction_status($item, 'status'),
+            'status' => $this->parse_transaction_status($this->safe_string($item, 'status')),
             'amount' => $amount,
             'before' => null,
             'after' => null,
