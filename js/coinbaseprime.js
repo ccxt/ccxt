@@ -10,7 +10,6 @@ module.exports = class coinbaseprime extends coinbasepro {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseprime',
-            'alias': true,
             'name': 'Coinbase Prime',
             'pro': true,
             'hostname': 'exchange.coinbase.com',
