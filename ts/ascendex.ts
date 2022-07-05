@@ -2682,7 +2682,7 @@ export default class ascendex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
+        return await (this as any).v2PrivateAccountGroupPostFuturesLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
@@ -2715,7 +2715,7 @@ export default class ascendex extends Exchange {
         if (market['type'] !== 'future') {
             throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');
         }
-        return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+        return await (this as any).v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {

@@ -667,6 +667,7 @@ export class Exchange {
     }
 
     encodeURIComponent (...args) {
+        // @ts-expect-error
         return encodeURIComponent (...args)
     }
 
@@ -839,7 +840,7 @@ export class Exchange {
             }
         }
         if (typeof this.proxy === 'function') {
-            url = this.proxy (url)
+            url = (this as any).proxy (url)
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers)
             }
@@ -933,7 +934,7 @@ export class Exchange {
         }
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has.fetchCurrencies === true) {
+        if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ()
         }
         const markets = await this.fetchMarkets (params)
@@ -1069,11 +1070,6 @@ export class Exchange {
 
         // method to override
 
-        handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody): void {
-            return;
-            // override me
-        }
-    
         sign (path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
             return {};
         }
@@ -1141,7 +1137,18 @@ export class Exchange {
         async fetchLeverageTiers (symbols = undefined, params = {}) {
             return undefined;
         }
-           
+
+        parseAccount(account) {
+            return undefined;
+        }
+
+        parsePosition(position, market = undefined) {
+            return undefined;
+        }
+
+        parseFundingRateHistory(info, market = undefined) {
+            return undefined;
+        }
 
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1363,7 +1370,7 @@ export class Exchange {
             const rawTrades = this.safeValue (order, 'trades', trades);
             const oldNumber = this.number;
             // we parse trades as strings here!
-            this.number = String;
+            (this as any).number = String;
             trades = this.parseTrades (rawTrades, market, undefined, undefined, {
                 'symbol': order['symbol'],
                 'side': order['side'],
@@ -1887,7 +1894,7 @@ export class Exchange {
         result[close] = [];
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
-            const ts = ms ? ohlcvs[i][0] : parseInt (ohlcvs[i][0] / 1000);
+            const ts = ms ? ohlcvs[i][0] : this.parseInt (ohlcvs[i][0] / 1000);
             result[timestamp].push (ts);
             result[open].push (ohlcvs[i][1]);
             result[high].push (ohlcvs[i][2]);
@@ -1917,7 +1924,7 @@ export class Exchange {
         return result;
     }
 
-    parseBidsAsks (bidasks, priceKey: number | string = 0, amountKey = 1) {
+    parseBidsAsks (bidasks, priceKey: number | string = 0, amountKey: number | string = 1) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -2006,7 +2013,7 @@ export class Exchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: number | string = 0, amountKey: number | string = 1) {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
@@ -2249,7 +2256,7 @@ export class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
 
-    parseBidAsk (bidask, priceKey: string | number = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey: string | number = 0, amountKey: number | string = 1) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         return [ price, amount ];
@@ -2488,6 +2495,7 @@ export class Exchange {
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
+        return undefined;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {

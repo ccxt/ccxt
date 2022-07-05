@@ -57,7 +57,7 @@ const iso8601 = (timestamp) => {
     if (typeof timestamp === 'number') {
         _timestampNumber = Math.floor (timestamp);
     } else {
-        _timestampNumber = this.parseInt (timestamp, 10);
+        _timestampNumber = parseInt (timestamp, 10);
     }
     // undefined, null and lots of nasty non-numeric values yield NaN
     if (Number.isNaN (_timestampNumber) || _timestampNumber < 0) {

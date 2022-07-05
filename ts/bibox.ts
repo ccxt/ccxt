@@ -770,7 +770,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await (this as any).privatePostTransfer ({
             'cmd': 'transfer/transferInList',
             'body': this.extend (request, params),
         });
