@@ -61,7 +61,7 @@ function loop($exchange_id, $config) {
     $exchange = yield create_exchange($exchange_id, $config);
     $exchange->verbose = true;
     while (true) {
-        $response = yield $exchange->watch_balance($symbol);
+        $response = yield $exchange->watch_balance();
         print('--------------------------------------------------------------');
         print($exchange->id);
         print($response);
