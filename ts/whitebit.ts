@@ -1054,7 +1054,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        return await (this as any).v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1437,7 +1437,7 @@ export default class whitebit extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await this.v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
+        return await (this as any).v4PrivatePostCollateralAccountLeverage (this.extend (request, params));
         //     {
         //         "leverage": 5
         //     }

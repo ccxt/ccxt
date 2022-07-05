@@ -96,6 +96,14 @@ const {
     , rsa
     , strip
     , toArray
+    , safeFloatN
+    , safeIntegerN
+    , safeIntegerProductN
+    , safeTimestampN
+    , safeValueN
+    , safeStringN
+    , safeStringLowerN
+    , safeStringUpperN
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -333,6 +341,14 @@ export class Exchange {
     rsa = rsa
     strip = strip
     toArray = toArray
+    safeFloatN = safeFloatN
+    safeIntegerN = safeIntegerN
+    safeIntegerProductN = safeIntegerProductN
+    safeTimestampN = safeTimestampN
+    safeValueN = safeValueN
+    safeStringN = safeStringN
+    safeStringLowerN = safeStringLowerN
+    safeStringUpperN = safeStringUpperN
 
     describe () {
         return {
@@ -1051,6 +1067,82 @@ export class Exchange {
         }
     }
 
+        // method to override
+
+        handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody): void {
+            return;
+            // override me
+        }
+    
+        sign (path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
+            return {};
+        }
+    
+        async fetchAccounts (params = {}) {
+            return undefined;
+        }
+    
+        async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+            return undefined;
+        }
+    
+        async fetchDepositAddresses (codes = undefined, params = {}) {
+            return undefined;
+        }
+    
+        async fetchOrderBook (symbol, limit = undefined, params = {}) {
+            return undefined;
+        }
+    
+        async fetchTime (params = {}) {
+            return undefined;
+        }
+    
+        async fetchTradingLimits (symbols = undefined, params = {}) {
+            return undefined
+        }
+    
+        parseTicker (ticker, market = undefined) {
+            return undefined;
+        }
+    
+        parseDepositAddress (depositAddress, currency = undefined) {
+            return undefined;
+        }
+    
+        parseTrade (trade, market = undefined) {
+            return undefined;
+        }
+    
+        parseTransaction (transaction, currency = undefined) {
+            return undefined;
+        }
+    
+        parseTransfer (transfer, currency = undefined) {
+            return undefined;
+        }
+    
+        parseLedgerEntry (item, currency = undefined) {
+            return undefined;
+        }
+    
+        parseOrder (order, market = undefined) {
+            return undefined;
+        }
+    
+        async fetchBorrowRates (params = {}) {
+            return undefined;
+        }
+    
+        parseMarketLeverageTiers (info, market) {
+            return undefined;
+        }
+    
+        async fetchLeverageTiers (symbols = undefined, params = {}) {
+            return undefined;
+        }
+           
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1491,7 +1583,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -2826,6 +2918,7 @@ export class Exchange {
 
     async fetchTradingFees (params = {}) {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
+        return undefined;
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -2837,6 +2930,7 @@ export class Exchange {
 
     parseOpenInterest (interest, market = undefined) {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
+        return undefined;
     }
 
     parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {

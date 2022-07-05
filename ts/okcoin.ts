@@ -1006,7 +1006,7 @@ export default class okcoin extends Exchange {
             const underlying= await (this as any).optionGetUnderlying (params);
             let result = [];
             for (let i = 0; i < underlying.length; i++) {
-                const response = await this.optionGetInstrumentsUnderlying ({
+                const response = await (this as any).optionGetInstrumentsUnderlying ({
                     'underlying': underlying[i],
                 });
                 //

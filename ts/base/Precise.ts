@@ -3,13 +3,16 @@ const minusOne = BigInt (-1)
 const base = BigInt (10)
 
 class Precise {
+    decimals = undefined
+    integer = undefined
+    base = undefined
     constructor (number, decimals = undefined) {
         if (decimals === undefined) {
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
                 [ number, modifier ] = number.split ('e')
-                modifier = this.parseInt (modifier)
+                modifier = parseInt (modifier.toString())
             }
             const decimalIndex = number.indexOf ('.')
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0
