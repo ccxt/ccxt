@@ -3919,6 +3919,15 @@ class zb(Exchange):
         return rates
 
     def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['safePwd']: transaction password, extra parameter required for cross margin
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         self.load_markets()
         market = None
         if symbol is not None:

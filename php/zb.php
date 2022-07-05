@@ -4090,6 +4090,15 @@ class zb extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {str} $params->safePwd $transaction $password, extra parameter required for cross margin
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {

@@ -1646,6 +1646,14 @@ class woo extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol not used by woo.repayMargin ()
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {

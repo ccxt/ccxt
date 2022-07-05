@@ -5149,6 +5149,14 @@ class okx extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a $loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol not used by okx.borrowMargin ()
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -5183,6 +5191,14 @@ class okx extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol not used by okx.repayMargin ()
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

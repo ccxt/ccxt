@@ -4310,6 +4310,16 @@ class gate extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {str} $params->mode 'all' or 'partial' payment $mode, extra parameter required for isolated margin
+         * @param {str} $params->id '34267567' loan $id, extra parameter required for isolated margin
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $market = null;
@@ -4387,6 +4397,15 @@ class gate extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {str} $params->rate '0.0002' or '0.002' extra parameter required for isolated margin
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $market = null;
@@ -4407,7 +4426,7 @@ class gate extends Exchange {
             }
             $request['currency_pair'] = $market['id'];
             $rate = $this->safe_string($params, 'rate');
-            if ($symbol === null) {
+            if ($rate === null) {
                 throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $rate parameter for isolated margin');
             }
             $request['rate'] = $rate; // Only rates '0.0002', '0.002' are supported.

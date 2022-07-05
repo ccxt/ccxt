@@ -5691,6 +5691,14 @@ class binance(Exchange):
         }
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -5723,6 +5731,14 @@ class binance(Exchange):
         })
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
