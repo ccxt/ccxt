@@ -1702,7 +1702,8 @@ module.exports = class bibox extends Exchange {
         const [ version, access ] = api;
         const v1 = (version === 'v1');
         const v4 = (version === 'v4');
-        let url = this.implodeHostname (this.urls['api']) + (v4 ? '/api' : '') + '/' + version + '/' + path;
+        const prefix = v4 ? '/api' : '';
+        let url = this.implodeHostname (this.urls['api']) + prefix + '/' + version + '/' + path;
         const json_params = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {
