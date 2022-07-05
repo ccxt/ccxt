@@ -822,7 +822,8 @@ module.exports = class bibox extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const name = currency['name']; // contains hieroglyphs causing python ASCII bug
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber ('1e-8');
+            const originalDecimals = this.parsePrecision (this.safeString (currency, 'original_decimals'));
+            const precision = Precise.stringGt (originalDecimals, '1e-8') ? originalDecimals : '1e-8';
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
             const active = (deposit && withdraw);
@@ -833,7 +834,7 @@ module.exports = class bibox extends Exchange {
                 'name': name,
                 'active': active,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber (precision),
                 'limits': {
                     'amount': {
                         'min': precision,
