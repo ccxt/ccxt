@@ -828,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []
