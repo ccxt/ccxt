@@ -239,6 +239,7 @@ class binance(Exchange):
                         'margin/isolatedMarginData': {'cost': 0.1, 'noCoin': 1},
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
+                        'margin/dribblet': 0.1,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
@@ -259,7 +260,7 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -467,6 +468,9 @@ class binance(Exchange):
                     'get': {
                         'sub-account/assets': 1,
                     },
+                    'post': {
+                        'asset/getUserAsset': 0.5,
+                    },
                 },
                 # deprecated
                 'wapi': {
@@ -508,6 +512,7 @@ class binance(Exchange):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -587,6 +592,7 @@ class binance(Exchange):
                         'indexInfo': 1,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
