@@ -605,8 +605,8 @@ class bibox(Exchange):
         }
         if limit is not None:
             request['size'] = limit  # default = 200
-        response = await self.v1PublicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        response = await self.publicGetMdata(self.extend(request, params))
+        return self.parse_order_book(response['result'], market['symbol'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

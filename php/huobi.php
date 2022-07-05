@@ -79,8 +79,6 @@ class huobi extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -1568,15 +1566,12 @@ class huobi extends Exchange {
             $amountPrecision = null;
             $costPrecision = null;
             if ($spot) {
-                $pricePrecision = $this->safe_string($market, 'price-precision');
-                $pricePrecision = $this->parse_number('1e-' . $pricePrecision);
-                $amountPrecision = $this->safe_string($market, 'amount-precision');
-                $amountPrecision = $this->parse_number('1e-' . $amountPrecision);
-                $costPrecision = $this->safe_string($market, 'value-precision');
-                $costPrecision = $this->parse_number('1e-' . $costPrecision);
+                $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'price-precision')));
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount-precision')));
+                $costPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'value-precision')));
             } else {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
-                $amountPrecision = 1;
+                $amountPrecision = $this->parse_number('1'); // other $markets have step size of 1 $contract
             }
             $maker = null;
             $taker = null;
@@ -2715,9 +2710,8 @@ class huobi extends Exchange {
                 $withdrawEnabled = ($withdrawStatus === 'allowed');
                 $depositEnabled = ($depositStatus === 'allowed');
                 $active = $withdrawEnabled && $depositEnabled;
-                $precision = $this->safe_string($chain, 'withdrawPrecision');
+                $precision = $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision')));
                 if ($precision !== null) {
-                    $precision = $this->parse_number('1e-' . $precision);
                     $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
                 }
                 if ($withdrawEnabled && !$withdraw) {
@@ -6526,6 +6520,14 @@ class huobi extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -6569,6 +6571,14 @@ class huobi extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');

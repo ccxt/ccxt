@@ -15,7 +15,7 @@ function testMarginModification (exchange, marginModification) {
     };
     const keys = Object.keys(format);
     for (let i = 0; i < keys.length; i++) {
-        assert (keys[i] in margin);
+        assert (keys[i] in marginModification);
     }
     assert (typeof marginModification['info'] === 'object');
     if (marginModification['type'] !== undefined) {

@@ -318,32 +318,34 @@ class blockchaincom extends Exchange {
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified market $symbol
+         * @param {str} $symbol unified $market $symbol
          * @param {int|null} $limit max number of orders to return, default is null
          * @param {dict} $params extra parameters specific to the blockchaincom api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
         $response = $this->publicGetL3Symbol (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function fetch_l2_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
         }
         $response = $this->publicGetL2Symbol (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'px', 'qty');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -871,10 +873,11 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function fetch_withdrawal_whitelist_by_currency($currency, $params = array ()) {
+    public function fetch_withdrawal_whitelist_by_currency($code, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $this->currencyId ($currency),
+            'currency' => $currency['id'],
         );
         $response = $this->privateGetWhitelistCurrency (array_merge($request, $params));
         $result = array();

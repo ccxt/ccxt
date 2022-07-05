@@ -49,18 +49,20 @@ class okx(Exchange):
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
-                'cancelAllOrders': None,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': False,
                 'createOrder': True,
-                'createReduceOnlyOrder': None,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
@@ -72,7 +74,7 @@ class okx(Exchange):
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
-                'fetchDepositAddresses': None,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
@@ -80,7 +82,7 @@ class okx(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': None,
+                'fetchL3OrderBook': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
@@ -88,8 +90,6 @@ class okx(Exchange):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -97,9 +97,10 @@ class okx(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': None,
-                'fetchOrders': None,
+                'fetchOrderBooks': False,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPermissions': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
@@ -110,11 +111,11 @@ class okx(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': None,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
-                'fetchTransactionFees': None,
-                'fetchTransactions': None,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': False,
+                'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
@@ -123,6 +124,7 @@ class okx(Exchange):
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': False,
@@ -1891,6 +1893,8 @@ class okx(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the okx api endpoint
+        :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
+        :param bool|None params['postOnly']: True to place a post only order
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -1907,7 +1911,7 @@ class okx(Exchange):
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
             'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
-            # 'reduceOnly': False,  # MARGIN orders only
+            # 'reduceOnly': False,
             #
             # 'triggerPx': 10,  # stopPrice(trigger orders)
             # 'orderPx': 10,  # Order price if -1, the order will be executed at the market price.(trigger orders)
@@ -4916,6 +4920,14 @@ class okx(Exchange):
         }
 
     def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: not used by okx.borrowMargin()
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4949,6 +4961,14 @@ class okx(Exchange):
         })
 
     def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by okx.repayMargin()
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {

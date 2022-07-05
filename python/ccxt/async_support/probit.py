@@ -525,7 +525,7 @@ class probit(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         dataBySide = self.group_by(data, 'side')
-        return self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
+        return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

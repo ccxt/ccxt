@@ -669,7 +669,7 @@ class kucoinfutures(kucoin):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = int(self.safe_integer(data, 'ts') / 1000000)
-        orderbook = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 0, 1)
+        orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
@@ -1184,7 +1184,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        return self.extend(self.parseModifyMargin(data, market), {
+        return self.extend(self.parse_margin_modification(data, market), {
             'amount': self.amount_to_precision(symbol, amount),
             'direction': 'in',
         })
@@ -1404,8 +1404,9 @@ class kucoinfutures(kucoin):
         :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         response = self.futuresPublicGetFundingRateSymbolCurrent(self.extend(request, params))
         #
@@ -1424,7 +1425,7 @@ class kucoinfutures(kucoin):
         fundingTimestamp = self.safe_number(data, 'timePoint')
         return {
             'info': data,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,

@@ -498,8 +498,9 @@ class lykke(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'assetPairId': self.market_id(symbol),
+            'assetPairId': market['id'],
         }
         if limit is not None:
             request['depth'] = limit  # default 0
@@ -530,7 +531,7 @@ class lykke(Exchange):
         #
         orderbook = self.safe_value(payload, 0, {})
         timestamp = self.safe_integer(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v')
 
     def parse_trade(self, trade, market):
         #
@@ -760,10 +761,10 @@ class lykke(Exchange):
         query = {
             'assetPairId': market['id'],
             'side': self.capitalize(side),
-            'volume': float(self.amount_to_precision(symbol, amount)),
+            'volume': float(self.amount_to_precision(market['symbol'], amount)),
         }
         if type == 'limit':
-            query['price'] = float(self.price_to_precision(symbol, price))
+            query['price'] = float(self.price_to_precision(market['symbol'], price))
         method = 'privatePostOrders' + self.capitalize(type)
         result = await getattr(self, method)(self.extend(query, params))
         #
@@ -797,7 +798,7 @@ class lykke(Exchange):
             'timestamp': None,
             'datetime': None,
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

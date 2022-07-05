@@ -316,10 +316,10 @@ class luno extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the luno api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $method = 'publicGetOrderbook';
@@ -328,12 +328,13 @@ class luno extends Exchange {
                 $method .= 'Top'; // get just the top of the orderbook when $limit is low
             }
         }
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = $this->$method (array_merge($request, $params));
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order_status($status) {
@@ -763,32 +764,33 @@ class luno extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
+         * @param {str} $symbol unified $symbol of the $market to create an order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the luno api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $method = 'privatePost';
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         if ($type === 'market') {
             $method .= 'Marketorder';
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = floatval($this->amount_to_precision($symbol, $amount));
+                $request['counter_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
             } else {
-                $request['base_volume'] = floatval($this->amount_to_precision($symbol, $amount));
+                $request['base_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = floatval($this->amount_to_precision($symbol, $amount));
-            $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            $request['volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+            $request['price'] = floatval($this->price_to_precision($market['symbol'], $price));
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));

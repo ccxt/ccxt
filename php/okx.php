@@ -33,18 +33,20 @@ class okx extends Exchange {
                 'option' => null,
                 'addMargin' => true,
                 'borrowMargin' => true,
-                'cancelAllOrders' => null,
+                'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => true,
                 'fetchBorrowRateHistory' => true,
@@ -56,7 +58,7 @@ class okx extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddresses' => null,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => true,
@@ -64,7 +66,7 @@ class okx extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => null,
+                'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
@@ -72,8 +74,6 @@ class okx extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -81,9 +81,10 @@ class okx extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrderBooks' => null,
-                'fetchOrders' => null,
+                'fetchOrderBooks' => false,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
+                'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
@@ -94,11 +95,11 @@ class okx extends Exchange {
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
-                'fetchTransactionFees' => null,
-                'fetchTransactions' => null,
+                'fetchTransactionFee' => false,
+                'fetchTransactionFees' => false,
+                'fetchTransactions' => false,
                 'fetchTransfer' => true,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
@@ -107,6 +108,7 @@ class okx extends Exchange {
                 'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
+                'setMargin' => false,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => false,
@@ -1945,6 +1947,8 @@ class okx extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @param {bool|null} $params->reduceOnly MARGIN orders only, or swap/future orders in net mode
+         * @param {bool|null} $params->postOnly true to place a post only $order
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
@@ -1961,7 +1965,7 @@ class okx extends Exchange {
             // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
             'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
-            // 'reduceOnly' => false, // MARGIN orders only
+            // 'reduceOnly' => false,
             //
             // 'triggerPx' => 10, // stopPrice ($trigger orders)
             // 'orderPx' => 10, // Order $price if -1, the $order will be executed at the $market $price-> ($trigger orders)
@@ -5151,6 +5155,14 @@ class okx extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a $loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol not used by okx.borrowMargin ()
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -5185,6 +5197,14 @@ class okx extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol not used by okx.repayMargin ()
+         * @param {dict} $params extra parameters specific to the okx api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

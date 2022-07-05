@@ -321,23 +321,25 @@ class blockchaincom(Exchange):
         :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetL3Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     def fetch_l2_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetL2Symbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'px', 'qty')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -826,10 +828,11 @@ class blockchaincom(Exchange):
             })
         return result
 
-    def fetch_withdrawal_whitelist_by_currency(self, currency, params={}):
+    def fetch_withdrawal_whitelist_by_currency(self, code, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': self.currencyId(currency),
+            'currency': currency['id'],
         }
         response = self.privateGetWhitelistCurrency(self.extend(request, params))
         result = []

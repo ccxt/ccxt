@@ -72,8 +72,6 @@ module.exports = class huobi extends Exchange {
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyBuys': undefined,
-                'fetchMySells': undefined,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': true,
@@ -1568,15 +1566,12 @@ module.exports = class huobi extends Exchange {
             let amountPrecision = undefined;
             let costPrecision = undefined;
             if (spot) {
-                pricePrecision = this.safeString (market, 'price-precision');
-                pricePrecision = this.parseNumber ('1e-' + pricePrecision);
-                amountPrecision = this.safeString (market, 'amount-precision');
-                amountPrecision = this.parseNumber ('1e-' + amountPrecision);
-                costPrecision = this.safeString (market, 'value-precision');
-                costPrecision = this.parseNumber ('1e-' + costPrecision);
+                pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
+                amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
+                costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
             } else {
                 pricePrecision = this.safeNumber (market, 'price_tick');
-                amountPrecision = 1;
+                amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
             }
             let maker = undefined;
             let taker = undefined;
@@ -2733,9 +2728,8 @@ module.exports = class huobi extends Exchange {
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                let precision = this.safeString (chain, 'withdrawPrecision');
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawPrecision')));
                 if (precision !== undefined) {
-                    precision = this.parseNumber ('1e-' + precision);
                     minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
@@ -6602,6 +6596,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#borrowMargin
+         * @description create a loan to borrow margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -6645,6 +6649,16 @@ module.exports = class huobi extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');

@@ -941,7 +941,7 @@ class indodax extends Exchange {
         if ($feeCost !== null) {
             $fee = array(
                 'currency' => $this->safe_currency_code(null, $currency),
-                'cost' => $this->safe_number('fee'),
+                'cost' => $feeCost,
             );
         }
         return array(

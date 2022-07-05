@@ -804,7 +804,7 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );
@@ -828,7 +828,7 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );
@@ -1498,7 +1498,7 @@ class latoken extends Exchange {
         return array(
             'info' => $transfer,
             'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_number($transfer),
+            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($transfer, 'transferringFunds'),

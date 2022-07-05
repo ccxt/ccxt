@@ -92,8 +92,6 @@ class huobi(Exchange):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -1548,15 +1546,12 @@ class huobi(Exchange):
             amountPrecision = None
             costPrecision = None
             if spot:
-                pricePrecision = self.safe_string(market, 'price-precision')
-                pricePrecision = self.parse_number('1e-' + pricePrecision)
-                amountPrecision = self.safe_string(market, 'amount-precision')
-                amountPrecision = self.parse_number('1e-' + amountPrecision)
-                costPrecision = self.safe_string(market, 'value-precision')
-                costPrecision = self.parse_number('1e-' + costPrecision)
+                pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision')))
+                amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision')))
+                costPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision')))
             else:
                 pricePrecision = self.safe_number(market, 'price_tick')
-                amountPrecision = 1
+                amountPrecision = self.parse_number('1')  # other markets have step size of 1 contract
             maker = None
             taker = None
             if spot:
@@ -2619,9 +2614,8 @@ class huobi(Exchange):
                 withdrawEnabled = (withdrawStatus == 'allowed')
                 depositEnabled = (depositStatus == 'allowed')
                 active = withdrawEnabled and depositEnabled
-                precision = self.safe_string(chain, 'withdrawPrecision')
+                precision = self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision')))
                 if precision is not None:
-                    precision = self.parse_number('1e-' + precision)
                     minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True
@@ -6184,6 +6178,14 @@ class huobi(Exchange):
         }
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -6224,6 +6226,14 @@ class huobi(Exchange):
         })
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         await self.load_markets()
         currency = self.currency(code)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
