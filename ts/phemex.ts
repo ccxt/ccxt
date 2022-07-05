@@ -3401,7 +3401,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

@@ -106,6 +106,7 @@ const {
     , safeStringUpperN
     , urlencodeNested
     , parseDate
+    , ymd
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -353,6 +354,7 @@ export class Exchange {
     safeStringUpperN = safeStringUpperN
     urlencodeNested = urlencodeNested
     parseDate = parseDate
+    ymd = ymd
 
     describe () {
         return {

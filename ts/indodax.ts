@@ -965,7 +965,7 @@ export default class indodax extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
-                'cost': this.safeNumber ('fee'),
+                'cost': feeCost,
             };
         }
         return {

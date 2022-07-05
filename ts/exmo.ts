@@ -1274,7 +1274,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'order_id': id };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await (this as any).privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

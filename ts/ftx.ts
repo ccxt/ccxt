@@ -2761,7 +2761,7 @@ export default class ftx extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await this.privatePostAccountLeverage (this.extend (request, params));
+        return await (this as any).privatePostAccountLeverage (this.extend (request, params));
     }
 
     parseIncome (income, market = undefined) {
@@ -2781,7 +2781,7 @@ export default class ftx extends Exchange {
         const id = this.safeString (income, 'id');
         const time = this.safeString (income, 'time');
         const timestamp = this.parse8601 (time);
-        const rate = this.safe_number (income, 'rate');
+        const rate = this.safeNumber (income, 'rate');
         return {
             'info': income,
             'symbol': symbol,

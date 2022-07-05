@@ -680,7 +680,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'time': parseInt (since / 1000),
+            'time': this.parseInt (since / 1000),
             'size': limit, // max 2000
         };
         const response= await (this as any).publicGetKline (this.extend (request, params));

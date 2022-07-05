@@ -332,7 +332,7 @@ export default class bitstamp1 extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.privatePostCancelOrder ({ 'id': id });
+        return await (this as any).privatePostCancelOrder ({ 'id': id });
     }
 
     parseOrderStatus (status) {

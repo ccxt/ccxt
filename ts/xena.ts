@@ -1129,7 +1129,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId= await this.getAccountId (params);
         const orderTypes = {
             'market': '1',
             'limit': '2',
@@ -1220,7 +1220,7 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId= await this.getAccountId (params);
         const market = this.market (symbol);
         const request = {
             'account': parseInt (accountId),
@@ -1445,7 +1445,7 @@ export default class xena extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['from'] = this.iso8601 (since) * 1000000;
+            request['from'] = since * 1000000;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1525,7 +1525,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId= await this.getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'accountId': accountId,

@@ -867,7 +867,7 @@ export default class probit extends Exchange {
             return this.iso8601 (previousSunday * 1000);
         } else {
             timestamp = this.parseInt (timestamp / 1000);
-            timestamp = duration * parseInt (timestamp / duration);
+            timestamp = duration * this.parseInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);
             }

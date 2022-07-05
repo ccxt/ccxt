@@ -1451,7 +1451,7 @@ export default class delta extends Exchange {
             // 'cancel_limit_orders': 'true',
             // 'cancel_stop_orders': 'true',
         };
-        const response = this.privateDeleteOrdersAll (this.extend (request, params));
+        const response = (this as any).privateDeleteOrdersAll (this.extend (request, params));
         //
         //     {
         //         "result":{},

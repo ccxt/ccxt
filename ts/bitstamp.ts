@@ -1208,7 +1208,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {

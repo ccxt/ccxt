@@ -1606,8 +1606,8 @@ export default class bitopro extends Exchange {
                 let rawData = {
                     'nonce': nonce,
                 };
-                rawData = this.json (rawData);
-                const payload = this.stringToBase64 (rawData);
+                const rawDataString = this.json (rawData);
+                const payload = this.stringToBase64 (rawDataString);
                 const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;

@@ -553,7 +553,7 @@ export default class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         };
-        return await this.privatePostCancelchildorder (this.extend (request, params));
+        return await (this as any).privatePostCancelchildorder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {

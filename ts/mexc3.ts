@@ -2505,7 +2505,7 @@ export default class mexc3 extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            const response = this.contractPrivateGetAccountAssets (params);
+            const response = (this as any).contractPrivateGetAccountAssets (params);
             //
             //     {
             //         "success":true,
@@ -2881,7 +2881,7 @@ export default class mexc3 extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return await (this as any).contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

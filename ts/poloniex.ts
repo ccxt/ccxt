@@ -1228,7 +1228,7 @@ export default class poloniex extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         params = this.omit (params, 'clientOrderId');
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1589,7 +1589,7 @@ export default class poloniex extends Exchange {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
-        const start = (since !== undefined) ? parseInt (since / 1000) : now - 10 * year;
+        const start = (since !== undefined) ? this.parseInt (since / 1000) : now - 10 * year;
         const request = {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required

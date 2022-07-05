@@ -134,7 +134,7 @@ export default class btctradeua extends Exchange {
          * @param {object} params extra parameters specific to the btctradeua api endpoint
          * @returns response from exchange
          */
-        return await this.privatePostAuth (params);
+        return await (this as any).privatePostAuth (params);
     }
 
     parseBalance (response) {
@@ -453,7 +453,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostRemoveOrderId (this.extend (request, params));
+        return await (this as any).privatePostRemoveOrderId (this.extend (request, params));
     }
 
     parseOrder (order, market = undefined) {
