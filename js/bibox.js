@@ -650,25 +650,37 @@ module.exports = class bibox extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchOHLCV
+         * @see https://biboxcom.github.io/v3/spotv4/en/#get-candles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest candle to fetch
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
         const request = {
             'symbol': market['id'],
             'time_frame': this.timeframes[timeframe],
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined && until !== undefined) {
+            throw new BadRequest (this.id + ' fetchOHLCV cannot take both a since parameter and params["until"]');
+        } else if (since !== undefined) {
+            request['after'] = since;
+        } else if (until !== undefined) {
+            request['before'] = until;
+        }
         const response = await this.v4PublicGetMarketdataCandles (this.extend (request, params));
         //
         //    {
@@ -688,7 +700,10 @@ module.exports = class bibox extends Exchange {
         //            ...
         //    }
         //
-        const result = this.safeValue (response, 'e', []);
+        let result = this.safeValue (response, 'e');
+        if (result === undefined) {
+            result = response || [];
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
