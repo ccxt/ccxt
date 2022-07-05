@@ -49,7 +49,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
     if (Math.abs (x) < 1.0) {
         const n_e = s.split ('e-')
         const n = n_e[0].replace ('.', '')
-        const e = parseInt (n_e[1])
+        const e = this.parseInt (n_e[1])
         const neg = (s[0] === '-')
         if (e) {
             x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + n.substring (neg)
@@ -58,7 +58,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
     } else {
         const parts = s.split ('e')
         if (parts[1]) {
-            let e = parseInt (parts[1])
+            let e = this.parseInt (parts[1])
             const m = parts[0].split ('.')
             let part = ''
             if (m[1]) {

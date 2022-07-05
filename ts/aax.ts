@@ -1113,7 +1113,7 @@ export default class aax extends Exchange {
             request['start'] = end - duration * limit;
             request['end'] = end;
         } else {
-            const start = parseInt (since / 1000);
+            const start = this.parseInt (since / 1000);
             request['start'] = start;
             request['end'] = this.sum (start, duration * limit);
         }
@@ -2280,7 +2280,7 @@ export default class aax extends Exchange {
          * @method
          * @name aax#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code 
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the aax api endpoint
@@ -2299,7 +2299,7 @@ export default class aax extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
+            const startTime = this.parseInt (since / 1000);
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
@@ -2347,7 +2347,7 @@ export default class aax extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
+            const startTime = this.parseInt (since / 1000);
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
@@ -2598,12 +2598,12 @@ export default class aax extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
-            request['startTime'] = parseInt (since / 1000);
+            request['startTime'] = this.parseInt (since / 1000);
         }
         const till = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
         params = this.omit (params, [ 'till', 'until' ]);
         if (till !== undefined) {
-            request['endTime'] = parseInt (till / 1000);
+            request['endTime'] = this.parseInt (till / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -963,7 +963,7 @@ export default class bitfinex extends Exchange {
             'limit_trades': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -992,7 +992,7 @@ export default class bitfinex extends Exchange {
             request['limit_trades'] = limit;
         }
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -1369,7 +1369,7 @@ export default class bitfinex extends Exchange {
         }
         query['currency'] = currencyId;
         if (since !== undefined) {
-            query['since'] = parseInt (since / 1000);
+            query['since'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).privatePostHistoryMovements (this.extend (query, params));
         //

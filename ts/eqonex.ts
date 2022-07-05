@@ -1045,7 +1045,7 @@ export default class eqonex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['instrumentId'] = parseInt (market['id']);
+            request['instrumentId'] = this.parseInt (market['id']);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1227,7 +1227,7 @@ export default class eqonex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = parseInt (currency['id']);
+            request['instrumentId'] = this.parseInt (currency['id']);
         }
         const response= await (this as any).privatePostGetDepositHistory (this.extend (request, params));
         //
@@ -1269,7 +1269,7 @@ export default class eqonex extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['instrumentId'] = parseInt (currency['id']);
+            request['instrumentId'] = this.parseInt (currency['id']);
         }
         const response= await (this as any).privatePostGetWithdrawRequests (this.extend (request, params));
         //

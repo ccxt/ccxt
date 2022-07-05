@@ -9,7 +9,7 @@ class Precise {
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
                 [ number, modifier ] = number.split ('e')
-                modifier = parseInt (modifier)
+                modifier = this.parseInt (modifier)
             }
             const decimalIndex = number.indexOf ('.')
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0

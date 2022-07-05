@@ -872,7 +872,7 @@ export default class whitebit extends Exchange {
                 limit = maxLimit;
             }
             limit = Math.min (limit, maxLimit);
-            const start = parseInt (since / 1000);
+            const start = this.parseInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
             const end = this.sum (start, duration * limit);
             request['start'] = start;

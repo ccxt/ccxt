@@ -2027,7 +2027,7 @@ export default class lbank2 extends Exchange {
     convertSecretToPem (secret) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
-        let numLines = parseInt (secretLength / lineLength);
+        let numLines = this.parseInt (secretLength / lineLength);
         numLines = this.sum (numLines, 1);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i < numLines; i++) {

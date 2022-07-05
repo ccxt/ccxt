@@ -856,7 +856,7 @@ export default class probit extends Exchange {
             }
             return year + '-' + month + '-01T00:00:00.000Z';
         } else if (timeframe === '1w') {
-            timestamp = parseInt (timestamp / 1000);
+            timestamp = this.parseInt (timestamp / 1000);
             const firstSunday = 259200; // 1970-01-04T00:00:00.000Z
             const difference = timestamp - firstSunday;
             const numWeeks = Math.floor (difference / duration);
@@ -866,7 +866,7 @@ export default class probit extends Exchange {
             }
             return this.iso8601 (previousSunday * 1000);
         } else {
-            timestamp = parseInt (timestamp / 1000);
+            timestamp = this.parseInt (timestamp / 1000);
             timestamp = duration * parseInt (timestamp / duration);
             if (after) {
                 timestamp = this.sum (timestamp, duration);

@@ -396,7 +396,7 @@ export default class lbank extends Exchange {
             'size': 100,
         };
         if (since !== undefined) {
-            request['time'] = parseInt (since);
+            request['time'] = this.parseInt (since);
         }
         if (limit !== undefined) {
             request['size'] = limit;
@@ -788,7 +788,7 @@ export default class lbank extends Exchange {
     convertSecretToPem (secret) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
-        let numLines = parseInt (secretLength / lineLength);
+        let numLines = this.parseInt (secretLength / lineLength);
         numLines = this.sum (numLines, 1);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i < numLines; i++) {

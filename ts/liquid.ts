@@ -751,7 +751,7 @@ export default class liquid extends Exchange {
         }
         if (since !== undefined) {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).publicGetExecutions (this.extend (request, params));
         const result = (since !== undefined) ? response : response['models'];

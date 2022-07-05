@@ -1455,7 +1455,7 @@ export default class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = parseInt (since / 1000);
+            request['StartTimeStamp'] = this.parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;
@@ -1570,7 +1570,7 @@ export default class ndax extends Exchange {
         if (clientOrderId !== undefined) {
             request['ClOrderId'] = clientOrderId;
         } else {
-            request['OrderId'] = parseInt (id);
+            request['OrderId'] = this.parseInt (id);
         }
         params = this.omit (params, [ 'clientOrderId', 'ClOrderId' ]);
         const response= await (this as any).privatePostCancelOrder (this.extend (request, params));
@@ -1696,7 +1696,7 @@ export default class ndax extends Exchange {
             request['InstrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['StartTimeStamp'] = parseInt (since / 1000);
+            request['StartTimeStamp'] = this.parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['Depth'] = limit;

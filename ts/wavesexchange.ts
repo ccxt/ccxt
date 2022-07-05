@@ -908,7 +908,7 @@ export default class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = this.parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
@@ -1297,7 +1297,7 @@ export default class wavesexchange extends Exchange {
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
             if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
-                matcherFee = parseInt (rawMatcherFee);
+                matcherFee = this.parseInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
             }
@@ -1307,12 +1307,12 @@ export default class wavesexchange extends Exchange {
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
             if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
-                matcherFee = parseInt (baseMatcherFee);
+                matcherFee = this.parseInt (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
                 if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
-                    matcherFee = parseInt (discountMatcherFee);
+                    matcherFee = this.parseInt (discountMatcherFee);
                 }
             }
         }

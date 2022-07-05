@@ -823,7 +823,7 @@ export default class phemex extends Exchange {
             const name = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (id);
             const valueScaleString = this.safeString (currency, 'valueScale');
-            const valueScale = parseInt (valueScaleString);
+            const valueScale = this.parseInt (valueScaleString);
             const minValueEv = this.safeString (currency, 'minValueEv');
             const maxValueEv = this.safeString (currency, 'maxValueEv');
             let minAmount = undefined;
@@ -1056,7 +1056,7 @@ export default class phemex extends Exchange {
             if (limit === undefined) {
                 limit = 2000; // max 2000
             }
-            since = parseInt (since / 1000);
+            since = this.parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
@@ -2016,7 +2016,7 @@ export default class phemex extends Exchange {
             if (reduceOnly !== undefined) {
                 request['reduceOnly'] = reduceOnly;
             }
-            request['orderQty'] = parseInt (amount);
+            request['orderQty'] = this.parseInt (amount);
             if (stopPrice !== undefined) {
                 const triggerType = this.safeString (params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;

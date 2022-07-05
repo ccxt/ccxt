@@ -1248,7 +1248,7 @@ export default class gemini extends Exchange {
             request['limit_trades'] = limit;
         }
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).privatePostV1Mytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

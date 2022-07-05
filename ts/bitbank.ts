@@ -699,7 +699,7 @@ export default class bitbank extends Exchange {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+            request['since'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).privateGetUserSpotActiveOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
@@ -729,7 +729,7 @@ export default class bitbank extends Exchange {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+            request['since'] = this.parseInt (since / 1000);
         }
         const response= await (this as any).privateGetUserSpotTradeHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});

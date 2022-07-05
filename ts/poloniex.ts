@@ -304,7 +304,7 @@ export default class poloniex extends Exchange {
                 request['start'] = request['end'] - limit * this.parseTimeframe (timeframe);
             }
         } else {
-            request['start'] = parseInt (since / 1000);
+            request['start'] = this.parseInt (since / 1000);
             if (limit !== undefined) {
                 const end = this.sum (request['start'], limit * this.parseTimeframe (timeframe));
                 request['end'] = end;
@@ -834,7 +834,7 @@ export default class poloniex extends Exchange {
             'currencyPair': market['id'],
         };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            request['start'] = this.parseInt (since / 1000);
             request['end'] = this.seconds (); // last 50000 trades by default
         }
         const trades= await (this as any).publicGetReturnTradeHistory (this.extend (request, params));
@@ -860,12 +860,12 @@ export default class poloniex extends Exchange {
         const pair = market ? market['id'] : 'all';
         const request = { 'currencyPair': pair };
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            request['start'] = this.parseInt (since / 1000);
             request['end'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
         }
         // limit is disabled (does not really work as expected)
         if (limit !== undefined) {
-            request['limit'] = parseInt (limit);
+            request['limit'] = this.parseInt (limit);
         }
         const response= await (this as any).privatePostReturnTradeHistory (this.extend (request, params));
         //

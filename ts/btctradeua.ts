@@ -328,7 +328,7 @@ export default class btctradeua extends Exchange {
         if (h === 'noon') {
             h = '12';
         } else {
-            let intH = parseInt (h);
+            let intH = this.parseInt (h);
             if ((ampm !== undefined) && (ampm[0] === 'p')) {
                 intH = 12 + intH;
                 if (intH > 23) {
@@ -350,7 +350,7 @@ export default class btctradeua extends Exchange {
         // server reports local time, adjust to UTC
         // a special case for DST
         // subtract 2 hours during winter
-        const intM = parseInt (m);
+        const intM = this.parseInt (m);
         if (intM < 11 || intM > 2) {
             return timestamp - 7200000;
         }

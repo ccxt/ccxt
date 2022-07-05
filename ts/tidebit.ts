@@ -496,7 +496,7 @@ export default class tidebit extends Exchange {
             'limit': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
+            request['timestamp'] = this.parseInt (since / 1000);
         } else {
             request['timestamp'] = 1800000;
         }

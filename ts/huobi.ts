@@ -2507,7 +2507,7 @@ export default class huobi extends Exchange {
         let method = 'spotPublicGetMarketHistoryCandles';
         if (market['spot']) {
             if (since !== undefined) {
-                request['from'] = parseInt (since / 1000);
+                request['from'] = this.parseInt (since / 1000);
             }
             if (limit !== undefined) {
                 request['size'] = limit; // max 2000
@@ -2571,7 +2571,7 @@ export default class huobi extends Exchange {
                     request['from'] = now - duration * (limit - 1);
                     request['to'] = now;
                 } else {
-                    const start = parseInt (since / 1000);
+                    const start = this.parseInt (since / 1000);
                     request['from'] = start;
                     request['to'] = this.sum (start, duration * (limit - 1));
                 }

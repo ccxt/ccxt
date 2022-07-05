@@ -770,10 +770,10 @@ export default class hollaex extends Exchange {
             }
         } else {
             if (limit === undefined) {
-                request['from'] = parseInt (since / 1000);
+                request['from'] = this.parseInt (since / 1000);
                 request['to'] = this.seconds ();
             } else {
-                const start = parseInt (since / 1000);
+                const start = this.parseInt (since / 1000);
                 request['from'] = start;
                 request['to'] = this.sum (start, duration * limit);
             }
@@ -1718,7 +1718,7 @@ export default class hollaex extends Exchange {
 
     normalizeNumberIfNeeded (number) {
         if (number % 1 === 0) {
-            number = parseInt (number);
+            number = this.parseInt (number);
         }
         return number;
     }

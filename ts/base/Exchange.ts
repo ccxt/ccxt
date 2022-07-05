@@ -658,12 +658,12 @@ export class Exchange {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = Exchange.ccxtVersion.split ('.')
-            , intMajor1 = parseInt (major1)
-            , intMinor1 = parseInt (minor1)
-            , intPatch1 = parseInt (patch1)
-            , intMajor2 = parseInt (major2)
-            , intMinor2 = parseInt (minor2)
-            , intPatch2 = parseInt (patch2)
+            , intMajor1 = this.parseInt (major1)
+            , intMinor1 = this.parseInt (minor1)
+            , intPatch1 = this.parseInt (patch1)
+            , intMajor2 = this.parseInt (major2)
+            , intMinor2 = this.parseInt (minor2)
+            , intPatch2 = this.parseInt (patch2)
         if (intMajor1 > intMajor2) {
             result = false
         }
@@ -2952,4 +2952,10 @@ export class Exchange {
         }
         return undefined;
     }
+
+    // Solve Common parseInt misuse ex: parseInt (since / 1000)
+    parseInt (number: any) {
+        return parseInt(number.toString())
+    }
 }
+

@@ -199,7 +199,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (response, 'transactTime');
-        return parseInt ((transactTime / 1000000).toString());
+        return parseInt (transactTime / 1000000);
     }
 
     async fetchMarkets (params = {}) {
@@ -602,7 +602,7 @@ export default class xena extends Exchange {
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
         let timestamp = undefined;
         if (lastUpdateTime !== undefined) {
-            timestamp = parseInt (lastUpdateTime / 1000000);
+            timestamp = this.parseInt (lastUpdateTime / 1000000);
         }
         return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
@@ -683,7 +683,7 @@ export default class xena extends Exchange {
             const balance = balances[i];
             const lastUpdateTime = this.safeString (balance, 'lastUpdateTime');
             const lastUpdated = lastUpdateTime.slice (0, 13);
-            const currentTimestamp = parseInt (lastUpdated);
+            const currentTimestamp = this.parseInt (lastUpdated);
             timestamp = (timestamp === undefined) ? currentTimestamp : Math.max (timestamp, currentTimestamp);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
@@ -772,7 +772,7 @@ export default class xena extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         let timestamp = this.safeInteger (trade, 'transactTime');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseInt (timestamp / 1000000);
         }
         let side = this.safeStringLower2 (trade, 'side', 'aggressorSide');
         if (side === '1') {
@@ -914,7 +914,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (ohlcv, 'transactTime');
-        const timestamp = parseInt ((transactTime / 1000000).toString());
+        const timestamp = this.parseInt (transactTime / 1000000);
         const buyVolume = this.safeNumber (ohlcv, 'buyVolume');
         const sellVolume = this.safeNumber (ohlcv, 'sellVolume');
         const volume = this.sum (buyVolume, sellVolume);
@@ -1065,7 +1065,7 @@ export default class xena extends Exchange {
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clOrdId');
         const transactTime = this.safeInteger (order, 'transactTime');
-        const timestamp = parseInt ((transactTime / 1000000).toString());
+        const timestamp = this.parseInt (transactTime / 1000000);
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1564,7 +1564,7 @@ export default class xena extends Exchange {
             'accountId': accountId,
         };
         if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+            request['since'] = this.parseInt (since / 1000);
         }
         const method = 'privateGetTransfersAccountsAccountId' + this.capitalize (type);
         const response = await this[method] (this.extend (request, params));
@@ -1680,7 +1680,7 @@ export default class xena extends Exchange {
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         let updated = this.safeInteger (transaction, 'lastUpdated');
         if (updated !== undefined) {
-            updated = parseInt (updated / 1000000);
+            updated = this.parseInt (updated / 1000000);
         }
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
@@ -1809,7 +1809,7 @@ export default class xena extends Exchange {
         }
         let timestamp = this.safeInteger (item, 'ts');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
+            timestamp = this.parseInt (timestamp / 1000000);
         }
         const fee = {
             'cost': this.safeNumber (item, 'commission'),
