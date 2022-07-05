@@ -367,7 +367,7 @@ export default class wavesexchange extends Exchange {
         return await (this as any).matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee (request);
     }
 
-    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    async customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const response= await (this as any).getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{

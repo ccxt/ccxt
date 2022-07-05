@@ -897,10 +897,11 @@ export default class blockchaincom extends Exchange {
         return result;
     }
 
-    async fetchWithdrawalWhitelistByCurrency (currency, params = {}) {
+    async fetchWithdrawalWhitelistByCurrency (code, params = {}) {
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
-            'currency': this.currencyId (currency),
+            'currency': currency['id'],
         };
         const response= await (this as any).privateGetWhitelistCurrency (this.extend (request, params));
         const result = [];

@@ -902,7 +902,7 @@ export default class btcmarkets extends Exchange {
         return await (this as any).privateDeleteOrdersId (this.extend (request, params));
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const rate = market[takerOrMaker];
         let currency = undefined;

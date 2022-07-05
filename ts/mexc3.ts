@@ -2475,7 +2475,7 @@ export default class mexc3 extends Exchange {
 
     async fetchAccountHelper (type, params) {
         if (type === 'spot') {
-            return await this.spotPrivateGetAccount (params);
+            return await (this as any).spotPrivateGetAccount (params);
             //
             //     {
             //         "makerCommission": "20",

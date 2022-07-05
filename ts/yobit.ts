@@ -638,7 +638,7 @@ export default class yobit extends Exchange {
         const isYourOrder = this.safeValue (trade, 'is_your_order');
         if (isYourOrder !== undefined) {
             if (fee === undefined) {
-                const feeInNumbers = this.calculateFee (symbol, type, side, amount, price, 'taker');
+                const feeInNumbers = this.customCalculateFee (symbol, type, side, amount, price, 'taker');
                 fee = {
                     'currency': this.safeString (feeInNumbers, 'currency'),
                     'cost': this.safeString (feeInNumbers, 'cost'),

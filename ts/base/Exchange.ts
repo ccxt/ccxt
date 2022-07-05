@@ -1596,7 +1596,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -2525,6 +2525,7 @@ export class Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
+        return undefined;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -472,7 +472,7 @@ export default class independentreserve extends Exchange {
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetOrderDetails (this.extend ({
+        const response = await (this as any).privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
         let market = undefined;
@@ -727,7 +727,7 @@ export default class independentreserve extends Exchange {
         const request = {
             'orderGuid': id,
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

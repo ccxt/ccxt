@@ -592,7 +592,7 @@ export default class tidex extends Exchange {
                 takerOrMaker = 'maker';
             }
             if (fee === undefined) {
-                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+                fee = this.customCalculateFee (symbol, type, side, amount, price, takerOrMaker);
             }
         }
         return {

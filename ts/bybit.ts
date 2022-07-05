@@ -657,10 +657,10 @@ export default class bybit extends Exchange {
             const spotMarkets= await (this as any).fetchSpotMarkets (params);
             return spotMarkets;
         }
-        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
-        promises = await Promise.all (promises);
-        const contractMarkets = promises[0];
-        const usdcMarkets = promises[1];
+        const promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        const promisesResult = await Promise.all (promises);
+        const contractMarkets = promisesResult[0];
+        const usdcMarkets = promisesResult[1];
         let markets = contractMarkets;
         markets = this.arrayConcat (markets, usdcMarkets);
         return markets;
@@ -2060,7 +2060,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: string | number = 0, amountKey: string | number = 1) {
         const market = this.market (symbol);
         if (market['spot']) {
             return super.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey);
