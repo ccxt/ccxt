@@ -10,7 +10,6 @@ module.exports = class flowbtc extends ndax {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',
-            'alias': true,
             'name': 'flowBTC',
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
