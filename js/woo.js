@@ -1470,7 +1470,7 @@ module.exports = class woo extends Exchange {
             'account': this.safeString (item, 'account'),
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tx_id'),
-            'status': this.parseTransactionStatus (item, 'status'),
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
             'amount': amount,
             'before': undefined,
             'after': undefined,
