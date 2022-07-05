@@ -282,9 +282,9 @@ module.exports = class woo extends Exchange {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
-            const marketTypeVal = this.safeStringLower (parts, 0);
-            const isSpot = marketTypeVal === 'spot';
-            const isSwap = marketTypeVal === 'perp';
+            let marketType = this.safeStringLower (parts, 0);
+            const isSpot = marketType === 'spot';
+            const isSwap = marketType === 'perp';
             const baseId = this.safeString (parts, 1);
             const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
@@ -293,11 +293,14 @@ module.exports = class woo extends Exchange {
             let settle = undefined;
             let symbol = base + '/' + quote;
             let contractSize = undefined;
+            let linear = undefined;
             if (isSwap) {
                 settleId = this.safeString (parts, 2);
                 settle = this.safeCurrencyCode (settleId);
                 symbol = base + '/' + quote + ':' + settle;
                 contractSize = this.parseNumber ('1');
+                marketType = 'swap';
+                linear = true;
             }
             result.push ({
                 'id': marketId,
@@ -308,7 +311,7 @@ module.exports = class woo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': true,
                 'swap': isSwap,
@@ -316,7 +319,7 @@ module.exports = class woo extends Exchange {
                 'option': false,
                 'active': undefined,
                 'contract': isSwap,
-                'linear': undefined,
+                'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
                 'expiry': undefined,
@@ -1685,6 +1688,16 @@ module.exports = class woo extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol not used by woo.repayMargin ()
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

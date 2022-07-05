@@ -6127,6 +6127,16 @@ module.exports = class binance extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -6163,6 +6173,16 @@ module.exports = class binance extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#borrowMargin
+         * @description create a loan to borrow margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

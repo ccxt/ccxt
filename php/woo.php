@@ -282,9 +282,9 @@ class woo extends Exchange {
             $market = $data[$i];
             $marketId = $this->safe_string($market, 'symbol');
             $parts = explode('_', $marketId);
-            $marketTypeVal = $this->safe_string_lower($parts, 0);
-            $isSpot = $marketTypeVal === 'spot';
-            $isSwap = $marketTypeVal === 'perp';
+            $marketType = $this->safe_string_lower($parts, 0);
+            $isSpot = $marketType === 'spot';
+            $isSwap = $marketType === 'perp';
             $baseId = $this->safe_string($parts, 1);
             $quoteId = $this->safe_string($parts, 2);
             $base = $this->safe_currency_code($baseId);
@@ -293,11 +293,14 @@ class woo extends Exchange {
             $settle = null;
             $symbol = $base . '/' . $quote;
             $contractSize = null;
+            $linear = null;
             if ($isSwap) {
                 $settleId = $this->safe_string($parts, 2);
                 $settle = $this->safe_currency_code($settleId);
                 $symbol = $base . '/' . $quote . ':' . $settle;
                 $contractSize = $this->parse_number('1');
+                $marketType = 'swap';
+                $linear = true;
             }
             $result[] = array(
                 'id' => $marketId,
@@ -308,7 +311,7 @@ class woo extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
-                'type' => $marketTypeVal,
+                'type' => $marketType,
                 'spot' => $isSpot,
                 'margin' => true,
                 'swap' => $isSwap,
@@ -316,7 +319,7 @@ class woo extends Exchange {
                 'option' => false,
                 'active' => null,
                 'contract' => $isSwap,
-                'linear' => null,
+                'linear' => $linear,
                 'inverse' => null,
                 'contractSize' => $contractSize,
                 'expiry' => null,
@@ -1643,6 +1646,14 @@ class woo extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol not used by woo.repayMargin ()
+         * @param {dict} $params extra parameters specific to the woo api endpoint
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
