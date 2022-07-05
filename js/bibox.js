@@ -1772,8 +1772,5 @@ module.exports = class bibox extends Exchange {
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
-        if (!('result' in response)) {
-            throw new ExchangeError (this.id + ' ' + body);
-        }
     }
 };
