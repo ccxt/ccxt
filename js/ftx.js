@@ -287,7 +287,6 @@ module.exports = class ftx extends Exchange {
                         'support/tickets/{ticketId}/messages': 1,
                         'support/tickets/{ticketId}/status': 1,
                         'support/tickets/{ticketId}/mark_as_read': 1,
-
                     },
                     'delete': {
                         // subaccounts
