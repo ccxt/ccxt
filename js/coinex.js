@@ -4266,6 +4266,16 @@ module.exports = class coinex extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#borrowMargin
+         * @description create a loan to borrow margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
         }
@@ -4296,6 +4306,16 @@ module.exports = class coinex extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
         }
