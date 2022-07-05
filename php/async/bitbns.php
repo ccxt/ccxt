@@ -1167,7 +1167,7 @@ class bitbns extends Exchange {
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        $error = ($code !== null) && ($code !== '200');
+        $error = ($code !== null) && ($code !== '200') && ($code !== '204');
         if ($error || ($message !== null)) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
