@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ module.exports = class bigone extends Exchange {
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
@@ -128,6 +130,17 @@ module.exports = class bigone extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+            },
+            'networks': {
+                'TRX': 'TRC-20',
+                'TRC20': 'TRC-20',
+                'ETH': 'ERC-20',
+                'ERC20': 'ERC-20',
+                'BEP20': 'BEP20(BSC)',
+                'BSC': 'BEP20(BSC)',
+            },
+            'networkAliases': {
+                'ETHEREUM': 'ETH',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -267,6 +280,219 @@ module.exports = class bigone extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bigone#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
+        // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
+        const response = await this.fetch ('https://' + this.hostname + '/api/uc/v2/assets', 'GET', undefined, undefined);
+        //
+        // {
+        //     code: "0",
+        //     message: "",
+        //     data: [
+        //       {
+        //         name: "TetherUS",
+        //         symbol: "USDT",
+        //         contract_address: "31",
+        //         is_deposit_enabled: true,
+        //         is_withdrawal_enabled: true,
+        //         is_stub: false,
+        //         withdrawal_fee: "5.0",
+        //         is_fiat: false,
+        //         is_memo_required: false,
+        //         logo: {
+        //           default: "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+        //           white: "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //         },
+        //         info_link: null,
+        //         scale: "12",
+        //         default_gateway: ..., // one object from "gateways"
+        //         gateways: [
+        //           {
+        //             uuid: "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+        //             name: "Mixin",
+        //             kind: "CHAIN",
+        //             required_confirmations: "0",
+        //           },
+        //           {
+        //             uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //             name: "Ethereum",
+        //             kind: "CHAIN",
+        //             required_confirmations: "18",
+        //           },
+        //           {
+        //             uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //             name: "Tron",
+        //             kind: "CHAIN",
+        //             required_confirmations: "1",
+        //           },
+        //          ...
+        //         ],
+        //         payments: [],
+        //         uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //         binding_gateways: [
+        //           {
+        //             guid: "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //             contract_address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //             is_deposit_enabled: true,
+        //             display_name: "Ethereum(ERC20)",
+        //             gateway_name: "Ethereum",
+        //             min_withdrawal_amount: "0.000001",
+        //             min_internal_withdrawal_amount: "0.00000001",
+        //             withdrawal_fee: "14",
+        //             is_withdrawal_enabled: true,
+        //             min_deposit_amount: "0.000001",
+        //             is_memo_required: false,
+        //             withdrawal_scale: "2",
+        //             gateway: {
+        //               uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //               name: "Ethereum",
+        //               kind: "CHAIN",
+        //               required_confirmations: "18",
+        //             },
+        //             scale: "12",
+        //          },
+        //          {
+        //             guid: "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+        //             contract_address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        //             is_deposit_enabled: true,
+        //             display_name: "Tron(TRC20)",
+        //             gateway_name: "Tron",
+        //             min_withdrawal_amount: "0.000001",
+        //             min_internal_withdrawal_amount: "0.00000001",
+        //             withdrawal_fee: "1",
+        //             is_withdrawal_enabled: true,
+        //             min_deposit_amount: "0.000001",
+        //             is_memo_required: false,
+        //             withdrawal_scale: "6",
+        //             gateway: {
+        //               uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //               name: "Tron",
+        //               kind: "CHAIN",
+        //               required_confirmations: "1",
+        //             },
+        //             scale: "12",
+        //           },
+        //           ...
+        //         ],
+        //       },
+        //       {
+        //         name: "COMP3L",
+        //         symbol: "COMP3L",
+        //         contract_address: "",
+        //         is_deposit_enabled: false,
+        //         is_withdrawal_enabled: false,
+        //         is_stub: true,
+        //         withdrawal_fee: "999.0",
+        //         is_fiat: false,
+        //         is_memo_required: false,
+        //         logo: {
+        //           default: "https://assets.peatio.com/assets/v1/color/normal/comp3l.png",
+        //           white: "https://assets.peatio.com/assets/v1/white/normal/comp3l.png",
+        //         },
+        //         info_link: null,
+        //         scale: "8",
+        //         gateways: [],
+        //         payments: [],
+        //         uuid: "171bda9e-699e-4c6f-ab19-745334559364",
+        //         binding_gateways: [],
+        //       },
+        //       ...
+        //     ],
+        // }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const networks = {};
+            const chains = this.safeValue (currency, 'binding_gateways', []);
+            let currencyMaxPrecision = undefined;
+            let currencyDepositEnabled = undefined;
+            let currencyWithdrawEnabled = undefined;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'gateway_name');
+                const networkCode = this.safeNetworkCode (networkId);
+                const isDepositEnabled = this.safeValue (chain, 'is_deposit_enabled');
+                const isWithdrawEnabled = this.safeValue (chain, 'is_withdrawal_enabled');
+                const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
+                const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
+                const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                // fill global values
+                if (currencyMaxPrecision === undefined || Precise.stringGt (currencyMaxPrecision, precision)) {
+                    currencyMaxPrecision = precision;
+                }
+                if (currencyDepositEnabled === undefined) {
+                    currencyDepositEnabled = isDepositEnabled;
+                } else if (isDepositEnabled) {
+                    currencyDepositEnabled = true;
+                }
+                if (currencyWithdrawEnabled === undefined) {
+                    currencyWithdrawEnabled = isWithdrawEnabled;
+                } else if (isWithdrawEnabled) {
+                    currencyWithdrawEnabled = true;
+                }
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': this.parseNumber (withdrawalFee),
+                    'precision': this.parseNumber (withdrawalFee),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': undefined,
+                'deposit': currencyDepositEnabled,
+                'withdraw': currencyWithdrawEnabled,
+                'fee': undefined,
+                'precision': currencyMaxPrecision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    safeNetworkCode (networkId) {
+        return this.safeString (this.networkAliases, networkId, networkId);
     }
 
     async loadMarkets (reload = false, params = {}) {
