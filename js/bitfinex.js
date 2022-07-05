@@ -550,9 +550,13 @@ module.exports = class bitfinex extends Exchange {
             const quote = this.safeCurrencyCode (quoteRaw);
             let symbol = base + '/' + quote;
             let settle = undefined;
+            let linear = undefined;
+            let inverse = undefined;
             if (swap) {
                 settle = quote;
                 symbol = symbol + ':' + settle;
+                linear = true;
+                inverse = false;
             }
             result.push ({
                 'id': id,
@@ -571,8 +575,8 @@ module.exports = class bitfinex extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': future,
-                'linear': true,
-                'inverse': false,
+                'linear': linear,
+                'inverse': inverse,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
