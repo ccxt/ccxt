@@ -528,12 +528,13 @@ module.exports = class bitfinex extends Exchange {
             let spot = true;
             let type = 'spot';
             let future = false;
+            let swap = false;
             if (id.indexOf ('f0') >= 0) {
-                type = 'future';
-                future = true;
+                type = 'swap';
+                swap = true;
+                future = false;
                 spot = false;
             }
-            const swap = !spot;
             if (id.indexOf (':') >= 0) {
                 const parts = id.split (':');
                 baseId = parts[0];
@@ -574,7 +575,7 @@ module.exports = class bitfinex extends Exchange {
                 'future': future,
                 'option': false,
                 'active': true,
-                'contract': future,
+                'contract': (spot !== true),
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': undefined,
