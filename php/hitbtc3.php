@@ -2393,7 +2393,7 @@ class hitbtc3 extends Exchange {
         //     }
         //
         return array_merge($this->parse_margin_modification($response, $market), array(
-            'amount' => $this->safe_number($amount),
+            'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }

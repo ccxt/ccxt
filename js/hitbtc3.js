@@ -2445,7 +2445,7 @@ module.exports = class hitbtc3 extends Exchange {
         //     }
         //
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.safeNumber (amount),
+            'amount': this.parseNumber (amount),
             'type': type,
         });
     }
