@@ -1688,6 +1688,16 @@ module.exports = class woo extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol not used by woo.repayMargin ()
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

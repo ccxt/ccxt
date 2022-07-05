@@ -4372,6 +4372,18 @@ module.exports = class gate extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.mode 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {str} params.id '34267567' loan id, extra parameter required for isolated margin
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let market = undefined;
@@ -4449,6 +4461,17 @@ module.exports = class gate extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let market = undefined;
@@ -4469,7 +4492,7 @@ module.exports = class gate extends Exchange {
             }
             request['currency_pair'] = market['id'];
             const rate = this.safeString (params, 'rate');
-            if (symbol === undefined) {
+            if (rate === undefined) {
                 throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
             }
             request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.

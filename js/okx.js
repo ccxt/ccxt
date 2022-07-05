@@ -5242,6 +5242,16 @@ module.exports = class okx extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#borrowMargin
+         * @description create a loan to borrow margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol not used by okx.borrowMargin ()
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -5276,6 +5286,16 @@ module.exports = class okx extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol not used by okx.repayMargin ()
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
