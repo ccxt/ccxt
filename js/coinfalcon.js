@@ -874,7 +874,7 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': this.safeStingLower (currency, 'id'),
+            'currency': this.safeStringLower (currency, 'id'),
             'address': address,
             'amount': amount,
             // 'tag': 'string', // withdraw tag/memo

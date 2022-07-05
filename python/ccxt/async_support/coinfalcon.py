@@ -807,7 +807,7 @@ class coinfalcon(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': self.safeStingLower(currency, 'id'),
+            'currency': self.safe_string_lower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo
