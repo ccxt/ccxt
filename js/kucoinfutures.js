@@ -1243,7 +1243,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.extend (this.parseModifyMargin (data, market), {
+        return this.extend (this.parseMarginModification (data, market), {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': 'in',
         });
