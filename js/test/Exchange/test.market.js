@@ -77,7 +77,7 @@ function testMarket (exchange, market, method) {
     if (market['contract']) {
         assert (market['linear'] !== market['inverse']);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
+        assert ((market['linear'] === undefined) || (market['inverse'] === undefined) || (market['linear'] !== market['inverse']));
     }
     if (market['option']) {
         assert (market['strike'] !== undefined);
