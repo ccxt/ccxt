@@ -2083,7 +2083,7 @@ module.exports = class cryptocom extends Exchange {
          * @description repay borrowed margin and interest
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {str|undefined} symbol unified market symbol
+         * @param {str|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
          * @param {dict} params extra parameters specific to the cryptocom api endpoint
          * @returns {[dict]} a dictionary of a [margin loan structure]
          */
@@ -2117,7 +2117,7 @@ module.exports = class cryptocom extends Exchange {
          * @description create a loan to borrow margin
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {str|undefined} symbol unified market symbol
+         * @param {str|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
          * @param {dict} params extra parameters specific to the cryptocom api endpoint
          * @returns {[dict]} a dictionary of a [margin loan structure]
          */
