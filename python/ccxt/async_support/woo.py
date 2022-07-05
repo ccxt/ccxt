@@ -286,9 +286,9 @@ class woo(Exchange):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
             parts = marketId.split('_')
-            marketTypeVal = self.safe_string_lower(parts, 0)
-            isSpot = marketTypeVal == 'spot'
-            isSwap = marketTypeVal == 'perp'
+            marketType = self.safe_string_lower(parts, 0)
+            isSpot = marketType == 'spot'
+            isSwap = marketType == 'perp'
             baseId = self.safe_string(parts, 1)
             quoteId = self.safe_string(parts, 2)
             base = self.safe_currency_code(baseId)
@@ -297,11 +297,14 @@ class woo(Exchange):
             settle = None
             symbol = base + '/' + quote
             contractSize = None
+            linear = None
             if isSwap:
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
                 contractSize = self.parse_number('1')
+                marketType = 'swap'
+                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -311,7 +314,7 @@ class woo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': True,
                 'swap': isSwap,
@@ -319,7 +322,7 @@ class woo(Exchange):
                 'option': False,
                 'active': None,
                 'contract': isSwap,
-                'linear': None,
+                'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
                 'expiry': None,
