@@ -4154,8 +4154,9 @@ module.exports = class zb extends Exchange {
          * @description create a loan to borrow margin
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {str|undefined} symbol unified market symbol
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the zb api endpoint
+         * @param {str} params.safePwd transaction password, extra parameter required for cross margin
          * @returns {[dict]} a dictionary of a [margin loan structure]
          */
         await this.loadMarkets ();
