@@ -2729,7 +2729,7 @@ export default class aax extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
+        return await (this as any).privatePostFuturesPositionLeverage (this.extend (request, params));
     }
 
     parseTransfer (transfer, currency = undefined) {

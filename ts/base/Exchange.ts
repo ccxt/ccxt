@@ -100,6 +100,7 @@ const {
     , ROUND
     , DECIMAL_PLACES
     , NO_PADDING
+    , TICK_SIZE
 } = functions
 
 // import exceptions from "./errors.js"
@@ -123,7 +124,6 @@ import { Precise } from './Precise.js'
 // ----------------------------------------------------------------------------
 
 export class Exchange {
-
     options: {};
     fetchOptions: any;
     userAgents: any;
@@ -525,7 +525,7 @@ export class Exchange {
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //         this.userAgent = {
-        //             'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
+        //             'User-Agent': 'ccxt/' + (Exchange as any).ccxtVersion +
         //                 ' (+https://github.com/ccxt/ccxt)' +
         //                 ' Node.js/' + this.nodeVersion + ' (JavaScript)'
         //         }
@@ -657,7 +657,7 @@ export class Exchange {
     checkRequiredVersion (requiredVersion, error = true) {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
-            , [ major2, minor2, patch2 ] = Exchange.ccxtVersion.split ('.')
+            , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
             , intMajor1 = this.parseInt (major1)
             , intMinor1 = this.parseInt (minor1)
             , intPatch1 = this.parseInt (patch1)
@@ -676,7 +676,7 @@ export class Exchange {
         }
         if (!result) {
             if (error) {
-                throw new NotSupported ('Your current version of CCXT is ' + Exchange.ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
+                throw new NotSupported ('Your current version of CCXT is ' + (Exchange as any).ccxtVersion + ', a newer version ' + requiredVersion + ' is required, please, upgrade your version of CCXT')
             } else {
                 return error
             }
@@ -1818,7 +1818,7 @@ export class Exchange {
         if (symbols === undefined) {
             return symbols;
         }
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.symbol (symbols[i]));
         }
@@ -1827,7 +1827,7 @@ export class Exchange {
 
     parseBidsAsks (bidasks, priceKey: number | string = 0, amountKey = 1) {
         bidasks = this.toArray (bidasks);
-        const result: any[] = [];
+        const result = [];
         for (let i = 0; i < bidasks.length; i++) {
             result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey));
         }
@@ -2745,7 +2745,7 @@ export class Exchange {
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result:any[] = [];
+        let result = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend ((this as any).parseDepositAddress (addresses[i]), params);
             result.push (address);
@@ -2758,7 +2758,7 @@ export class Exchange {
     }
 
     parseBorrowInterests (response, market = undefined) {
-        const interests: any[] = [];
+        const interests = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
             interests.push ((this as any).parseBorrowInterest (row, market));

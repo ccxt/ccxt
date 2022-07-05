@@ -720,7 +720,7 @@ export default class tidex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {

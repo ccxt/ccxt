@@ -49,7 +49,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
         return byteArrayToWordArray (hexArray)
     }
 
-    , numberToBE = (n, padding) => {
+    , numberToBE = (n, padding = undefined) => {
         const hexArray = new BN (n).toArray ('be', padding)
         return byteArrayToWordArray (hexArray)
     }
