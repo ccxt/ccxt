@@ -498,9 +498,12 @@ class bitmex extends Exchange {
             $account = $this->account();
             $free = $this->safe_string($balance, 'availableMargin');
             $total = $this->safe_string($balance, 'marginBalance');
-            if ($code === 'BTC') {
+            if ($code !== 'USDT') {
                 $free = Precise::string_div($free, '1e8');
                 $total = Precise::string_div($total, '1e8');
+            } else {
+                $free = Precise::string_div($free, '1e6');
+                $total = Precise::string_div($total, '1e6');
             }
             $account['free'] = $free;
             $account['total'] = $total;
