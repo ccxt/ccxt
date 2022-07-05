@@ -4382,7 +4382,7 @@ module.exports = class gate extends Exchange {
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str} params.mode 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {str} params.id '34267567' loan id, extra parameter required for isolated margin
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4470,7 +4470,7 @@ module.exports = class gate extends Exchange {
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the gate api endpoint
          * @param {str} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

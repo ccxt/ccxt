@@ -6135,7 +6135,7 @@ module.exports = class binance extends Exchange {
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -6181,7 +6181,7 @@ module.exports = class binance extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
          * @param {dict} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

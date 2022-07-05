@@ -5256,7 +5256,7 @@ module.exports = class okx extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {str|undefined} symbol not used by okx.borrowMargin ()
          * @param {dict} params extra parameters specific to the okx api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5300,7 +5300,7 @@ module.exports = class okx extends Exchange {
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol not used by okx.repayMargin ()
          * @param {dict} params extra parameters specific to the okx api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

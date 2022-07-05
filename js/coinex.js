@@ -4274,7 +4274,7 @@ module.exports = class coinex extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {str} symbol unified market symbol, required for coinex
          * @param {dict} params extra parameters specific to the coinex api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
@@ -4315,7 +4315,7 @@ module.exports = class coinex extends Exchange {
          * @param {str} symbol unified market symbol, required for coinex
          * @param {dict} params extra parameters specific to the coinex api endpoint
          * @param {str|undefined} params.loan_id extra parameter that is not required
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');

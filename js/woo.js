@@ -1696,7 +1696,7 @@ module.exports = class woo extends Exchange {
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol not used by woo.repayMargin ()
          * @param {dict} params extra parameters specific to the woo api endpoint
-         * @returns {[dict]} a dictionary of a [margin loan structure]
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
