@@ -10,7 +10,6 @@ module.exports = class fmfwio extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fmfwio',
-            'alias': true,
             'name': 'FMFW.io',
             'countries': [ 'KN' ],
             'urls': {
