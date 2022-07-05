@@ -233,7 +233,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetCommonSymbols (params);
+        const response = await (this as any).publicGetCommonSymbols (params);
         //
         // {
         //     "code": "0",
@@ -319,7 +319,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCommonCurrencys (params);
+        const response = await (this as any).publicGetCommonCurrencys (params);
         //
         // {
         //     "code": "0",
@@ -379,7 +379,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetCommonTimestamp (params);
+        const response = await (this as any).publicGetCommonTimestamp (params);
         //
         // {
         //     "code": '0',
@@ -399,7 +399,7 @@ export default class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response= await (this as any).publicGetCommonTimestamp (params);
+        const response = await (this as any).publicGetCommonTimestamp (params);
         //
         //     {
         //         "code": '0',
@@ -452,7 +452,7 @@ export default class bkex extends Exchange {
             const timerange = limit * duration * 1000;
             request['to'] = this.sum (request['from'], timerange);
         }
-        const response= await (this as any).publicGetQKline (request);
+        const response = await (this as any).publicGetQKline (request);
         //
         // {
         //     "code": "0",
@@ -501,7 +501,7 @@ export default class bkex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetQTickers (this.extend (request, params));
+        const response = await (this as any).publicGetQTickers (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -547,7 +547,7 @@ export default class bkex extends Exchange {
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        const response= await (this as any).publicGetQTickers (this.extend (request, params));
+        const response = await (this as any).publicGetQTickers (this.extend (request, params));
         const tickers = this.safeValue (response, 'data');
         return this.parseTickers (tickers, symbols, params);
     }
@@ -612,7 +612,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['depth'] = Math.min (limit, 50);
         }
-        const response= await (this as any).publicGetQDepth (this.extend (request, params));
+        const response = await (this as any).publicGetQDepth (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -655,7 +655,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 50);
         }
-        const response= await (this as any).publicGetQDeals (this.extend (request, params));
+        const response = await (this as any).publicGetQDeals (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -748,7 +748,7 @@ export default class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
-        const response= await (this as any).privateGetUAccountBalance (query);
+        const response = await (this as any).privateGetUAccountBalance (query);
         //
         // {
         //     "code": "0",
@@ -802,7 +802,7 @@ export default class bkex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetUWalletAddress (this.extend (request, params));
+        const response = await (this as any).privateGetUWalletAddress (this.extend (request, params));
         // NOTE: You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
         //
         // {
@@ -864,7 +864,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response= await (this as any).privateGetUWalletDepositRecord (this.extend (request, params));
+        const response = await (this as any).privateGetUWalletDepositRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -922,7 +922,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response= await (this as any).privateGetUWalletWithdrawRecord (this.extend (request, params));
+        const response = await (this as any).privateGetUWalletWithdrawRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1031,7 +1031,7 @@ export default class bkex extends Exchange {
         if ((type !== 'market') && (price !== undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response= await (this as any).privatePostUOrderCreate (this.extend (request, params));
+        const response = await (this as any).privatePostUOrderCreate (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1058,7 +1058,7 @@ export default class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).privatePostUOrderCancel (this.extend (request, params));
+        const response = await (this as any).privatePostUOrderCancel (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1086,7 +1086,7 @@ export default class bkex extends Exchange {
         const request = {
             'orders': this.json (ids),
         };
-        const response= await (this as any).privatePostUOrderBatchCancel (this.extend (request, params));
+        const response = await (this as any).privatePostUOrderBatchCancel (this.extend (request, params));
         // {
         //     "code": 0,
         //     "msg": "success",
@@ -1124,7 +1124,7 @@ export default class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response= await (this as any).privateGetUOrderOpenOrders (this.extend (request, params));
+        const response = await (this as any).privateGetUOrderOpenOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1174,7 +1174,7 @@ export default class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).privateGetUOrderOpenOrderDetail (this.extend (request, params));
+        const response = await (this as any).privateGetUOrderOpenOrderDetail (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1227,7 +1227,7 @@ export default class bkex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response= await (this as any).privateGetUOrderHistoryOrders (this.extend (request, params));
+        const response = await (this as any).privateGetUOrderHistoryOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",

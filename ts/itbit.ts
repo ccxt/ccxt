@@ -383,7 +383,7 @@ export default class itbit extends Exchange {
         if (limit !== undefined) {
             request['perPage'] = limit; // default 50, max 50
         }
-        const response= await (this as any).privateGetWalletsWalletIdFundingHistory (this.extend (request, params));
+        const response = await (this as any).privateGetWalletsWalletIdFundingHistory (this.extend (request, params));
         //     { bankName: 'USBC (usd)',
         //         withdrawalId: 94740,
         //         holdingPeriodCompletionDate: '2018-04-16T07:57:05.9606869',
@@ -465,7 +465,7 @@ export default class itbit extends Exchange {
         if (limit !== undefined) {
             request['perPage'] = limit; // default 50, max 50
         }
-        const response= await (this as any).privateGetWalletsWalletIdTrades (this.extend (request, params));
+        const response = await (this as any).privateGetWalletsWalletIdTrades (this.extend (request, params));
         //
         //     {
         //         "totalNumberOfRecords": "2",
@@ -516,7 +516,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetMarketsSymbolTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsSymbolTrades (this.extend (request, params));
         //
         //     {
         //         count: 3,
@@ -558,7 +558,7 @@ export default class itbit extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).fetchWallets (params);
+        const response = await (this as any).fetchWallets (params);
         return this.parseBalance (response);
     }
 
@@ -639,7 +639,7 @@ export default class itbit extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        const response= await (this as any).privateGetWalletsWalletIdOrders (this.extend (request, params));
+        const response = await (this as any).privateGetWalletsWalletIdOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -752,7 +752,7 @@ export default class itbit extends Exchange {
             'price': price,
             'instrument': market['id'],
         };
-        const response= await (this as any).privatePostWalletsWalletIdOrders (this.extend (request, params));
+        const response = await (this as any).privatePostWalletsWalletIdOrders (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -776,7 +776,7 @@ export default class itbit extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).privateGetWalletsWalletIdOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetWalletsWalletIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 

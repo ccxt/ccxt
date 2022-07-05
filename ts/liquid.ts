@@ -249,7 +249,7 @@ export default class liquid extends Exchange {
          * @param {object} params extra parameters specific to the liquid api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -553,7 +553,7 @@ export default class liquid extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         //
         //     {
         //         crypto_accounts: [
@@ -605,7 +605,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': this.marketId (symbol),
         };
-        const response= await (this as any).publicGetProductsIdPriceLevels (this.extend (request, params));
+        const response = await (this as any).publicGetProductsIdPriceLevels (this.extend (request, params));
         return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
@@ -663,7 +663,7 @@ export default class liquid extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetProducts (params);
+        const response = await (this as any).publicGetProducts (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -687,7 +687,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response= await (this as any).publicGetProductsId (this.extend (request, params));
+        const response = await (this as any).publicGetProductsId (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -753,7 +753,7 @@ export default class liquid extends Exchange {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
             request['timestamp'] = this.parseInt (since / 1000);
         }
-        const response= await (this as any).publicGetExecutions (this.extend (request, params));
+        const response = await (this as any).publicGetExecutions (this.extend (request, params));
         const result = (since !== undefined) ? response : response['models'];
         return this.parseTrades (result, market, since, limit);
     }
@@ -772,7 +772,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response= await (this as any).publicGetProductsId (this.extend (request, params));
+        const response = await (this as any).publicGetProductsId (this.extend (request, params));
         //
         //     {
         //         "id":"637",
@@ -954,7 +954,7 @@ export default class liquid extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetExecutionsMe (this.extend (request, params));
+        const response = await (this as any).privateGetExecutionsMe (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
     }
 
@@ -986,7 +986,7 @@ export default class liquid extends Exchange {
         if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response= await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "id": 2157474,
@@ -1027,7 +1027,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).privatePutOrdersIdCancel (this.extend (request, params));
+        const response = await (this as any).privatePutOrdersIdCancel (this.extend (request, params));
         const order = this.parseOrder (response);
         if (order['status'] === 'closed') {
             if (this.options['cancelOrderException']) {
@@ -1049,7 +1049,7 @@ export default class liquid extends Exchange {
             },
             'id': id,
         };
-        const response= await (this as any).privatePutOrdersId (this.extend (request, params));
+        const response = await (this as any).privatePutOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1175,7 +1175,7 @@ export default class liquid extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
         //
         //     {
         //         "id": 6929766032,
@@ -1254,7 +1254,7 @@ export default class liquid extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         //
         //     {
         //         "models": [
@@ -1392,7 +1392,7 @@ export default class liquid extends Exchange {
             params = this.omit (params, 'network');
             params['crypto_withdrawal'] = this.omit (params['crypto_withdrawal'], 'network');
         }
-        const response= await (this as any).privatePostCryptoWithdrawals (this.deepExtend (request, params));
+        const response = await (this as any).privatePostCryptoWithdrawals (this.deepExtend (request, params));
         //
         //     {
         //         "id": 1353,
@@ -1428,7 +1428,7 @@ export default class liquid extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response= await (this as any).privateGetCryptoWithdrawals (this.extend (request, params));
+        const response = await (this as any).privateGetCryptoWithdrawals (this.extend (request, params));
         //
         //     {
         //         models: [

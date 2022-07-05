@@ -144,7 +144,7 @@ export default class lbank extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetAccuracy (params);
+        const response = await (this as any).publicGetAccuracy (params);
         //
         //    [
         //        {
@@ -287,7 +287,7 @@ export default class lbank extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         // {
         //     "symbol":"btc_usdt",
         //     "ticker":{
@@ -316,7 +316,7 @@ export default class lbank extends Exchange {
         const request = {
             'symbol': 'all',
         };
-        const response= await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -345,7 +345,7 @@ export default class lbank extends Exchange {
             'symbol': this.marketId (symbol),
             'size': size,
         };
-        const response= await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await (this as any).publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response, symbol);
     }
 
@@ -401,7 +401,7 @@ export default class lbank extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response= await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await (this as any).publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -452,7 +452,7 @@ export default class lbank extends Exchange {
             'size': limit,
             'time': this.parseInt (since / 1000),
         };
-        const response= await (this as any).publicGetKline (this.extend (request, params));
+        const response = await (this as any).publicGetKline (this.extend (request, params));
         //
         //     [
         //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
@@ -495,7 +495,7 @@ export default class lbank extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostUserInfo (params);
+        const response = await (this as any).privatePostUserInfo (params);
         //
         //     {
         //         "result":"true",
@@ -609,7 +609,7 @@ export default class lbank extends Exchange {
         } else {
             order['price'] = price;
         }
-        const response= await (this as any).privatePostCreateOrder (this.extend (order, params));
+        const response = await (this as any).privatePostCreateOrder (this.extend (order, params));
         order = this.omit (order, 'type');
         order['order_id'] = response['order_id'];
         order['type'] = side;
@@ -635,7 +635,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response= await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
         return response;
     }
 
@@ -655,7 +655,7 @@ export default class lbank extends Exchange {
             'symbol': market['id'],
             'order_id': id,
         };
-        const response= await (this as any).privatePostOrdersInfo (this.extend (request, params));
+        const response = await (this as any).privatePostOrdersInfo (this.extend (request, params));
         const data = this.safeValue (response, 'orders', []);
         const orders = this.parseOrders (data, market);
         const numOrders = orders.length;
@@ -687,7 +687,7 @@ export default class lbank extends Exchange {
             'current_page': 1,
             'page_length': limit,
         };
-        const response= await (this as any).privatePostOrdersInfoHistory (this.extend (request, params));
+        const response = await (this as any).privatePostOrdersInfoHistory (this.extend (request, params));
         const data = this.safeValue (response, 'orders', []);
         return this.parseOrders (data, undefined, since, limit);
     }

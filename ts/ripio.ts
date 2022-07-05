@@ -151,7 +151,7 @@ export default class ripio extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetPair (params);
+        const response = await (this as any).publicGetPair (params);
         //
         //     {
         //         "next":null,
@@ -255,7 +255,7 @@ export default class ripio extends Exchange {
          * @param {object} params extra parameters specific to the ripio api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrency (params);
+        const response = await (this as any).publicGetCurrency (params);
         //
         //     {
         //         "next":null,
@@ -382,7 +382,7 @@ export default class ripio extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetRatePair (this.extend (request, params));
+        const response = await (this as any).publicGetRatePair (this.extend (request, params));
         //
         //     {
         //         "pair":"BTC_USDC",
@@ -416,7 +416,7 @@ export default class ripio extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetRateAll (params);
+        const response = await (this as any).publicGetRateAll (params);
         //
         //     [
         //         {
@@ -462,7 +462,7 @@ export default class ripio extends Exchange {
         const request = {
             'pair': this.marketId (symbol),
         };
-        const response= await (this as any).publicGetOrderbookPair (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbookPair (this.extend (request, params));
         //
         //     {
         //         "buy":[
@@ -581,7 +581,7 @@ export default class ripio extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetTradehistoryPair (this.extend (request, params));
+        const response = await (this as any).publicGetTradehistoryPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -608,7 +608,7 @@ export default class ripio extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetPair (params);
+        const response = await (this as any).publicGetPair (params);
         //
         //     {
         //         next: null,
@@ -681,7 +681,7 @@ export default class ripio extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetBalancesExchangeBalances (params);
+        const response = await (this as any).privateGetBalancesExchangeBalances (params);
         //
         //     [
         //         {
@@ -724,7 +724,7 @@ export default class ripio extends Exchange {
         if (uppercaseType === 'LIMIT') {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
-        const response= await (this as any).privatePostOrderPair (this.extend (request, params));
+        const response = await (this as any).privatePostOrderPair (this.extend (request, params));
         //
         //     {
         //         "order_id": "160f523c-f6ef-4cd1-a7c9-1a8ede1468d8",
@@ -797,7 +797,7 @@ export default class ripio extends Exchange {
             'pair': market['id'],
             'order_id': id,
         };
-        const response= await (this as any).privatePostOrderPairOrderIdCancel (this.extend (request, params));
+        const response = await (this as any).privatePostOrderPairOrderIdCancel (this.extend (request, params));
         //
         //     {
         //         "order_id": "286e560e-b8a2-464b-8b84-15a7e2a67eab",
@@ -837,7 +837,7 @@ export default class ripio extends Exchange {
             'pair': market['id'],
             'order_id': id,
         };
-        const response= await (this as any).privateGetOrderPairOrderId (this.extend (request, params));
+        const response = await (this as any).privateGetOrderPairOrderId (this.extend (request, params));
         //
         //     {
         //         "order_id": "0b4ff48e-cfd6-42db-8d8c-3b536da447af",
@@ -884,7 +884,7 @@ export default class ripio extends Exchange {
         if (limit !== undefined) {
             request['offset'] = limit;
         }
-        const response= await (this as any).privateGetOrderPair (this.extend (request, params));
+        const response = await (this as any).privateGetOrderPair (this.extend (request, params));
         //
         //     {
         //         "next": "https://api.exchange.ripio.com/api/v1/order/BTC_ARS/?limit=20&offset=20&page=1&page_size=25&status=OPEN%2CPART",
@@ -1107,7 +1107,7 @@ export default class ripio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetTradePair (this.extend (request, params));
+        const response = await (this as any).privateGetTradePair (this.extend (request, params));
         //
         //     {
         //         "next": "https://api.exchange.ripio.com/api/v1/trade/<pair>/?limit=20&offset=20",

@@ -1596,7 +1596,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -2062,7 +2062,7 @@ export class Exchange {
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
-                const response= await (this as any).fetchTradingLimits (symbols);
+                const response = await (this as any).fetchTradingLimits (symbols);
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
                     this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);

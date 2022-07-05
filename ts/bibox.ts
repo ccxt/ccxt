@@ -172,7 +172,7 @@ export default class bibox extends Exchange {
         const request = {
             'cmd': 'pairList',
         };
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result": [
@@ -346,7 +346,7 @@ export default class bibox extends Exchange {
             'cmd': 'ticker',
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         return this.parseTicker (response['result'], market);
     }
 
@@ -363,7 +363,7 @@ export default class bibox extends Exchange {
         const request = {
             'cmd': 'marketAll',
         };
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         const tickers = this.parseTickers (response['result'], symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);
@@ -432,7 +432,7 @@ export default class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
@@ -455,7 +455,7 @@ export default class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -500,7 +500,7 @@ export default class bibox extends Exchange {
             'period': this.timeframes[timeframe],
             'size': limit,
         };
-        const response= await (this as any).publicGetMdata (this.extend (request, params));
+        const response = await (this as any).publicGetMdata (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -535,7 +535,7 @@ export default class bibox extends Exchange {
         const request = {
             'cmd': 'currencies',
         };
-        const response= await (this as any).publicGetCdata (this.extend (request, params));
+        const response = await (this as any).publicGetCdata (this.extend (request, params));
         //
         // publicGetCdata
         //
@@ -600,7 +600,7 @@ export default class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         };
-        const response= await (this as any).privatePostTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "result":[
@@ -723,7 +723,7 @@ export default class bibox extends Exchange {
                 'select': 1, // return full info
             }, params),
         };
-        const response= await (this as any).privatePostTransfer (request);
+        const response = await (this as any).privatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -999,7 +999,7 @@ export default class bibox extends Exchange {
                 'price': price,
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1036,7 +1036,7 @@ export default class bibox extends Exchange {
                 'orders_id': id,
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1070,7 +1070,7 @@ export default class bibox extends Exchange {
                 'account_type': 0, // 0 = spot account
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1199,7 +1199,7 @@ export default class bibox extends Exchange {
                 'size': size,
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1263,7 +1263,7 @@ export default class bibox extends Exchange {
                 'size': limit,
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1330,7 +1330,7 @@ export default class bibox extends Exchange {
                 'currency_symbol': market['quoteId'],
             }, params),
         };
-        const response= await (this as any).privatePostOrderpending (request);
+        const response = await (this as any).privatePostOrderpending (request);
         //
         //     {
         //         "result":[
@@ -1383,7 +1383,7 @@ export default class bibox extends Exchange {
                 'coin_symbol': currency['id'],
             }, params),
         };
-        const response= await (this as any).privatePostTransfer (request);
+        const response = await (this as any).privatePostTransfer (request);
         //
         //     {
         //         "result":[
@@ -1500,7 +1500,7 @@ export default class bibox extends Exchange {
                     'coin_symbol': currency['id'],
                 }, params),
             };
-            const response= await (this as any).privatePostTransfer (request);
+            const response = await (this as any).privatePostTransfer (request);
             //     {
             //         "result":[
             //             {

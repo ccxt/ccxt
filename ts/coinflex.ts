@@ -294,7 +294,7 @@ export default class coinflex extends Exchange {
          * @param {object} params extra parameters specific to the coinflex api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response= await (this as any).publicGetV2Ping (params);
+        const response = await (this as any).publicGetV2Ping (params);
         //
         //     { "success": "true" }
         //
@@ -318,7 +318,7 @@ export default class coinflex extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         // v3 markets has a few less fields available for market-objects, but still enough to precede.
-        const response= await (this as any).publicGetV3Markets (params);
+        const response = await (this as any).publicGetV3Markets (params);
         //
         //     {
         //         "success": true,
@@ -474,7 +474,7 @@ export default class coinflex extends Exchange {
          * @param {object} params extra parameters specific to the coinflex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetV3Assets (params);
+        const response = await (this as any).publicGetV3Assets (params);
         //
         //     {
         //         "success": true,
@@ -605,7 +605,7 @@ export default class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response= await (this as any).publicGetV2PublictradesMarketCode (this.extend (request, params));
+        const response = await (this as any).publicGetV2PublictradesMarketCode (this.extend (request, params));
         //
         //     {
         //         "event": "publicTrades",
@@ -649,7 +649,7 @@ export default class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response= await (this as any).privateGetV2TradesMarketCode (this.extend (request, params));
+        const response = await (this as any).privateGetV2TradesMarketCode (this.extend (request, params));
         //
         //     {
         //         "event": "trades",
@@ -837,7 +837,7 @@ export default class coinflex extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetV3Tickers (params);
+        const response = await (this as any).publicGetV3Tickers (params);
         //
         //     {
         //         "success": true,
@@ -876,7 +876,7 @@ export default class coinflex extends Exchange {
         const request = {
             'marketCode': market['id'],
         };
-        const response= await (this as any).publicGetV3Tickers (this.extend (request, params));
+        const response = await (this as any).publicGetV3Tickers (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -972,7 +972,7 @@ export default class coinflex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response= await (this as any).privateGetV2FundingPayments (this.extend (request, params));
+        const response = await (this as any).privateGetV2FundingPayments (this.extend (request, params));
         //
         //     {
         //         "event": "fundingPayments",
@@ -1021,7 +1021,7 @@ export default class coinflex extends Exchange {
          */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRates']) {
-            const response= await (this as any).fetchFundingRates ([ symbol ], params);
+            const response = await (this as any).fetchFundingRates ([ symbol ], params);
             return this.safeValue (response, symbol);
         } else {
             throw new NotSupported (this.id + ' fetchFundingRate() not supported yet');
@@ -1044,7 +1044,7 @@ export default class coinflex extends Exchange {
             market = this.market (symbols[0]);
             request['marketCode'] = market['id'];
         }
-        const response= await (this as any).publicGetV3FundingRates (this.extend (request, params));
+        const response = await (this as any).publicGetV3FundingRates (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1091,7 +1091,7 @@ export default class coinflex extends Exchange {
          */
         // TODO: this can be moved as emulated into base
         if (this.has['fetchFundingRatesHistory']) {
-            const response= await (this as any).fetchFundingRatesHistory ([ symbol ], since, limit, params);
+            const response = await (this as any).fetchFundingRatesHistory ([ symbol ], since, limit, params);
             return this.filterBySymbolSinceLimit (response, symbol, since, limit);
         } else {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() not supported yet');
@@ -1110,7 +1110,7 @@ export default class coinflex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).publicGetV3FundingRates (this.extend (request, params));
+        const response = await (this as any).publicGetV3FundingRates (this.extend (request, params));
         // same response/endtpoint as in fetchFundingRates
         const data = this.safeValue (response, 'data', []);
         return this.parseFundingRateHistories (data, market, since, limit);
@@ -1183,7 +1183,7 @@ export default class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response= await (this as any).publicGetV3Candles (this.extend (request, params));
+        const response = await (this as any).publicGetV3Candles (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1245,7 +1245,7 @@ export default class coinflex extends Exchange {
         if (limit !== undefined) {
             request['level'] = limit;
         }
-        const response= await (this as any).publicGetV3Depth (this.extend (request, params));
+        const response = await (this as any).publicGetV3Depth (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1264,7 +1264,7 @@ export default class coinflex extends Exchange {
     }
 
     async getAccountData (params = {}) {
-        const response= await (this as any).privateGetV3Account (params);
+        const response = await (this as any).privateGetV3Account (params);
         //
         //     {
         //         "success": true,
@@ -1420,7 +1420,7 @@ export default class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response= await (this as any).privateGetV21Orders (this.extend (request, params));
+        const response = await (this as any).privateGetV21Orders (this.extend (request, params));
         //
         //     {
         //         "event": "orders",
@@ -1477,7 +1477,7 @@ export default class coinflex extends Exchange {
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        const response= await (this as any).privateGetV2Orders (params);
+        const response = await (this as any).privateGetV2Orders (params);
         //
         //     {
         //         "event": "orders",
@@ -1785,7 +1785,7 @@ export default class coinflex extends Exchange {
             throw new ExchangeError (this.id + ' fetchDepositAddress() requires a `network` parameter');
         }
         request['network'] = networkId;
-        const response= await (this as any).privateGetV3DepositAddresses (this.extend (request, params));
+        const response = await (this as any).privateGetV3DepositAddresses (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1830,7 +1830,7 @@ export default class coinflex extends Exchange {
         request = this.setStartEndTimes (request, since);
         let data = undefined;
         try {
-            const response= await (this as any).privateGetV3Deposit (this.extend (request, params));
+            const response = await (this as any).privateGetV3Deposit (this.extend (request, params));
             //
             //     {
             //         "success": true,
@@ -1902,7 +1902,7 @@ export default class coinflex extends Exchange {
         request = this.setStartEndTimes (request, since);
         let data = undefined;
         try {
-            const response= await (this as any).privateGetV3Withdrawal (this.extend (request, params));
+            const response = await (this as any).privateGetV3Withdrawal (this.extend (request, params));
             //
             //     {
             //         "success": true,
@@ -2073,7 +2073,7 @@ export default class coinflex extends Exchange {
             request['limit'] = limit;
         }
         request = this.setStartEndTimes (request, since);
-        const response= await (this as any).privateGetV3Transfer (this.extend (request, params));
+        const response = await (this as any).privateGetV3Transfer (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2216,7 +2216,7 @@ export default class coinflex extends Exchange {
         const market = this.market (symbol);
         this.checkOrderArguments (market, type, side, amount, price, params);
         const [ request, query ]= await (this as any).buildOrderRequest (market, type, side, amount, price, params);
-        const response= await (this as any).privatePostV2OrdersPlace (this.extend (request, query));
+        const response = await (this as any).privatePostV2OrdersPlace (this.extend (request, query));
         //
         //     {
         //         "event": "placeOrder",
@@ -2272,7 +2272,7 @@ export default class coinflex extends Exchange {
         const market = this.market (symbol);
         const [ request, query ]= await (this as any).buildOrderRequest (market, type, side, amount, price, params);
         request['orders'][0]['orderId'] = id;
-        const response= await (this as any).privatePostV2OrdersModify (this.extend (request, query));
+        const response = await (this as any).privatePostV2OrdersModify (this.extend (request, query));
         //
         //     {
         //         "event": "modifyOrder",
@@ -2341,7 +2341,7 @@ export default class coinflex extends Exchange {
                 'orderId': ids[i],
             });
         }
-        const response= await (this as any).privateDeleteV2OrdersCancel (this.extend (request, params));
+        const response = await (this as any).privateDeleteV2OrdersCancel (this.extend (request, params));
         //
         //     {
         //         "event": "cancelOrder",
@@ -2453,7 +2453,7 @@ export default class coinflex extends Exchange {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         };
-        const response= await (this as any).privatePostV3Transfer (this.extend (request, params));
+        const response = await (this as any).privatePostV3Transfer (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2503,7 +2503,7 @@ export default class coinflex extends Exchange {
             request['tfaType'] = 'GOOGLE';
             request['code'] = this.oath ();
         }
-        const response= await (this as any).privatePostV3Withdrawal (this.extend (request, params));
+        const response = await (this as any).privatePostV3Withdrawal (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2557,7 +2557,7 @@ export default class coinflex extends Exchange {
             'network': networkId,
             'quantity': this.currencyToPrecision (code, amount),
         };
-        const response= await (this as any).privateGetV3WithdrawalFee (this.extend (request, params));
+        const response = await (this as any).privateGetV3WithdrawalFee (this.extend (request, params));
         //
         //     {
         //         "success": true,

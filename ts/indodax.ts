@@ -177,7 +177,7 @@ export default class indodax extends Exchange {
          * @param {object} params extra parameters specific to the indodax api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetServerTime (params);
+        const response = await (this as any).publicGetServerTime (params);
         //
         //     {
         //         "timezone": "UTC",
@@ -195,7 +195,7 @@ export default class indodax extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetPairs (params);
+        const response = await (this as any).publicGetPairs (params);
         //
         //     [
         //         {
@@ -317,7 +317,7 @@ export default class indodax extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostGetInfo (params);
+        const response = await (this as any).privatePostGetInfo (params);
         //
         //     {
         //         "success":1,
@@ -425,7 +425,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetPairTicker (this.extend (request, params));
+        const response = await (this as any).publicGetPairTicker (this.extend (request, params));
         //
         //     {
         //         "ticker": {
@@ -479,7 +479,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetPairTrades (this.extend (request, params));
+        const response = await (this as any).publicGetPairTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -588,7 +588,7 @@ export default class indodax extends Exchange {
             'pair': market['id'],
             'order_id': id,
         };
-        const response= await (this as any).privatePostGetOrder (this.extend (request, params));
+        const response = await (this as any).privatePostGetOrder (this.extend (request, params));
         const orders = response['return'];
         const order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
         return this.extend ({ 'info': response }, order);
@@ -612,7 +612,7 @@ export default class indodax extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response= await (this as any).privatePostOpenOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOpenOrders (this.extend (request, params));
         const rawOrders = response['return']['orders'];
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders) {
@@ -657,7 +657,7 @@ export default class indodax extends Exchange {
             symbol = market['symbol'];
             request['pair'] = market['id'];
         }
-        const response= await (this as any).privatePostOrderHistory (this.extend (request, params));
+        const response = await (this as any).privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market);
         orders = this.filterBy (orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
@@ -743,7 +743,7 @@ export default class indodax extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privatePostWithdrawFee (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawFee (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -781,7 +781,7 @@ export default class indodax extends Exchange {
             request['start'] = startTime;
             request['end'] = this.iso8601 (this.milliseconds ()).slice (0, 10);
         }
-        const response= await (this as any).privatePostTransHistory (this.extend (request, params));
+        const response = await (this as any).privatePostTransHistory (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -896,7 +896,7 @@ export default class indodax extends Exchange {
         if (tag) {
             request['withdraw_memo'] = tag;
         }
-        const response= await (this as any).privatePostWithdrawCoin (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawCoin (this.extend (request, params));
         //
         //     {
         //         "success": 1,

@@ -306,7 +306,7 @@ export default class bitflyer extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetGetbalance (params);
+        const response = await (this as any).privateGetGetbalance (params);
         //
         //     [
         //         {
@@ -389,7 +389,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response= await (this as any).publicGetGetticker (this.extend (request, params));
+        const response = await (this as any).publicGetGetticker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -472,7 +472,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response= await (this as any).publicGetGetexecutions (this.extend (request, params));
+        const response = await (this as any).publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -490,7 +490,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
-        const response= await (this as any).privateGetGettradingcommission (this.extend (request, params));
+        const response = await (this as any).privateGetGettradingcommission (this.extend (request, params));
         //
         //   {
         //       commission_rate: '0.0020'
@@ -633,7 +633,7 @@ export default class bitflyer extends Exchange {
             'product_code': market['id'],
             'count': limit,
         };
-        const response= await (this as any).privateGetGetchildorders (this.extend (request, params));
+        const response = await (this as any).privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
@@ -717,7 +717,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const response= await (this as any).privateGetGetexecutions (this.extend (request, params));
+        const response = await (this as any).privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -737,7 +737,7 @@ export default class bitflyer extends Exchange {
         const request = {
             'product_code': this.marketIds (symbols),
         };
-        const response= await (this as any).privateGetpositions (this.extend (request, params));
+        const response = await (this as any).privateGetpositions (this.extend (request, params));
         //
         //     [
         //         {
@@ -782,7 +782,7 @@ export default class bitflyer extends Exchange {
             'amount': amount,
             // 'bank_account_id': 1234,
         };
-        const response= await (this as any).privatePostWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
@@ -811,7 +811,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100
         }
-        const response= await (this as any).privateGetGetcoinins (this.extend (request, params));
+        const response = await (this as any).privateGetGetcoinins (this.extend (request, params));
         //
         //     [
         //         {
@@ -849,7 +849,7 @@ export default class bitflyer extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100
         }
-        const response= await (this as any).privateGetGetcoinouts (this.extend (request, params));
+        const response = await (this as any).privateGetGetcoinouts (this.extend (request, params));
         //
         //     [
         //         {

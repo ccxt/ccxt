@@ -164,7 +164,7 @@ export default class therock extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetFunds (params);
+        const response = await (this as any).publicGetFunds (params);
         //
         //    {
         //        funds: [
@@ -283,7 +283,7 @@ export default class therock extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetBalances (params);
+        const response = await (this as any).privateGetBalances (params);
         return this.parseBalance (response);
     }
 
@@ -359,7 +359,7 @@ export default class therock extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetFundsTickers (params);
+        const response = await (this as any).publicGetFundsTickers (params);
         const tickers = this.indexBy (response['tickers'], 'fund_id');
         const ids = Object.keys (tickers);
         const result = {};
@@ -387,7 +387,7 @@ export default class therock extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response= await (this as any).publicGetFundsIdTicker (this.extend (request, params));
+        const response = await (this as any).publicGetFundsIdTicker (this.extend (request, params));
         //
         //     {
         //         "date":"2022-01-16T00:05:08.192Z",
@@ -672,7 +672,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response= await (this as any).privateGetTransactions (this.extend (request, params));
+        const response = await (this as any).privateGetTransactions (this.extend (request, params));
         //
         //     {
         //         "transactions": [
@@ -957,7 +957,7 @@ export default class therock extends Exchange {
             request['after'] = this.iso8601 (since);
         }
         params = this.extend (request, params);
-        const response= await (this as any).privateGetTransactions (params);
+        const response = await (this as any).privateGetTransactions (params);
         //
         //     {
         //         "transactions": [
@@ -1046,7 +1046,7 @@ export default class therock extends Exchange {
             request['destination_tag'] = tag;
         }
         // requires write permission on the wallet
-        const response= await (this as any).privatePostAtmsWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostAtmsWithdraw (this.extend (request, params));
         //
         //    { "transaction_id": 65088485 }
         //
@@ -1243,7 +1243,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response= await (this as any).privateGetFundsFundIdOrders (this.extend (request, params));
+        const response = await (this as any).privateGetFundsFundIdOrders (this.extend (request, params));
         //
         //     {
         //         orders: [
@@ -1289,7 +1289,7 @@ export default class therock extends Exchange {
             'id': id,
             'fund_id': market['id'],
         };
-        const response= await (this as any).privateGetFundsFundIdOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetFundsFundIdOrdersId (this.extend (request, params));
         //
         //     {
         //         "id": 4325578,
@@ -1345,7 +1345,7 @@ export default class therock extends Exchange {
             'amount': amount,
             'price': price,
         };
-        const response= await (this as any).privatePostFundsFundIdOrders (this.extend (request, params));
+        const response = await (this as any).privatePostFundsFundIdOrders (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1364,7 +1364,7 @@ export default class therock extends Exchange {
             'id': id,
             'fund_id': this.marketId (symbol),
         };
-        const response= await (this as any).privateDeleteFundsFundIdOrdersId (this.extend (request, params));
+        const response = await (this as any).privateDeleteFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1391,7 +1391,7 @@ export default class therock extends Exchange {
         if (since === undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response= await (this as any).publicGetFundsIdOhlcStatistics (this.extend (request, params));
+        const response = await (this as any).publicGetFundsIdOhlcStatistics (this.extend (request, params));
         //
         //     [
         //         {
@@ -1465,7 +1465,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response= await (this as any).privateGetFundsIdTrades (this.extend (request, params));
+        const response = await (this as any).privateGetFundsIdTrades (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -1521,7 +1521,7 @@ export default class therock extends Exchange {
         if (since !== undefined) {
             request['after'] = this.iso8601 (since);
         }
-        const response= await (this as any).publicGetFundsIdTrades (this.extend (request, params));
+        const response = await (this as any).publicGetFundsIdTrades (this.extend (request, params));
         //
         //     {
         //         trades: [
@@ -1571,7 +1571,7 @@ export default class therock extends Exchange {
         let request = {
             'id': market['id'],
         };
-        const response= await (this as any).publicGetFundsId (this.extend (request, params));
+        const response = await (this as any).publicGetFundsId (this.extend (request, params));
         //
         //     {
         //         id: 'ETHBTC',
@@ -1614,7 +1614,7 @@ export default class therock extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetFunds (params);
+        const response = await (this as any).publicGetFunds (params);
         //
         //     {
         //         funds: [

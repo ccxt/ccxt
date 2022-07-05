@@ -352,7 +352,7 @@ export default class btcmarkets extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     [
         //         {
@@ -445,7 +445,7 @@ export default class btcmarkets extends Exchange {
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     {
         //         "timestamp": "2019-09-01T18:34:27.045000Z"
@@ -477,7 +477,7 @@ export default class btcmarkets extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccountsMeBalances (params);
+        const response = await (this as any).privateGetAccountsMeBalances (params);
         return this.parseBalance (response);
     }
 
@@ -531,7 +531,7 @@ export default class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default is 10, max 200
         }
-        const response= await (this as any).publicGetMarketsMarketIdCandles (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketIdCandles (this.extend (request, params));
         //
         //     [
         //         ["2020-09-12T18:30:00.000000Z","14409.45","14409.45","14403.91","14403.91","0.01571701"],
@@ -557,7 +557,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'marketId': market['id'],
         };
-        const response= await (this as any).publicGetMarketsMarketIdOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketIdOrderbook (this.extend (request, params));
         //
         //     {
         //         "marketId":"BTC-AUD",
@@ -645,7 +645,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'marketId': market['id'],
         };
-        const response= await (this as any).publicGetMarketsMarketIdTicker (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketIdTicker (this.extend (request, params));
         //
         //     {
         //         "marketId":"BAT-AUD",
@@ -670,7 +670,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response= await (this as any).publicGetMarketIdTick (this.extend (request, params));
+        const response = await (this as any).publicGetMarketIdTick (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -758,7 +758,7 @@ export default class btcmarkets extends Exchange {
             // 'since': 59868345231,
             'marketId': market['id'],
         };
-        const response= await (this as any).publicGetMarketsMarketIdTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketsMarketIdTrades (this.extend (request, params));
         //
         //     [
         //         {"id":"6191646611","price":"539.98","amount":"0.5","timestamp":"2020-08-09T15:21:05.016000Z","side":"Ask"},
@@ -842,7 +842,7 @@ export default class btcmarkets extends Exchange {
             request['clientOrderId'] = clientOrderId;
         }
         params = this.omit (params, 'clientOrderId');
-        const response= await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "orderId": "7524",
@@ -902,7 +902,7 @@ export default class btcmarkets extends Exchange {
         return await (this as any).privateDeleteOrdersId (this.extend (request, params));
     }
 
-    customCalculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const rate = market[takerOrMaker];
         let currency = undefined;
@@ -1014,7 +1014,7 @@ export default class btcmarkets extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).privateGetOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1044,7 +1044,7 @@ export default class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1102,7 +1102,7 @@ export default class btcmarkets extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetTrades (this.extend (request, params));
+        const response = await (this as any).privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1159,7 +1159,7 @@ export default class btcmarkets extends Exchange {
         if (tag !== undefined) {
             request['toAddress'] = address + '?dt=' + tag;
         }
-        const response= await (this as any).privatePostWithdrawals (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawals (this.extend (request, params));
         //
         //      {
         //          "id": "4126657",

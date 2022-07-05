@@ -458,7 +458,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTimestamp (params);
+        const response = await (this as any).publicGetTimestamp (params);
         //
         //     {
         //         "code":"200000",
@@ -477,7 +477,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response= await (this as any).publicGetStatus (params);
+        const response = await (this as any).publicGetStatus (params);
         //
         //     {
         //         "code":"200000",
@@ -506,7 +506,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetSymbols (params);
+        const response = await (this as any).publicGetSymbols (params);
         //
         //     {
         //         "code": "200000",
@@ -645,7 +645,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "currency": "OMG",
@@ -696,7 +696,7 @@ export default class kucoin extends Exchange {
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response= await (this as any).privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         //
         //     {
         //         code: "200000",
@@ -752,7 +752,7 @@ export default class kucoin extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetWithdrawalsQuotas (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
         const withdrawFees = {};
         withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
@@ -884,7 +884,7 @@ export default class kucoin extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetMarketAllTickers (params);
+        const response = await (this as any).publicGetMarketAllTickers (params);
         //
         //     {
         //         "code": "200000",
@@ -942,7 +942,7 @@ export default class kucoin extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetMarketStats (this.extend (request, params));
+        const response = await (this as any).publicGetMarketStats (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -1027,7 +1027,7 @@ export default class kucoin extends Exchange {
             request['startAt'] = this.parseInt (Math.floor (since / 1000));
         }
         request['endAt'] = this.parseInt (Math.floor (endAt / 1000));
-        const response= await (this as any).publicGetMarketCandles (this.extend (request, params));
+        const response = await (this as any).publicGetMarketCandles (this.extend (request, params));
         //
         //     {
         //         "code":"200000",
@@ -1054,7 +1054,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = { 'currency': currency['id'] };
-        const response= await (this as any).privatePostDepositAddresses (this.extend (request, params));
+        const response = await (this as any).privatePostDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
@@ -1102,7 +1102,7 @@ export default class kucoin extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).privateGetDepositAddresses (this.extend (request, params));
+        const response = await (this as any).privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
@@ -1788,7 +1788,7 @@ export default class kucoin extends Exchange {
         // if (limit !== undefined) {
         //     request['pageSize'] = limit;
         // }
-        const response= await (this as any).publicGetMarketHistories (this.extend (request, params));
+        const response = await (this as any).publicGetMarketHistories (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -1952,7 +1952,7 @@ export default class kucoin extends Exchange {
         const request = {
             'symbols': market['id'],
         };
-        const response= await (this as any).privateGetTradeFees (this.extend (request, params));
+        const response = await (this as any).privateGetTradeFees (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -2013,7 +2013,7 @@ export default class kucoin extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).privatePostWithdrawals (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawals (this.extend (request, params));
         //
         // https://github.com/ccxt/ccxt/issues/5558
         //
@@ -2316,7 +2316,7 @@ export default class kucoin extends Exchange {
         const request = {
             'type': type,
         };
-        const response= await (this as any).privateGetAccounts (this.extend (request, params));
+        const response = await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "code":"200000",
@@ -2379,7 +2379,7 @@ export default class kucoin extends Exchange {
                 // it doesn't like more than 24 characters
                 request['bizNo'] = this.uuid22 ();
             }
-            const response= await (this as any).futuresPrivatePostTransferOut (this.extend (request, params));
+            const response = await (this as any).futuresPrivatePostTransferOut (this.extend (request, params));
             //
             //     {
             //         'code': '200000',
@@ -2416,7 +2416,7 @@ export default class kucoin extends Exchange {
             if (!('clientOid' in params)) {
                 request['clientOid'] = this.uuid ();
             }
-            const response= await (this as any).privatePostAccountsInnerTransfer (this.extend (request, params));
+            const response = await (this as any).privatePostAccountsInnerTransfer (this.extend (request, params));
             //
             //     {
             //         'code': '200000',
@@ -2642,7 +2642,7 @@ export default class kucoin extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response= await (this as any).privateGetAccountsLedgers (this.extend (request, params));
+        const response = await (this as any).privateGetAccountsLedgers (this.extend (request, params));
         //
         //     {
         //         "code":"200000",

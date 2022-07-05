@@ -398,7 +398,7 @@ export default class bitfinex extends Exchange {
          * @returns {[dict]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostAccountFees (params);
+        const response = await (this as any).privatePostAccountFees (params);
         const fees = response['withdraw'];
         const withdraw = {};
         const ids = Object.keys (fees);
@@ -423,7 +423,7 @@ export default class bitfinex extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostSummary (params);
+        const response = await (this as any).privatePostSummary (params);
         //
         //     {
         //          time: '2022-02-23T16:05:47.659000Z',
@@ -630,7 +630,7 @@ export default class bitfinex extends Exchange {
             throw new ExchangeError (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
         }
         const query = this.omit (params, 'type');
-        const response= await (this as any).privatePostBalances (query);
+        const response = await (this as any).privatePostBalances (query);
         //    [ { type: 'deposit',
         //        currency: 'btc',
         //        amount: '0.00116721',
@@ -700,7 +700,7 @@ export default class bitfinex extends Exchange {
             'walletfrom': fromId,
             'walletto': toId,
         };
-        const response= await (this as any).privatePostTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostTransfer (this.extend (request, params));
         //
         //     [
         //         {
@@ -779,7 +779,7 @@ export default class bitfinex extends Exchange {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
-        const response= await (this as any).publicGetBookSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetBookSymbol (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -793,7 +793,7 @@ export default class bitfinex extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetTickers (params);
+        const response = await (this as any).publicGetTickers (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = this.parseTicker (response[i]);
@@ -965,7 +965,7 @@ export default class bitfinex extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = this.parseInt (since / 1000);
         }
-        const response= await (this as any).publicGetTradesSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -994,7 +994,7 @@ export default class bitfinex extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = this.parseInt (since / 1000);
         }
-        const response= await (this as any).privatePostMytrades (this.extend (request, params));
+        const response = await (this as any).privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1032,7 +1032,7 @@ export default class bitfinex extends Exchange {
         if (postOnly) {
             request['is_postonly'] = true;
         }
-        const response= await (this as any).privatePostOrderNew (this.extend (request, params));
+        const response = await (this as any).privatePostOrderNew (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1056,7 +1056,7 @@ export default class bitfinex extends Exchange {
         if (type !== undefined) {
             order['type'] = this.safeString (this.options['orderTypes'], type, type);
         }
-        const response= await (this as any).privatePostOrderCancelReplace (this.extend (order, params));
+        const response = await (this as any).privatePostOrderCancelReplace (this.extend (order, params));
         return this.parseOrder (response);
     }
 
@@ -1177,7 +1177,7 @@ export default class bitfinex extends Exchange {
                 throw new ExchangeError (this.id + ' has no symbol ' + symbol);
             }
         }
-        const response= await (this as any).privatePostOrders (params);
+        const response = await (this as any).privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
@@ -1201,7 +1201,7 @@ export default class bitfinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privatePostOrdersHist (this.extend (request, params));
+        const response = await (this as any).privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
@@ -1223,7 +1223,7 @@ export default class bitfinex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        const response= await (this as any).privatePostOrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1275,7 +1275,7 @@ export default class bitfinex extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response= await (this as any).v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
+        const response = await (this as any).v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         //
         //     [
         //         [1457539800000,0.02594,0.02594,0.02594,0.02594,0.1],
@@ -1327,7 +1327,7 @@ export default class bitfinex extends Exchange {
             'wallet_name': 'exchange',
             'renew': 0, // a value of 1 will generate a new address
         };
-        const response= await (this as any).privatePostDepositNew (this.extend (request, params));
+        const response = await (this as any).privatePostDepositNew (this.extend (request, params));
         let address = this.safeValue (response, 'address');
         let tag = undefined;
         if ('address_pool' in response) {
@@ -1371,7 +1371,7 @@ export default class bitfinex extends Exchange {
         if (since !== undefined) {
             query['since'] = this.parseInt (since / 1000);
         }
-        const response= await (this as any).privatePostHistoryMovements (this.extend (query, params));
+        const response = await (this as any).privatePostHistoryMovements (this.extend (query, params));
         //
         //     [
         //         {
@@ -1545,7 +1545,7 @@ export default class bitfinex extends Exchange {
          * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostPositions (params);
+        const response = await (this as any).privatePostPositions (params);
         //
         //     [
         //         {

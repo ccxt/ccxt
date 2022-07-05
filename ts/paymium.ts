@@ -134,7 +134,7 @@ export default class paymium extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetUser (params);
+        const response = await (this as any).privateGetUser (params);
         return this.parseBalance (response);
     }
 
@@ -152,7 +152,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': this.marketId (symbol),
         };
-        const response= await (this as any).publicGetDataCurrencyDepth (this.extend (request, params));
+        const response = await (this as any).publicGetDataCurrencyDepth (this.extend (request, params));
         return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -282,7 +282,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const response= await (this as any).publicGetDataCurrencyTrades (this.extend (request, params));
+        const response = await (this as any).publicGetDataCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -296,7 +296,7 @@ export default class paymium extends Exchange {
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostUserAddresses (params);
+        const response = await (this as any).privatePostUserAddresses (params);
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -321,7 +321,7 @@ export default class paymium extends Exchange {
         const request = {
             'address': code,
         };
-        const response= await (this as any).privateGetUserAddressesAddress (this.extend (request, params));
+        const response = await (this as any).privateGetUserAddressesAddress (this.extend (request, params));
         //
         //     {
         //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -343,7 +343,7 @@ export default class paymium extends Exchange {
          * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetUserAddresses (params);
+        const response = await (this as any).privateGetUserAddresses (params);
         //
         //     [
         //         {
@@ -400,7 +400,7 @@ export default class paymium extends Exchange {
         if (type !== 'market') {
             request['price'] = price;
         }
-        const response= await (this as any).privatePostUserOrders (this.extend (request, params));
+        const response = await (this as any).privatePostUserOrders (this.extend (request, params));
         return {
             'info': response,
             'id': response['uuid'],
@@ -449,7 +449,7 @@ export default class paymium extends Exchange {
             'email': toAccount,
             // 'comment': 'a small note explaining the transfer'
         };
-        const response= await (this as any).privatePostUserEmailTransfers (this.extend (request, params));
+        const response = await (this as any).privatePostUserEmailTransfers (this.extend (request, params));
         //
         //     {
         //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",

@@ -759,7 +759,7 @@ export default class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicSpotGetPublicTime (params);
+        const response = await (this as any).publicSpotGetPublicTime (params);
         //
         //     {
         //       code: '00000',
@@ -1018,7 +1018,7 @@ export default class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicSpotGetPublicCurrencies (params);
+        const response = await (this as any).publicSpotGetPublicCurrencies (params);
         //
         //     {
         //       code: '00000',
@@ -1481,7 +1481,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicSpotGetPublicProduct (this.extend (request, params));
+        const response = await (this as any).publicSpotGetPublicProduct (this.extend (request, params));
         //
         //     {
         //         code: '00000',
@@ -1515,7 +1515,7 @@ export default class bitget extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicSpotGetPublicProducts (params);
+        const response = await (this as any).publicSpotGetPublicProducts (params);
         //
         //     {
         //         code: '00000',
@@ -2388,7 +2388,7 @@ export default class bitget extends Exchange {
             currency = this.currency (code);
             request['coinId'] = currency['id'];
         }
-        const response= await (this as any).privateSpotPostAccountBills (this.extend (request, params));
+        const response = await (this as any).privateSpotPostAccountBills (this.extend (request, params));
         //
         //     {
         //       code: '00000',
@@ -2485,7 +2485,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateSpotPostTradeFills (this.extend (request, params));
+        const response = await (this as any).privateSpotPostTradeFills (this.extend (request, params));
         //
         //     {
         //       code: '00000',
@@ -2582,7 +2582,7 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response= await (this as any).privateMixGetPositionSinglePosition (this.extend (request, params));
+        const response = await (this as any).privateMixGetPositionSinglePosition (this.extend (request, params));
         //
         //     {
         //       code: '00000',
@@ -2629,7 +2629,7 @@ export default class bitget extends Exchange {
         const request = {
             'productType': (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
         };
-        const response= await (this as any).privateMixGetPositionAllPosition (this.extend (request, params));
+        const response = await (this as any).privateMixGetPositionAllPosition (this.extend (request, params));
         //
         //     {
         //       code: '00000',
@@ -2763,7 +2763,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response= await (this as any).publicMixGetMarketHistoryFundRate (this.extend (request, params));
+        const response = await (this as any).publicMixGetMarketHistoryFundRate (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -2814,7 +2814,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicMixGetMarketCurrentFundRate (this.extend (request, params));
+        const response = await (this as any).publicMixGetMarketCurrentFundRate (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -2872,7 +2872,7 @@ export default class bitget extends Exchange {
             'holdSide': holdSide, // long or short
         };
         params = this.omit (params, 'holdSide');
-        const response= await (this as any).privateMixPostAccountSetMargin (this.extend (request, params));
+        const response = await (this as any).privateMixPostAccountSetMargin (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -2996,7 +2996,7 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicMixGetMarketSymbolLeverage (this.extend (request, params));
+        const response = await (this as any).publicMixGetMarketSymbolLeverage (this.extend (request, params));
         //
         //     {
         //         "code": "00000",

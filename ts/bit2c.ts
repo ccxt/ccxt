@@ -171,7 +171,7 @@ export default class bit2c extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccountBalanceV2 (params);
+        const response = await (this as any).privateGetAccountBalanceV2 (params);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -279,7 +279,7 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).publicGetExchangesPairTicker (this.extend (request, params));
+        const response = await (this as any).publicGetExchangesPairTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -329,7 +329,7 @@ export default class bit2c extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccountBalance (params);
+        const response = await (this as any).privateGetAccountBalance (params);
         //
         //     {
         //         "AVAILABLE_NIS": 0.0,
@@ -437,7 +437,7 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response= await (this as any).privateGetOrderMyOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrderMyOrders (this.extend (request, params));
         const orders = this.safeValue (response, market['id'], {});
         const asks = this.safeValue (orders, 'ask', []);
         const bids = this.safeValue (orders, 'bid', []);
@@ -508,7 +508,7 @@ export default class bit2c extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response= await (this as any).privateGetOrderOrderHistory (this.extend (request, params));
+        const response = await (this as any).privateGetOrderOrderHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -666,7 +666,7 @@ export default class bit2c extends Exchange {
         const request = {
             'Coin': currency['id'],
         };
-        const response= await (this as any).privatePostFundsAddCoinFundsRequest (this.extend (request, params));
+        const response = await (this as any).privatePostFundsAddCoinFundsRequest (this.extend (request, params));
         //
         //     {
         //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',

@@ -518,7 +518,7 @@ export default class woo extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).v1PrivateGetClientInfo (params);
+        const response = await (this as any).v1PrivateGetClientInfo (params);
         //
         //     {
         //         "application":{
@@ -1243,7 +1243,7 @@ export default class woo extends Exchange {
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response= await (this as any).v1PrivateGetSubAccountAssets (params);
+        const response = await (this as any).v1PrivateGetSubAccountAssets (params);
         //
         //     {
         //         rows: [{
@@ -1401,7 +1401,7 @@ export default class woo extends Exchange {
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response= await (this as any).v1PrivateGetAssetHistory (this.extend (request, params));
+        const response = await (this as any).v1PrivateGetAssetHistory (this.extend (request, params));
         // {
         //     rows: [
         //       {
@@ -1622,7 +1622,7 @@ export default class woo extends Exchange {
             'from_application_id': fromAccount,
             'to_application_id': toAccount,
         };
-        const response= await (this as any).v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
         //
         //     {
         //         "success": true,

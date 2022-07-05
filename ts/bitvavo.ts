@@ -293,7 +293,7 @@ export default class bitvavo extends Exchange {
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     { "time": 1590379519148 }
         //
@@ -308,7 +308,7 @@ export default class bitvavo extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         const currencies= await (this as any).fetchCurrenciesFromCache (params);
         const currenciesById = this.indexBy (currencies, 'symbol');
         //
@@ -395,7 +395,7 @@ export default class bitvavo extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response= await (this as any).publicGetAssets (params);
+            const response = await (this as any).publicGetAssets (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'response': response,
                 'timestamp': now,
@@ -412,7 +412,7 @@ export default class bitvavo extends Exchange {
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).fetchCurrenciesFromCache (params);
+        const response = await (this as any).fetchCurrenciesFromCache (params);
         //
         //     [
         //         {
@@ -480,7 +480,7 @@ export default class bitvavo extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response= await (this as any).publicGetTicker24h (this.extend (request, params));
+        const response = await (this as any).publicGetTicker24h (this.extend (request, params));
         //
         //     {
         //         "market":"ETH-BTC",
@@ -560,7 +560,7 @@ export default class bitvavo extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetTicker24h (params);
+        const response = await (this as any).publicGetTicker24h (params);
         //
         //     [
         //         {
@@ -609,7 +609,7 @@ export default class bitvavo extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response= await (this as any).publicGetMarketTrades (this.extend (request, params));
+        const response = await (this as any).publicGetMarketTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -730,7 +730,7 @@ export default class bitvavo extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccount (params);
+        const response = await (this as any).privateGetAccount (params);
         //
         //     {
         //         "fees": {
@@ -776,7 +776,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response= await (this as any).publicGetMarketBook (this.extend (request, params));
+        const response = await (this as any).publicGetMarketBook (this.extend (request, params));
         //
         //     {
         //         "market":"BTC-EUR",
@@ -852,7 +852,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 1440, max 1440
         }
-        const response= await (this as any).publicGetMarketCandles (this.extend (request, params));
+        const response = await (this as any).publicGetMarketCandles (this.extend (request, params));
         //
         //     [
         //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
@@ -890,7 +890,7 @@ export default class bitvavo extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetBalance (params);
+        const response = await (this as any).privateGetBalance (params);
         //
         //     [
         //         {
@@ -917,7 +917,7 @@ export default class bitvavo extends Exchange {
         const request = {
             'symbol': currency['id'],
         };
-        const response= await (this as any).privateGetDeposit (this.extend (request, params));
+        const response = await (this as any).privateGetDeposit (this.extend (request, params));
         //
         //     {
         //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1017,7 +1017,7 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const response= await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await (this as any).privatePostOrder (this.extend (request, params));
         //
         //      {
         //          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
@@ -1080,7 +1080,7 @@ export default class bitvavo extends Exchange {
         if (Object.keys (request).length) {
             request['orderId'] = id;
             request['market'] = market['id'];
-            const response= await (this as any).privatePutOrder (this.extend (request, params));
+            const response = await (this as any).privatePutOrder (this.extend (request, params));
             return this.parseOrder (response, market);
         } else {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params');
@@ -1106,7 +1106,7 @@ export default class bitvavo extends Exchange {
             'orderId': id,
             'market': market['id'],
         };
-        const response= await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
@@ -1131,7 +1131,7 @@ export default class bitvavo extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response= await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1160,7 +1160,7 @@ export default class bitvavo extends Exchange {
             'orderId': id,
             'market': market['id'],
         };
-        const response= await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await (this as any).privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -1228,7 +1228,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response= await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1288,7 +1288,7 @@ export default class bitvavo extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response= await (this as any).privateGetOrdersOpen (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersOpen (this.extend (request, params));
         //
         //     [
         //         {
@@ -1476,7 +1476,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response= await (this as any).privateGetTrades (this.extend (request, params));
+        const response = await (this as any).privateGetTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1523,7 +1523,7 @@ export default class bitvavo extends Exchange {
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const response= await (this as any).privatePostWithdrawal (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawal (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1563,7 +1563,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response= await (this as any).privateGetWithdrawalHistory (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawalHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1610,7 +1610,7 @@ export default class bitvavo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response= await (this as any).privateGetDepositHistory (this.extend (request, params));
+        const response = await (this as any).privateGetDepositHistory (this.extend (request, params));
         //
         //     [
         //         {

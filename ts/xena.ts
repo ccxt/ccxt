@@ -191,7 +191,7 @@ export default class xena extends Exchange {
          * @param {object} params extra parameters specific to the xena api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetMarketDataV2ServerTime (params);
+        const response = await (this as any).publicGetMarketDataV2ServerTime (params);
         //
         //     {
         //         "msgType":"0",
@@ -210,7 +210,7 @@ export default class xena extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetCommonInstruments (params);
+        const response = await (this as any).publicGetCommonInstruments (params);
         //
         //     [
         //         {
@@ -392,7 +392,7 @@ export default class xena extends Exchange {
          * @param {object} params extra parameters specific to the xena api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCommonCurrencies (params);
+        const response = await (this as any).publicGetCommonCurrencies (params);
         //
         //     {
         //         "BAB": {
@@ -572,7 +572,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response= await (this as any).publicGetMarketDataV2DomSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetMarketDataV2DomSymbol (this.extend (request, params));
         //
         //     {
         //         "msgType":"W",
@@ -615,7 +615,7 @@ export default class xena extends Exchange {
          * @param {object} params extra parameters specific to the xena api endpoint
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response= await (this as any).privateGetTradingAccounts (params);
+        const response = await (this as any).privateGetTradingAccounts (params);
         //
         //     {
         //         "accounts": [
@@ -711,7 +711,7 @@ export default class xena extends Exchange {
         const request = {
             'accountId': accountId,
         };
-        const response= await (this as any).privateGetTradingAccountsAccountIdBalance (this.extend (request, params));
+        const response = await (this as any).privateGetTradingAccountsAccountIdBalance (this.extend (request, params));
         //
         //     {
         //         "msgType":"XAR",
@@ -849,7 +849,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
+        const response = await (this as any).privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -960,7 +960,7 @@ export default class xena extends Exchange {
                 request['from'] = (now - limit * duration) * 1000000;
             }
         }
-        const response= await (this as any).publicGetMarketDataV2CandlesSymbolTimeframe (this.extend (request, params));
+        const response = await (this as any).publicGetMarketDataV2CandlesSymbolTimeframe (this.extend (request, params));
         //
         //     {
         //         "mdEntry":[
@@ -1000,7 +1000,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).publicGetMarketDataV2TradesSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetMarketDataV2TradesSymbol (this.extend (request, params));
         //
         //     {
         //         "msgType":"W",
@@ -1188,7 +1188,7 @@ export default class xena extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         }
-        const response= await (this as any).privatePostTradingOrderNew (this.extend (request, params));
+        const response = await (this as any).privatePostTradingOrderNew (this.extend (request, params));
         //
         //     {
         //         "msgType":"8",
@@ -1265,7 +1265,7 @@ export default class xena extends Exchange {
             request['capPrice'] = this.priceToPrecision (symbol, capPrice);
             params = this.omit (params, 'capPrice');
         }
-        const response= await (this as any).privatePostTradingOrderReplace (this.extend (request, params));
+        const response = await (this as any).privatePostTradingOrderReplace (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1299,7 +1299,7 @@ export default class xena extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        const response= await (this as any).privatePostTradingOrderCancel (this.extend (request, params));
+        const response = await (this as any).privatePostTradingOrderCancel (this.extend (request, params));
         //
         //     {
         //         "msgType":"8",
@@ -1351,7 +1351,7 @@ export default class xena extends Exchange {
         } else {
             request['massCancelRequestType'] = '7'; // CancelAllOrders
         }
-        const response= await (this as any).privatePostTradingOrderMassCancel (this.extend (request, params));
+        const response = await (this as any).privatePostTradingOrderMassCancel (this.extend (request, params));
         //
         //     {
         //         "msgType":"r",
@@ -1390,7 +1390,7 @@ export default class xena extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response= await (this as any).privateGetTradingAccountsAccountIdActiveOrders (this.extend (request, params));
+        const response = await (this as any).privateGetTradingAccountsAccountIdActiveOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1450,7 +1450,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetTradingAccountsAccountIdLastOrderStatuses (this.extend (request, params));
+        const response = await (this as any).privateGetTradingAccountsAccountIdLastOrderStatuses (this.extend (request, params));
         //
         //     [
         //         {
@@ -1495,7 +1495,7 @@ export default class xena extends Exchange {
             'accountId': accountId,
             'currency': currency['id'],
         };
-        const response= await (this as any).privatePostTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        const response = await (this as any).privatePostTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
         //
         //     {
         //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
@@ -1531,7 +1531,7 @@ export default class xena extends Exchange {
             'accountId': accountId,
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        const response = await (this as any).privateGetTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
         //
         //     {
         //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
@@ -1758,7 +1758,7 @@ export default class xena extends Exchange {
             'address': address,
             'id': uuid, // mandatory external ID (string), used by the client to identify his request
         };
-        const response= await (this as any).privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
+        const response = await (this as any).privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
         //
         //     {
         //         "withdrawalRequestId": 47383243,
@@ -1874,7 +1874,7 @@ export default class xena extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 5000
         }
-        const response= await (this as any).privateGetTransfersAccountsAccountIdBalanceHistory (this.extend (request, params));
+        const response = await (this as any).privateGetTransfersAccountsAccountIdBalanceHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1910,7 +1910,7 @@ export default class xena extends Exchange {
          * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetCommonInstruments (params);
+        const response = await (this as any).publicGetCommonInstruments (params);
         //
         //    [
         //        {

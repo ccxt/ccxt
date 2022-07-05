@@ -229,7 +229,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "data":[
@@ -449,7 +449,7 @@ export default class digifinex extends Exchange {
     }
 
     async fetchMarketsV1 (params = {}) {
-        const response= await (this as any).publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         "data": [
@@ -586,7 +586,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 150
         }
-        const response= await (this as any).publicGetOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
         //
         //     {
         //         "bids": [
@@ -617,7 +617,7 @@ export default class digifinex extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetTicker (params);
+        const response = await (this as any).publicGetTicker (params);
         //
         //    {
         //        "ticker": [{
@@ -663,7 +663,7 @@ export default class digifinex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         //
         //    {
         //        "ticker": [{
@@ -808,7 +808,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     {
         //         "server_time": 1589873762,
@@ -826,7 +826,7 @@ export default class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response= await (this as any).publicGetPing (params);
+        const response = await (this as any).publicGetPing (params);
         //
         //     {
         //         "msg": "pong",
@@ -863,7 +863,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 500
         }
-        const response= await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await (this as any).publicGetTrades (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -943,7 +943,7 @@ export default class digifinex extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             request['startTime'] = this.sum (endTime, -limit * duration);
         }
-        const response= await (this as any).publicGetKline (this.extend (request, params));
+        const response = await (this as any).publicGetKline (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -989,7 +989,7 @@ export default class digifinex extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['type'] = side + suffix;
-        const response= await (this as any).privatePostMarketOrderNew (this.extend (request, params));
+        const response = await (this as any).privatePostMarketOrderNew (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1024,7 +1024,7 @@ export default class digifinex extends Exchange {
             'market': orderType,
             'order_id': id,
         };
-        const response= await (this as any).privatePostMarketOrderCancel (this.extend (request, params));
+        const response = await (this as any).privatePostMarketOrderCancel (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1063,7 +1063,7 @@ export default class digifinex extends Exchange {
             'market': orderType,
             'order_id': ids.join (','),
         };
-        const response= await (this as any).privatePostCancelOrder (this.extend (request, params));
+        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1191,7 +1191,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response= await (this as any).privateGetMarketOrderCurrent (this.extend (request, params));
+        const response = await (this as any).privateGetMarketOrderCurrent (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1246,7 +1246,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
-        const response= await (this as any).privateGetMarketOrderHistory (this.extend (request, params));
+        const response = await (this as any).privateGetMarketOrderHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1293,7 +1293,7 @@ export default class digifinex extends Exchange {
             'market': orderType,
             'order_id': id,
         };
-        const response= await (this as any).privateGetMarketOrder (this.extend (request, params));
+        const response = await (this as any).privateGetMarketOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1352,7 +1352,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
-        const response= await (this as any).privateGetMarketMytrades (this.extend (request, params));
+        const response = await (this as any).privateGetMarketMytrades (this.extend (request, params));
         //
         //      {
         //          "list":[
@@ -1447,7 +1447,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const response= await (this as any).privateGetMarketFinancelog (this.extend (request, params));
+        const response = await (this as any).privateGetMarketFinancelog (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1506,7 +1506,7 @@ export default class digifinex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "data":[
@@ -1723,7 +1723,7 @@ export default class digifinex extends Exchange {
             'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         };
-        const response= await (this as any).privatePostTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0
@@ -1763,7 +1763,7 @@ export default class digifinex extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const response= await (this as any).privatePostWithdrawNew (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawNew (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1781,7 +1781,7 @@ export default class digifinex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response= await (this as any).privateGetMarginPositions (this.extend (request, params));
+        const response = await (this as any).privateGetMarginPositions (this.extend (request, params));
         //
         //     {
         //         "margin": "45.71246418952618",
@@ -1843,7 +1843,7 @@ export default class digifinex extends Exchange {
     async fetchBorrowRate (code, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const response= await (this as any).privateGetMarginAssets (this.extend (request, params));
+        const response = await (this as any).privateGetMarginAssets (this.extend (request, params));
         //
         //     {
         //         "list": [
@@ -1882,7 +1882,7 @@ export default class digifinex extends Exchange {
          * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetMarginAssets (params);
+        const response = await (this as any).privateGetMarginAssets (params);
         //
         //     {
         //         "list": [

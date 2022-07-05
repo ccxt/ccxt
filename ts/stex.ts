@@ -304,7 +304,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "success":true,
@@ -388,7 +388,7 @@ export default class stex extends Exchange {
         const request = {
             'code': 'ALL',
         };
-        const response= await (this as any).publicGetCurrencyPairsListCode (this.extend (request, params));
+        const response = await (this as any).publicGetCurrencyPairsListCode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -507,7 +507,7 @@ export default class stex extends Exchange {
         const request = {
             'currencyPairId': market['id'],
         };
-        const response= await (this as any).publicGetTickerCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).publicGetTickerCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -562,7 +562,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetPing (params);
+        const response = await (this as any).publicGetPing (params);
         //
         //     {
         //         "success": true,
@@ -600,7 +600,7 @@ export default class stex extends Exchange {
             request['limit_bids'] = limit; // returns all if set to 0, default 100
             request['limit_asks'] = limit; // returns all if set to 0, default 100
         }
-        const response= await (this as any).publicGetOrderbookCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbookCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -703,7 +703,7 @@ export default class stex extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetTicker (params);
+        const response = await (this as any).publicGetTicker (params);
         //
         //     {
         //         "success":true,
@@ -810,7 +810,7 @@ export default class stex extends Exchange {
             request['timeStart'] = this.parseInt (since / 1000);
             request['timeEnd'] = this.sum (request['timeStart'], timerange);
         }
-        const response= await (this as any).publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
+        const response = await (this as any).publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -908,7 +908,7 @@ export default class stex extends Exchange {
             request['sort'] = 'ASC'; // needed to make the from param work
             request['from'] = this.parseInt (since / 1000);
         }
-        const response= await (this as any).publicGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).publicGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -941,7 +941,7 @@ export default class stex extends Exchange {
         const request = {
             'currencyPairId': market['id'],
         };
-        const response= await (this as any).tradingGetFeesCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).tradingGetFeesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -988,7 +988,7 @@ export default class stex extends Exchange {
          */
         await this.loadMarkets ();
         // await this.loadAccounts ();
-        const response= await (this as any).profileGetWallets (params);
+        const response = await (this as any).profileGetWallets (params);
         //
         //     {
         //         "success": true,
@@ -1199,7 +1199,7 @@ export default class stex extends Exchange {
             'price': parseFloat (this.priceToPrecision (symbol, price)), // required
             // 'trigger_price': 123.45 // required for STOP_LIMIT_BUY or STOP_LIMIT_SELL
         };
-        const response= await (this as any).tradingPostOrdersCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).tradingPostOrdersCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1236,7 +1236,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).tradingGetOrderOrderId (this.extend (request, params));
+        const response = await (this as any).tradingGetOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1278,7 +1278,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).reportsGetOrdersOrderId (this.extend (request, params));
+        const response = await (this as any).reportsGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1404,7 +1404,7 @@ export default class stex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).tradingDeleteOrderOrderId (this.extend (request, params));
+        const response = await (this as any).tradingDeleteOrderOrderId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1525,7 +1525,7 @@ export default class stex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).reportsGetTradesCurrencyPairId (this.extend (request, params));
+        const response = await (this as any).reportsGetTradesCurrencyPairId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1564,7 +1564,7 @@ export default class stex extends Exchange {
             // The list of protocols can be obtained from the /public/currencies/{currencyId}
             // 'protocol_id': 10,
         };
-        const response= await (this as any).profilePostWalletsCurrencyId (this.extend (request, params));
+        const response = await (this as any).profilePostWalletsCurrencyId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1654,7 +1654,7 @@ export default class stex extends Exchange {
         const request = {
             'walletId': walletId,
         };
-        const response= await (this as any).profileGetWalletsWalletId (this.extend (request, params));
+        const response = await (this as any).profileGetWalletsWalletId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1884,7 +1884,7 @@ export default class stex extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).profileGetDepositsId (this.extend (request, params));
+        const response = await (this as any).profileGetDepositsId (this.extend (request, params));
         //
         //     {
         //         success: true,
@@ -1945,7 +1945,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response= await (this as any).profileGetDeposits (this.extend (request, params));
+        const response = await (this as any).profileGetDeposits (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1993,7 +1993,7 @@ export default class stex extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).profileGetWithdrawalsId (this.extend (request, params));
+        const response = await (this as any).profileGetWithdrawalsId (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2061,7 +2061,7 @@ export default class stex extends Exchange {
         if (since !== undefined) {
             request['timeStart'] = since;
         }
-        const response= await (this as any).profileGetWithdrawals (this.extend (request, params));
+        const response = await (this as any).profileGetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2375,7 +2375,7 @@ export default class stex extends Exchange {
             request['protocol_id'] = network;
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).profilePostWithdraw (this.extend (request, params));
+        const response = await (this as any).profilePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -2423,7 +2423,7 @@ export default class stex extends Exchange {
          * @returns {dict} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "success": true,

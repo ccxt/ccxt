@@ -257,7 +257,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'time': 'minute',
         };
-        const response= await (this as any).publicGetTransactions (this.extend (request, params));
+        const response = await (this as any).publicGetTransactions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -285,7 +285,7 @@ export default class bitstamp1 extends Exchange {
          * @param {object} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const response= await (this as any).privatePostBalance (params);
+        const response = await (this as any).privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -350,7 +350,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).privatePostOrderStatus (this.extend (request, params));
+        const response = await (this as any).privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 
@@ -374,7 +374,7 @@ export default class bitstamp1 extends Exchange {
         const request = {
             'id': pair,
         };
-        const response= await (this as any).privatePostOpenOrdersId (this.extend (request, params));
+        const response = await (this as any).privatePostOpenOrdersId (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 

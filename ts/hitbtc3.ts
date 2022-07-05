@@ -348,7 +348,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetPublicSymbol (params);
+        const response = await (this as any).publicGetPublicSymbol (params);
         //
         //     {
         //         "AAVEUSDT_PERP":{
@@ -487,7 +487,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetPublicCurrency (params);
+        const response = await (this as any).publicGetPublicCurrency (params);
         //
         //     {
         //       "WEALTH": {
@@ -621,7 +621,7 @@ export default class hitbtc3 extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).privatePostWalletCryptoAddress (this.extend (request, params));
+        const response = await (this as any).privatePostWalletCryptoAddress (this.extend (request, params));
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
         //
@@ -658,7 +658,7 @@ export default class hitbtc3 extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).privateGetWalletCryptoAddress (this.extend (request, params));
+        const response = await (this as any).privateGetWalletCryptoAddress (this.extend (request, params));
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
@@ -736,7 +736,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const response= await (this as any).fetchTickers ([ symbol ], params);
+        const response = await (this as any).fetchTickers ([ symbol ], params);
         return this.safeValue (response, symbol);
     }
 
@@ -756,7 +756,7 @@ export default class hitbtc3 extends Exchange {
             const delimited = marketIds.join (',');
             request['symbols'] = delimited;
         }
-        const response= await (this as any).publicGetPublicTicker (this.extend (request, params));
+        const response = await (this as any).publicGetPublicTicker (this.extend (request, params));
         //
         //     {
         //       "BTCUSDT": {
@@ -853,7 +853,7 @@ export default class hitbtc3 extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response= await (this as any).publicGetPublicTrades (this.extend (request, params));
+        const response = await (this as any).publicGetPublicTrades (this.extend (request, params));
         const marketIds = Object.keys (response);
         let trades = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -1018,7 +1018,7 @@ export default class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetWalletTransactions (this.extend (request, params));
+        const response = await (this as any).privateGetWalletTransactions (this.extend (request, params));
         //
         //     [
         //       {
@@ -1202,7 +1202,7 @@ export default class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response= await (this as any).publicGetPublicOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetPublicOrderbook (this.extend (request, params));
         const result = {};
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1948,7 +1948,7 @@ export default class hitbtc3 extends Exchange {
             'source': fromId,
             'destination': toId,
         };
-        const response= await (this as any).privatePostWalletTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostWalletTransfer (this.extend (request, params));
         //
         //     [
         //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
@@ -2006,7 +2006,7 @@ export default class hitbtc3 extends Exchange {
             'to_currency': toNetwork,
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response= await (this as any).privatePostWalletConvert (this.extend (request, params));
+        const response = await (this as any).privatePostWalletConvert (this.extend (request, params));
         // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
         return {
             'info': response,
@@ -2046,7 +2046,7 @@ export default class hitbtc3 extends Exchange {
             }
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).privatePostWalletCryptoWithdraw (this.extend (request, params));
+        const response = await (this as any).privatePostWalletCryptoWithdraw (this.extend (request, params));
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
@@ -2088,7 +2088,7 @@ export default class hitbtc3 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).publicGetPublicFuturesHistoryFunding (this.extend (request, params));
+        const response = await (this as any).publicGetPublicFuturesHistoryFunding (this.extend (request, params));
         //
         //    {
         //        "BTCUSDT_PERP": [
@@ -2340,7 +2340,7 @@ export default class hitbtc3 extends Exchange {
             symbol = market['symbol'];
             request['symbols'] = market['id'];
         }
-        const response= await (this as any).publicGetPublicFuturesInfo (this.extend (request, params));
+        const response = await (this as any).publicGetPublicFuturesInfo (this.extend (request, params));
         //
         //     {
         //         "BTCUSDT_PERP": {

@@ -173,7 +173,7 @@ export default class tidebit extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetDepositAddress (this.extend (request, params));
         if ('success' in response) {
             if (response['success']) {
                 const address = this.safeString (response, 'address');
@@ -196,7 +196,7 @@ export default class tidebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetMarkets (params);
+        const response = await (this as any).publicGetMarkets (params);
         //
         //    [
         //        {
@@ -285,7 +285,7 @@ export default class tidebit extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetMembersMe (params);
+        const response = await (this as any).privateGetMembersMe (params);
         return this.parseBalance (response);
     }
 
@@ -308,7 +308,7 @@ export default class tidebit extends Exchange {
             request['limit'] = limit; // default = 300
         }
         request['market'] = market['id'];
-        const response= await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await (this as any).publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
@@ -392,7 +392,7 @@ export default class tidebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response= await (this as any).publicGetTickersMarket (this.extend (request, params));
+        const response = await (this as any).publicGetTickersMarket (this.extend (request, params));
         //
         //     {
         //         "at":1398410899,
@@ -448,7 +448,7 @@ export default class tidebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response= await (this as any).publicGetTrades (this.extend (request, params));
+        const response = await (this as any).publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -500,7 +500,7 @@ export default class tidebit extends Exchange {
         } else {
             request['timestamp'] = 1800000;
         }
-        const response= await (this as any).publicGetK (this.extend (request, params));
+        const response = await (this as any).publicGetK (this.extend (request, params));
         //
         //     [
         //         [1498530360,2700.0,2700.0,2700.0,2700.0,0.01],
@@ -619,7 +619,7 @@ export default class tidebit extends Exchange {
         if (type === 'limit') {
             request['price'] = price.toString ();
         }
-        const response= await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         return this.parseOrder (response);
     }
 

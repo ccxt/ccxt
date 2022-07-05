@@ -242,7 +242,7 @@ export default class crex24 extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetInstruments (params);
+        const response = await (this as any).publicGetInstruments (params);
         //
         //         [ {
         //             "symbol": "$PAC-BTC",
@@ -407,7 +407,7 @@ export default class crex24 extends Exchange {
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     [ {                   symbol: "$PAC",
         //                             name: "PACCoin",
@@ -488,7 +488,7 @@ export default class crex24 extends Exchange {
          * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetCurrenciesWithdrawalFees (params);
+        const response = await (this as any).publicGetCurrenciesWithdrawalFees (params);
         //
         //     [
         //         {
@@ -556,7 +556,7 @@ export default class crex24 extends Exchange {
             // 'currency': 'ETH', // comma-separated list of currency ids
             // 'nonZeroOnly': 'false', // true by default
         };
-        const response= await (this as any).accountGetBalance (this.extend (request, params));
+        const response = await (this as any).accountGetBalance (this.extend (request, params));
         //
         //     [
         //         {
@@ -587,7 +587,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response= await (this as any).publicGetOrderBook (this.extend (request, params));
+        const response = await (this as any).publicGetOrderBook (this.extend (request, params));
         //
         //     {  buyLevels: [ { price: 0.03099, volume: 0.00610063 },
         //                     { price: 0.03097, volume: 1.33455158 },
@@ -666,7 +666,7 @@ export default class crex24 extends Exchange {
         const request = {
             'instrument': market['id'],
         };
-        const response= await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await (this as any).publicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -703,7 +703,7 @@ export default class crex24 extends Exchange {
             const ids = this.marketIds (symbols);
             request['instrument'] = ids.join (',');
         }
-        const response= await (this as any).publicGetTickers (this.extend (request, params));
+        const response = await (this as any).publicGetTickers (this.extend (request, params));
         //
         //     [ {    instrument: "$PAC-BTC",
         //                  last:  3.3e-7,
@@ -811,7 +811,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response= await (this as any).publicGetRecentTrades (this.extend (request, params));
+        const response = await (this as any).publicGetRecentTrades (this.extend (request, params));
         //
         //     [ {     price:  0.03117,
         //            volume:  0.02597403,
@@ -844,7 +844,7 @@ export default class crex24 extends Exchange {
 
     async fetchPublicTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response= await (this as any).publicGetTradingFeeSchedules (params);
+        const response = await (this as any).publicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -892,7 +892,7 @@ export default class crex24 extends Exchange {
 
     async fetchPrivateTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response= await (this as any).tradingGetTradingFee (params);
+        const response = await (this as any).tradingGetTradingFee (params);
         //
         //     {
         //         feeRates: [
@@ -972,7 +972,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
         }
-        const response= await (this as any).publicGetOhlcv (this.extend (request, params));
+        const response = await (this as any).publicGetOhlcv (this.extend (request, params));
         //
         //     [
         //         {
@@ -1116,7 +1116,7 @@ export default class crex24 extends Exchange {
             }
             params = this.omit (params, 'stopPrice');
         }
-        const response= await (this as any).tradingPostPlaceOrder (this.extend (request, params));
+        const response = await (this as any).tradingPostPlaceOrder (this.extend (request, params));
         //
         //     {
         //         "id": 469594855,
@@ -1152,7 +1152,7 @@ export default class crex24 extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).tradingGetOrderStatus (this.extend (request, params));
+        const response = await (this as any).tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1235,7 +1235,7 @@ export default class crex24 extends Exchange {
         const request = {
             'id': ids.join (','),
         };
-        const response= await (this as any).tradingGetOrderStatus (this.extend (request, params));
+        const response = await (this as any).tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1278,7 +1278,7 @@ export default class crex24 extends Exchange {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
-        const response= await (this as any).tradingGetActiveOrders (this.extend (request, params));
+        const response = await (this as any).tradingGetActiveOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1398,7 +1398,7 @@ export default class crex24 extends Exchange {
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const response= await (this as any).cancelOrders ([ id ], symbol, params);
+        const response = await (this as any).cancelOrders ([ id ], symbol, params);
         return this.safeValue (response, 0);
     }
 
@@ -1423,7 +1423,7 @@ export default class crex24 extends Exchange {
             const id = this.parseInt (ids[i]);
             request['ids'].push (id);
         }
-        const response= await (this as any).tradingPostCancelOrdersById (this.extend (request, params));
+        const response = await (this as any).tradingPostCancelOrdersById (this.extend (request, params));
         //
         //     [
         //         465448358,
@@ -1485,7 +1485,7 @@ export default class crex24 extends Exchange {
         const request = {
             'id': id,
         };
-        const response= await (this as any).tradingGetOrderTrades (this.extend (request, params));
+        const response = await (this as any).tradingGetOrderTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1540,7 +1540,7 @@ export default class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response= await (this as any).tradingGetTradeHistory (this.extend (request, params));
+        const response = await (this as any).tradingGetTradeHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -1592,7 +1592,7 @@ export default class crex24 extends Exchange {
         if (since !== undefined) {
             request['from'] = this.ymdhms (since, 'T');
         }
-        const response= await (this as any).accountGetMoneyTransfers (this.extend (request, params));
+        const response = await (this as any).accountGetMoneyTransfers (this.extend (request, params));
         //
         //     [
         //         {
@@ -1747,7 +1747,7 @@ export default class crex24 extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).accountGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).accountGetDepositAddress (this.extend (request, params));
         //
         //     {
         //         "currency": "BTS",
@@ -1802,7 +1802,7 @@ export default class crex24 extends Exchange {
             request['transport'] = network;
             params = this.omit (params, 'network');
         }
-        const response= await (this as any).accountPostWithdraw (this.extend (request, params));
+        const response = await (this as any).accountPostWithdraw (this.extend (request, params));
         return this.parseTransaction (response);
     }
 

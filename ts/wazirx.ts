@@ -138,7 +138,7 @@ export default class wazirx extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetExchangeInfo (params);
+        const response = await (this as any).publicGetExchangeInfo (params);
         //
         // {
         //     "timezone":"UTC",
@@ -262,7 +262,7 @@ export default class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
         }
-        const response= await (this as any).publicGetDepth (this.extend (request, params));
+        const response = await (this as any).publicGetDepth (this.extend (request, params));
         //
         //     {
         //          "timestamp":1559561187,
@@ -430,7 +430,7 @@ export default class wazirx extends Exchange {
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response= await (this as any).publicGetSystemStatus (params);
+        const response = await (this as any).publicGetSystemStatus (params);
         //
         //     {
         //         "status":"normal", // normal, system maintenance
@@ -455,7 +455,7 @@ export default class wazirx extends Exchange {
          * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -538,7 +538,7 @@ export default class wazirx extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetFunds (params);
+        const response = await (this as any).privateGetFunds (params);
         //
         // [
         //       {
@@ -576,7 +576,7 @@ export default class wazirx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response= await (this as any).privateGetAllOrders (this.extend (request, params));
+        const response = await (this as any).privateGetAllOrders (this.extend (request, params));
         // [
         //     {
         //         "id": 28,
@@ -627,7 +627,7 @@ export default class wazirx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response= await (this as any).privateGetOpenOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOpenOrders (this.extend (request, params));
         // [
         //     {
         //         "id": 28,
@@ -698,7 +698,7 @@ export default class wazirx extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response= await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -735,7 +735,7 @@ export default class wazirx extends Exchange {
         if (stopPrice !== undefined) {
             request['type'] = 'stop_limit';
         }
-        const response= await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await (this as any).privatePostOrder (this.extend (request, params));
         // {
         //     "id": 28,
         //     "symbol": "wrxinr",

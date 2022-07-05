@@ -195,7 +195,7 @@ export default class upbit extends Exchange {
         const request = {
             'currency': id,
         };
-        const response= await (this as any).privateGetWithdrawsChance (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawsChance (this.extend (request, params));
         //
         //     {
         //         "member_level": {
@@ -293,7 +293,7 @@ export default class upbit extends Exchange {
         const request = {
             'market': id,
         };
-        const response= await (this as any).privateGetOrdersChance (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersChance (this.extend (request, params));
         //
         //     {
         //         "bid_fee": "0.0015",
@@ -398,7 +398,7 @@ export default class upbit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetMarketAll (params);
+        const response = await (this as any).publicGetMarketAll (params);
         //
         //    [
         //        {
@@ -497,7 +497,7 @@ export default class upbit extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetAccounts (params);
+        const response = await (this as any).privateGetAccounts (params);
         //
         //     [ {          currency: "BTC",
         //                   balance: "0.005",
@@ -539,7 +539,7 @@ export default class upbit extends Exchange {
         const request = {
             'markets': ids,
         };
-        const response= await (this as any).publicGetOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetOrderbook (this.extend (request, params));
         //
         //     [ {          market:   "BTC-ETH",
         //               timestamp:    1542899030043,
@@ -682,7 +682,7 @@ export default class upbit extends Exchange {
         const request = {
             'markets': ids,
         };
-        const response= await (this as any).publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         //
         //     [ {                market: "BTC-ETH",
         //                    trade_date: "20181122",
@@ -825,7 +825,7 @@ export default class upbit extends Exchange {
             'market': market['id'],
             'count': limit,
         };
-        const response= await (this as any).publicGetTradesTicks (this.extend (request, params));
+        const response = await (this as any).publicGetTradesTicks (this.extend (request, params));
         //
         //     [ {             market: "BTC-ETH",
         //             trade_date_utc: "2018-11-22",
@@ -865,7 +865,7 @@ export default class upbit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response= await (this as any).privateGetOrdersChance (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersChance (this.extend (request, params));
         //
         //     {
         //         "bid_fee": "0.0005",
@@ -1067,7 +1067,7 @@ export default class upbit extends Exchange {
             request['identifier'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'identifier' ]);
-        const response= await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         //
         //     {
         //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
@@ -1105,7 +1105,7 @@ export default class upbit extends Exchange {
         const request = {
             'uuid': id,
         };
-        const response= await (this as any).privateDeleteOrder (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1152,7 +1152,7 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default is 100
         }
-        const response= await (this as any).privateGetDeposits (this.extend (request, params));
+        const response = await (this as any).privateGetDeposits (this.extend (request, params));
         //
         //     [
         //         {
@@ -1195,7 +1195,7 @@ export default class upbit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default is 100
         }
-        const response= await (this as any).privateGetWithdraws (this.extend (request, params));
+        const response = await (this as any).privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -1453,7 +1453,7 @@ export default class upbit extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        const response= await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1533,7 +1533,7 @@ export default class upbit extends Exchange {
         const request = {
             'uuid': id,
         };
-        const response= await (this as any).privateGetOrder (this.extend (request, params));
+        const response = await (this as any).privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1590,7 +1590,7 @@ export default class upbit extends Exchange {
          * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetDepositsCoinAddresses (params);
+        const response = await (this as any).privateGetDepositsCoinAddresses (params);
         //
         //     [
         //         {
@@ -1674,7 +1674,7 @@ export default class upbit extends Exchange {
             'currency': currency['id'],
         };
         // https://github.com/ccxt/ccxt/issues/6452
-        const response= await (this as any).privatePostDepositsGenerateCoinAddress (this.extend (request, params));
+        const response = await (this as any).privatePostDepositsGenerateCoinAddress (this.extend (request, params));
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:

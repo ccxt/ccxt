@@ -160,7 +160,7 @@ export default class btctradeua extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostBalance (params);
+        const response = await (this as any).privatePostBalance (params);
         return this.parseBalance (response);
     }
 
@@ -273,7 +273,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetJapanStatHighSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetJapanStatHighSymbol (this.extend (request, params));
         const ticker = this.safeValue (response, 'trades');
         //
         // {
@@ -399,7 +399,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetDealsSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetDealsSymbol (this.extend (request, params));
         // they report each trade twice (once for both of the two sides of the fill)
         // deduplicate trades for that reason
         const trades = [];
@@ -507,7 +507,7 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).privatePostMyOrdersSymbol (this.extend (request, params));
+        const response = await (this as any).privatePostMyOrdersSymbol (this.extend (request, params));
         const orders = this.safeValue (response, 'your_open_orders');
         return this.parseOrders (orders, market, since, limit);
     }

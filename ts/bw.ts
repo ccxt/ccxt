@@ -150,7 +150,7 @@ export default class bw extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId (params);
+        const response = await (this as any).publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId (params);
         //
         //    {
         //        resMsg: {
@@ -267,7 +267,7 @@ export default class bw extends Exchange {
          * @param {object} params extra parameters specific to the bw api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
+        const response = await (this as any).publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
         //
         //     {
         //         "datas":[
@@ -419,7 +419,7 @@ export default class bw extends Exchange {
         const request = {
             'marketId': market['id'],
         };
-        const response= await (this as any).publicGetApiDataV1Ticker (this.extend (request, params));
+        const response = await (this as any).publicGetApiDataV1Ticker (this.extend (request, params));
         //
         //     {
         //         "datas": [
@@ -451,7 +451,7 @@ export default class bw extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetApiDataV1Tickers (params);
+        const response = await (this as any).publicGetApiDataV1Tickers (params);
         //
         //     {
         //         "datas": [
@@ -501,7 +501,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['dataSize'] = limit;
         }
-        const response= await (this as any).publicGetApiDataV1Entrusts (this.extend (request, params));
+        const response = await (this as any).publicGetApiDataV1Entrusts (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -593,7 +593,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['dataSize'] = limit; // max 20
         }
-        const response= await (this as any).publicGetApiDataV1Trades (this.extend (request, params));
+        const response = await (this as any).publicGetApiDataV1Trades (this.extend (request, params));
         //
         //     {
         //         "datas": [
@@ -623,7 +623,7 @@ export default class bw extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
+        const response = await (this as any).publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
         //
         //    {
         //        resMsg: { method: null, code: '1', message: 'success !' },
@@ -728,7 +728,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['dataSize'] = limit;
         }
-        const response= await (this as any).publicGetApiDataV1Klines (this.extend (request, params));
+        const response = await (this as any).publicGetApiDataV1Klines (this.extend (request, params));
         //
         //     {
         //         "datas":[
@@ -768,7 +768,7 @@ export default class bw extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response= await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
+        const response = await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
         //
         //     {
         //         "datas": {
@@ -814,7 +814,7 @@ export default class bw extends Exchange {
             'rangeType': 0, // limit order
             'marketId': market['id'],
         };
-        const response= await (this as any).privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (this.extend (request, params));
+        const response = await (this as any).privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -943,7 +943,7 @@ export default class bw extends Exchange {
             'marketId': market['id'],
             'entrustId': id,
         };
-        const response= await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
+        const response = await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -987,7 +987,7 @@ export default class bw extends Exchange {
             'marketId': market['id'],
             'entrustId': id,
         };
-        const response= await (this as any).privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (this.extend (request, params));
+        const response = await (this as any).privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (this.extend (request, params));
         //
         //     {
         //         "datas": null,
@@ -1024,7 +1024,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit; // default limit is 20
         }
-        const response= await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustRecordFromCacheWithPage (this.extend (request, params));
+        const response = await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustRecordFromCacheWithPage (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -1082,7 +1082,7 @@ export default class bw extends Exchange {
         if (since !== undefined) {
             request['startDateTime'] = since;
         }
-        const response= await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        const response = await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
         const data = this.safeValue (response, 'datas', {});
         const orders = this.safeValue (data, 'entrustList', []);
         return this.parseOrders (orders, market, since, limit);
@@ -1119,7 +1119,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit; // default limit is 20
         }
-        const response= await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
+        const response = await (this as any).privateGetExchangeEntrustControllerWebsiteEntrustControllerGetUserEntrustList (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -1200,7 +1200,7 @@ export default class bw extends Exchange {
         const request = {
             'currencyTypeName': currency['name'],
         };
-        const response= await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (this.extend (request, params));
+        const response = await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinAddress (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -1333,7 +1333,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 50
         }
-        const response= await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (this.extend (request, params));
+        const response = await (this as any).privatePostExchangeFundControllerWebsiteFundcontrollerGetPayinCoinRecord (this.extend (request, params));
         //
         //     {
         //         "datas": {
@@ -1387,7 +1387,7 @@ export default class bw extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 50
         }
-        const response= await (this as any).privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (this.extend (request, params));
+        const response = await (this as any).privateGetExchangeFundControllerWebsiteFundwebsitecontrollerGetpayoutcoinrecord (this.extend (request, params));
         //
         //     {
         //         "datas": {

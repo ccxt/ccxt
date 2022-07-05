@@ -332,7 +332,7 @@ export default class blockchaincom extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response= await (this as any).publicGetL3Symbol (this.extend (request, params));
+        const response = await (this as any).publicGetL3Symbol (this.extend (request, params));
         return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
@@ -344,7 +344,7 @@ export default class blockchaincom extends Exchange {
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        const response= await (this as any).publicGetL2Symbol (this.extend (request, params));
+        const response = await (this as any).publicGetL2Symbol (this.extend (request, params));
         return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
@@ -400,7 +400,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response= await (this as any).publicGetTickersSymbol (this.extend (request, params));
+        const response = await (this as any).publicGetTickersSymbol (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -545,7 +545,7 @@ export default class blockchaincom extends Exchange {
         if (stopPriceRequired) {
             request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const response= await (this as any).privatePostOrders (this.extend (request, params));
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -562,7 +562,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
         return {
             'id': id,
             'info': response,
@@ -588,7 +588,7 @@ export default class blockchaincom extends Exchange {
             const marketId = this.marketId (symbol);
             request['symbol'] = marketId;
         }
-        const response= await (this as any).privateDeleteOrders (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
         return {
             'symbol': symbol,
             'info': response,
@@ -604,7 +604,7 @@ export default class blockchaincom extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetFees (params);
+        const response = await (this as any).privateGetFees (params);
         //
         //     {
         //         makerRate: "0.002",
@@ -685,7 +685,7 @@ export default class blockchaincom extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response= await (this as any).privateGetOrders (this.extend (request, params));
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -775,7 +775,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privatePostDepositsCurrency (this.extend (request, params));
+        const response = await (this as any).privatePostDepositsCurrency (this.extend (request, params));
         const rawAddress = this.safeString (response, 'address');
         let tag = undefined;
         let address = undefined;
@@ -883,7 +883,7 @@ export default class blockchaincom extends Exchange {
          * @returns {dict} dictionary with keys beneficiaryId, name, currency
          */
         await this.loadMarkets ();
-        const response= await (this as any).privateGetWhitelist ();
+        const response = await (this as any).privateGetWhitelist ();
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -903,7 +903,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response= await (this as any).privateGetWhitelistCurrency (this.extend (request, params));
+        const response = await (this as any).privateGetWhitelistCurrency (this.extend (request, params));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -937,7 +937,7 @@ export default class blockchaincom extends Exchange {
             // 'beneficiary': address/id,
             'sendMax': false,
         };
-        const response= await (this as any).privatePostWithdrawals (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawals (this.extend (request, params));
         //
         //     {
         //         amount: "30.0",
@@ -971,7 +971,7 @@ export default class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response= await (this as any).privateGetWithdrawals (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, code, since, limit);
     }
 
@@ -989,7 +989,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'withdrawalId': id,
         };
-        const response= await (this as any).privateGetWithdrawalsWithdrawalId (this.extend (request, params));
+        const response = await (this as any).privateGetWithdrawalsWithdrawalId (this.extend (request, params));
         return this.parseTransaction (response);
     }
 
@@ -1012,7 +1012,7 @@ export default class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response= await (this as any).privateGetDeposits (this.extend (request, params));
+        const response = await (this as any).privateGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, code, since, limit);
     }
 
@@ -1049,7 +1049,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'account': accountName,
         };
-        const response= await (this as any).privateGetAccounts (this.extend (request, params));
+        const response = await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "primary": [
@@ -1097,7 +1097,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response= await (this as any).privateGetOrdersOrderId (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
         //         "exOrdId": 11111111,

@@ -208,7 +208,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response= await (this as any).publicGetTime (params);
+        const response = await (this as any).publicGetTime (params);
         //
         //     {
         //         "data": {
@@ -233,7 +233,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response= await (this as any).privateGetAccounts (this.extend (request, params));
+        const response = await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "id": "XLM",
@@ -337,7 +337,7 @@ export default class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
         };
-        const response= await (this as any).privatePostAccountsAccountIdAddresses (this.extend (request, params));
+        const response = await (this as any).privatePostAccountsAccountIdAddresses (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -661,7 +661,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const response= await (this as any).fetchCurrenciesFromCache (params);
+        const response = await (this as any).fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         const exchangeRates = this.safeValue (response, 'exchangeRates', {});
         const data = this.safeValue (currencies, 'data', []);
@@ -758,7 +758,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const response= await (this as any).fetchCurrenciesFromCache (params);
+        const response = await (this as any).fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         //
         //     {
@@ -839,7 +839,7 @@ export default class coinbase extends Exchange {
         const request = {
             // 'currency': 'USD',
         };
-        const response= await (this as any).publicGetExchangeRates (this.extend (request, params));
+        const response = await (this as any).publicGetExchangeRates (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -991,7 +991,7 @@ export default class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response= await (this as any).privateGetAccounts (this.extend (request, params));
+        const response = await (this as any).privateGetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination":{
@@ -1056,7 +1056,7 @@ export default class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response= await (this as any).privateGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response = await (this as any).privateGetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
