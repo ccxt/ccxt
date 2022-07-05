@@ -15,8 +15,8 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            'rateLimit': 250, // a bit slower than 50 times per second ~40 times per second
-            'version': 'v1',
+            'rateLimit': 1000, // testing
+            'version': 'v2',
             'certified': true,
             'pro': true,
             'has': {
@@ -95,61 +95,18 @@ module.exports = class bitmart extends Exchange {
             },
             'api': {
                 'public': {
-                    'system': {
-                        'get': {
-                            'time': 5, // https://api-cloud.bitmart.com/system/time
-                            'service': 5, // https://api-cloud.bitmart.com/system/service
-                        },
-                    },
-                    'account': {
-                        'get': {
-                            'currencies': 10, // https://api-cloud.bitmart.com/account/v1/currencies
-                        },
-                    },
-                    'spot': {
-                        'get': {
-                            'currencies': 1,
-                            'symbols': 1,
-                            'symbols/details': 1,
-                            'ticker': 1, // ?symbol=BTC_USDT
-                            'steps': 1, // ?symbol=BMX_ETH
-                            'symbols/kline': 1, // ?symbol=BMX_ETH&step=15&from=1525760116&to=1525769116
-                            'symbols/book': 1, // ?symbol=BMX_ETH&precision=6
-                            'symbols/trades': 1, // ?symbol=BMX_ETH
-                        },
-                    },
-                    'contract': {
-                        'get': {
-                            'tickers': 0.5,
-                        },
-                    },
+                    'get': {
+                        'system/time': 1,
+                        'system/service': 1,
+                    }
                 },
                 'private': {
-                    'account': {
-                        'get': {
-                            'wallet': 0.5, // ?account_type=1
-                            'deposit/address': 1, // ?currency=USDT-TRC20
-                            'withdraw/charge': 1, // ?currency=BTC
-                            'deposit-withdraw/history': 1, // ?limit=10&offset=1&operationType=withdraw
-                            'deposit-withdraw/detail': 1, // ?id=1679952
-                        },
-                        'post': {
-                            'withdraw/apply': 1,
-                        },
+                    'get': {
                     },
-                    'spot': {
-                        'get': {
-                            'wallet': 0.5,
-                            'order_detail': 0.1,
-                            'orders': 0.5,
-                            'trades': 0.5,
-                        },
-                        'post': {
-                            'submit_order': 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
-                            'cancel_order': 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
-                            'cancel_orders': 0.1,
-                        },
+                    'post': {
                     },
+                    'delete': {
+                    }
                 },
             },
             'timeframes': {
@@ -2542,14 +2499,8 @@ module.exports = class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const access = this.safeString (api, 0);
-        const type = this.safeString (api, 1);
         const baseUrl = this.implodeHostname (this.urls['api']['rest']);
-        let url = baseUrl + '/' + type;
-        if (type !== 'system') {
-            url += '/' + this.version;
-        }
-        url += '/' + this.implodeParams (path, params);
+        let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2559,7 +2510,7 @@ module.exports = class bitmart extends Exchange {
                 url += '?' + queryString;
             }
         }
-        if (access === 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             headers = {
