@@ -3037,7 +3037,7 @@ export default class bitget extends Exchange {
             'leverage': leverage,
             'holdSide': holdSide,
         };
-        return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
+        return await (this as any).privateMixPostAccountSetLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
@@ -3064,7 +3064,7 @@ export default class bitget extends Exchange {
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
         };
-        return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
+        return await (this as any).privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

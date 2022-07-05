@@ -6,7 +6,7 @@ import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-function testBorrowRate (exchange, borrowRate, method, code) {
+function testBorrowRate (exchange, borrowRate, method, code = undefined) {
 
     const format = {
         'currency': 'USDT',

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { functions } from '../../../../ccxt.js';
 import { Precise } from '../../../base/Precise.js'
 import assert from 'assert';

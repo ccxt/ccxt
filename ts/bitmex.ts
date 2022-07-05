@@ -2608,7 +2608,7 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostPositionLeverage (this.extend (request, params));
+        return await (this as any).privatePostPositionLeverage (this.extend (request, params));
     }
 
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
@@ -2638,7 +2638,7 @@ export default class bitmex extends Exchange {
             'symbol': market['id'],
             'enabled': enabled,
         };
-        return await this.privatePostPositionIsolate (this.extend (request, params));
+        return await (this as any).privatePostPositionIsolate (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

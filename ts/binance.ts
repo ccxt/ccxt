@@ -5916,7 +5916,7 @@ export default class binance extends Exchange {
             const now = this.milliseconds ();
             request['endTime'] = Math.min (endTime, now); // cannot have an endTime later than current time
         }
-        const response= await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
+        const response = await (this as any).sapiGetMarginInterestRateHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -5930,7 +5930,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response);
     }
 
-    parseBorrowRateHistory (response, code, since, limit) {
+    parseBorrowRateHistory (response, code = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];

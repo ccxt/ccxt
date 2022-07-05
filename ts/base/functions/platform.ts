@@ -1,4 +1,5 @@
 
+// @ts-nocheck
 // ----------------------------------------------------------------------------
 // There's been a lot of messing with this code...
 // The problem is to satisfy the following requirements:

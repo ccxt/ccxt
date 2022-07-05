@@ -420,7 +420,7 @@ export default class paymium extends Exchange {
         const request = {
             'uuid': id,
         };
-        return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
+        return await (this as any).privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

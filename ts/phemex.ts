@@ -953,7 +953,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (parseFloat (stringValue));
+        return this.parseInt (parseFloat (stringValue));
     }
 
     toEv (amount, market = undefined) {
@@ -3209,7 +3209,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {

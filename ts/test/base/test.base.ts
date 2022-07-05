@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ololog from 'ololog'
 import { functions } from '../../../ccxt.js';
 import { strictEqual, deepEqual } from 'assert'

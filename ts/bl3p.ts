@@ -275,7 +275,7 @@ export default class bl3p extends Exchange {
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const market = this.market (symbol);
-        const response = await this.publicGetMarketTrades (this.extend ({
+        const response = await (this as any).publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
@@ -354,7 +354,7 @@ export default class bl3p extends Exchange {
         const market = this.market (symbol);
         const order = {
             'market': market['id'],
-            'amount_int': parseInt (amount * 100000000),
+            'amount_int': this.parseInt (amount * 100000000),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
@@ -382,7 +382,7 @@ export default class bl3p extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        return await (this as any).privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

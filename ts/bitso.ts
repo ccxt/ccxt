@@ -979,7 +979,7 @@ export default class bitso extends Exchange {
         const request = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid (this.extend (request, params));
+        return await (this as any).privateDeleteOrdersOid (this.extend (request, params));
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
@@ -1151,7 +1151,7 @@ export default class bitso extends Exchange {
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetOrdersOid ({
+        const response = await (this as any).privateGetOrdersOid ({
             'oid': id,
         });
         const payload = this.safeValue (response, 'payload');

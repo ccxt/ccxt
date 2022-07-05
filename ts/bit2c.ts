@@ -415,7 +415,7 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostOrderCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostOrderCancelOrder (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

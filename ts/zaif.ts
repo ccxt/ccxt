@@ -685,8 +685,8 @@ export default class zaif extends Exchange {
         };
     }
 
-    nonce () {
-        const nonce = parseFloat (this.milliseconds () / 1000);
+    customNonce () {
+        const nonce = parseFloat ((this.milliseconds () / 1000).toString());
         return nonce.toFixed (8);
     }
 
@@ -705,7 +705,7 @@ export default class zaif extends Exchange {
             } else {
                 url += 'tapi';
             }
-            const nonce = this.nonce ();
+            const nonce = this.customNonce ();
             body = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,

@@ -199,7 +199,7 @@ export default class xena extends Exchange {
         //     }
         //
         const transactTime = this.safeInteger (response, 'transactTime');
-        return parseInt (transactTime / 1000000);
+        return this.parseInt (transactTime / 1000000);
     }
 
     async fetchMarkets (params = {}) {
@@ -2103,11 +2103,10 @@ export default class xena extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            let nonce = this.nonce ().toString();
             // php does not format it properly
             // therefore we use string concatenation here
             // nonce *= 1000000;
-            nonce = nonce.toString ();
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);

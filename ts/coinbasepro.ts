@@ -1271,11 +1271,11 @@ export default class coinbasepro extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        return await this.privateDeleteOrders (this.extend (request, params));
+        return await (this as any).privateDeleteOrders (this.extend (request, params));
     }
 
     async fetchPaymentMethods (params = {}) {
-        return await this.privateGetPaymentMethods (params);
+        return await (this as any).privateGetPaymentMethods (params);
     }
 
     async deposit (code, amount, address, params = {}) {

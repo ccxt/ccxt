@@ -839,7 +839,7 @@ export default class bibox extends Exchange {
             currency = this.currency (code);
             request['symbol'] = currency['id'];
         }
-        const response = await this.privatePostTransfer ({
+        const response = await (this as any).privatePostTransfer ({
             'cmd': 'transfer/transferOutList',
             'body': this.extend (request, params),
         });
@@ -1455,7 +1455,7 @@ export default class bibox extends Exchange {
         if (tag !== undefined) {
             request['address_remark'] = tag;
         }
-        const response = await this.privatePostTransfer ({
+        const response = await (this as any).privatePostTransfer ({
             'cmd': 'transfer/transferOut',
             'body': this.extend (request, params),
         });

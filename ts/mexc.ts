@@ -2061,8 +2061,9 @@ export default class mexc extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'spotPrivateDeleteOrderCancel');
         let method = this.safeString (params, 'method', defaultMethod);
         const stop = this.safeValue (params, 'stop');
-        let request = {};
+        let request = undefined;
         if (market['type'] === 'spot') {
+            request = {};
             method = 'spotPrivateDeleteOrderCancel';
             const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_ids');
             if (clientOrderId !== undefined) {
@@ -2838,7 +2839,7 @@ export default class mexc extends Exchange {
         //
         const type = (addOrReduce === 'ADD') ? 'add' : 'reduce';
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.safeNumber (amount),
+            'amount': this.parseNumber (amount),
             'type': type,
         });
     }
@@ -2911,7 +2912,7 @@ export default class mexc extends Exchange {
         } else {
             request['positionId'] = positionId;
         }
-        return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
+        return await (this as any).contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
     async fetchTransfer (id, code = undefined, params = {}) {

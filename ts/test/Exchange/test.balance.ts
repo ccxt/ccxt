@@ -1,12 +1,12 @@
 
-
+//@ts-nocheck
 // ----------------------------------------------------------------------------
 
 import assert from 'assert'
 
 // ----------------------------------------------------------------------------
 
-export default (exchange, balance, method) => {
+export default (exchange, balance, method = undefined) => {
 
     const currencies = [
         'USD',

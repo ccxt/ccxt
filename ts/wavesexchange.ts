@@ -1175,15 +1175,15 @@ export default class wavesexchange extends Exchange {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const difference = market['precision']['amount'] - market['precision']['price'];
-        return parseInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
+        return this.parseInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
     }
 
     amountToPrecision (symbol, amount) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
+        return this.parseInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        return parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
+        return this.parseInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {

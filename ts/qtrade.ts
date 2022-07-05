@@ -1095,7 +1095,7 @@ export default class qtrade extends Exchange {
             'id': parseInt (id),
         };
         // successful cancellation returns 200 with no payload
-        return await this.privatePostCancelOrder (this.extend (request, params));
+        return await (this as any).privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -1646,7 +1646,7 @@ export default class upbit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const response = await this.privateGetDepositsCoinAddress (this.extend ({
+        const response = await (this as any).privateGetDepositsCoinAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         //

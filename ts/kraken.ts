@@ -1648,7 +1648,7 @@ export default class kraken extends Exchange {
 
     async fetchOrdersByIds (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostQueryOrders (this.extend ({
+        const response = await (this as any).privatePostQueryOrders (this.extend ({
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
@@ -1789,7 +1789,7 @@ export default class kraken extends Exchange {
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        return await this.privatePostCancelAll (params);
+        return await (this as any).privatePostCancelAll (params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

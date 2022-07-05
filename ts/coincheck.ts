@@ -627,7 +627,7 @@ export default class coincheck extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
+        return await (this as any).privateDeleteExchangeOrdersId (this.extend (request, params));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

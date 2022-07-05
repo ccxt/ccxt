@@ -104,6 +104,8 @@ const {
     , safeStringN
     , safeStringLowerN
     , safeStringUpperN
+    , urlencodeNested
+    , parseDate
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -349,6 +351,8 @@ export class Exchange {
     safeStringN = safeStringN
     safeStringLowerN = safeStringLowerN
     safeStringUpperN = safeStringUpperN
+    urlencodeNested = urlencodeNested
+    parseDate = parseDate
 
     describe () {
         return {
@@ -1590,7 +1594,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -2427,6 +2431,7 @@ export class Exchange {
 
     async fetchTransactionFees (codes = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
+        return undefined;
     }
 
     getSupportedMapping (key, mapping = {}) {
@@ -2522,6 +2527,7 @@ export class Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
+        return undefined;
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
@@ -2535,10 +2541,12 @@ export class Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
+        return undefined;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+        return undefined;
     }
 
     async cancelUnifiedOrder (order, params = {}) {
@@ -2547,26 +2555,32 @@ export class Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
+        return undefined;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
+        return undefined;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
+        return undefined;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
+        return undefined;
     }
 
     async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
+        return undefined;
     }
 
     async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
+        return undefined;
     }
 
     async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {

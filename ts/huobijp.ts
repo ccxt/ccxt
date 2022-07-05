@@ -1863,7 +1863,7 @@ export default class huobijp extends Exchange {
             if (method !== 'POST') {
                 request = this.extend (request, query);
             }
-            request = this.keysort (request);
+            request = this.keysort (request) as any;
             let auth = this.urlencode (request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes

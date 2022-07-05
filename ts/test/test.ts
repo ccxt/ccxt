@@ -1,5 +1,6 @@
 // ----------------------------------------------------------------------------
 
+// @ts-nocheck
 import fs from 'fs'
 import assert from 'assert'
 import { Agent } from 'https'

@@ -954,7 +954,7 @@ export default class bithumb extends Exchange {
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         };
-        return await this.privatePostTradeCancel (this.extend (request, params));
+        return await (this as any).privatePostTradeCancel (this.extend (request, params));
     }
 
     cancelUnifiedOrder (order, params = {}) {

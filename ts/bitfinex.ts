@@ -1074,7 +1074,7 @@ export default class bitfinex extends Exchange {
         const request = {
             'order_id': parseInt (id),
         };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await (this as any).privatePostOrderCancel (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1086,7 +1086,7 @@ export default class bitfinex extends Exchange {
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {dict} response from exchange
          */
-        return await this.privatePostOrderCancelAll (params);
+        return await (this as any).privatePostOrderCancelAll (params);
     }
 
     parseOrder (order, market = undefined) {
