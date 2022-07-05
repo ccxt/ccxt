@@ -1325,7 +1325,7 @@ class woo(Exchange):
             'account': self.safe_string(item, 'account'),
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(item, 'status'),
+            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
             'amount': amount,
             'before': None,
             'after': None,

@@ -1534,7 +1534,7 @@ module.exports = class latoken extends Exchange {
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
-            'timestamp': this.safeNumber (transfer),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'transferringFunds'),
