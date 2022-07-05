@@ -9,7 +9,6 @@ module.exports = class bequant extends hitbtc {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bequant',
-            'alias': true,
             'name': 'Bequant',
             'countries': [ 'MT' ], // Malta
             'pro': true,
