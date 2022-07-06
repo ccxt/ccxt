@@ -1929,7 +1929,6 @@ class okx(Exchange):
         }
         spot = market['spot']
         contract = market['contract']
-        margin = market['margin']
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
@@ -1940,7 +1939,15 @@ class okx(Exchange):
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode', defaultMarginMode)  # cross or isolated, tdMode not ommited so as to be extended into the request
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so as to be extended into the request
+        margin = False
+        if (marginMode is not None) and (marginMode != 'cash'):
+            margin = True
+        else:
+            marginMode = defaultMarginMode
+            margin = self.safe_value(params, 'margin', False)
+        if margin is True and not market['margin']:
+            raise NotSupported(self.id + ' does not support margin trading for ' + symbol + 'market')
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
@@ -1952,7 +1959,7 @@ class okx(Exchange):
             request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
