@@ -6600,6 +6600,8 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#borrowMargin
          * @description create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
@@ -6653,6 +6655,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#repayMargin
          * @description repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol unified market symbol

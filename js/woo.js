@@ -1692,6 +1692,7 @@ module.exports = class woo extends Exchange {
          * @method
          * @name woo#repayMargin
          * @description repay borrowed margin and interest
+         * @see https://docs.woo.org/#repay-interest
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol not used by woo.repayMargin ()

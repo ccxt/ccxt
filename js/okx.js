@@ -5252,6 +5252,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#borrowMargin
          * @description create a loan to borrow margin
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {str|undefined} symbol not used by okx.borrowMargin ()
@@ -5296,6 +5297,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#repayMargin
          * @description repay borrowed margin and interest
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol not used by okx.repayMargin ()

@@ -4270,6 +4270,7 @@ module.exports = class coinex extends Exchange {
          * @method
          * @name coinex#borrowMargin
          * @description create a loan to borrow margin
+         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {str} symbol unified market symbol, required for coinex
@@ -4310,6 +4311,7 @@ module.exports = class coinex extends Exchange {
          * @method
          * @name coinex#repayMargin
          * @description repay borrowed margin and interest
+         * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {str} symbol unified market symbol, required for coinex

@@ -6131,6 +6131,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#repayMargin
          * @description repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {str} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
@@ -6177,6 +6178,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#borrowMargin
          * @description create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {str} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {str|undefined} symbol unified market symbol, required for isolated margin
