@@ -1349,7 +1349,7 @@ class Exchange {
             'fetchTransfers' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
-            'loadMarkets' => null,
+            'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
             'setMargin' => null,
