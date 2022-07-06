@@ -1929,6 +1929,7 @@ class okx(Exchange):
         }
         spot = market['spot']
         contract = market['contract']
+        margin = market['margin']
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
@@ -1938,14 +1939,20 @@ class okx(Exchange):
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode', defaultMarginMode)  # cross or isolated, tdMode not ommited so as to be extended into the request
         if spot:
-            request['tdMode'] = 'cash'
+            if margin:
+                defaultCurrency = market['quote'] if (side == 'buy') else market['base']
+                currency = self.safe_string(params, 'ccy', defaultCurrency)
+                request['ccy'] = self.safe_currency_code(currency)
+            tradeMode = marginMode if margin else 'cash'
+            request['tdMode'] = tradeMode
         elif contract:
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-            request['tdMode'] = self.safe_string_lower(params, 'tdMode', marginMode)  # not ommited so as to be extended into the request
+            request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
@@ -1954,7 +1961,7 @@ class okx(Exchange):
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
-        if not market['contract']:
+        if (not contract) and (not margin):
             request['tgtCcy'] = tgtCcy
         method = defaultMethod
         if isMarketOrder or marketIOC:

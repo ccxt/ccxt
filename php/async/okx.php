@@ -1946,8 +1946,8 @@ class okx extends Exchange {
          * @param {str} $symbol unified $symbol of the $market to create an $order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount how much of $currency you want to trade in units of base $currency
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote $currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the okx api endpoint
          * @param {bool|null} $params->reduceOnly MARGIN orders only, or swap/future orders in net mode
          * @param {bool|null} $params->postOnly true to place a post only $order
@@ -1957,7 +1957,7 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
-            // 'ccy' => currency['id'], // only applicable to cross MARGIN orders in single-currency margin
+            // 'ccy' => $currency['id'], // only applicable to cross MARGIN orders in single-$currency $margin
             // 'clOrdId' => $clientOrderId, // up to 32 characters, must be unique
             // 'tag' => tag, // up to 8 characters
             'side' => $side,
@@ -1983,6 +1983,7 @@ class okx extends Exchange {
         );
         $spot = $market['spot'];
         $contract = $market['contract'];
+        $margin = $market['margin'];
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
@@ -1992,15 +1993,22 @@ class okx extends Exchange {
         $slOrdPx = $this->safe_value($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode', $defaultMarginMode); // cross or isolated, tdMode not ommited so as to be extended into the $request
         if ($spot) {
-            $request['tdMode'] = 'cash';
+            if ($margin) {
+                $defaultCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+                $currency = $this->safe_string($params, 'ccy', $defaultCurrency);
+                $request['ccy'] = $this->safe_currency_code($currency);
+            }
+            $tradeMode = $margin ? $marginMode : 'cash';
+            $request['tdMode'] = $tradeMode;
         } elseif ($contract) {
-            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-            $request['tdMode'] = $this->safe_string_lower($params, 'tdMode', $marginMode); // not ommited so as to be extended into the $request
+            $request['tdMode'] = $marginMode;
         }
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $type === 'post_only', $params);
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ));
+        $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
@@ -2009,17 +2017,17 @@ class okx extends Exchange {
         $defaultMethod = $this->safe_string($this->options, 'createOrder', 'privatePostTradeBatchOrders');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
-        if (!$market['contract']) {
+        if ((!$contract) && (!$margin)) {
             $request['tgtCcy'] = $tgtCcy;
         }
         $method = $defaultMethod;
         if ($isMarketOrder || $marketIOC) {
             $request['ordType'] = 'market';
             if ($spot && ($side === 'buy')) {
-                // $spot $market buy => "sz" can refer either to base currency units or to quote currency units
+                // $spot $market buy => "sz" can refer either to base $currency units or to quote $currency units
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-$order
                 if ($tgtCcy === 'quote_ccy') {
-                    // quote_ccy => sz refers to units of quote currency
+                    // quote_ccy => sz refers to units of quote $currency
                     $notional = $this->safe_number_2($params, 'cost', 'sz');
                     $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     if ($createMarketBuyOrderRequiresPrice) {
