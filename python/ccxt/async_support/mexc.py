@@ -2657,7 +2657,7 @@ class mexc(Exchange):
         #
         type = 'add' if (addOrReduce == 'ADD') else 'reduce'
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 

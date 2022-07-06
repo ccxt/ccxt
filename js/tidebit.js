@@ -611,8 +611,9 @@ module.exports = class tidebit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,

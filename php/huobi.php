@@ -79,8 +79,6 @@ class huobi extends Exchange {
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -6522,6 +6520,14 @@ class huobi extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a dictionary of a [margin loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -6565,6 +6571,14 @@ class huobi extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {[dict]} a dictionary of a [margin $loan structure]
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');

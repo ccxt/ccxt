@@ -474,7 +474,7 @@ class lbank2(Exchange):
         response = await self.publicGetDepth(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #

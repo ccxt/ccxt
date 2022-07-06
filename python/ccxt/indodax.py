@@ -903,7 +903,7 @@ class indodax(Exchange):
         if feeCost is not None:
             fee = {
                 'currency': self.safe_currency_code(None, currency),
-                'cost': self.safe_number('fee'),
+                'cost': feeCost,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),

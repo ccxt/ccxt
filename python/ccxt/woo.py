@@ -34,6 +34,7 @@ class woo(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelWithdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -85,6 +86,7 @@ class woo(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'transfer': True,
@@ -173,6 +175,7 @@ class woo(Exchange):
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
                             'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
                         },
@@ -283,9 +286,9 @@ class woo(Exchange):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
             parts = marketId.split('_')
-            marketTypeVal = self.safe_string_lower(parts, 0)
-            isSpot = marketTypeVal == 'spot'
-            isSwap = marketTypeVal == 'perp'
+            marketType = self.safe_string_lower(parts, 0)
+            isSpot = marketType == 'spot'
+            isSwap = marketType == 'perp'
             baseId = self.safe_string(parts, 1)
             quoteId = self.safe_string(parts, 2)
             base = self.safe_currency_code(baseId)
@@ -294,11 +297,14 @@ class woo(Exchange):
             settle = None
             symbol = base + '/' + quote
             contractSize = None
+            linear = None
             if isSwap:
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
                 contractSize = self.parse_number('1')
+                marketType = 'swap'
+                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -308,7 +314,7 @@ class woo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': True,
                 'swap': isSwap,
@@ -316,7 +322,7 @@ class woo(Exchange):
                 'option': False,
                 'active': None,
                 'contract': isSwap,
-                'linear': None,
+                'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
                 'expiry': None,
@@ -1319,7 +1325,7 @@ class woo(Exchange):
             'account': self.safe_string(item, 'account'),
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(item, 'status'),
+            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
             'amount': amount,
             'before': None,
             'after': None,
@@ -1563,6 +1569,53 @@ class woo(Exchange):
             'CANCELED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by woo.repayMargin()
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        currency = self.currency(code)
+        request = {
+            'token': currency['id'],  # interest token that you want to repay
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.v1PrivatePostInterestRepay(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "success": True,
+        #     }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def nonce(self):
         return self.milliseconds()

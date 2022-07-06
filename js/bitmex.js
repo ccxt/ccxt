@@ -493,9 +493,12 @@ module.exports = class bitmex extends Exchange {
             const account = this.account ();
             let free = this.safeString (balance, 'availableMargin');
             let total = this.safeString (balance, 'marginBalance');
-            if (code === 'BTC') {
+            if (code !== 'USDT') {
                 free = Precise.stringDiv (free, '1e8');
                 total = Precise.stringDiv (total, '1e8');
+            } else {
+                free = Precise.stringDiv (free, '1e6');
+                total = Precise.stringDiv (total, '1e6');
             }
             account['free'] = free;
             account['total'] = total;

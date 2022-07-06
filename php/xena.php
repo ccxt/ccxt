@@ -1411,8 +1411,8 @@ class xena extends Exchange {
         $accountId = $this->get_account_id($params);
         $request = array(
             'accountId' => $accountId,
-            // 'from' => $this->iso8601($since) * 1000000,
-            // 'to' => $this->iso8601($this->milliseconds()) * 1000000, // max range is 7 days
+            // 'from' => $since * 1000000,
+            // 'to' => $this->milliseconds() * 1000000, // max range is 7 days
             // 'symbol' => $market['id'],
             // 'limit' => 100,
         );
@@ -1422,7 +1422,7 @@ class xena extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['from'] = $this->iso8601($since) * 1000000;
+            $request['from'] = $since * 1000000;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

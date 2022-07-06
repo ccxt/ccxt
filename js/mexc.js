@@ -2839,7 +2839,7 @@ module.exports = class mexc extends Exchange {
         //
         const type = (addOrReduce === 'ADD') ? 'add' : 'reduce';
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.safeNumber (amount),
+            'amount': this.parseNumber (amount),
             'type': type,
         });
     }

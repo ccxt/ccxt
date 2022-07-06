@@ -45,6 +45,7 @@ class delta(Exchange):
                 'fetchDeposits': None,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -52,6 +53,7 @@ class delta(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,

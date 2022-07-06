@@ -27,6 +27,7 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
@@ -78,6 +79,7 @@ module.exports = class woo extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
@@ -166,6 +168,7 @@ module.exports = class woo extends Exchange {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
                             'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
                         },
@@ -279,9 +282,9 @@ module.exports = class woo extends Exchange {
             const market = data[i];
             const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
-            const marketTypeVal = this.safeStringLower (parts, 0);
-            const isSpot = marketTypeVal === 'spot';
-            const isSwap = marketTypeVal === 'perp';
+            let marketType = this.safeStringLower (parts, 0);
+            const isSpot = marketType === 'spot';
+            const isSwap = marketType === 'perp';
             const baseId = this.safeString (parts, 1);
             const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
@@ -290,11 +293,14 @@ module.exports = class woo extends Exchange {
             let settle = undefined;
             let symbol = base + '/' + quote;
             let contractSize = undefined;
+            let linear = undefined;
             if (isSwap) {
                 settleId = this.safeString (parts, 2);
                 settle = this.safeCurrencyCode (settleId);
                 symbol = base + '/' + quote + ':' + settle;
                 contractSize = this.parseNumber ('1');
+                marketType = 'swap';
+                linear = true;
             }
             result.push ({
                 'id': marketId,
@@ -305,7 +311,7 @@ module.exports = class woo extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': true,
                 'swap': isSwap,
@@ -313,7 +319,7 @@ module.exports = class woo extends Exchange {
                 'option': false,
                 'active': undefined,
                 'contract': isSwap,
-                'linear': undefined,
+                'linear': linear,
                 'inverse': undefined,
                 'contractSize': contractSize,
                 'expiry': undefined,
@@ -1407,7 +1413,7 @@ module.exports = class woo extends Exchange {
             'account': this.safeString (item, 'account'),
             'referenceAccount': undefined,
             'referenceId': this.safeString (item, 'tx_id'),
-            'status': this.parseTransactionStatus (item, 'status'),
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
             'amount': amount,
             'before': undefined,
             'after': undefined,
@@ -1679,6 +1685,58 @@ module.exports = class woo extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#repayMargin
+         * @description repay borrowed margin and interest
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol not used by woo.repayMargin ()
+         * @param {dict} params extra parameters specific to the woo api endpoint
+         * @returns {[dict]} a dictionary of a [margin loan structure]
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const currency = this.currency (code);
+        const request = {
+            'token': currency['id'], // interest token that you want to repay
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.v1PrivatePostInterestRepay (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        //     {
+        //         "success": true,
+        //     }
+        //
+        return {
+            'id': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     nonce () {

@@ -4002,6 +4002,14 @@ class coinex(Exchange):
         }
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str symbol: unified market symbol, required for coinex
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         await self.load_markets()
@@ -4030,6 +4038,15 @@ class coinex(Exchange):
         })
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str symbol: unified market symbol, required for coinex
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :param str|None params['loan_id']: extra parameter that is not required
+        :returns [dict]: a dictionary of a [margin loan structure]
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         await self.load_markets()
