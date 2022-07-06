@@ -2005,6 +2005,7 @@ module.exports = class okx extends Exchange {
         };
         const spot = market['spot'];
         const contract = market['contract'];
+        const margin = market['margin'];
         const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -2014,15 +2015,22 @@ module.exports = class okx extends Exchange {
         const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString2 (params, 'marginMode', 'tdMode', defaultMarginMode); // cross or isolated, tdMode not ommited so as to be extended into the request
         if (spot) {
-            request['tdMode'] = 'cash';
+            if (margin) {
+                const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
+                const currency = this.safeString (params, 'ccy', defaultCurrency);
+                request['ccy'] = this.safeCurrencyCode (currency);
+            }
+            const tradeMode = margin ? marginMode : 'cash';
+            request['tdMode'] = tradeMode;
         } else if (contract) {
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-            request['tdMode'] = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
+            request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ]);
+        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2031,7 +2039,7 @@ module.exports = class okx extends Exchange {
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
-        if (!market['contract']) {
+        if ((!contract) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
         let method = defaultMethod;
