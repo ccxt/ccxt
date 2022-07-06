@@ -101,7 +101,6 @@ class mexc3(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
-                'loadMarkets': None,
                 'privateAPI': True,
                 'publicAPI': True,
                 'reduceMargin': True,
