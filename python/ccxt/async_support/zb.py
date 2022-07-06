@@ -3974,7 +3974,7 @@ class zb(Exchange):
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the zb api endpoint
         :param str params['safePwd']: transaction password, extra parameter required for cross margin
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         await self.load_markets()
         market = None

@@ -5174,11 +5174,12 @@ class okx extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a $loan to borrow margin
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str|null} $symbol not used by okx.borrowMargin ()
          * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a dictionary of a [margin $loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -5216,11 +5217,12 @@ class okx extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str|null} $symbol not used by okx.repayMargin ()
          * @param {dict} $params extra parameters specific to the okx api endpoint
-         * @return {[dict]} a dictionary of a [margin $loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

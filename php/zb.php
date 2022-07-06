@@ -4146,7 +4146,7 @@ class zb extends Exchange {
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the zb api endpoint
          * @param {str} $params->safePwd $transaction $password, extra parameter required for cross margin
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $market = null;

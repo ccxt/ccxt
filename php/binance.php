@@ -6035,11 +6035,12 @@ class binance extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $market = null;
@@ -6079,11 +6080,12 @@ class binance extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the binance api endpoint
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $market = null;

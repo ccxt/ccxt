@@ -1573,11 +1573,12 @@ class woo(Exchange):
     def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
+        see https://docs.woo.org/#repay-interest
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str|None symbol: not used by woo.repayMargin()
         :param dict params: extra parameters specific to the woo api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         market = None

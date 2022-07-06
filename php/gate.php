@@ -4312,13 +4312,15 @@ class gate extends Exchange {
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
          * @param {str} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the gate api endpoint
          * @param {str} $params->mode 'all' or 'partial' payment $mode, extra parameter required for isolated margin
          * @param {str} $params->id '34267567' loan $id, extra parameter required for isolated margin
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4399,12 +4401,14 @@ class gate extends Exchange {
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
          * @param {str} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {str|null} $symbol unified $market $symbol, required for isolated margin
          * @param {dict} $params extra parameters specific to the gate api endpoint
          * @param {str} $params->rate '0.0002' or '0.002' extra parameter required for isolated margin
-         * @return {[dict]} a dictionary of a [margin loan structure]
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

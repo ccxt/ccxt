@@ -4129,13 +4129,15 @@ class gate(Exchange):
     def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
+        see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+        see https://www.gate.io/docs/apiv4/en/#repay-a-loan
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['mode']: 'all' or 'partial' payment mode, extra parameter required for isolated margin
         :param str params['id']: '34267567' loan id, extra parameter required for isolated margin
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4209,12 +4211,14 @@ class gate(Exchange):
     def borrow_margin(self, code, amount, symbol=None, params={}):
         """
         create a loan to borrow margin
+        see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+        see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the gate api endpoint
         :param str params['rate']: '0.0002' or '0.002' extra parameter required for isolated margin
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)

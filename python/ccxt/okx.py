@@ -4936,11 +4936,12 @@ class okx(Exchange):
     def borrow_margin(self, code, amount, symbol=None, params={}):
         """
         create a loan to borrow margin
+        see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str|None symbol: not used by okx.borrowMargin()
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4977,11 +4978,12 @@ class okx(Exchange):
     def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
+        see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str|None symbol: not used by okx.repayMargin()
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)

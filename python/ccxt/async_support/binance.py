@@ -5693,11 +5693,12 @@ class binance(Exchange):
     async def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         await self.load_markets()
         market = None
@@ -5733,11 +5734,12 @@ class binance(Exchange):
     async def borrow_margin(self, code, amount, symbol=None, params={}):
         """
         create a loan to borrow margin
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the binance api endpoint
-        :returns [dict]: a dictionary of a [margin loan structure]
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         await self.load_markets()
         market = None
