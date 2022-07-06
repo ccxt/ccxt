@@ -2017,11 +2017,11 @@ module.exports = class okx extends Exchange {
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
-        if (marginMode === undefined) {
+        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
+            margin = true;
+        } else {
             marginMode = defaultMarginMode;
             margin = this.safeValue (params, 'margin', false);
-        } else {
-            margin = true;
         }
         if (margin === true && !market['margin']) {
             throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + 'market');
