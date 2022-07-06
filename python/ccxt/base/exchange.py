@@ -322,7 +322,7 @@ class Exchange(object):
         'fetchTransfers': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
-        'loadMarkets': None,
+        'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
         'setMargin': None,
