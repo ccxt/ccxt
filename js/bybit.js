@@ -3881,7 +3881,9 @@ module.exports = class bybit extends Exchange {
         //
         let result = this.safeValue (response, 'result', {});
         if (!Array.isArray (result)) {
-            result = this.safeValue2 (result, 'trade_list', 'data', []);
+            result = this.safeValue2 (result, 'trade_list', 'data', []).filter((order) => {
+                return order['exec_type'] === 'Trade' && order['closed_size'] === '0';
+            });
         }
         return this.parseTrades (result, market, since, limit);
     }
