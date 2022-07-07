@@ -1928,6 +1928,7 @@ module.exports = class gate extends Exchange {
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
+            'option': 'publicOptionsGetUnderlyings',
         });
         const response = await this[method] (this.extend (request, query));
         const ticker = this.safeValue (response, 0);
@@ -3120,6 +3121,7 @@ module.exports = class gate extends Exchange {
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
+            'option': 'privateOptionsPost' + methodTail,
         });
         const response = await this[method] (this.deepExtend (request, params));
         //
