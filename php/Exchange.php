@@ -1314,7 +1314,7 @@ class Exchange {
             'fetchFundingRates' => null,
             'fetchIndexOHLCV' => null,
             'fetchL1OrderBooks' => null,
-            'fetchL2OrderBook' => null,
+            'fetchL2OrderBook' => true,
             'fetchL3OrderBook' => null,
             'fetchLastPrices' => null,
             'fetchLedger' => null,

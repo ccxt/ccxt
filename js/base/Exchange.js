@@ -96,7 +96,7 @@ module.exports = class Exchange {
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL1OrderBooks': undefined,
-                'fetchL2OrderBook': undefined,
+                'fetchL2OrderBook': true,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
