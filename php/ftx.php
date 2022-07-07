@@ -2369,7 +2369,7 @@ class ftx extends Exchange {
         $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
+        $unrealizedPnlString = $this->safe_string_2($position, 'unrealizedPnl', 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
         $difference = null;
