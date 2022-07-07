@@ -29,7 +29,7 @@ module.exports = (function () {
      * @param key {string|buffer|object} Key in PEM format, or data for generate key {b: bits, e: exponent}
      * @constructor
      */
-    function NodeRSA(key, format, options) {
+    function NodeRSA(key, format, options = undefined) {
         if (!(this instanceof NodeRSA)) {
             return new NodeRSA(key, format, options);
         }

@@ -5438,8 +5438,8 @@ export default class huobi extends Exchange {
                 if (method !== 'POST') {
                     request = this.extend (request, query);
                 }
-                request = this.keysort (request);
-                let auth = this.urlencode (request);
+                const sortedRequest = this.keysort (request);
+                let auth = this.urlencode (sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, this.hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
@@ -5496,8 +5496,8 @@ export default class huobi extends Exchange {
                 if (method !== 'POST') {
                     request = this.extend (request, query);
                 }
-                request = this.keysort (request);
-                let auth = this.urlencode (request);
+                const sortedRequest = this.keysort (request);
+                let auth = this.urlencode (sortedRequest);
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const payload = [ method, hostname, url, auth ].join ("\n"); // eslint-disable-line quotes
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');

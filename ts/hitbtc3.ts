@@ -2577,7 +2577,7 @@ export default class hitbtc3 extends Exchange {
             'margin_balance': this.amountToPrecision (symbol, amount),
             // 'strict_validate': false,
         };
-        return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+        return await (this as any).privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

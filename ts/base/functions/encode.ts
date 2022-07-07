@@ -60,7 +60,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
             base58Encoder = {}
             for (let i = 0; i < 58; i++) {
                 const c = base58Alphabet[i]
-                const bigNum = new BN (i)
+                const bigNum = new BN (i) as any
                 base58Decoder[c] = bigNum
                 base58Encoder[bigNum] = c
             }
@@ -81,7 +81,7 @@ const json =  (data, params = undefined) => JSON.stringify (data)
             base58Encoder = {}
             for (let i = 0; i < 58; i++) {
                 const c = base58Alphabet[i]
-                const bigNum = new BN (i)
+                const bigNum = new BN (i) as any
                 base58Decoder[c] = bigNum
                 base58Encoder[bigNum] = c
             }

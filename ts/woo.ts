@@ -1344,27 +1344,21 @@ export default class woo extends Exchange {
          * @method
          * @name woo#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the woo api endpoint
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the woo api endpoint
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
-        const networkCode = this.safeValue (params, 'network', networkCodeDefault);
+        const networkCode = this.safeString (params, 'network', networkCodeDefault);
         params = this.omit (params, 'network');
-        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
-        const networkId = this.getKeyByValue (networkAliases, networkCode);
-        const codeForExchange = networkId + '_' + currency['code'];
+        const codeForExchange = networkCode + '_' + currency['code'];
         const request = {
             'token': codeForExchange,
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchDepositAddress', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetAssetDeposit',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await (this as any).v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     success: true,
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',

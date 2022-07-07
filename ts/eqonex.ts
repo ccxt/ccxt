@@ -490,7 +490,8 @@ export default class eqonex extends Exchange {
         ];
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        // renamed because the signature is different so that is not compatible with ts
         const result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -547,7 +548,7 @@ export default class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 0, 1, market);
+        return this.customParseOrderBook (response, symbol, undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

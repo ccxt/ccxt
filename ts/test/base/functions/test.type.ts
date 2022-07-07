@@ -1,5 +1,5 @@
 /*  ------------------------------------------------------------------------ */
-
+//@ts-nocheck
 import { functions } from '../../../../ccxt.js'
 import { equal, deepEqual } from 'assert'
 

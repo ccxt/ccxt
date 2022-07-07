@@ -292,10 +292,10 @@ export default class ndax extends Exchange {
                 throw new AuthenticationError (this.id + ' signIn() requires exchange.twofa credentials');
             }
             this.options['pending2faToken'] = pending2faToken;
-            request = {
+            const authRequest = {
                 'Code': this.oath (),
             };
-            const response = await (this as any).publicGetAuthenticate2FA (this.extend (request, params));
+            const response = await (this as any).publicGetAuthenticate2FA (this.extend (authRequest, params));
             //
             //     {
             //         "Authenticated": true,

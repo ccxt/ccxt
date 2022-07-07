@@ -650,10 +650,14 @@ export class Exchange {
             agentOptions['rejectUnauthorized'] = false;
         }
         // js-specific http options
+        //@ts-expect-error
         if (!this.httpAgent && defaultFetch.http && isNode) {
+            //@ts-expect-error
             this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
-        if (!this.httpsAgent && defaultFetch.https && isNode) {
+        //@ts-expect-error
+        if (!this.httpsAgent && defaultFetch. https && isNode) {
+            //@ts-expect-error
             this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
         // generate old metainfo interface
@@ -980,7 +984,7 @@ export class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterBySinceLimit (array, since = undefined, limit = undefined, key: string | number = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
             array = array.filter ((entry) => entry[key] >= since)
@@ -2864,7 +2868,7 @@ export class Exchange {
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result = [];
+        let result = [] as any;
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend ((this as any).parseDepositAddress (addresses[i]), params);
             result.push (address);

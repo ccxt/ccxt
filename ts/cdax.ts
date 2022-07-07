@@ -1801,8 +1801,8 @@ export default class cdax extends Exchange {
             if (method !== 'POST') {
                 request = this.extend (request, query);
             }
-            request = this.keysort (request);
-            let auth = this.urlencode (request);
+            const sortedRequest = this.keysort (request);
+            let auth = this.urlencode (sortedRequest);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = [ method, this.hostname, url, auth ].join ("\n");
