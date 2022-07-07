@@ -4684,7 +4684,7 @@ module.exports = class okx extends Exchange {
         const market = this.market (symbol);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
         const marginMode = this.safeString2 (params, 'mgnMode', 'marginMode', defaultMarginMode);
-        params = this.omit (params, [ 'mgnMode' ]);
+        params = this.omit (params, [ 'mgnMode', 'marginMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() params["mgnMode"] must be either cross or isolated');
         }
