@@ -1162,6 +1162,11 @@ export class Exchange {
             return undefined;
         }
 
+        // Solve Common parseInt misuse ex: parseInt (since / 1000)
+        parseInt (number) {
+            return parseInt(number.toString())
+        }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -2529,14 +2534,12 @@ export class Exchange {
         }
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
-        return undefined;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}): Promise<any>  {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
-        return undefined;
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
@@ -2548,51 +2551,43 @@ export class Exchange {
         return await this.fetchOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}): Promise<any>  {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
-        return undefined;
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}): Promise<any>  {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
-        return undefined;
     }
 
     async cancelUnifiedOrder (order, params = {}) {
         return this.cancelOrder (this.safeValue (order, 'id'), this.safeValue (order, 'symbol'), params);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
-        return undefined;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchOpenOrders() is not supported yet');
-        return undefined;
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
-        return undefined;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchMyTrades() is not supported yet');
-        return undefined;
     }
 
-    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTransactions() is not supported yet');
-        return undefined;
     }
 
-    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
-        return undefined;
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
@@ -3076,11 +3071,6 @@ export class Exchange {
             return exchangeValue;
         }
         return undefined;
-    }
-
-    // Solve Common parseInt misuse ex: parseInt (since / 1000)
-    parseInt (number: any) {
-        return parseInt(number.toString())
     }
 }
 
