@@ -254,6 +254,8 @@ export class Exchange {
 
     lastRestRequestTimestamp = undefined
 
+    targetAccount = undefined
+
     deepExtend = deepExtend
     isNode = isNode
     keys = keys
