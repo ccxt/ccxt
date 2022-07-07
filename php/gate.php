@@ -2644,19 +2644,24 @@ class gate extends Exchange {
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $pointFee = $this->safe_string($trade, 'point_fee');
         $fees = array();
-        if ($feeAmount && $feeAmount !== '0') {
+        if ($feeAmount !== null && !Precise::string_eq($feeAmount, '0')) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            if ($feeCurrencyCode === null) {
+                $feeCurrencyCode = $this->safe_string($market, 'settle');
+            }
             $fees[] = array(
                 'cost' => $feeAmount,
-                'currency' => $this->safe_string($trade, 'fee_currency'),
+                'currency' => $feeCurrencyCode,
             );
         }
-        if ($gtFee && $gtFee !== '0') {
+        if ($gtFee !== null && !Precise::string_eq($gtFee, '0')) {
             $fees[] = array(
                 'cost' => $gtFee,
                 'currency' => 'GT',
             );
         }
-        if ($pointFee && $pointFee !== '0') {
+        if ($pointFee !== null && !Precise::string_eq($pointFee, '0')) {
             $fees[] = array(
                 'cost' => $pointFee,
                 'currency' => 'POINT',
