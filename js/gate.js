@@ -2685,19 +2685,19 @@ module.exports = class gate extends Exchange {
                 currency = this.safeString (market, 'settle');
             }
             fees.push ({
-                'cost': this.parseNumber (feeAmount),
+                'cost': feeAmount,
                 'currency': currency,
             });
         }
         if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
             fees.push ({
-                'cost': this.parseNumber (gtFee),
+                'cost': gtFee,
                 'currency': 'GT',
             });
         }
         if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
             fees.push ({
-                'cost': this.parseNumber (pointFee),
+                'cost': pointFee,
                 'currency': 'POINT',
             });
         }
