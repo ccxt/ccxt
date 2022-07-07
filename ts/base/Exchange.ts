@@ -1,8 +1,7 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 
-
-import * as functions from './functions.js'
+import * as functions from './functions'
 const {
     isNode
     , keys
@@ -2442,9 +2441,8 @@ export class Exchange {
         return this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFees (codes = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
-        return undefined;
     }
 
     getSupportedMapping (key, mapping = {}) {
@@ -2942,9 +2940,8 @@ export class Exchange {
         }
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFees (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchTradingFees() is not supported yet');
-        return undefined;
     }
 
     async fetchTradingFee (symbol, params = {}) {
@@ -2954,9 +2951,8 @@ export class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market = undefined): any {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
-        return undefined;
     }
 
     parseOpenInterests (response, market = undefined, since = undefined, limit = undefined) {
