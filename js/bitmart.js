@@ -139,15 +139,23 @@ module.exports = class bitmart extends Exchange {
                     },
                     'spot': {
                         'get': {
-                            'wallet': 0.5,
-                            'order_detail': 0.1,
+                            'margin/isolated/account': 0.5,
+                            'margin/isolated/borrow_record': 0.1,
+                            'margin/isolated/pairs': 1,
+                            'margin/isolated/repay_record': 0.1,
                             'orders': 0.5,
+                            'order_detail': 0.1,
                             'trades': 0.5,
+                            'wallet': 0.5,
                         },
                         'post': {
                             'submit_order': 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
                             'cancel_order': 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
                             'cancel_orders': 0.1,
+                            'margin/isolated/borrow': 1,
+                            'margin/isolated/repay': 1,
+                            'margin/isolated/transfer': 1,
+                            'margin/submit_order': 0.1,
                         },
                     },
                 },
