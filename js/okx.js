@@ -3100,6 +3100,9 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-asset-bills-details
          * @param {str|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
@@ -3172,6 +3175,12 @@ module.exports = class okx extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode');
+        const marginMode = this.safeString2 (params, 'mgnMode', 'marginMode', defaultMarginMode);
+        if (marginMode !== undefined) {
+            request['mgnMode'] = marginMode;
+        }
+        params = this.omit (params, 'marginMode');
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
