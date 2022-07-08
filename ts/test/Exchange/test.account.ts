@@ -1,4 +1,3 @@
-/* tslint:disable */
 import assert from 'assert';
 
 function testAccount (exchange, account, method = undefined) {

@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 // @ts-nocheck
 import assert from 'assert';
-import ccxt from '../../../ccxt.js.js';
+import ccxt from '../../../ccxt.js';
 
 // ----------------------------------------------------------------------------
 // will try to place a buy order at the minimum price level on minimum amount possible

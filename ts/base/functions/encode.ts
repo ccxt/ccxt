@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*  ------------------------------------------------------------------------ */
 
 import CryptoJS from '../../static_dependencies/crypto-js/crypto-js.cjs'

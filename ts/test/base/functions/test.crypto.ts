@@ -3,6 +3,7 @@ import { encode } from '../../../base/functions/encode.js'
 import { Exchange } from '../../../base/Exchange.js'
 import assert from 'assert'
 
+
 function equals (a, b) {
     // does not check if b has more properties than a
     for (const prop of Object.keys (a)) {
