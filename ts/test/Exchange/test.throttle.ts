@@ -1,3 +1,4 @@
+ /* eslint-disable */
 const { throttle } = require ('../../base/functions/throttle.js')
 
 const delta = 10
