@@ -8,7 +8,7 @@
     "sourceType": "module"
   },
   "extends": ["eslint:recommended", "airbnb-base"],
-  "ignorePatterns": [ "static_dependencies/*", "test/base/*"],
+  "ignorePatterns": [ "static_dependencies/*", "test/base/*", "base/*"],
   "rules": {
     "strict": "off",
     "semi": "error",
