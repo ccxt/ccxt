@@ -12,7 +12,7 @@ import { Exchange } from '../js/base/Exchange.js'
 import { basename } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import { errorHierarchy } from '../js/base/errorHierarchy.js'
+import errorHierarchy from '../js/base/errorHierarchy.js'
 import { platform } from 'process'
 
 ansi.nice
@@ -1446,7 +1446,8 @@ class Transpiler {
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
         js = this.regexAll (js, [
-            [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
+            // [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
+            [ /\s*export default[^\n]+;\n/g, '' ],
             // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
         ]).trim ()
 
