@@ -221,7 +221,7 @@ export default class bl3p extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const ticker= await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const ticker = await (this as any).publicGetMarketTicker (this.extend (request, params));
         //
         // {
         //     "currency":"BTC",

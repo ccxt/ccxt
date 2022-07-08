@@ -319,7 +319,7 @@ export default class cex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const currenciesResponse= await (this as any).fetchCurrenciesFromCache (params);
+        const currenciesResponse = await (this as any).fetchCurrenciesFromCache (params);
         const currenciesData = this.safeValue (currenciesResponse, 'data', {});
         const currencies = this.safeValue (currenciesData, 'symbols', []);
         const currenciesById = this.indexBy (currencies, 'code');
@@ -618,7 +618,7 @@ export default class cex extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker= await (this as any).publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 

@@ -209,7 +209,7 @@ export default class idex extends Exchange {
         //        },
         //    ]
         //
-        const response2= await (this as any).publicGetExchange ();
+        const response2 = await (this as any).publicGetExchange ();
         //
         //    {
         //        "timeZone": "UTC",
@@ -620,7 +620,7 @@ export default class idex extends Exchange {
             'nonce': nonce,
         };
         let response = undefined;
-        response= await (this as any).privateGetUser (this.extend (request, params));
+        response = await (this as any).privateGetUser (this.extend (request, params));
         //
         //     {
         //         depositEnabled: true,
@@ -813,12 +813,12 @@ export default class idex extends Exchange {
         }
         let response = undefined;
         try {
-            response= await (this as any).privateGetBalances (extendedRequest);
+            response = await (this as any).privateGetBalances (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
                 const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response= await (this as any).privateGetBalances (extendedRequest);
+                response = await (this as any).privateGetBalances (extendedRequest);
             } else {
                 throw e;
             }
@@ -880,12 +880,12 @@ export default class idex extends Exchange {
         }
         let response = undefined;
         try {
-            response= await (this as any).privateGetFills (extendedRequest);
+            response = await (this as any).privateGetFills (extendedRequest);
         } catch (e) {
             if (e instanceof InvalidAddress) {
                 const walletAddress = extendedRequest['wallet'];
                 await this.associateWallet (walletAddress);
-                response= await (this as any).privateGetFills (extendedRequest);
+                response = await (this as any).privateGetFills (extendedRequest);
             } else {
                 throw e;
             }
@@ -1135,7 +1135,7 @@ export default class idex extends Exchange {
             },
             'signature': signature,
         };
-        const result= await (this as any).privatePostWallets (request);
+        const result = await (this as any).privatePostWallets (request);
         return result;
     }
 

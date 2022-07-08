@@ -219,7 +219,7 @@ export default class paymium extends Exchange {
         const request = {
             'currency': market['id'],
         };
-        const ticker= await (this as any).publicGetDataCurrencyTicker (this.extend (request, params));
+        const ticker = await (this as any).publicGetDataCurrencyTicker (this.extend (request, params));
         //
         // {
         //     "high":"33740.82",

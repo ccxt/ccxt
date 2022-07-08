@@ -226,7 +226,7 @@ export default class buda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const marketsResponse= await (this as any).publicGetMarkets (params);
+        const marketsResponse = await (this as any).publicGetMarkets (params);
         //
         //     {
         //         "markets": [
@@ -252,7 +252,7 @@ export default class buda extends Exchange {
         //     }
         //
         const markets = this.safeValue (marketsResponse, 'markets', []);
-        const currenciesResponse= await (this as any).publicGetCurrencies ();
+        const currenciesResponse = await (this as any).publicGetCurrencies ();
         const currencies = this.safeValue (currenciesResponse, 'currencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -261,8 +261,8 @@ export default class buda extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const baseInfo= await (this as any).fetchCurrencyInfo (baseId, currencies);
-            const quoteInfo= await (this as any).fetchCurrencyInfo (quoteId, currencies);
+            const baseInfo = await (this as any).fetchCurrencyInfo (baseId, currencies);
+            const quoteInfo = await (this as any).fetchCurrencyInfo (quoteId, currencies);
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
             const taker_fee = this.safeString (market, 'taker_fee');
             const maker_fee = this.safeString (market, 'maker_fee');
@@ -415,8 +415,8 @@ export default class buda extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = { 'currency': currency['id'] };
-            const withdrawResponse= await (this as any).publicGetCurrenciesCurrencyFeesWithdrawal (request);
-            const depositResponse= await (this as any).publicGetCurrenciesCurrencyFeesDeposit (request);
+            const withdrawResponse = await (this as any).publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            const depositResponse = await (this as any).publicGetCurrenciesCurrencyFeesDeposit (request);
             withdrawFees[code] = this.parseFundingFee (withdrawResponse['fee']);
             depositFees[code] = this.parseFundingFee (depositResponse['fee']);
             info[code] = {

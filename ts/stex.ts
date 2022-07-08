@@ -1334,7 +1334,7 @@ export default class stex extends Exchange {
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        const order= await (this as any).fetchClosedOrder (id, symbol, params);
+        const order = await (this as any).fetchClosedOrder (id, symbol, params);
         return order['trades'];
     }
 
@@ -1639,7 +1639,7 @@ export default class stex extends Exchange {
          * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const balance= await (this as any).fetchBalance ();
+        const balance = await (this as any).fetchBalance ();
         const wallets = this.safeValue (balance['info'], 'data', []);
         const walletsByCurrencyId = this.indexBy (wallets, 'currency_id');
         const currency = this.currency (code);

@@ -537,7 +537,7 @@ export default class kucoin extends Exchange {
         const fetchTickersFees = this.safeValue (options, 'fetchTickersFees', true);
         let tickersResponse = {};
         if (fetchTickersFees) {
-            tickersResponse= await (this as any).publicGetMarketAllTickers (params);
+            tickersResponse = await (this as any).publicGetMarketAllTickers (params);
         }
         //
         //     {

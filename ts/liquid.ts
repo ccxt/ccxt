@@ -321,7 +321,7 @@ export default class liquid extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const spot= await (this as any).publicGetProducts (params);
+        const spot = await (this as any).publicGetProducts (params);
         //
         //     [
         //         {
@@ -362,7 +362,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual= await (this as any).publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {
@@ -407,7 +407,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const currencies= await (this as any).fetchCurrencies ();
+        const currencies = await (this as any).fetchCurrencies ();
         const currenciesByCode = this.indexBy (currencies, 'code');
         const result = [];
         const markets = this.arrayConcat (spot, perpetual);
@@ -836,7 +836,7 @@ export default class liquid extends Exchange {
          * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const spot= await (this as any).publicGetProducts (params);
+        const spot = await (this as any).publicGetProducts (params);
         //
         //     [
         //         {
@@ -877,7 +877,7 @@ export default class liquid extends Exchange {
         //         },
         //     ]
         //
-        const perpetual= await (this as any).publicGetProducts ({ 'perpetual': '1' });
+        const perpetual = await (this as any).publicGetProducts ({ 'perpetual': '1' });
         //
         //     [
         //         {

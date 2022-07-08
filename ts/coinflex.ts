@@ -1320,7 +1320,7 @@ export default class coinflex extends Exchange {
          * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         await this.loadMarkets ();
-        const data= await (this as any).getAccountData (params);
+        const data = await (this as any).getAccountData (params);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -1343,7 +1343,7 @@ export default class coinflex extends Exchange {
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const data= await (this as any).getAccountData (params);
+        const data = await (this as any).getAccountData (params);
         const targetAccount = this.safeValue (data, 0);
         return this.parseBalance (targetAccount);
     }
@@ -1390,7 +1390,7 @@ export default class coinflex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const results= await (this as any).fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const results = await (this as any).fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (results, 0);
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
@@ -1679,7 +1679,7 @@ export default class coinflex extends Exchange {
          * @returns {dict} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const positions= await (this as any).fetchPositions (undefined, params);
+        const positions = await (this as any).fetchPositions (undefined, params);
         const symbolPositions = this.filterBySymbol (positions, symbol);
         return this.safeValue (symbolPositions, 0); // exchange doesn't seem to have hedge mode, so the array will contain only one position per symbol
     }
@@ -1693,7 +1693,7 @@ export default class coinflex extends Exchange {
          * @param {object} params extra parameters specific to the coinflex api endpoint
          * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
-        const data= await (this as any).getAccountData (params);
+        const data = await (this as any).getAccountData (params);
         // response sample inside `getAccountData` method
         this.targetAccount = this.safeValue (data, 0);
         const positions = this.safeValue (this.targetAccount, 'positions', []);
@@ -1956,7 +1956,7 @@ export default class coinflex extends Exchange {
         const request = {
             'id': id,
         };
-        const withdrawals= await (this as any).fetchWithdrawals (code, undefined, undefined, this.extend (request, params));
+        const withdrawals = await (this as any).fetchWithdrawals (code, undefined, undefined, this.extend (request, params));
         return this.safeValue (withdrawals, 0); // the target transaction will be the only in array
     }
 
@@ -2215,7 +2215,7 @@ export default class coinflex extends Exchange {
          */
         const market = this.market (symbol);
         this.checkOrderArguments (market, type, side, amount, price, params);
-        const [ request, query ]= await (this as any).buildOrderRequest (market, type, side, amount, price, params);
+        const [ request, query ] = await (this as any).buildOrderRequest (market, type, side, amount, price, params);
         const response = await (this as any).privatePostV2OrdersPlace (this.extend (request, query));
         //
         //     {
@@ -2270,7 +2270,7 @@ export default class coinflex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market (symbol);
-        const [ request, query ]= await (this as any).buildOrderRequest (market, type, side, amount, price, params);
+        const [ request, query ] = await (this as any).buildOrderRequest (market, type, side, amount, price, params);
         request['orders'][0]['orderId'] = id;
         const response = await (this as any).privatePostV2OrdersModify (this.extend (request, query));
         //
@@ -2393,7 +2393,7 @@ export default class coinflex extends Exchange {
          * @param {object} params extra parameters specific to the coinflex api endpoint
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const orders= await (this as any).cancelOrders ([ id ], symbol, params);
+        const orders = await (this as any).cancelOrders ([ id ], symbol, params);
         return this.safeValue (orders, 0);
     }
 

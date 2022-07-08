@@ -346,7 +346,7 @@ export default class ascendex extends Exchange {
          * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {dict} an associative dictionary of currencies
          */
-        const assets= await (this as any).v1PublicGetAssets (params);
+        const assets = await (this as any).v1PublicGetAssets (params);
         //
         //     {
         //         "code":0,
@@ -363,7 +363,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const margin= await (this as any).v1PublicGetMarginAssets (params);
+        const margin = await (this as any).v1PublicGetMarginAssets (params);
         //
         //     {
         //         "code":0,
@@ -383,7 +383,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash= await (this as any).v1PublicGetCashAssets (params);
+        const cash = await (this as any).v1PublicGetCashAssets (params);
         //
         //     {
         //         "code":0,
@@ -454,7 +454,7 @@ export default class ascendex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const products= await (this as any).v1PublicGetProducts (params);
+        const products = await (this as any).v1PublicGetProducts (params);
         //
         //     {
         //         "code":0,
@@ -475,7 +475,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash= await (this as any).v1PublicGetCashProducts (params);
+        const cash = await (this as any).v1PublicGetCashProducts (params);
         //
         //     {
         //         "code":0,
@@ -504,7 +504,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetuals= await (this as any).v2PublicGetFuturesContract (params);
+        const perpetuals = await (this as any).v2PublicGetFuturesContract (params);
         //
         //     {
         //         "code":0,
@@ -646,7 +646,7 @@ export default class ascendex extends Exchange {
         let accountGroup = this.safeString (this.options, 'account-group');
         let response = undefined;
         if (accountGroup === undefined) {
-            response= await (this as any).v1PrivateGetInfo (params);
+            response = await (this as any).v1PrivateGetInfo (params);
             //
             //     {
             //         "code":0,

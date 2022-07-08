@@ -2141,7 +2141,7 @@ export default class okx extends Exchange {
          */
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            const order= await (this as any).cancelOrders ([ id ], symbol, params);
+            const order = await (this as any).cancelOrders ([ id ], symbol, params);
             return this.safeValue (order, 0);
         }
         if (symbol === undefined) {

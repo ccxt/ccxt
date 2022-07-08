@@ -179,8 +179,8 @@ export default class btctradeua extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const bids= await (this as any).publicGetTradesBuySymbol (this.extend (request, params));
-        const asks= await (this as any).publicGetTradesSellSymbol (this.extend (request, params));
+        const bids = await (this as any).publicGetTradesBuySymbol (this.extend (request, params));
+        const asks = await (this as any).publicGetTradesSellSymbol (this.extend (request, params));
         const orderbook = {
             'bids': [],
             'asks': [],

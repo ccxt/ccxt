@@ -204,7 +204,7 @@ export default class blockchaincom extends Exchange {
         //         "imbalance": 0
         //     }
         //
-        const markets= await (this as any).publicGetSymbols (params);
+        const markets = await (this as any).publicGetSymbols (params);
         const marketIds = Object.keys (markets);
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -414,7 +414,7 @@ export default class blockchaincom extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).publicGetTickers (params);
+        const tickers = await (this as any).publicGetTickers (params);
         return this.parseTickers (tickers, symbols);
     }
 
@@ -757,7 +757,7 @@ export default class blockchaincom extends Exchange {
             request['symbol'] = this.marketId (symbol);
             market = this.market (symbol);
         }
-        const trades= await (this as any).privateGetFills (this.extend (request, params));
+        const trades = await (this as any).privateGetFills (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit, params); // need to define
     }
 
@@ -1031,7 +1031,7 @@ export default class blockchaincom extends Exchange {
         const request = {
             'depositId': depositId,
         };
-        const deposit= await (this as any).privateGetDepositsDepositId (this.extend (request, params));
+        const deposit = await (this as any).privateGetDepositsDepositId (this.extend (request, params));
         return this.parseTransaction (deposit);
     }
 

@@ -680,7 +680,7 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const response2= await (this as any).spotPublicGetMarketApiDefaultSymbols (params);
+        const response2 = await (this as any).spotPublicGetMarketApiDefaultSymbols (params);
         //
         //     {
         //         "code":200,

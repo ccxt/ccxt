@@ -656,8 +656,8 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const spot= await (this as any).fetchSpotMarkets (params);
-        const contract= await (this as any).fetchContractMarkets (params);
+        const spot = await (this as any).fetchSpotMarkets (params);
+        const contract = await (this as any).fetchContractMarkets (params);
         return this.arrayConcat (spot, contract);
     }
 

@@ -3171,7 +3171,7 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
-        const orders= await (this as any).fetchOrders (symbol, since, limit, params);
+        const orders = await (this as any).fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -3531,7 +3531,7 @@ export default class binance extends Exchange {
             if (until !== undefined) {
                 request['endTime'] = until;
             }
-            const raw= await (this as any).sapiGetFiatOrders (this.extend (request, params));
+            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -3569,7 +3569,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response= await (this as any).sapiGetCapitalDepositHisrec (this.extend (request, params));
+            response = await (this as any).sapiGetCapitalDepositHisrec (this.extend (request, params));
             //     [
             //       {
             //         "amount": "0.01844487",
@@ -3624,7 +3624,7 @@ export default class binance extends Exchange {
             if (since !== undefined) {
                 request['beginTime'] = since;
             }
-            const raw= await (this as any).sapiGetFiatOrders (this.extend (request, params));
+            const raw = await (this as any).sapiGetFiatOrders (this.extend (request, params));
             response = this.safeValue (raw, 'data');
             //     {
             //       "code": "000000",
@@ -3669,7 +3669,7 @@ export default class binance extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            response= await (this as any).sapiGetCapitalWithdrawHistory (this.extend (request, params));
+            response = await (this as any).sapiGetCapitalWithdrawHistory (this.extend (request, params));
             //     [
             //       {
             //         "id": "69e53ad305124b96b43668ceab158a18",

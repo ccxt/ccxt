@@ -294,7 +294,7 @@ export default class wazirx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker= await (this as any).publicGetTicker24hr (this.extend (request, params));
+        const ticker = await (this as any).publicGetTicker24hr (this.extend (request, params));
         //
         // {
         //     "symbol":"wrxinr",
@@ -323,7 +323,7 @@ export default class wazirx extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).publicGetTickers24hr ();
+        const tickers = await (this as any).publicGetTickers24hr ();
         //
         // [
         //     {

@@ -132,7 +132,7 @@ export default class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         }
         await this.loadMarkets ();
-        const orderbook= await (this as any).publicGetOrderBook (params);
+        const orderbook = await (this as any).publicGetOrderBook (params);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -195,7 +195,7 @@ export default class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker= await (this as any).publicGetTicker (params);
+        const ticker = await (this as any).publicGetTicker (params);
         //
         // {
         //     "volume": "2836.47827985",

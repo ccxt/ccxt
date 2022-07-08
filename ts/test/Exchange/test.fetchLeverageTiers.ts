@@ -1,8 +1,6 @@
 
-
-import assert from 'assert'
-import testLeverageTier from './test.leverageTier.js'
-
+import assert from 'assert';
+import testLeverageTier from './test.leverageTier';
 
 export default async (exchange, symbol) => {
     const method = 'fetchLeverageTiers';
@@ -12,16 +10,16 @@ export default async (exchange, symbol) => {
     //     ],
     // };
     if (exchange.has[method]) {
-        const tiers = await exchange [method] ([ symbol ]);
+        const tiers = await exchange[method] ([ symbol ]);
         const tierKeys = Object.keys (tiers);
         const numTierKeys = tierKeys.length;
         assert (numTierKeys >= 1);
         console.log (method + 'for ' + numTierKeys + ' markets');
         for (let i = 0; i < numTierKeys; i++) {
-            const tiersForSymbol = tiers [ tierKeys[i] ];
+            const tiersForSymbol = tiers[tierKeys[i]];
             const arrayLength = tiersForSymbol.length;
             assert (arrayLength >= 1);
-            for (let j=0; j < tiersForSymbol.length; j++) {
+            for (let j = 0; j < tiersForSymbol.length; j++) {
                 const tier = tiersForSymbol[j];
                 testLeverageTier (exchange, method, tier);
             }
@@ -30,4 +28,4 @@ export default async (exchange, symbol) => {
     } else {
         console.log (method + '() is not supported');
     }
-}
+};

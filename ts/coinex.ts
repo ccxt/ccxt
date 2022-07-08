@@ -398,9 +398,9 @@ export default class coinex extends Exchange {
         let result = [];
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot' || type === 'margin') {
-            result= await (this as any).fetchSpotMarkets (query);
+            result = await (this as any).fetchSpotMarkets (query);
         } else if (type === 'swap') {
-            result= await (this as any).fetchContractMarkets (query);
+            result = await (this as any).fetchContractMarkets (query);
         } else {
             throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
         }

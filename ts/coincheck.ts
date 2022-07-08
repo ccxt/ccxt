@@ -340,7 +340,7 @@ export default class coincheck extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker= await (this as any).publicGetTicker (this.extend (request, params));
+        const ticker = await (this as any).publicGetTicker (this.extend (request, params));
         //
         // {
         //     "last":4192632.0,

@@ -1,9 +1,7 @@
 /* tslint:disable */
-import assert from 'assert'
-
+import assert from 'assert';
 
 function testAccount (exchange, account, method = undefined) {
-
     const format = {
         'info': {},
         'code': 'BTC',

@@ -552,7 +552,7 @@ export default class tidex extends Exchange {
          * @param {object} params extra parameters specific to the tidex api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const tickers= await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await (this as any).fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 

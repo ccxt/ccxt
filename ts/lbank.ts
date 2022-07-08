@@ -708,7 +708,7 @@ export default class lbank extends Exchange {
             const market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const orders= await (this as any).fetchOrders (symbol, since, limit, params);
+        const orders = await (this as any).fetchOrders (symbol, since, limit, params);
         const closed = this.filterBy (orders, 'status', 'closed');
         const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         const allOrders = this.arrayConcat (closed, canceled);

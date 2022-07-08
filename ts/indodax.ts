@@ -365,7 +365,7 @@ export default class indodax extends Exchange {
         const request = {
             'pair': this.marketId (symbol),
         };
-        const orderbook= await (this as any).publicGetPairDepth (this.extend (request, params));
+        const orderbook = await (this as any).publicGetPairDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
     }
 
@@ -693,7 +693,7 @@ export default class indodax extends Exchange {
             request[market['baseId']] = amount;
         }
         request[currency] = amount;
-        const result= await (this as any).privatePostTrade (this.extend (request, params));
+        const result = await (this as any).privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return {

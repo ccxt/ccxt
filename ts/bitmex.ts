@@ -698,7 +698,7 @@ export default class bitmex extends Exchange {
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         // Bitmex barfs if you set 'open': false in the filter...
-        const orders= await (this as any).fetchOrders (symbol, since, limit, params);
+        const orders = await (this as any).fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -1075,7 +1075,7 @@ export default class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tickers= await (this as any).fetchTickers ([ market['symbol'] ], params);
+        const tickers = await (this as any).fetchTickers ([ market['symbol'] ], params);
         const ticker = this.safeValue (tickers, market['symbol']);
         if (ticker === undefined) {
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');

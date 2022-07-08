@@ -338,7 +338,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const markets= await (this as any).publicGetReturnTicker (params);
+        const markets = await (this as any).publicGetReturnTicker (params);
         const keys = Object.keys (markets);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -837,7 +837,7 @@ export default class poloniex extends Exchange {
             request['start'] = this.parseInt (since / 1000);
             request['end'] = this.seconds (); // last 50000 trades by default
         }
-        const trades= await (this as any).publicGetReturnTradeHistory (this.extend (request, params));
+        const trades = await (this as any).publicGetReturnTradeHistory (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1366,7 +1366,7 @@ export default class poloniex extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const orders= await (this as any).fetchOpenOrders (symbol, undefined, undefined, params);
+        const orders = await (this as any).fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
@@ -1387,7 +1387,7 @@ export default class poloniex extends Exchange {
         const request = {
             'orderNumber': id,
         };
-        const trades= await (this as any).privatePostReturnOrderTrades (this.extend (request, params));
+        const trades = await (this as any).privatePostReturnOrderTrades (this.extend (request, params));
         return this.parseTrades (trades);
     }
 

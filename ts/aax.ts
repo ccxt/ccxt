@@ -1670,7 +1670,7 @@ export default class aax extends Exchange {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const orders= await (this as any).fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const orders = await (this as any).fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (orders, 0);
         if (order === undefined) {
             if (clientOrderId === undefined) {
@@ -2280,7 +2280,7 @@ export default class aax extends Exchange {
          * @method
          * @name aax#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {string|undefined} code unified currency code 
+         * @param {string|undefined} code unified currency code
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the aax api endpoint

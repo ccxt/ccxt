@@ -1019,7 +1019,7 @@ export default class wavesexchange extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, [ 'network' ]);
-        const supportedCurrencies= await (this as any).privateGetPlatforms ();
+        const supportedCurrencies = await (this as any).privateGetPlatforms ();
         //
         //     {
         //       "type": "list",
@@ -1077,7 +1077,7 @@ export default class wavesexchange extends Exchange {
             const request = {
                 'currency': code,
             };
-            response= await (this as any).privateGetDepositAddressesCurrency (this.extend (request, params));
+            response = await (this as any).privateGetDepositAddressesCurrency (this.extend (request, params));
         } else {
             const supportedNetworks = networksByCurrency[code];
             if (!(network in supportedNetworks)) {
@@ -1102,7 +1102,7 @@ export default class wavesexchange extends Exchange {
                     'currency': code,
                     'platform': network,
                 };
-                response= await (this as any).privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
+                response = await (this as any).privateGetDepositAddressesCurrencyPlatform (this.extend (request, params));
             }
         }
         //
@@ -1250,7 +1250,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const matcherPublicKey= await (this as any).getMatcherPublicKey ();
+        const matcherPublicKey = await (this as any).getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         const isMarketOrder = (type === 'market');
@@ -1261,7 +1261,7 @@ export default class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const matcherFees= await (this as any).getFeesForAsset (symbol, side, amount, price);
+        const matcherFees = await (this as any).getFeesForAsset (symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES", // varies depending on the trading pair
@@ -1288,7 +1288,7 @@ export default class wavesexchange extends Exchange {
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
-        const balances= await (this as any).fetchBalance ();
+        const balances = await (this as any).fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
                 throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
@@ -1407,7 +1407,7 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.signIn ();
-        const wavesAddress= await (this as any).getWavesAddress ();
+        const wavesAddress = await (this as any).getWavesAddress ();
         const response = await (this as any).forwardPostMatcherOrdersWavesAddressCancel ({
             'wavesAddress': wavesAddress,
             'orderId': id,
@@ -1547,7 +1547,7 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address= await (this as any).getWavesAddress ();
+        const address = await (this as any).getWavesAddress ();
         const request = {
             'address': address,
             'activeOnly': true,
@@ -1573,7 +1573,7 @@ export default class wavesexchange extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const address= await (this as any).getWavesAddress ();
+        const address = await (this as any).getWavesAddress ();
         const request = {
             'address': address,
             'closedOnly': true,
@@ -1764,11 +1764,11 @@ export default class wavesexchange extends Exchange {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
         await this.loadMarkets ();
-        const wavesAddress= await (this as any).getWavesAddress ();
+        const wavesAddress = await (this as any).getWavesAddress ();
         const request = {
             'address': wavesAddress,
         };
-        const totalBalance= await (this as any).nodeGetAssetsBalanceAddress (request);
+        const totalBalance = await (this as any).nodeGetAssetsBalanceAddress (request);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "balances": [
@@ -1859,7 +1859,7 @@ export default class wavesexchange extends Exchange {
             'signature': signature,
             'timestamp': currentTimestamp.toString (),
         };
-        const reservedBalance= await (this as any).matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
+        const reservedBalance = await (this as any).matcherGetMatcherBalanceReservedPublicKey (matcherRequest);
         // { WAVES: 200300000 }
         const reservedKeys = Object.keys (reservedBalance);
         for (let i = 0; i < reservedKeys.length; i++) {
@@ -1878,7 +1878,7 @@ export default class wavesexchange extends Exchange {
         const wavesRequest = {
             'address': wavesAddress,
         };
-        const wavesTotal= await (this as any).nodeGetAddressesBalanceAddress (wavesRequest);
+        const wavesTotal = await (this as any).nodeGetAddressesBalanceAddress (wavesRequest);
         // {
         //   "address": "3P8VzLSa23EW5CVckHbV7d5BoN75fF1hhFH",
         //   "confirmations": 0,
@@ -1910,7 +1910,7 @@ export default class wavesexchange extends Exchange {
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
-        const address= await (this as any).getWavesAddress ();
+        const address = await (this as any).getWavesAddress ();
         const request = {
             'sender': address,
         };
@@ -2209,7 +2209,7 @@ export default class wavesexchange extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // currently only works for BTC and WAVES
         if (code !== 'WAVES') {
-            const supportedCurrencies= await (this as any).privateGetWithdrawCurrencies ();
+            const supportedCurrencies = await (this as any).privateGetWithdrawCurrencies ();
             const currencies = {};
             const items = this.safeValue (supportedCurrencies, 'items', []);
             for (let i = 0; i < items.length; i++) {
@@ -2248,7 +2248,7 @@ export default class wavesexchange extends Exchange {
                 'address': address,
                 'currency': code,
             };
-            const withdrawAddress= await (this as any).privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
+            const withdrawAddress = await (this as any).privateGetWithdrawAddressesCurrencyAddress (withdrawAddressRequest);
             const currency = this.safeValue (withdrawAddress, 'currency');
             const allowedAmount = this.safeValue (currency, 'allowed_amount');
             const minimum = this.safeNumber (allowedAmount, 'min');
@@ -2317,7 +2317,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'signature': signature,
         };
-        const result= await (this as any).nodePostTransactionsBroadcast (request);
+        const result = await (this as any).nodePostTransactionsBroadcast (request);
         //
         //     {
         //         "id": "string",

@@ -447,12 +447,12 @@ export default class bitfinex2 extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        let spotMarketsInfo= await (this as any).publicGetConfPubInfoPair (params);
-        let futuresMarketsInfo= await (this as any).publicGetConfPubInfoPairFutures (params);
+        let spotMarketsInfo = await (this as any).publicGetConfPubInfoPair (params);
+        let futuresMarketsInfo = await (this as any).publicGetConfPubInfoPairFutures (params);
         spotMarketsInfo = this.safeValue (spotMarketsInfo, 0, []);
         futuresMarketsInfo = this.safeValue (futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        let marginIds= await (this as any).publicGetConfPubListPairMargin (params);
+        let marginIds = await (this as any).publicGetConfPubListPairMargin (params);
         marginIds = this.safeValue (marginIds, 0, []);
         //
         //    [
@@ -996,7 +996,7 @@ export default class bitfinex2 extends Exchange {
             request['len'] = limit; // 25 or 100
         }
         const fullRequest = this.extend (request, params);
-        const orderbook= await (this as any).publicGetBookSymbolPrecision (fullRequest);
+        const orderbook = await (this as any).publicGetBookSymbolPrecision (fullRequest);
         const timestamp = this.milliseconds ();
         const result = {
             'symbol': market['symbol'],
@@ -1106,7 +1106,7 @@ export default class bitfinex2 extends Exchange {
         } else {
             request['symbols'] = 'ALL';
         }
-        const tickers= await (this as any).publicGetTickers (this.extend (request, params));
+        const tickers = await (this as any).publicGetTickers (this.extend (request, params));
         //
         //     [
         //         // on trading pairs (ex. tBTCUSD)
@@ -1173,7 +1173,7 @@ export default class bitfinex2 extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker= await (this as any).publicGetTickerSymbol (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerSymbol (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -1729,7 +1729,7 @@ export default class bitfinex2 extends Exchange {
         const request = {
             'id': [ parseInt (id) ],
         };
-        const orders= await (this as any).fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
+        const orders = await (this as any).fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (orders, 0);
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
@@ -1750,7 +1750,7 @@ export default class bitfinex2 extends Exchange {
         const request = {
             'id': [ parseInt (id) ],
         };
-        const orders= await (this as any).fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
+        const orders = await (this as any).fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
         const order = this.safeValue (orders, 0);
         if (order === undefined) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
@@ -1774,11 +1774,11 @@ export default class bitfinex2 extends Exchange {
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
-            response= await (this as any).privatePostAuthROrders (this.extend (request, params));
+            response = await (this as any).privatePostAuthROrders (this.extend (request, params));
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            response= await (this as any).privatePostAuthROrdersSymbol (this.extend (request, params));
+            response = await (this as any).privatePostAuthROrdersSymbol (this.extend (request, params));
         }
         //
         //      [
@@ -1844,11 +1844,11 @@ export default class bitfinex2 extends Exchange {
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
-            response= await (this as any).privatePostAuthROrdersHist (this.extend (request, params));
+            response = await (this as any).privatePostAuthROrdersHist (this.extend (request, params));
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            response= await (this as any).privatePostAuthROrdersSymbolHist (this.extend (request, params));
+            response = await (this as any).privatePostAuthROrdersSymbolHist (this.extend (request, params));
         }
         //
         //      [

@@ -272,7 +272,7 @@ export default class coinfalcon extends Exchange {
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await (this as any).fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 

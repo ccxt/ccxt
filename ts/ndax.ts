@@ -268,7 +268,7 @@ export default class ndax extends Exchange {
         if (this.login === undefined || this.password === undefined) {
             throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
         }
-        let request = {
+        const request = {
             'grant_type': 'client_credentials', // the only supported value
         };
         const response = await (this as any).publicGetAuthenticate (this.extend (request, params));
@@ -2286,7 +2286,7 @@ export default class ndax extends Exchange {
             'AccountId': accountId,
             'ProductId': currency['id'],
         };
-        const withdrawTemplateTypesResponse= await (this as any).privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
+        const withdrawTemplateTypesResponse = await (this as any).privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
         //
         //     {
         //         result: true,
@@ -2312,7 +2312,7 @@ export default class ndax extends Exchange {
             'TemplateType': templateName,
             'AccountProviderId': firstTemplateType['AccountProviderId'],
         };
-        const withdrawTemplateResponse= await (this as any).privateGetGetWithdrawTemplate (withdrawTemplateRequest);
+        const withdrawTemplateResponse = await (this as any).privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
         //     {
         //         result: true,

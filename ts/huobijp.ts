@@ -349,7 +349,7 @@ export default class huobijp extends Exchange {
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            result[symbol]= await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
+            result[symbol] = await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
     }

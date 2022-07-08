@@ -1444,7 +1444,7 @@ export default class woo extends Exchange {
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
-        const [ currency, rows ]= await (this as any).getAssetHistoryRows (code, since, limit, params);
+        const [ currency, rows ] = await (this as any).getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -1548,7 +1548,7 @@ export default class woo extends Exchange {
         const request = {
             'type': 'BALANCE',
         };
-        const [ currency, rows ]= await (this as any).getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const [ currency, rows ] = await (this as any).getAssetHistoryRows (code, since, limit, this.extend (request, params));
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
@@ -1648,7 +1648,7 @@ export default class woo extends Exchange {
         const request = {
             'type': 'COLLATERAL',
         };
-        const [ currency, rows ]= await (this as any).getAssetHistoryRows (code, since, limit, this.extend (request, params));
+        const [ currency, rows ] = await (this as any).getAssetHistoryRows (code, since, limit, this.extend (request, params));
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 

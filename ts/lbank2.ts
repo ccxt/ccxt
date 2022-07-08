@@ -886,7 +886,7 @@ export default class lbank2 extends Exchange {
          * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         const market = this.market (symbol);
-        const result= await (this as any).fetchTradingFees (this.extend (params, { 'category': market['id'] }));
+        const result = await (this as any).fetchTradingFees (this.extend (params, { 'category': market['id'] }));
         return result;
     }
 
@@ -1890,7 +1890,7 @@ export default class lbank2 extends Exchange {
             }
             result = await this[method] (params);
         } else {
-            result= await (this as any).fetchPublicFundingFees (params);
+            result = await (this as any).fetchPublicFundingFees (params);
         }
         return result;
     }

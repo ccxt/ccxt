@@ -503,11 +503,11 @@ export default class bitfinex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const ids= await (this as any).publicGetSymbols ();
+        const ids = await (this as any).publicGetSymbols ();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        const details= await (this as any).publicGetSymbolsDetails ();
+        const details = await (this as any).publicGetSymbolsDetails ();
         //
         //     [
         //         {
@@ -817,7 +817,7 @@ export default class bitfinex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker= await (this as any).publicGetPubtickerSymbol (this.extend (request, params));
+        const ticker = await (this as any).publicGetPubtickerSymbol (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
@@ -1511,7 +1511,7 @@ export default class bitfinex extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const responses= await (this as any).privatePostWithdraw (this.extend (request, params));
+        const responses = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     [
         //         {

@@ -654,7 +654,7 @@ export default class bybit extends Exchange {
         if (type === 'spot') {
             // spot and swap ids are equal
             // so they can't be loaded together
-            const spotMarkets= await (this as any).fetchSpotMarkets (params);
+            const spotMarkets = await (this as any).fetchSpotMarkets (params);
             return spotMarkets;
         }
         const promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
@@ -931,8 +931,8 @@ export default class bybit extends Exchange {
     }
 
     async fetchUSDCMarkets (params) {
-        const linearOptionsResponse= await (this as any).publicGetOptionUsdcOpenapiPublicV1Symbols (params);
-        const usdcLinearPerpetualSwaps= await (this as any).publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
+        const linearOptionsResponse = await (this as any).publicGetOptionUsdcOpenapiPublicV1Symbols (params);
+        const usdcLinearPerpetualSwaps = await (this as any).publicGetPerpetualUsdcOpenapiPublicV1Symbols (params);
         //
         // USDC linear options
         //     {
@@ -2703,7 +2703,7 @@ export default class bybit extends Exchange {
         } else {
             // only linear swap markets allow using all purpose
             // fetchOrders endpoint filtering by id
-            const orders= await (this as any).fetchOrders (symbol, undefined, undefined, params);
+            const orders = await (this as any).fetchOrders (symbol, undefined, undefined, params);
             const order = this.safeValue (orders, 0);
             if (order === undefined) {
                 throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');

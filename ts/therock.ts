@@ -301,7 +301,7 @@ export default class therock extends Exchange {
         const request = {
             'id': this.marketId (symbol),
         };
-        const orderbook= await (this as any).publicGetFundsIdOrderbook (this.extend (request, params));
+        const orderbook = await (this as any).publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -1591,7 +1591,7 @@ export default class therock extends Exchange {
         request = {
             'id': market['quoteId'],
         };
-        const discount= await (this as any).privateGetDiscountsId (this.extend (request, params));
+        const discount = await (this as any).privateGetDiscountsId (this.extend (request, params));
         //
         //     {
         //         "currency":"BTC",
@@ -1635,7 +1635,7 @@ export default class therock extends Exchange {
         //         ]
         //     }
         //
-        const discountsResponse= await (this as any).privateGetDiscounts (params);
+        const discountsResponse = await (this as any).privateGetDiscounts (params);
         //
         //     {
         //         "discounts": [

@@ -1,32 +1,22 @@
 
-
 // ----------------------------------------------------------------------------
 
-import assert from 'assert'
-import testBorrowRate from './test.borrowRate.js'
+import assert from 'assert';
+import testBorrowRate from './test.borrowRate';
 
 // ----------------------------------------------------------------------------
 
 export default async (exchange, code) => {
-
-    const method = 'fetchBorrowRate'
-
+    const method = 'fetchBorrowRate';
     if (exchange.has[method]) {
-
-        const borrowRate = await exchange[method] (code)
-
-        testBorrowRate (exchange, borrowRate, method, code)
-
-        console.log (code, method, borrowRate['datetime'], 'rate:', borrowRate['rate'], 'period:', borrowRate['period'])
-
+        const borrowRate = await exchange[method] (code);
+        testBorrowRate (exchange, borrowRate, method, code);
+        console.log (code, method, borrowRate['datetime'], 'rate:', borrowRate['rate'], 'period:', borrowRate['period']);
         if (code) {
-            assert (borrowRate['currency'] === code)
+            assert (borrowRate['currency'] === code);
         }
-
-        return borrowRate
-
+        return borrowRate;
     } else {
-
-        console.log (code, method + '() is not supported')
+        console.log (code, method + '() is not supported');
     }
-}
+};

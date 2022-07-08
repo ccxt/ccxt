@@ -652,7 +652,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const v2Products= await (this as any).publicGetCfgV2Products (params);
+        const v2Products = await (this as any).publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -730,7 +730,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products= await (this as any).v1GetExchangePublicProducts (params);
+        const v1Products = await (this as any).v1GetExchangePublicProducts (params);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {

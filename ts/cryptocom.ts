@@ -377,7 +377,7 @@ export default class cryptocom extends Exchange {
                 'info': market,
             });
         }
-        const futuresResponse= await (this as any).derivativesPublicGetPublicGetInstruments ();
+        const futuresResponse = await (this as any).derivativesPublicGetPublicGetInstruments ();
         //
         //     {
         //       id: -1,
@@ -1358,7 +1358,7 @@ export default class cryptocom extends Exchange {
          */
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
-        const depositAddresses= await (this as any).fetchDepositAddressesByNetwork (code, params);
+        const depositAddresses = await (this as any).fetchDepositAddressesByNetwork (code, params);
         if (network in depositAddresses) {
             return depositAddresses[network];
         } else {
@@ -1502,7 +1502,7 @@ export default class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        const repsonse= await (this as any).spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        const repsonse = await (this as any).spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
         //
         //     {
         //         "id": 11,

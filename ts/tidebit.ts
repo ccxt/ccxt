@@ -365,7 +365,7 @@ export default class tidebit extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).publicGetTickers (params);
+        const tickers = await (this as any).publicGetTickers (params);
         const ids = Object.keys (tickers);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -637,7 +637,7 @@ export default class tidebit extends Exchange {
         const request = {
             'id': id,
         };
-        const result= await (this as any).privatePostOrderDelete (this.extend (request, params));
+        const result = await (this as any).privatePostOrderDelete (this.extend (request, params));
         const order = this.parseOrder (result);
         const status = this.safeString (order, 'status');
         if (status === 'closed' || status === 'canceled') {
@@ -676,7 +676,7 @@ export default class tidebit extends Exchange {
         if (tag !== undefined) {
             request['memo'] = tag;
         }
-        const result= await (this as any).privatePostWithdrawsApply (this.extend (request, params));
+        const result = await (this as any).privatePostWithdrawsApply (this.extend (request, params));
         return this.parseTransaction (result, currency);
     }
 

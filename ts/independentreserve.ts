@@ -139,11 +139,11 @@ export default class independentreserve extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const baseCurrencies= await (this as any).publicGetGetValidPrimaryCurrencyCodes (params);
+        const baseCurrencies = await (this as any).publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        const quoteCurrencies= await (this as any).publicGetGetValidSecondaryCurrencyCodes (params);
+        const quoteCurrencies = await (this as any).publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        const limits= await (this as any).publicGetGetOrderMinimumVolumes (params);
+        const limits = await (this as any).publicGetGetOrderMinimumVolumes (params);
         //
         //     {
         //         "Xbt": 0.0001,

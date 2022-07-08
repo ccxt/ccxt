@@ -1603,7 +1603,7 @@ export default class bitopro extends Exchange {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
-                let rawData = {
+                const rawData = {
                     'nonce': nonce,
                 };
                 const rawDataString = this.json (rawData);

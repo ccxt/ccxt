@@ -1521,7 +1521,7 @@ export default class coinbasepro extends Exchange {
         }
         let response = undefined;
         if (id === undefined) {
-            response= await (this as any).privateGetTransfers (this.extend (request, params));
+            response = await (this as any).privateGetTransfers (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
@@ -1529,7 +1529,7 @@ export default class coinbasepro extends Exchange {
                 response[i]['currency'] = code;
             }
         } else {
-            response= await (this as any).privateGetAccountsIdTransfers (this.extend (request, params));
+            response = await (this as any).privateGetAccountsIdTransfers (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 response[i]['currency'] = code;
             }
@@ -1645,7 +1645,7 @@ export default class coinbasepro extends Exchange {
         const currency = this.currency (code);
         let accounts = this.safeValue (this.options, 'coinbaseAccounts');
         if (accounts === undefined) {
-            accounts= await (this as any).privateGetCoinbaseAccounts ();
+            accounts = await (this as any).privateGetCoinbaseAccounts ();
             this.options['coinbaseAccounts'] = accounts; // cache it
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
         }

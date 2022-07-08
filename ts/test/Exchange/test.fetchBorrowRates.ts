@@ -1,29 +1,22 @@
 
-
 // ----------------------------------------------------------------------------
 
-import testBorrowRate  from './test.borrowRate.js'
+import testBorrowRate from './test.borrowRate';
 
 // ----------------------------------------------------------------------------
 
 export default async (exchange) => {
-
-    const method = 'fetchBorrowRates'
-
+    const method = 'fetchBorrowRates';
     if (exchange.has[method]) {
-
-        const borrowRates = await exchange[method] ()
-        console.log ('fetched all', Object.keys (borrowRates).length, 'borrow rates')
-
-        const values = Object.values (borrowRates)
+        const borrowRates = await exchange[method] ();
+        console.log ('fetched all', Object.keys (borrowRates).length, 'borrow rates');
+        const values = Object.values (borrowRates);
         for (let i = 0; i < values.length; i++) {
-            const borrowRate = values[i]
-            testBorrowRate (exchange, borrowRate, method)
+            const borrowRate = values[i];
+            testBorrowRate (exchange, borrowRate, method);
         }
-        return borrowRates
-
+        return borrowRates;
     } else {
-
-        console.log (method + '() fetching all borrow rates at once is not supported')
+        console.log (method + '() fetching all borrow rates at once is not supported');
     }
-}
+};

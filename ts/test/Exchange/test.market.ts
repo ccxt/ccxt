@@ -88,7 +88,6 @@ function testMarket (exchange, market, method) {
         'future': true,
         'option': true,
     };
-    const type = market['type'];
     //
     // binance has type = 'delivery'
     // https://github.com/ccxt/ccxt/issues/11121

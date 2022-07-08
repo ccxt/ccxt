@@ -513,7 +513,7 @@ export default class xena extends Exchange {
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).fetchTickers (undefined, params);
+        const tickers = await (this as any).fetchTickers (undefined, params);
         if (symbol in tickers) {
             return tickers[symbol];
         }
@@ -530,7 +530,7 @@ export default class xena extends Exchange {
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const tickers= await (this as any).publicGetMarketDataMarketWatch (params);
+        const tickers = await (this as any).publicGetMarketDataMarketWatch (params);
         //
         //     [
         //         {
@@ -671,7 +671,7 @@ export default class xena extends Exchange {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + " requires an 'accountId' parameter or a 'type' parameter ('spot' or 'margin')");
         }
-        const account= await (this as any).findAccountByType (type);
+        const account = await (this as any).findAccountByType (type);
         return account['id'];
     }
 
@@ -707,7 +707,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'accountId': accountId,
         };
@@ -827,7 +827,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'page': 1,
@@ -1129,7 +1129,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await this.getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const orderTypes = {
             'market': '1',
             'limit': '2',
@@ -1220,7 +1220,7 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await this.getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const market = this.market (symbol);
         const request = {
             'account': parseInt (accountId),
@@ -1284,7 +1284,7 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'origClOrdId');
         params = this.omit (params, [ 'clientOrderId', 'origClOrdId' ]);
         const market = this.market (symbol);
@@ -1337,7 +1337,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'account': parseInt (accountId),
             'clOrdId': this.uuid (),
@@ -1380,7 +1380,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'symbol': market['id'],
@@ -1431,7 +1431,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'from': this.iso8601 (since) * 1000000,
@@ -1489,7 +1489,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'accountId': accountId,
@@ -1525,7 +1525,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await this.getAccountId (params);
+        const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'accountId': accountId,
@@ -1557,7 +1557,7 @@ export default class xena extends Exchange {
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -1746,7 +1746,7 @@ export default class xena extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const currency = this.currency (code);
         let uuid = this.uuid ();
         uuid = uuid.split ('-');
@@ -1850,7 +1850,7 @@ export default class xena extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const accountId= await (this as any).getAccountId (params);
+        const accountId = await (this as any).getAccountId (params);
         const request = {
             'accountId': accountId,
             // 'page': 1,
@@ -2103,7 +2103,7 @@ export default class xena extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString();
+            let nonce = this.nonce ().toString ();
             // php does not format it properly
             // therefore we use string concatenation here
             // nonce *= 1000000;

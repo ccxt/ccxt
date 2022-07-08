@@ -537,7 +537,7 @@ export default class ftx extends Exchange {
         //
         let allFuturesResponse = undefined;
         if (this.has['future'] && (this.hostname !== 'ftx.us')) {
-            allFuturesResponse= await (this as any).publicGetFutures ();
+            allFuturesResponse = await (this as any).publicGetFutures ();
         }
         //
         //    {
@@ -3022,7 +3022,7 @@ export default class ftx extends Exchange {
          * @param {number|undefined} params.till Timestamp in ms of the latest time to fetch the borrow rate
          * @returns {[dict]} an array of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
-        const histories= await (this as any).fetchBorrowRateHistories ([ code ], since, limit, params);
+        const histories = await (this as any).fetchBorrowRateHistories ([ code ], since, limit, params);
         const borrowRateHistory = this.safeValue (histories, code);
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + ' fetchBorrowRateHistory () returned no data for ' + code);

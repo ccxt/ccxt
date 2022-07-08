@@ -639,13 +639,13 @@ export default class gate extends Exchange {
         let result = [];
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot' || type === 'margin') {
-            result= await (this as any).fetchSpotMarkets (query);
+            result = await (this as any).fetchSpotMarkets (query);
         }
         if (type === 'swap' || type === 'future') {
-            result= await (this as any).fetchContractMarkets (query); // futures and swaps
+            result = await (this as any).fetchContractMarkets (query); // futures and swaps
         }
         if (type === 'option') {
-            result= await (this as any).fetchOptionMarkets (query);
+            result = await (this as any).fetchOptionMarkets (query);
         }
         const resultLength = result.length;
         if (resultLength === 0) {
@@ -655,8 +655,8 @@ export default class gate extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const marginResponse= await (this as any).publicMarginGetCurrencyPairs (params);
-        const spotMarketsResponse= await (this as any).publicSpotGetCurrencyPairs (params);
+        const marginResponse = await (this as any).publicMarginGetCurrencyPairs (params);
+        const spotMarketsResponse = await (this as any).publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
         //
         //  Spot
@@ -957,7 +957,7 @@ export default class gate extends Exchange {
 
     async fetchOptionMarkets (params = {}) {
         const result = [];
-        const underlyings= await (this as any).fetchOptionUnderlyings ();
+        const underlyings = await (this as any).fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
             const underlying = underlyings[i];
             const query = params;
@@ -1080,7 +1080,7 @@ export default class gate extends Exchange {
     }
 
     async fetchOptionUnderlyings () {
-        const underlyingsResponse= await (this as any).publicOptionsGetUnderlyings ();
+        const underlyingsResponse = await (this as any).publicOptionsGetUnderlyings ();
         //
         //    [
         //        {

@@ -205,7 +205,7 @@ export default class coinspot extends Exchange {
         const request = {
             'cointype': market['id'],
         };
-        const orderbook= await (this as any).privatePostOrders (this.extend (request, params));
+        const orderbook = await (this as any).privatePostOrders (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 

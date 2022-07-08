@@ -508,8 +508,8 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV1AndV2 (symbol, params = {}) {
-        const tickerA= await (this as any).fetchTickerV1 (symbol, params);
-        const tickerB= await (this as any).fetchTickerV2 (symbol, params);
+        const tickerA = await (this as any).fetchTickerV1 (symbol, params);
+        const tickerB = await (this as any).fetchTickerV2 (symbol, params);
         return this.deepExtend (tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],

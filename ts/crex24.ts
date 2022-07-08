@@ -283,7 +283,7 @@ export default class crex24 extends Exchange {
         //             "state": "active"
         //           }, ]
         //
-        const response2= await (this as any).publicGetTradingFeeSchedules (params);
+        const response2 = await (this as any).publicGetTradingFeeSchedules (params);
         //
         //     [
         //         {
@@ -1445,7 +1445,7 @@ export default class crex24 extends Exchange {
         let response = undefined;
         let market = undefined;
         if (symbol === undefined) {
-            response= await (this as any).tradingPostCancelAllOrders (params);
+            response = await (this as any).tradingPostCancelAllOrders (params);
             //
             //     [
             //         465448358,
@@ -1458,7 +1458,7 @@ export default class crex24 extends Exchange {
             const request = {
                 'instruments': [ market['id'] ],
             };
-            response= await (this as any).tradingPostCancelOrdersByInstrument (this.extend (request, params));
+            response = await (this as any).tradingPostCancelOrdersByInstrument (this.extend (request, params));
             //
             //     [
             //         465441234,

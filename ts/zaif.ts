@@ -151,7 +151,7 @@ export default class zaif extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const markets= await (this as any).publicGetCurrencyPairsAll (params);
+        const markets = await (this as any).publicGetCurrencyPairsAll (params);
         //
         //     [
         //         {
@@ -351,7 +351,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker= await (this as any).publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "last": 9e-08,
@@ -420,7 +420,7 @@ export default class zaif extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        let response= await (this as any).publicGetTradesPair (this.extend (request, params));
+        let response = await (this as any).publicGetTradesPair (this.extend (request, params));
         //
         //      [
         //          {
@@ -618,7 +618,7 @@ export default class zaif extends Exchange {
         if (tag !== undefined) {
             request['message'] = tag;
         }
-        const result= await (this as any).privatePostWithdraw (this.extend (request, params));
+        const result = await (this as any).privatePostWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": 1,
@@ -686,7 +686,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce () {
-        const nonce = parseFloat ((this.milliseconds () / 1000).toString());
+        const nonce = parseFloat ((this.milliseconds () / 1000).toString ());
         return nonce.toFixed (8);
     }
 

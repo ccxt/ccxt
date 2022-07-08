@@ -524,7 +524,7 @@ export default class deribit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const currenciesResponse= await (this as any).publicGetGetCurrencies (params);
+        const currenciesResponse = await (this as any).publicGetGetCurrencies (params);
         //
         //     {
         //         jsonrpc: '2.0',
@@ -556,7 +556,7 @@ export default class deribit extends Exchange {
             const request = {
                 'currency': currencyId,
             };
-            const instrumentsResponse= await (this as any).publicGetGetInstruments (this.extend (request, params));
+            const instrumentsResponse = await (this as any).publicGetGetInstruments (this.extend (request, params));
             //
             //     {
             //         "jsonrpc":"2.0",

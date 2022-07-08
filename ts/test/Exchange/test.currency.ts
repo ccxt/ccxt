@@ -1,13 +1,11 @@
 
-
 // ----------------------------------------------------------------------------
 
-import assert from 'assert'
+import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
 export default (exchange, currency, method) => {
-
     const format = {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
@@ -35,18 +33,15 @@ export default (exchange, currency, method) => {
         // },
         // 'info': {}, // the original unparsed market info from the exchange
         //----------------------------------------------------------------------
-    }
-
-    const keys = Object.keys (format)
+    };
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        assert (key in currency)
+        const key = keys[i];
+        assert (key in currency);
     }
-
     // expect (currency['precision']).to.not.be.undefined
     // expect (currency['limits']['amount']['min']).to.not.be.undefined
     // expect (currency['limits']['price']['min']).to.not.be.undefined
     // expect (market['limits']['cost']['min']).to.not.be.undefined
-
-    return currency
-}
+    return currency;
+};

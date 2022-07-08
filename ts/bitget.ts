@@ -792,7 +792,7 @@ export default class bitget extends Exchange {
                     result = this.arrayConcat (result, markets);
                 }
             } else {
-                const markets= await (this as any).fetchMarketsByType (types[i], params);
+                const markets = await (this as any).fetchMarketsByType (types[i], params);
                 result = this.arrayConcat (result, markets);
             }
         }

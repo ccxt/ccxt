@@ -1,10 +1,9 @@
-import testBalance from "./test.balance.js";
-import testOrderBook from "./test.orderbook.js";
-import testTrade from "./test.trade.js"
-import testOHLCV from "./test.ohlcv.js"
-import testOrder from "./test.order.js"
-import testTicker from "./test.ticker.js"
-
+import testBalance from './test.balance';
+import testOrderBook from './test.orderbook';
+import testTrade from './test.trade';
+import testOHLCV from './test.ohlcv';
+import testOrder from './test.order';
+import testTicker from './test.ticker';
 
 export {
     testBalance,
@@ -13,4 +12,4 @@ export {
     testOHLCV,
     testOrder,
     testTicker,
-}
+};

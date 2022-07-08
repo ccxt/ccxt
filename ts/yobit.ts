@@ -558,7 +558,7 @@ export default class yobit extends Exchange {
         const request = {
             'pair': ids,
         };
-        const tickers= await (this as any).publicGetTickerPair (this.extend (request, params));
+        const tickers = await (this as any).publicGetTickerPair (this.extend (request, params));
         const result = {};
         const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
@@ -580,7 +580,7 @@ export default class yobit extends Exchange {
          * @param {object} params extra parameters specific to the yobit api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const tickers= await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await (this as any).fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 

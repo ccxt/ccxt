@@ -146,7 +146,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': this.marketId (symbol),
         };
-        const orderbook= await (this as any).publicGetMarketsSymbolOrderBook (this.extend (request, params));
+        const orderbook = await (this as any).publicGetMarketsSymbolOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol);
     }
 
@@ -220,7 +220,7 @@ export default class itbit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker= await (this as any).publicGetMarketsSymbolTicker (this.extend (request, params));
+        const ticker = await (this as any).publicGetMarketsSymbolTicker (this.extend (request, params));
         //
         // {
         //     "pair":"XBTUSD",

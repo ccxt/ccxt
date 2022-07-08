@@ -1074,7 +1074,7 @@ export default class btcmarkets extends Exchange {
          * @param {object} params extra parameters specific to the btcmarkets api endpoint
          * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
-        const orders= await (this as any).fetchOrders (symbol, since, limit, params);
+        const orders = await (this as any).fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 

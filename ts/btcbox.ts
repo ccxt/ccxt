@@ -556,7 +556,7 @@ export default class btcbox extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        let response= await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
+        let response = await (this as any).fetch2 (path, api, method, params, headers, body, config, context);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip (response);

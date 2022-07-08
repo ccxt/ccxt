@@ -422,7 +422,7 @@ export default class kuna extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 300
         }
-        const orderbook= await (this as any).publicGetDepth (this.extend (request, params));
+        const orderbook = await (this as any).publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
@@ -632,7 +632,7 @@ export default class kuna extends Exchange {
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const trades= await (this as any).fetchTrades (symbol, since, limit, params);
+        const trades = await (this as any).fetchTrades (symbol, since, limit, params);
         const ohlcvc = this.buildOHLCVC (trades, timeframe, since, limit);
         const result = [];
         for (let i = 0; i < ohlcvc.length; i++) {

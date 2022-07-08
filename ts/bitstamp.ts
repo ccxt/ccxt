@@ -682,7 +682,7 @@ export default class bitstamp extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const ticker= await (this as any).publicGetTickerPair (this.extend (request, params));
+        const ticker = await (this as any).publicGetTickerPair (this.extend (request, params));
         //
         // {
         //     "high": "37534.15",
@@ -1150,7 +1150,7 @@ export default class bitstamp extends Exchange {
          * @returns {[dict]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance= await (this as any).privatePostBalance (params);
+        const balance = await (this as any).privatePostBalance (params);
         return this.parseFundingFees (balance);
     }
 

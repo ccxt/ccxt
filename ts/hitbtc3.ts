@@ -704,11 +704,11 @@ export default class hitbtc3 extends Exchange {
         const account = this.safeString (accountsByType, type, type);
         let response = undefined;
         if (account === 'wallet') {
-            response= await (this as any).privateGetWalletBalance (params);
+            response = await (this as any).privateGetWalletBalance (params);
         } else if (account === 'spot') {
-            response= await (this as any).privateGetSpotBalance (params);
+            response = await (this as any).privateGetSpotBalance (params);
         } else if (account === 'derivatives') {
-            response= await (this as any).privateGetFuturesBalance (params);
+            response = await (this as any).privateGetFuturesBalance (params);
         } else {
             const keys = Object.keys (accountsByType);
             throw new BadRequest (this.id + ' fetchBalance() type parameter must be one of ' + keys.join (', '));
@@ -1225,7 +1225,7 @@ export default class hitbtc3 extends Exchange {
          * @param {object} params extra parameters specific to the hitbtc3 api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        const result= await (this as any).fetchOrderBooks ([ symbol ], limit, params);
+        const result = await (this as any).fetchOrderBooks ([ symbol ], limit, params);
         return result[symbol];
     }
 

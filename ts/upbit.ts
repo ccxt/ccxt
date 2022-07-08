@@ -596,7 +596,7 @@ export default class upbit extends Exchange {
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        const orderbooks= await (this as any).fetchOrderBooks ([ symbol ], limit, params);
+        const orderbooks = await (this as any).fetchOrderBooks ([ symbol ], limit, params);
         return this.safeValue (orderbooks, symbol);
     }
 
@@ -729,7 +729,7 @@ export default class upbit extends Exchange {
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const tickers= await (this as any).fetchTickers ([ symbol ], params);
+        const tickers = await (this as any).fetchTickers ([ symbol ], params);
         return this.safeValue (tickers, symbol);
     }
 

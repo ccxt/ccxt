@@ -233,7 +233,7 @@ export default class latoken extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[dict]} an array of objects representing market data
          */
-        const currencies= await (this as any).fetchCurrenciesFromCache (params);
+        const currencies = await (this as any).fetchCurrenciesFromCache (params);
         //
         //     [
         //         {

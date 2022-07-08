@@ -1275,7 +1275,7 @@ export default class huobi extends Exchange {
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            result[symbol]= await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
+            result[symbol] = await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
     }
@@ -2639,7 +2639,7 @@ export default class huobi extends Exchange {
     }
 
     async fetchAccountIdByType (type, params = {}) {
-        const accounts= await (this as any).loadAccounts ();
+        const accounts = await (this as any).loadAccounts ();
         const accountId = this.safeValue (params, 'account-id');
         if (accountId !== undefined) {
             return accountId;
@@ -2822,7 +2822,7 @@ export default class huobi extends Exchange {
         const cross = (marginMode === 'cross');
         if (spot) {
             await this.loadAccounts ();
-            const accountId= await (this as any).fetchAccountIdByType (type, params);
+            const accountId = await (this as any).fetchAccountIdByType (type, params);
             request['account-id'] = accountId;
             method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
         } else if (margin) {
@@ -3960,7 +3960,7 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
-        const accountId= await (this as any).fetchAccountIdByType (market['type']);
+        const accountId = await (this as any).fetchAccountIdByType (market['type']);
         const request = {
             // spot -----------------------------------------------------------
             'account-id': accountId,
@@ -6272,7 +6272,7 @@ export default class huobi extends Exchange {
          * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
-        const accountId= await (this as any).fetchAccountIdByType ('spot', params);
+        const accountId = await (this as any).fetchAccountIdByType ('spot', params);
         const request = {
             'accountId': accountId,
             // 'currency': code,
@@ -6649,7 +6649,7 @@ export default class huobi extends Exchange {
         params = this.omit (params, 'marginMode');
         const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
         const accountType = this.getSupportedMapping (marginMode, marginAccounts);
-        const accountId= await (this as any).fetchAccountIdByType (accountType, params);
+        const accountId = await (this as any).fetchAccountIdByType (accountType, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),

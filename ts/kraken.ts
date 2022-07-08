@@ -1025,7 +1025,7 @@ export default class kraken extends Exchange {
     }
 
     async fetchLedgerEntry (id, code = undefined, params = {}) {
-        const items= await (this as any).fetchLedgerEntriesByIds ([ id ], code, params);
+        const items = await (this as any).fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
 
@@ -1742,7 +1742,7 @@ export default class kraken extends Exchange {
         };
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         try {
-            response= await (this as any).privatePostCancelOrder (this.extend (request, params));
+            response = await (this as any).privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
             if (this.last_http_response) {
                 if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
@@ -2194,7 +2194,7 @@ export default class kraken extends Exchange {
         // if the user has specified an exchange-specific method in params
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod === undefined) {
-            const depositMethods= await (this as any).fetchDepositMethods (code);
+            const depositMethods = await (this as any).fetchDepositMethods (code);
             if (network !== undefined) {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
