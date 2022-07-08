@@ -1,5 +1,5 @@
 /* eslint-disable */
-import errorHierarchy from './errorHierarchy.js';
+import errorHierarchy from './errorHierarchy.js.js';
 
 // Commented out since I'm not sure this is mandatory anymore
 // and does not work out of the box with esm

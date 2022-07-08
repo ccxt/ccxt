@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import testLeverageTier from './test.leverageTier';
+import testLeverageTier from './test.leverageTier.js';
 
 export default async (exchange, symbol) => {
     const method = 'fetchLeverageTiers';

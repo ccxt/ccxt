@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Agent } from 'https';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import ccxt from '../../ccxt.js';
+import ccxt from '../../ccxt.js.js';
 
 // ----------------------------------------------------------------------------
 

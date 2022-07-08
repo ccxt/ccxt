@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testTransaction from './test.transaction';
+import testTransaction from './test.transaction.js';
 
 // ----------------------------------------------------------------------------
 

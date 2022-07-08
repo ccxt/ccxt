@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testBorrowRate from './test.borrowRate';
+import testBorrowRate from './test.borrowRate.js';
 
 // ----------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testPosition from './test.position';
+import testPosition from './test.position.js';
 
 // ----------------------------------------------------------------------------
 

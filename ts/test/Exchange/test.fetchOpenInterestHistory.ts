@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 
-import testOpenInterest from './test.openInterest';
+import testOpenInterest from './test.openInterest.js';
 
 // ----------------------------------------------------------------------------
 

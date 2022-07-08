@@ -23,24 +23,24 @@
 //     , require ('./functions/misc')
 // ))
 
-export * from './functions/platform';
+export * from './functions/platform.js';
 
-export * from './functions/generic';
+export * from './functions/generic.js';
 
-export * from './functions/string';
+export * from './functions/string.js';
 
-export * from './functions/type';
+export * from './functions/type.js';
 
-export * from './functions/number';
+export * from './functions/number.js';
 
-export * from './functions/encode';
+export * from './functions/encode.js';
 
-export * from './functions/crypto';
+export * from './functions/crypto.js';
 
-export * from './functions/time';
+export * from './functions/time.js';
 
-export * from './functions/throttle';
+export * from './functions/throttle.js';
 
-export * from './functions/misc';
+export * from './functions/misc.js';
 
 /*  ------------------------------------------------------------------------ */

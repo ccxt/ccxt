@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
-import testLedgerItem from './test.ledgerItem';
+import testLedgerItem from './test.ledgerItem.js';
 
 // ----------------------------------------------------------------------------
 
