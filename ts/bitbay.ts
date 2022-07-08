@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import zonda from './zonda.js';
+import zonda from './zonda';
 
 // ---------------------------------------------------------------------------
 export default class bitbay extends zonda {

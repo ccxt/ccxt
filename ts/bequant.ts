@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import hitbtc from './hitbtc.js';
+import hitbtc from './hitbtc';
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {

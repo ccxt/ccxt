@@ -4,7 +4,7 @@
 import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFunds, AccountSuspended, InvalidNonce, NotSupported, OrderNotFound, BadRequest, AuthenticationError, RateLimitExceeded, PermissionDenied } from './base/errors';
 import { Precise } from './base/Precise';
 import { TICK_SIZE } from './base/functions/number';
-import kucoin from './kucoin.js';
+import kucoin from './kucoin';
 
 //  ---------------------------------------------------------------------------
 

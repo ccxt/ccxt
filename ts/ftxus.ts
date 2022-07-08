@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import ftx from './ftx.js';
+import ftx from './ftx';
 
 export default class ftxus extends ftx {
     describe () {

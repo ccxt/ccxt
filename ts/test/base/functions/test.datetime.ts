@@ -1,5 +1,5 @@
 // @ts-nocheck
-import ccxt from '../../../../ccxt.js';
+import ccxt from '../../../../ccxt';
 import assert from 'assert';
 import { functions } from '../../../../ccxt';
 const { ROUND_UP, ROUND_DOWN } = functions;
