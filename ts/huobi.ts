@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, InvalidAddress, NotSupported } from './base/errors';
-import { Precise } from './base/Precise';
-import { TICK_SIZE, TRUNCATE } from './base/functions/number';
+import { Exchange } from './base/Exchange.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, InvalidAddress, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 

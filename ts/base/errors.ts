@@ -46,7 +46,7 @@ import errorHierarchy from './errorHierarchy.js';
 
 //     return namespace
 // }
-
+/* eslint-disable */
 class BaseError extends Error {
     constructor (message) {
         super (message);

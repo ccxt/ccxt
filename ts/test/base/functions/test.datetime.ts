@@ -1,7 +1,7 @@
 // @ts-nocheck
 import ccxt from '../../../../ccxt';
 import assert from 'assert';
-import { functions } from '../../../../ccxt';
+import { functions } from '../../../../ccxt.js';
 const { ROUND_UP, ROUND_DOWN } = functions;
 const exchange = new ccxt.Exchange ({
     'id': 'regirock',

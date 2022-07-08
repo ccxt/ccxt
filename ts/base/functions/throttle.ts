@@ -2,7 +2,7 @@
 //@ts-nocheck
 /*  ------------------------------------------------------------------------ */
 
-import { now, sleep } from './time';
+import { now, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 class Throttle {
     constructor (config) {

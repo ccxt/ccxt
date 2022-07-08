@@ -1,7 +1,7 @@
-import { Exchange } from './base/Exchange';
-import { TICK_SIZE } from './base/functions/number';
-import { Precise } from './base/Precise';
-import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } from './base/errors';
+import { Exchange } from './base/Exchange.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
+import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 
 export default class hitbtc3 extends Exchange {
     describe () {

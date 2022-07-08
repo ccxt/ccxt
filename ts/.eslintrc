@@ -4,7 +4,7 @@
     "node": true
   },
   "parserOptions": {
-    // "ecmaVersion": 2017,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
@@ -12,6 +12,7 @@
   "extends": ["eslint:recommended", "airbnb-base", "plugin:import/typescript"],
   "ignorePatterns": ["base/functions/*","test/base/functions/*", "static_dependencies/*"],
   "rules": {
+    "import/no-unresolved":"off", // tmp until typescript decides to properly resolve names
     "import/named": "off",
     "strict": "off",
     "semi": "error",
