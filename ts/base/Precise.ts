@@ -1,3 +1,5 @@
+
+/* eslint-disable */
 const zero = BigInt (0)
 const minusOne = BigInt (-1)
 const base = BigInt (10)
