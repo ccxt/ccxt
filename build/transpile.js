@@ -19,7 +19,7 @@ ansi.nice
 
 const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
-const baseExchangeJsFile = './js/base/Exchange.js'
+const baseExchangeJsFile = './ts/base/Exchange.ts'
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -241,6 +241,7 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\(this as any\)/g, 'this'], // typescript regex
         ]
     }
 
@@ -1151,8 +1152,8 @@ class Transpiler {
         try {
 
             const { python2Folder, python3Folder, phpFolder, phpAsyncFolder } = options
-            const pythonFilename = filename.replace ('.js', '.py')
-            const phpFilename = filename.replace ('.js', '.php')
+            const pythonFilename = filename.replace ('.ts', '.py')
+            const phpFilename = filename.replace ('.ts', '.php')
 
             const jsPath = jsFolder + filename
 
@@ -1214,7 +1215,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1230,7 +1231,7 @@ class Transpiler {
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
         const classNames = fs.readdirSync (jsFolder)
-            .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
+            .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
             .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
@@ -1287,6 +1288,19 @@ class Transpiler {
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
+
+            // Typescript types trim from signature
+            // will be improved in the future
+            
+            // remove return type
+            // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
+            signature = signature.replace(/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" )
+
+            // remove parameters types
+            // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
+            signature = signature.replace(/:\s\w+\s*\|\s*\w+/, "" )
+
+
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
 
@@ -1556,7 +1570,7 @@ class Transpiler {
     //-----------------------------------------------------------------------------
 
     transpileDateTimeTests () {
-        const jsFile = './js/test/base/functions/test.datetime.js'
+        const jsFile = './ts/test/base/functions/test.datetime.ts'
         const pyFile = './python/ccxt/test/test_exchange_datetime_functions.py'
         const phpFile = './php/test/test_exchange_datetime_functions.php'
 
@@ -1599,7 +1613,7 @@ class Transpiler {
 
     transpilePrecisionTests () {
 
-        const jsFile = './js/test/base/functions/test.number.js'
+        const jsFile = './ts/test/base/functions/test.number.ts'
         const pyFile = './python/ccxt/test/test_decimal_to_precision.py'
         const phpFile = './php/test/decimal_to_precision.php'
 
@@ -1673,7 +1687,7 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './js/test/base/functions/test.crypto.js'
+        const jsFile = './ts/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
         const pyFile = './python/ccxt/test/test_crypto.py'
         const phpFile = './php/test/test_crypto.php'
 
@@ -1744,47 +1758,47 @@ class Transpiler {
     transpileExchangeTests () {
         const tests = [
             {
-                'jsFile': './js/test/Exchange/test.market.js',
+                'tsFile': './ts/test/Exchange/test.market.ts',
                 'pyFile': './python/ccxt/test/test_market.py',
                 'phpFile': './php/test/test_market.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.trade.js',
+                'tsFile': './ts/test/Exchange/test.trade.ts',
                 'pyFile': './python/ccxt/test/test_trade.py',
                 'phpFile': './php/test/test_trade.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.order.js',
+                'tsFile': './ts/test/Exchange/test.order.ts',
                 'pyFile': './python/ccxt/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.position.js',
+                'tsFile': './ts/test/Exchange/test.position.ts',
                 'pyFile': './python/ccxt/test/test_position.py',
                 'phpFile': './php/test/test_position.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.transaction.js',
+                'tsFile': './ts/test/Exchange/test.transaction.ts',
                 'pyFile': './python/ccxt/test/test_transaction.py',
                 'phpFile': './php/test/test_transaction.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.ohlcv.js',
+                'tsFile': './ts/test/Exchange/test.ohlcv.ts',
                 'pyFile': './python/ccxt/test/test_ohlcv.py',
                 'phpFile': './php/test/test_ohlcv.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.leverageTier.js',
+                'tsFile': './ts/test/Exchange/test.leverageTier.ts',
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.account.js',
+                'tsFile': './ts/test/Exchange/test.account.ts',
                 'pyFile': './python/ccxt/test/test_account.py',
                 'phpFile': './php/test/test_account.php',
             },
             {
-                'jsFile': './js/test/Exchange/test.marginModification.js',
+                'tsFile': './ts/test/Exchange/test.marginModification.ts',
                 'pyFile': './python/ccxt/test/test_margin_modification.py',
                 'phpFile': './php/test/test_margin_modification.php',
             },
@@ -1797,7 +1811,7 @@ class Transpiler {
     // ============================================================================
 
     transpileTest (test) {
-        log.magenta ('Transpiling from', test.jsFile.yellow)
+        log.magenta ('Transpiling from', test.tsFile.yellow)
         let js = fs.readFileSync (test.jsFile).toString ()
 
         js = this.regexAll (js, [
@@ -1892,7 +1906,7 @@ class Transpiler {
 
         this.transpileBaseMethods ()
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
+        const classes = this.transpileDerivedExchangeFiles ('./ts/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
