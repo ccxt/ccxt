@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
-import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { Exchange } from './base/Exchange.js';
-import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors';
+import { Precise } from './base/Precise';
+import { Exchange } from './base/Exchange';
+import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number';
 // ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends Exchange {

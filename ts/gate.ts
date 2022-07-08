@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
+import { Exchange } from './base/Exchange';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors';
 
 export default class gate extends Exchange {
     describe () {

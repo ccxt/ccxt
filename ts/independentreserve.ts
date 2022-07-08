@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 

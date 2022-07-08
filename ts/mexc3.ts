@@ -2,10 +2,10 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
-import { Precise } from './base/Precise.js';
+import { Exchange } from './base/Exchange';
+import { BadRequest, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
+import { Precise } from './base/Precise';
 
 // ---------------------------------------------------------------------------
 

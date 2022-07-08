@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
@@ -231,7 +231,7 @@ export default class bit2c extends Exchange {
         const request = {
             'pair': this.marketId (symbol),
         };
-        const orderbook= await (this as any).publicGetExchangesPairOrderbook (this.extend (request, params));
+        const orderbook = await (this as any).publicGetExchangesPairOrderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol);
     }
 

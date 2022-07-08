@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { BadSymbol, ExchangeError } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { BadSymbol, ExchangeError } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 

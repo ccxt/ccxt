@@ -1,10 +1,10 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, OnMaintenance, RateLimitExceeded, BadRequest, PermissionDenied } from './base/errors';
+import { Precise } from './base/Precise';
+import { TICK_SIZE } from './base/functions/number';
 
 //  ---------------------------------------------------------------------------
 
@@ -427,7 +427,7 @@ export default class exmo extends Exchange {
          * @returns {dict} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const currencyList= await (this as any).publicGetCurrencyListExtended (params);
+        const currencyList = await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -436,7 +436,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList= await (this as any).publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList = await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -506,7 +506,7 @@ export default class exmo extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         //
-        const currencyList= await (this as any).publicGetCurrencyListExtended (params);
+        const currencyList = await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -515,7 +515,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList= await (this as any).publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList = await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[

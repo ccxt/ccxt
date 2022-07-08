@@ -96,9 +96,9 @@
       "node": {
         "extensions": [".js", ".ts"]
       },
-      "typescript": {
-        "project": "tsconfig.json",
-      },
+      // "typescript": {
+      //   "project": "tsconfig.json",
+      // },
     },
     "import/parsers": {
       "@typescript-eslint/parser": [".ts", ".js"]

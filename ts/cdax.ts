@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
-import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
@@ -280,7 +280,7 @@ export default class cdax extends Exchange {
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            result[symbol]= await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
+            result[symbol] = await (this as any).fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
     }

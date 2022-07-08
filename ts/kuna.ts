@@ -1,9 +1,9 @@
 
 // ---------------------------------------------------------------------------
 
-import { Exchange } from './base/Exchange.js';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { Exchange } from './base/Exchange';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } from './base/errors';
+import { TICK_SIZE } from './base/functions/number';
 
 // ---------------------------------------------------------------------------
 
