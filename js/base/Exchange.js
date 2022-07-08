@@ -1200,7 +1200,7 @@ module.exports = class Exchange {
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
-        let key = 'quote';
+        let currencyKey = 'quote';
         let cost = undefined;
         if (feeSide === 'quote') {
             // the fee is always in quote currency
@@ -1214,7 +1214,7 @@ module.exports = class Exchange {
             if (side === 'sell') {
                 cost *= price;
             } else {
-                key = 'base';
+                currencyKey = 'base';
             }
         } else if (feeSide === 'give') {
             // the fee is always in the currency you give
@@ -1222,18 +1222,28 @@ module.exports = class Exchange {
             if (side === 'buy') {
                 cost *= price;
             } else {
-                key = 'base';
+                currencyKey = 'base';
             }
         }
+        if (!market['spot']) {
+            currencyKey = this.safeString (market, 'settle', currencyKey);
+        }
+        const currencyCode = market[currencyKey];
+        // override for 'market' types, independent whether what `takerOrMaker` argument was set to
+        if (type === 'market') {
+            takerOrMaker = 'taker';
+        }
         const rate = market[takerOrMaker];
+        let fee = undefined;
         if (cost !== undefined) {
-            cost *= rate;
+            fee = cost * rate;
+            fee = this.parseNumber (this.feeToPrecision (symbol, fee));
         }
         return {
             'type': takerOrMaker,
-            'currency': market[key],
+            'currency': currencyCode,
             'rate': rate,
-            'cost': cost,
+            'cost': fee,
         };
     }
 
