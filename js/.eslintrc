@@ -1,13 +1,14 @@
 {
   "env": {
-    "node": true
+    "node": true,
+    "es2021": true,
   },
   "parserOptions": {
-    "ecmaVersion": 2017,
+    "ecmaVersion": 2022,
     "sourceType": "module"
   },
   "extends": ["eslint:recommended", "airbnb-base"],
-  "ignorePatterns": ["test/*", "static_dependencies/*"],
+  "ignorePatterns": [ "static_dependencies/*", "test/base/*"],
   "rules": {
     "strict": "off",
     "semi": "error",
@@ -58,7 +59,8 @@
       { "blankLine": "never", "prev":"*", "next": "*" },
       { "blankLine": "always", "prev":"directive", "next": "*" },
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
-      { "blankLine": "always", "prev":"*", "next": "export" }
+      { "blankLine": "always", "prev":"*", "next": "export" },
+      { "blankLine": "always", "prev":"*", "next": "function" }
     ],
     "prefer-template": "off",
     "curly": "error",
