@@ -1,24 +1,20 @@
-import assert from 'assert'
+import assert from 'assert';
 
 function testMarginModification (exchange, marginModification) {
-
     const format = {
-        info: {},
-        type: 'add',
-        amount: 0.1,
-        total: 0.29934828,
-        code: 'USDT',
-        symbol: 'ADA/USDT:USDT',
-        status: 'ok',
+        'info': {},
+        'type': 'add',
+        'amount': 0.1,
+        'total': 0.29934828,
+        'code': 'USDT',
+        'symbol': 'ADA/USDT:USDT',
+        'status': 'ok',
     };
-
-    const keys = Object.keys(format);
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         assert (keys[i] in marginModification);
     }
-
     assert (typeof marginModification['info'] === 'object');
-
     if (marginModification['type'] !== undefined) {
         assert (marginModification['type'] === 'add' || marginModification['type'] === 'reduce' || marginModification['type'] === 'set');
     }

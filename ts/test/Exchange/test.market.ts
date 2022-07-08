@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'assert';
 
 function testMarket (exchange, market, method) {
     const format = {

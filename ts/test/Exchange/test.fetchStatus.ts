@@ -1,8 +1,7 @@
 
-
 // ----------------------------------------------------------------------------
 
-import assert from 'assert'
+import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
@@ -25,4 +24,4 @@ export default async (exchange) => {
     } else {
         console.log (method + '() is not supported');
     }
-}
+};
