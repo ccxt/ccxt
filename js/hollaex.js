@@ -159,7 +159,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
-        const trades = await this.watchPrivate (messageHash, 'watchOrders', params);
+        const trades = await this.watchPrivate (messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -231,7 +231,7 @@ module.exports = class hollaex extends ccxt.hollaex {
             symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
-        const orders = await this.watchPrivate (messageHash, 'watchOrders', params);
+        const orders = await this.watchPrivate (messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -336,7 +336,7 @@ module.exports = class hollaex extends ccxt.hollaex {
 
     async watchBalance (params = {}) {
         const messageHash = 'wallet';
-        return await this.watchPrivate (messageHash, 'watchBalance', params);
+        return await this.watchPrivate (messageHash, params);
     }
 
     handleBalance (client, message) {
@@ -384,18 +384,17 @@ module.exports = class hollaex extends ccxt.hollaex {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, method, params = {}) {
-        const options = this.safeValue (this.options, method, {});
-        let expires = this.safeString (options, 'api-expires');
+    async watchPrivate (messageHash, params = {}) {
+        this.checkRequiredCredentials ();
+        let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
             const timeout = parseInt (this.timeout / 1000);
             expires = this.sum (this.seconds (), timeout);
             expires = expires.toString ();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
-            this.options[method]['api-expires'] = expires;
+            this.options['ws-expires'] = expires;
         }
-        this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
         const signature = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -548,5 +547,15 @@ module.exports = class hollaex extends ccxt.hollaex {
     handlePong (client, message) {
         client.lastPong = this.milliseconds ();
         return message;
+    }
+
+    onError (client, error) {
+        this.options['ws-expires'] = undefined;
+        super.onError (client, error);
+    }
+
+    onClose (client, error) {
+        this.options['ws-expires'] = undefined;
+        super.onError (client, error);
     }
 };
