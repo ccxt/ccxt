@@ -70,6 +70,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -2544,6 +2545,54 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
         };
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+         * @param {str} code unified currency code of the currency to repay
+         * @param {str} amount the amount to repay
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+        }
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
+        if (marginMode !== 'isolated') {
+            throw new BadRequest (this.id + ' repayMargin() is only available for isolated margin');
+        }
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'symbol': market['id'],
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        params = this.omit (params, 'marginMode');
+        const response = await this.privateSpotPostMarginIsolatedRepay (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "b0a60b4c-e986-4b54-a190-8f7c05ddf685",
+        //         "data": {
+        //             "repay_id": "2afcc16d99bd4707818c5a355dc89bed"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transaction = this.parseMarginLoan (data, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        });
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
