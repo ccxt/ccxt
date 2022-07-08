@@ -2668,7 +2668,7 @@ module.exports = class gate extends Exchange {
         let timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
         timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
@@ -2708,7 +2708,7 @@ module.exports = class gate extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
