@@ -1298,7 +1298,7 @@ class Transpiler {
 
             // remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = signature.replace(/:\s\w+\s*\|\s*\w+/, "" )
+            signature = signature.replace(/:\s\w+\s*\|\s*\w+/g, "" )
 
 
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
@@ -1812,7 +1812,7 @@ class Transpiler {
 
     transpileTest (test) {
         log.magenta ('Transpiling from', test.tsFile.yellow)
-        let js = fs.readFileSync (test.jsFile).toString ()
+        let js = fs.readFileSync (test.tsFile).toString ()
 
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
