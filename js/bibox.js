@@ -1718,7 +1718,7 @@ module.exports = class bibox extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            if (version === 'v3' || version === 'v3.1' || version === 'v4') {
+            if (version === 'v3' || version === 'v3.1') {
                 const timestamp = this.numberToString (this.milliseconds ());
                 let strToSign = timestamp;
                 if (json_params !== '{}') {
@@ -1735,6 +1735,20 @@ module.exports = class bibox extends Exchange {
                         body = params;
                     }
                 }
+            } else if (v4) {
+                let strToSign = '';
+                if (method === 'GET') {
+                    url += '?' + this.urlencode (params);
+                    strToSign = this.urlencode (params);
+                } else {
+                    if (json_params !== '{}') {
+                        body = params;
+                    }
+                    strToSign = this.json (body, { 'convertArraysToObjects': true });
+                }
+                const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'sha256');
+                headers['Bibox-Api-Key'] = this.apiKey;
+                headers['Bibox-Api-Sign'] = sign;
             } else {
                 const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
                 body = {
