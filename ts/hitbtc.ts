@@ -667,14 +667,15 @@ export default class hitbtc extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, 0 = unlimited
         }
         const response = await (this as any).publicGetOrderbookSymbol (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'size');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bid', 'ask', 'price', 'size');
     }
 
     parseTicker (ticker, market = undefined) {

@@ -340,8 +340,9 @@ export default class bitflyer extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'product_code': this.marketId (symbol),
+            'product_code': market['id'],
         };
         const orderbook = await (this as any).publicGetGetboard (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'size');
@@ -499,7 +500,7 @@ export default class bitflyer extends Exchange {
         const fee = this.safeNumber (response, 'commission_rate');
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
         };

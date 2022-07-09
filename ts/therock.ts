@@ -298,12 +298,13 @@ export default class therock extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'id': this.marketId (symbol),
+            'id': market['id'],
         };
         const orderbook = await (this as any).publicGetFundsIdOrderbook (this.extend (request, params));
         const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1339,8 +1340,9 @@ export default class therock extends Exchange {
         if (type === 'market') {
             price = 0;
         }
+        const market = this.market (symbol);
         const request = {
-            'fund_id': this.marketId (symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,

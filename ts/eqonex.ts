@@ -548,7 +548,7 @@ export default class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return this.customParseOrderBook (response, symbol, undefined, 'bids', 'asks', 0, 1, market);
+        return this.customParseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 0, 1, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

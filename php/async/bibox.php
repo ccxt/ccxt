@@ -19,9 +19,8 @@ class bibox extends Exchange {
             'id' => 'bibox',
             'name' => 'Bibox',
             'countries' => array( 'CN', 'US', 'KR' ),
-            'version' => 'v1',
-            // 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms (166.6666...)
             'rateLimit' => 166.667,
+            'version' => 'v3.1',
             'hostname' => 'bibox.com',
             'has' => array(
                 'CORS' => null,
@@ -58,6 +57,7 @@ class bibox extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
+                'transfer' => null,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -79,35 +79,197 @@ class bibox extends Exchange {
                 'www' => 'https://www.bibox365.com',
                 'doc' => array(
                     'https://biboxcom.github.io/en/',
+                    'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral' => 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             ),
             'api' => array(
-                'public' => array(
-                    'post' => array(
-                        // TODO => rework for full endpoint/cmd paths here
-                        'mdata' => 1,
+                'v1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'cquery' => 1,
+                            'mdata' => 1,
+                            'cdata' => 1,
+                            'orderpending' => 1,
+                        ),
+                        'post' => array(
+                            'mdata' => 1,
+                        ),
                     ),
-                    'get' => array(
-                        'cquery' => 1,
-                        'mdata' => 1,
-                        'cdata' => 1,
-                        'orderpending' => 1,
+                    'private' => array(
+                        'post' => array(
+                            'credit' => 1,
+                            'cquery' => 1,
+                            'ctrade' => 1,
+                            'user' => 1,
+                            'orderpending' => 1,
+                            'transfer' => 1,
+                        ),
                     ),
                 ),
-                'private' => array(
-                    'post' => array(
-                        'cquery' => 1,
-                        'ctrade' => 1,
-                        'user' => 1,
-                        'orderpending' => 1,
-                        'transfer' => 1,
+                'v1.1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'cquery',
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            'cquery',
+                            'ctrade',
+                        ),
                     ),
                 ),
-                'v2private' => array(
-                    'post' => array(
-                        'assets/transfer/spot' => 1,
+                'v2' => array(
+                    'public' => array(
+                        'get' => array(
+                            'mdata/kline',
+                            'mdata/depth',
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            'assets/transfer/spot',
+                        ),
+                    ),
+                ),
+                'v3' => array(
+                    'public' => array(
+                        'get' => array(
+                            'mdata/ping',
+                            'mdata/pairList',
+                            'mdata/kline',
+                            'mdata/marketAll',
+                            'mdata/market',
+                            'mdata/depth',
+                            'mdata/deals',
+                            'mdata/ticker',
+                            'cbc/timestamp',
+                            'cbu/timestamp',
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            'assets/transfer/spot',
+                            'assets/transfer/cbc',
+                            'cbc/order/open',
+                            'cbc/order/close',
+                            'cbc/order/closeBatch',
+                            'cbc/order/closeAll',
+                            'cbc/changeMargin',
+                            'cbc/changeMode',
+                            'cbc/assets',
+                            'cbc/position',
+                            'cbc/order/list',
+                            'cbc/order/detail',
+                            'cbc/order/listBatch',
+                            'cbc/order/listBatchByClientOid',
+                            'cbuassets/transfer',
+                            'cbu/order/open',
+                            'cbu/order/close',
+                            'cbu/order/closeBatch',
+                            'cbu/order/closeAll',
+                            'cbu/order/planOpen',
+                            'cbu/order/planOrderList',
+                            'cbu/order/planClose',
+                            'cbu/order/planCloseAll',
+                            'cbu/changeMargin',
+                            'cbu/changeMode',
+                            'cbu/assets',
+                            'cbu/position',
+                            'cbu/order/list',
+                            'bu/order/detail',
+                            'cbu/order/listBatch',
+                            'cbu/order/listBatchByClientOid',
+                        ),
+                    ),
+                ),
+                'v3.1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'mdata/ping',
+                            'cquery/buFundRate',
+                            'cquery/buTagPrice',
+                            'cquery/buValue',
+                            'cquery/buUnit',
+                            'cquery/bcFundRate',
+                            'cquery/bcTagPrice',
+                            'cquery/bcValue',
+                            'cquery/bcUnit',
+                        ),
+                    ),
+                    'private' => array(
+                        'get' => array(
+                            'orderpending/tradeLimit',
+                        ),
+                        'post' => array(
+                            'transfer/mainAssets',
+                            'spot/account/assets',
+                            'transfer/transferIn',
+                            'transfer/transferOut',
+                            'transfer/transferInList',
+                            'transfer/transferOutList',
+                            'transfer/coinConfig',
+                            'transfer/withdrawInfo',
+                            'orderpending/trade',
+                            'orderpending/cancelTrade',
+                            'orderpending/orderPendingList',
+                            'orderpending/pendingHistoryList',
+                            'orderpending/orderDetail',
+                            'orderpending/order',
+                            'orderpending/orderHistoryList',
+                            'orderpending/orderDetailsLast',
+                            'credit/transferAssets/base2credit',
+                            'credit/transferAssets/credit2base',
+                            'credit/lendOrder/get',
+                            'credit/borrowOrder/get',
+                            'credit/lendOrderbook/get',
+                            'credit/transferAssets/lendAssets',
+                            'credit/transferAssets/borrowAssets',
+                            'credit/borrowOrder/autobook',
+                            'credit/borrowOrder/refund',
+                            'credit/lendOrderbook/publish',
+                            'credit/lendOrderbook/cancel',
+                            'credit/trade/trade',
+                            'credit/trade/cancel',
+                            'cquery/base_u/dealLog',
+                            'cquery/base_u/orderDetail',
+                            'cquery/base_u/orderHistory',
+                            'cquery/base_u/orderById',
+                            'cquery/base_coin/dealLog',
+                            'cquery/base_coin/orderDetail',
+                            'cquery/base_coin/orderHistory',
+                            'cquery/base_coin/orderById',
+                        ),
+                    ),
+                ),
+                'v4' => array(
+                    'public' => array(
+                        'get' => array(
+                            'marketdata/pairs',
+                            'marketdata/order_book',
+                            'marketdata/candles',
+                            'marketdata/trades',
+                            'marketdata/tickers',
+                        ),
+                    ),
+                    'private' => array(
+                        'get' => array(
+                            'userdata/accounts',
+                            'userdata/ledger',
+                            'userdata/order',
+                            'userdata/orders',
+                        ),
+                        'post' => array(
+                            'userdata/order',
+                        ),
+                        'delete' => array(
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ),
                     ),
                 ),
             ),
@@ -175,7 +337,7 @@ class bibox extends Exchange {
         $request = array(
             'cmd' => 'pairList',
         );
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         //
         //     {
         //         "result" => array(
@@ -197,7 +359,7 @@ class bibox extends Exchange {
         $request2 = array(
             'cmd' => 'tradeLimit',
         );
-        $response2 = yield $this->publicGetOrderpending (array_merge($request2, $params));
+        $response2 = yield $this->v1PublicGetOrderpending (array_merge($request2, $params));
         //
         //    {
         //         $result => {
@@ -347,7 +509,7 @@ class bibox extends Exchange {
             'cmd' => 'ticker',
             'pair' => $market['id'],
         );
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         return $this->parse_ticker($response['result'], $market);
     }
 
@@ -362,7 +524,7 @@ class bibox extends Exchange {
         $request = array(
             'cmd' => 'marketAll',
         );
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         $tickers = $this->parse_tickers($response['result'], $symbols);
         $result = $this->index_by($tickers, 'symbol');
         return $this->filter_by_array($result, 'symbol', $symbols);
@@ -429,7 +591,7 @@ class bibox extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default = 200
         }
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
@@ -451,7 +613,7 @@ class bibox extends Exchange {
             $request['size'] = $limit; // default = 200
         }
         $response = yield $this->publicGetMdata (array_merge($request, $params));
-        return $this->parse_order_book($response['result'], $symbol, $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return $this->parse_order_book($response['result'], $market['symbol'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -493,7 +655,7 @@ class bibox extends Exchange {
             'period' => $this->timeframes[$timeframe],
             'size' => $limit,
         );
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         //
         //     {
         //         "result":array(
@@ -526,9 +688,9 @@ class bibox extends Exchange {
         $request = array(
             'cmd' => 'currencies',
         );
-        $response = yield $this->publicGetCdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetCdata (array_merge($request, $params));
         //
-        // publicGetCdata
+        // v1PublicGetCdata
         //
         //     {
         //         "result":[
@@ -591,7 +753,7 @@ class bibox extends Exchange {
             'cmd' => 'transfer/coinList',
             'body' => array(),
         );
-        $response = yield $this->privatePostTransfer (array_merge($request, $params));
+        $response = yield $this->v1PrivatePostTransfer (array_merge($request, $params));
         //
         //     {
         //         "result":[
@@ -712,7 +874,7 @@ class bibox extends Exchange {
                 'select' => 1, // return full info
             ), $params),
         );
-        $response = yield $this->privatePostTransfer ($request);
+        $response = yield $this->v1PrivatePostTransfer ($request);
         //
         //     {
         //         "result":array(
@@ -757,7 +919,7 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = yield $this->privatePostTransfer (array(
+        $response = yield $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferInList',
             'body' => array_merge($request, $params),
         ));
@@ -824,7 +986,7 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = yield $this->privatePostTransfer (array(
+        $response = yield $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOutList',
             'body' => array_merge($request, $params),
         ));
@@ -982,7 +1144,7 @@ class bibox extends Exchange {
                 'price' => $price,
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1017,7 +1179,7 @@ class bibox extends Exchange {
                 'orders_id' => $id,
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1049,7 +1211,7 @@ class bibox extends Exchange {
                 'account_type' => 0, // 0 = spot account
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1176,7 +1338,7 @@ class bibox extends Exchange {
                 'size' => $size,
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1238,7 +1400,7 @@ class bibox extends Exchange {
                 'size' => $limit,
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1303,7 +1465,7 @@ class bibox extends Exchange {
                 'currency_symbol' => $market['quoteId'],
             ), $params),
         );
-        $response = yield $this->privatePostOrderpending ($request);
+        $response = yield $this->v1PrivatePostOrderpending ($request);
         //
         //     {
         //         "result":array(
@@ -1354,7 +1516,7 @@ class bibox extends Exchange {
                 'coin_symbol' => $currency['id'],
             ), $params),
         );
-        $response = yield $this->privatePostTransfer ($request);
+        $response = yield $this->v1PrivatePostTransfer ($request);
         //
         //     {
         //         "result":array(
@@ -1424,7 +1586,7 @@ class bibox extends Exchange {
         if ($tag !== null) {
             $request['address_remark'] = $tag;
         }
-        $response = yield $this->privatePostTransfer (array(
+        $response = yield $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOut',
             'body' => array_merge($request, $params),
         ));
@@ -1467,7 +1629,7 @@ class bibox extends Exchange {
                     'coin_symbol' => $currency['id'],
                 ), $params),
             );
-            $response = yield $this->privatePostTransfer ($request);
+            $response = yield $this->v1PrivatePostTransfer ($request);
             //     {
             //         "result":array(
             //             {
@@ -1503,42 +1665,71 @@ class bibox extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->implode_hostname($this->urls['api']) . '/' . $this->version . '/' . $path;
-        $cmds = $this->json(array( $params ));
-        if ($api === 'public') {
+    public function sign($path, $api = 'v1Public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        list($version, $access) = $api;
+        $v1 = ($version === 'v1');
+        $v4 = ($version === 'v4');
+        $prefix = $v4 ? '/api' : '';
+        $url = $this->implode_hostname($this->urls['api']) . $prefix . '/' . $version . '/' . $path;
+        $json_params = $v1 ? $this->json(array( $params )) : $this->json($params);
+        $headers = array( 'content-type' => 'application/json' );
+        if ($access === 'public') {
             if ($method !== 'GET') {
-                $body = array( 'cmds' => $cmds );
+                if ($v1) {
+                    $body = array( 'cmds' => $json_params );
+                } else {
+                    $body = array( 'body' => $json_params );
+                }
             } elseif ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        } elseif ($api === 'v2private') {
-            $this->check_required_credentials();
-            $url = $this->implode_hostname($this->urls['api']) . '/v2/' . $path;
-            $json_params = $this->json($params);
-            $body = array(
-                'body' => $json_params,
-                'apikey' => $this->apiKey,
-                'sign' => $this->hmac($this->encode($json_params), $this->encode($this->secret), 'md5'),
-            );
         } else {
             $this->check_required_credentials();
-            $body = array(
-                'cmds' => $cmds,
-                'apikey' => $this->apiKey,
-                'sign' => $this->hmac($this->encode($cmds), $this->encode($this->secret), 'md5'),
-            );
+            if ($version === 'v3' || $version === 'v3.1' || $version === 'v4') {
+                $timestamp = $this->number_to_string($this->milliseconds());
+                $strToSign = $timestamp;
+                if ($json_params !== '{}') {
+                    $strToSign .= $json_params;
+                }
+                $sign = $this->hmac($this->encode($strToSign), $this->encode($this->secret), 'md5');
+                $headers['bibox-$api-key'] = $this->apiKey;
+                $headers['bibox-$api-sign'] = $sign;
+                $headers['bibox-timestamp'] = $timestamp;
+                if ($method === 'GET') {
+                    $url .= '?' . $this->urlencode($params);
+                } else {
+                    if ($json_params !== '{}') {
+                        $body = $params;
+                    }
+                }
+            } else {
+                $sign = $this->hmac($this->encode($json_params), $this->encode($this->secret), 'md5');
+                $body = array(
+                    'apikey' => $this->apiKey,
+                    'sign' => $sign,
+                );
+                if ($v1) {
+                    $body['cmds'] = $json_params;
+                } else {
+                    $body['body'] = $json_params;
+                }
+            }
         }
         if ($body !== null) {
             $body = $this->json($body, array( 'convertArraysToObjects' => true ));
         }
-        $headers = array( 'Content-Type' => 'application/json' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
+        }
+        if (is_array($response) && array_key_exists('state', $response)) {
+            if ($this->safe_number($response, 'state') === 0) {
+                return;
+            }
+            throw new ExchangeError($this->id . ' ' . $body);
         }
         if (is_array($response) && array_key_exists('error', $response)) {
             if (is_array($response['error']) && array_key_exists('code', $response['error'])) {
@@ -1547,9 +1738,6 @@ class bibox extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
                 throw new ExchangeError($feedback);
             }
-            throw new ExchangeError($this->id . ' ' . $body);
-        }
-        if (!(is_array($response) && array_key_exists('result', $response))) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
     }

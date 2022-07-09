@@ -576,7 +576,7 @@ class cdax(Exchange):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
-            result = self.parse_order_book(tick, symbol, timestamp)
+            result = self.parse_order_book(tick, market['symbol'], timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
@@ -1270,11 +1270,7 @@ class cdax(Exchange):
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client-order-id'] = brokerId + self.uuid()
-        else:
+        if clientOrderId is not None:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
@@ -1306,7 +1302,7 @@ class cdax(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

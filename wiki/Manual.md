@@ -68,7 +68,7 @@ The CCXT library currently supports the following 118 cryptocurrency exchange ma
 | [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.aaxpro.com/apidoc/index.html)                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ascendex](https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | ascendex           | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                             | bequant            | [Bequant](https://bequant.io)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bibox](https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg)](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | bibox              | [Bibox](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://biboxcom.github.io/en/)                                                       |                                                                                                                             |                                                                              |
+| [![bibox](https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg)](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | bibox              | [Bibox](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | [![API Version 3.1](https://img.shields.io/badge/3.1-lightgray)](https://biboxcom.github.io/en/)                                                   |                                                                                                                             |                                                                              |
 | [![bigone](https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg)](https://b1.run/users/new?code=D3LLBVFT)                                          | bigone             | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://open.big.one/docs/api.html)                                                   |                                                                                                                             |                                                                              |
 | [![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)](https://www.binance.com/en/register?ref=D7YA7CLY)                               | binance            | [Binance](https://www.binance.com/en/register?ref=D7YA7CLY)                              | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/spot/en)                                       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binancecoinm](https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg)](https://www.binance.com/en/register?ref=D7YA7CLY)                         | binancecoinm       | [Binance COIN-M](https://www.binance.com/en/register?ref=D7YA7CLY)                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -5004,6 +5004,41 @@ Returns
     amountBorrowed: 5.81,                   // The amount of currency that was borrowed
     timestamp: 1648699200000,               // The timestamp that the interest was charged
     datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
+    info: { ... }                           // Unparsed exchange response
+}
+```
+
+## Borrow and Repay Margin
+
+*margin only*
+
+To borrow and repay currency as a margin loan use `borrowMargin` and `repayMargin`.
+
+```Javascript
+borrowMargin (code, amount, symbol = undefined, params = {})
+repayMargin (code, amount, symbol = undefined, params = {})
+```
+Parameters
+
+- **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
+- **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
+
+Returns
+
+- A [margin loan structure](#margin-loan-structure)
+
+### Margin Loan Structure
+
+```JavaScript
+{
+    id: '1234323',                          // integer, the transaction id
+    currency: 'USDT',                       // string, the currency that is borrowed or repaid
+    amount: 5.81,                           // float, the amount of currency that was borrowed or repaid
+    symbol: 'BTC/USDT:USDT',                // string, unified market symbol
+    timestamp: 1648699200000,               // integer, the timestamp of when the transaction was made
+    datetime: '2022-03-31T04:00:00.000Z',   // string, the datetime of when the transaction was made
     info: { ... }                           // Unparsed exchange response
 }
 ```

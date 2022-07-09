@@ -593,8 +593,9 @@ export default class coincheck extends Exchange {
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         if (type === 'market') {
             const order_type = type + '_' + side;

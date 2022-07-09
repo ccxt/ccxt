@@ -583,7 +583,7 @@ class cdax extends Exchange {
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
-            $result = $this->parse_order_book($tick, $symbol, $timestamp);
+            $result = $this->parse_order_book($tick, $market['symbol'], $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
@@ -1328,11 +1328,7 @@ class cdax extends Exchange {
             'type' => $side . '-' . $type,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
-        if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker', array());
-            $brokerId = $this->safe_string($broker, 'id');
-            $request['client-order-id'] = $brokerId . $this->uuid();
-        } else {
+        if ($clientOrderId !== null) {
             $request['client-order-id'] = $clientOrderId;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'client-order-id' ));
@@ -1369,7 +1365,7 @@ class cdax extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $price,

@@ -556,14 +556,15 @@ class xena extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the xena api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
@@ -600,7 +601,7 @@ class xena extends Exchange {
         if ($lastUpdateTime !== null) {
             $timestamp = intval($lastUpdateTime / 1000000);
         }
-        return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
+        return $this->parse_order_book($mdEntriesByType, $market['symbol'], $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
     public function fetch_accounts($params = array ()) {
@@ -1410,8 +1411,8 @@ class xena extends Exchange {
         $accountId = $this->get_account_id($params);
         $request = array(
             'accountId' => $accountId,
-            // 'from' => $this->iso8601($since) * 1000000,
-            // 'to' => $this->iso8601($this->milliseconds()) * 1000000, // max range is 7 days
+            // 'from' => $since * 1000000,
+            // 'to' => $this->milliseconds() * 1000000, // max range is 7 days
             // 'symbol' => $market['id'],
             // 'limit' => 100,
         );
@@ -1421,7 +1422,7 @@ class xena extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
-            $request['from'] = $this->iso8601($since) * 1000000;
+            $request['from'] = $since * 1000000;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

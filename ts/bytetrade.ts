@@ -4,6 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection, BadResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -148,6 +149,7 @@ export default class bytetrade extends Exchange {
                 '48': 'Blocktonic',
                 '133': 'TerraCredit',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'vertify error': AuthenticationError, // typo on the exchange side, 'vertify'
                 'verify error': AuthenticationError, // private key signature is incorrect
@@ -233,7 +235,6 @@ export default class bytetrade extends Exchange {
             const active = this.safeValue (currency, 'active');
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
-            const amountPrecision = this.safeInteger (currency, 'basePrecision');
             let maxDeposit = this.safeString (deposit, 'max');
             if (Precise.stringEquals (maxDeposit, '-1')) {
                 maxDeposit = undefined;
@@ -250,7 +251,7 @@ export default class bytetrade extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': amountPrecision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'basePrecision'))),
                 'fee': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
@@ -369,8 +370,8 @@ export default class bytetrade extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (precision, 'amount'),
-                    'price': this.safeInteger (precision, 'price'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (precision, 'amount'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (precision, 'price'))),
                 },
                 'limits': {
                     'leverage': {
@@ -450,7 +451,7 @@ export default class bytetrade extends Exchange {
         }
         const response = await (this as any).marketGetDepth (this.extend (request, params));
         const timestamp = this.safeValue (response, 'timestamp');
-        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         return orderbook;
     }
 
@@ -897,7 +898,7 @@ export default class bytetrade extends Exchange {
         const amountTruncated = this.amountToPrecision (symbol, amount);
         const amountTruncatedPrecise = new Precise (amountTruncated);
         amountTruncatedPrecise.reduce ();
-        amountTruncatedPrecise.decimals -= baseCurrency['precision'];
+        amountTruncatedPrecise.decimals -= this.precisionFromString (this.numberToString (baseCurrency['precision']));
         const amountChain = amountTruncatedPrecise.toString ();
         const amountChainString = this.numberToString (amountChain);
         const quoteId = market['quoteId'];
@@ -905,7 +906,7 @@ export default class bytetrade extends Exchange {
         const priceRounded = this.priceToPrecision (symbol, price);
         const priceRoundedPrecise = new Precise (priceRounded);
         priceRoundedPrecise.reduce ();
-        priceRoundedPrecise.decimals -= quoteCurrency['precision'];
+        priceRoundedPrecise.decimals -= this.precisionFromString (this.numberToString (quoteCurrency['precision']));
         const priceChain = priceRoundedPrecise.toString ();
         const priceChainString = this.numberToString (priceChain);
         const now = this.milliseconds ();

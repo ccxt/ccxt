@@ -319,7 +319,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1192,7 +1192,7 @@ export default class bitbns extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const error = (code !== undefined) && (code !== '200');
+        const error = (code !== undefined) && (code !== '200') && (code !== '204');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);

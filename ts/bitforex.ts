@@ -482,9 +482,9 @@ export default class bitforex extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit;
@@ -492,7 +492,7 @@ export default class bitforex extends Exchange {
         const response = await (this as any).publicGetApiV1MarketDepthAll (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {
@@ -642,8 +642,9 @@ export default class bitforex extends Exchange {
         } else if (side === 'sell') {
             sideId = 2;
         }
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'price': price,
             'amount': amount,
             'tradeType': sideId,

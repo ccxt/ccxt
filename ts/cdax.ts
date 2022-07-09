@@ -583,7 +583,7 @@ export default class cdax extends Exchange {
             }
             const tick = this.safeValue (response, 'tick');
             const timestamp = this.safeInteger (tick, 'ts', this.safeInteger (response, 'ts'));
-            const result = this.parseOrderBook (tick, symbol, timestamp);
+            const result = this.parseOrderBook (tick, market['symbol'], timestamp);
             result['nonce'] = this.safeInteger (tick, 'version');
             return result;
         }
@@ -1356,11 +1356,7 @@ export default class cdax extends Exchange {
             'type': side + '-' + type,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
-            const brokerId = this.safeString (broker, 'id');
-            request['client-order-id'] = brokerId + this.uuid ();
-        } else {
+        if (clientOrderId !== undefined) {
             request['client-order-id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clientOrderId', 'client-order-id' ]);
@@ -1397,7 +1393,7 @@ export default class cdax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

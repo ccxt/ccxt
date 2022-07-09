@@ -50,12 +50,12 @@ class binance extends Exchange {
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => true,
                 'fetchBorrowRate' => true,
-                'fetchBorrowRateHistories' => null,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => false,
-                'fetchClosedOrder' => null,
+                'fetchClosedOrder' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
@@ -68,15 +68,13 @@ class binance extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchL3OrderBook' => null,
+                'fetchL3OrderBook' => false,
                 'fetchLedger' => null,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
-                'fetchMyBuys' => null,
-                'fetchMySells' => null,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => true,
@@ -109,6 +107,7 @@ class binance extends Exchange {
                 'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
+                'setMargin' => false,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
                 'signIn' => false,
@@ -225,6 +224,7 @@ class binance extends Exchange {
                         'margin/isolatedMarginData' => array( 'cost' => 0.1, 'noCoin' => 1 ),
                         'margin/isolatedMarginTier' => 0.1,
                         'margin/rateLimit/order' => 2,
+                        'margin/dribblet' => 0.1,
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders' => 600.03, // Weight(UID) => 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments' => 0.1,
@@ -245,7 +245,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 0.1,
-                        'convert/tradeFlow' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status' => 0.1,
                         'account/apiTradingStatus' => 0.1,
                         'account/apiRestrictions/ipRestriction' => 0.1,
@@ -453,6 +453,9 @@ class binance extends Exchange {
                     'get' => array(
                         'sub-account/assets' => 1,
                     ),
+                    'post' => array(
+                        'asset/getUserAsset' => 0.5,
+                    ),
                 ),
                 // deprecated
                 'wapi' => array(
@@ -494,6 +497,7 @@ class binance extends Exchange {
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'openInterest' => 1,
+                        'pmExchangeInfo' => 1,
                     ),
                 ),
                 'dapiData' => array(
@@ -573,6 +577,7 @@ class binance extends Exchange {
                         'indexInfo' => 1,
                         'apiTradingStatus' => array( 'cost' => 1, 'noSymbol' => 10 ),
                         'lvtKlines' => 1,
+                        'pmExchangeInfo' => 1,
                     ),
                 ),
                 'fapiData' => array(
@@ -6029,6 +6034,15 @@ class binance extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         yield $this->load_markets();
         $market = null;
         if ($symbol !== null) {
@@ -6065,6 +6079,15 @@ class binance extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         yield $this->load_markets();
         $market = null;
         if ($symbol !== null) {

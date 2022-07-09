@@ -851,7 +851,7 @@ export default class exmo extends Exchange {
         }
         const response = await (this as any).publicGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, market['id']);
-        return this.parseOrderBook (result, symbol, undefined, 'bid', 'ask');
+        return this.parseOrderBook (result, market['symbol'], undefined, 'bid', 'ask');
     }
 
     async fetchOrderBooks (symbols = undefined, limit = undefined, params = {}) {
@@ -1204,11 +1204,11 @@ export default class exmo extends Exchange {
         const request = {
             'pair': market['id'],
             // 'leverage': 2,
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': this.priceToPrecision (symbol, orderPrice),
+            'price': this.priceToPrecision (market['symbol'], orderPrice),
             // 'stop_price': this.priceToPrecision (symbol, stopPrice),
             // 'distance': 0, // distance for trailing stop orders
             // 'expire': 0, // expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -1247,7 +1247,7 @@ export default class exmo extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

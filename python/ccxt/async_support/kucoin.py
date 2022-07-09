@@ -1096,9 +1096,9 @@ class kucoin(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
-        request = {'symbol': marketId}
+        request = {'symbol': market['id']}
         method = 'publicGetMarketOrderbookLevelLevelLimit'
         isAuthenticated = self.check_required_credentials(False)
         response = None
@@ -1147,7 +1147,7 @@ class kucoin(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(data, 'time')
-        orderbook = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1)
+        orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 

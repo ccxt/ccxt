@@ -236,8 +236,9 @@ export default class btcalpha extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair_name': this.marketId (symbol),
+            'pair_name': market['id'],
         };
         if (limit) {
             request['limit_sell'] = limit;

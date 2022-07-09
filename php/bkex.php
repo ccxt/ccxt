@@ -94,7 +94,6 @@ class bkex extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'loadMarkets' => true,
                 'privateAPI' => true,
                 'publicAPI' => true,
                 'reduceMargin' => null,
@@ -621,7 +620,7 @@ class bkex extends Exchange {
         // }
         //
         $data = $this->safe_value($response, 'data');
-        return $this->parse_order_book($data, $symbol, null, 'bid', 'ask');
+        return $this->parse_order_book($data, $market['symbol'], null, 'bid', 'ask');
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

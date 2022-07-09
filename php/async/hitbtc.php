@@ -652,20 +652,21 @@ class hitbtc extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the hitbtc api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 100, 0 = unlimited
         }
         $response = yield $this->publicGetOrderbookSymbol (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'size');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bid', 'ask', 'price', 'size');
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -1132,9 +1132,9 @@ export default class kucoin extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = { 'symbol': marketId };
+        const request = { 'symbol': market['id'] };
         let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
@@ -1187,7 +1187,7 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'time');
-        const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
+        const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }

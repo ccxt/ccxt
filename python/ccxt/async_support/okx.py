@@ -50,18 +50,20 @@ class okx(Exchange):
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
-                'cancelAllOrders': None,
+                'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'createDepositAddress': None,
+                'createDepositAddress': False,
                 'createOrder': True,
-                'createReduceOnlyOrder': None,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': True,
                 'fetchBorrowRateHistory': True,
@@ -71,9 +73,9 @@ class okx(Exchange):
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposit': None,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
-                'fetchDepositAddresses': None,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
@@ -81,7 +83,7 @@ class okx(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': None,
+                'fetchL3OrderBook': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
@@ -89,8 +91,6 @@ class okx(Exchange):
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -98,9 +98,10 @@ class okx(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': None,
-                'fetchOrders': None,
+                'fetchOrderBooks': False,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
+                'fetchPermissions': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
@@ -111,22 +112,23 @@ class okx(Exchange):
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
-                'fetchTradingFees': None,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
-                'fetchTransactionFees': None,
-                'fetchTransactions': None,
+                'fetchTransactionFee': False,
+                'fetchTransactionFees': False,
+                'fetchTransactions': False,
                 'fetchTransfer': True,
                 'fetchTransfers': False,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
-                'fetchWithdrawalWhitelist': None,
+                'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
-                'signIn': None,
+                'signIn': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -1893,6 +1895,8 @@ class okx(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the okx api endpoint
+        :param bool|None params['reduceOnly']: MARGIN orders only, or swap/future orders in net mode
+        :param bool|None params['postOnly']: True to place a post only order
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1909,7 +1913,7 @@ class okx(Exchange):
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
             'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
-            # 'reduceOnly': False,  # MARGIN orders only
+            # 'reduceOnly': False,
             #
             # 'triggerPx': 10,  # stopPrice(trigger orders)
             # 'orderPx': 10,  # Order price if -1, the order will be executed at the market price.(trigger orders)
@@ -1934,14 +1938,28 @@ class okx(Exchange):
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so as to be extended into the request
+        margin = False
+        if (marginMode is not None) and (marginMode != 'cash'):
+            margin = True
+        else:
+            marginMode = defaultMarginMode
+            margin = self.safe_value(params, 'margin', False)
+        if margin is True and not market['margin']:
+            raise NotSupported(self.id + ' does not support margin trading for ' + symbol + 'market')
         if spot:
-            request['tdMode'] = 'cash'
+            if margin:
+                defaultCurrency = market['quote'] if (side == 'buy') else market['base']
+                currency = self.safe_string(params, 'ccy', defaultCurrency)
+                request['ccy'] = self.safe_currency_code(currency)
+            tradeMode = marginMode if margin else 'cash'
+            request['tdMode'] = tradeMode
         elif contract:
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-            request['tdMode'] = self.safe_string_lower(params, 'tdMode', marginMode)  # not ommited so as to be extended into the request
+            request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, type == 'post_only', params)
-        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx'])
+        params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
         trigger = (triggerPrice is not None) or (type == 'trigger')
@@ -1950,7 +1968,7 @@ class okx(Exchange):
         defaultMethod = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
-        if not market['contract']:
+        if (not contract) and (not margin):
             request['tgtCcy'] = tgtCcy
         method = defaultMethod
         if isMarketOrder or marketIOC:
@@ -3373,6 +3391,7 @@ class okx(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
@@ -3437,9 +3456,32 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
+    async def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch data on a currency deposit via the deposit id
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
+        :param str id: deposit id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'depId': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        response = await self.privateGetAssetDepositHistory(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        deposit = self.safe_value(data, 0, {})
+        return self.parse_transaction(deposit, currency)
+
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch all withdrawals made from an account
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
         :param str|None code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
@@ -3495,6 +3537,49 @@ class okx(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
+
+    async def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+        :param str id: withdrawal id
+        :param str|None code: unified currency code of the currency withdrawn, default is None
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'wdId': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['ccy'] = currency['id']
+        response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: [
+        #            {
+        #                chain: 'USDT-TRC20',
+        #                clientId: '',
+        #                fee: '0.8',
+        #                ccy: 'USDT',
+        #                amt: '54.561',
+        #                txId: '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
+        #                from: 'example@email.com',
+        #                to: 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
+        #                state: '2',
+        #                ts: '1641376485000',
+        #                wdId: '25147041'
+        #            }
+        #        ],
+        #        msg: ''
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        withdrawal = self.safe_value(data, 0, {})
+        return self.parse_transaction(withdrawal)
 
     def parse_transaction_status(self, status):
         #
@@ -4851,6 +4936,15 @@ class okx(Exchange):
         }
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: not used by okx.borrowMargin()
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4884,6 +4978,15 @@ class okx(Exchange):
         })
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by okx.repayMargin()
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {

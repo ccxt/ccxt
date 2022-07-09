@@ -228,8 +228,9 @@ export default class bit2c extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const orderbook = await (this as any).publicGetExchangesPairOrderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook, symbol);
@@ -384,9 +385,10 @@ export default class bit2c extends Exchange {
          */
         await this.loadMarkets ();
         let method = 'privatePostOrderAddOrder';
+        const market = this.market (symbol);
         const request = {
             'Amount': amount,
-            'Pair': this.marketId (symbol),
+            'Pair': market['id'],
         };
         if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);

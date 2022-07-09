@@ -30,9 +30,8 @@ class bibox(Exchange):
             'id': 'bibox',
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
-            'version': 'v1',
-            # 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms(166.6666...)
             'rateLimit': 166.667,
+            'version': 'v3.1',
             'hostname': 'bibox.com',
             'has': {
                 'CORS': None,
@@ -69,6 +68,7 @@ class bibox(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
+                'transfer': None,
                 'withdraw': True,
             },
             'timeframes': {
@@ -90,35 +90,197 @@ class bibox(Exchange):
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
+                    'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
-                'public': {
-                    'post': {
-                        # TODO: rework for full endpoint/cmd paths here
-                        'mdata': 1,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'cquery': 1,
+                            'mdata': 1,
+                            'cdata': 1,
+                            'orderpending': 1,
+                        },
+                        'post': {
+                            'mdata': 1,
+                        },
                     },
-                    'get': {
-                        'cquery': 1,
-                        'mdata': 1,
-                        'cdata': 1,
-                        'orderpending': 1,
+                    'private': {
+                        'post': {
+                            'credit': 1,
+                            'cquery': 1,
+                            'ctrade': 1,
+                            'user': 1,
+                            'orderpending': 1,
+                            'transfer': 1,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        'cquery': 1,
-                        'ctrade': 1,
-                        'user': 1,
-                        'orderpending': 1,
-                        'transfer': 1,
+                'v1.1': {
+                    'public': {
+                        'get': [
+                            'cquery',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'cquery',
+                            'ctrade',
+                        ],
                     },
                 },
-                'v2private': {
-                    'post': {
-                        'assets/transfer/spot': 1,
+                'v2': {
+                    'public': {
+                        'get': [
+                            'mdata/kline',
+                            'mdata/depth',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                        ],
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'mdata/pairList',
+                            'mdata/kline',
+                            'mdata/marketAll',
+                            'mdata/market',
+                            'mdata/depth',
+                            'mdata/deals',
+                            'mdata/ticker',
+                            'cbc/timestamp',
+                            'cbu/timestamp',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                            'assets/transfer/cbc',
+                            'cbc/order/open',
+                            'cbc/order/close',
+                            'cbc/order/closeBatch',
+                            'cbc/order/closeAll',
+                            'cbc/changeMargin',
+                            'cbc/changeMode',
+                            'cbc/assets',
+                            'cbc/position',
+                            'cbc/order/list',
+                            'cbc/order/detail',
+                            'cbc/order/listBatch',
+                            'cbc/order/listBatchByClientOid',
+                            'cbuassets/transfer',
+                            'cbu/order/open',
+                            'cbu/order/close',
+                            'cbu/order/closeBatch',
+                            'cbu/order/closeAll',
+                            'cbu/order/planOpen',
+                            'cbu/order/planOrderList',
+                            'cbu/order/planClose',
+                            'cbu/order/planCloseAll',
+                            'cbu/changeMargin',
+                            'cbu/changeMode',
+                            'cbu/assets',
+                            'cbu/position',
+                            'cbu/order/list',
+                            'bu/order/detail',
+                            'cbu/order/listBatch',
+                            'cbu/order/listBatchByClientOid',
+                        ],
+                    },
+                },
+                'v3.1': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'cquery/buFundRate',
+                            'cquery/buTagPrice',
+                            'cquery/buValue',
+                            'cquery/buUnit',
+                            'cquery/bcFundRate',
+                            'cquery/bcTagPrice',
+                            'cquery/bcValue',
+                            'cquery/bcUnit',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'orderpending/tradeLimit',
+                        ],
+                        'post': [
+                            'transfer/mainAssets',
+                            'spot/account/assets',
+                            'transfer/transferIn',
+                            'transfer/transferOut',
+                            'transfer/transferInList',
+                            'transfer/transferOutList',
+                            'transfer/coinConfig',
+                            'transfer/withdrawInfo',
+                            'orderpending/trade',
+                            'orderpending/cancelTrade',
+                            'orderpending/orderPendingList',
+                            'orderpending/pendingHistoryList',
+                            'orderpending/orderDetail',
+                            'orderpending/order',
+                            'orderpending/orderHistoryList',
+                            'orderpending/orderDetailsLast',
+                            'credit/transferAssets/base2credit',
+                            'credit/transferAssets/credit2base',
+                            'credit/lendOrder/get',
+                            'credit/borrowOrder/get',
+                            'credit/lendOrderbook/get',
+                            'credit/transferAssets/lendAssets',
+                            'credit/transferAssets/borrowAssets',
+                            'credit/borrowOrder/autobook',
+                            'credit/borrowOrder/refund',
+                            'credit/lendOrderbook/publish',
+                            'credit/lendOrderbook/cancel',
+                            'credit/trade/trade',
+                            'credit/trade/cancel',
+                            'cquery/base_u/dealLog',
+                            'cquery/base_u/orderDetail',
+                            'cquery/base_u/orderHistory',
+                            'cquery/base_u/orderById',
+                            'cquery/base_coin/dealLog',
+                            'cquery/base_coin/orderDetail',
+                            'cquery/base_coin/orderHistory',
+                            'cquery/base_coin/orderById',
+                        ],
+                    },
+                },
+                'v4': {
+                    'public': {
+                        'get': [
+                            'marketdata/pairs',
+                            'marketdata/order_book',
+                            'marketdata/candles',
+                            'marketdata/trades',
+                            'marketdata/tickers',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'userdata/accounts',
+                            'userdata/ledger',
+                            'userdata/order',
+                            'userdata/orders',
+                        ],
+                        'post': [
+                            'userdata/order',
+                        ],
+                        'delete': [
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ],
                     },
                 },
             },
@@ -185,7 +347,7 @@ class bibox(Exchange):
         request = {
             'cmd': 'pairList',
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         #
         #     {
         #         "result": [
@@ -207,7 +369,7 @@ class bibox(Exchange):
         request2 = {
             'cmd': 'tradeLimit',
         }
-        response2 = await self.publicGetOrderpending(self.extend(request2, params))
+        response2 = await self.v1PublicGetOrderpending(self.extend(request2, params))
         #
         #    {
         #         result: {
@@ -350,7 +512,7 @@ class bibox(Exchange):
             'cmd': 'ticker',
             'pair': market['id'],
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         return self.parse_ticker(response['result'], market)
 
     async def fetch_tickers(self, symbols=None, params={}):
@@ -364,7 +526,7 @@ class bibox(Exchange):
         request = {
             'cmd': 'marketAll',
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         tickers = self.parse_tickers(response['result'], symbols)
         result = self.index_by(tickers, 'symbol')
         return self.filter_by_array(result, 'symbol', symbols)
@@ -425,7 +587,7 @@ class bibox(Exchange):
         }
         if limit is not None:
             request['size'] = limit  # default = 200
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -445,7 +607,7 @@ class bibox(Exchange):
         if limit is not None:
             request['size'] = limit  # default = 200
         response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        return self.parse_order_book(response['result'], market['symbol'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -485,7 +647,7 @@ class bibox(Exchange):
             'period': self.timeframes[timeframe],
             'size': limit,
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         #
         #     {
         #         "result":[
@@ -515,9 +677,9 @@ class bibox(Exchange):
         request = {
             'cmd': 'currencies',
         }
-        response = await self.publicGetCdata(self.extend(request, params))
+        response = await self.v1PublicGetCdata(self.extend(request, params))
         #
-        # publicGetCdata
+        # v1PublicGetCdata
         #
         #     {
         #         "result":[
@@ -577,7 +739,7 @@ class bibox(Exchange):
             'cmd': 'transfer/coinList',
             'body': {},
         }
-        response = await self.privatePostTransfer(self.extend(request, params))
+        response = await self.v1PrivatePostTransfer(self.extend(request, params))
         #
         #     {
         #         "result":[
@@ -694,7 +856,7 @@ class bibox(Exchange):
                 'select': 1,  # return full info
             }, params),
         }
-        response = await self.privatePostTransfer(request)
+        response = await self.v1PrivatePostTransfer(request)
         #
         #     {
         #         "result":[
@@ -736,7 +898,7 @@ class bibox(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
-        response = await self.privatePostTransfer({
+        response = await self.v1PrivatePostTransfer({
             'cmd': 'transfer/transferInList',
             'body': self.extend(request, params),
         })
@@ -799,7 +961,7 @@ class bibox(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
-        response = await self.privatePostTransfer({
+        response = await self.v1PrivatePostTransfer({
             'cmd': 'transfer/transferOutList',
             'body': self.extend(request, params),
         })
@@ -952,7 +1114,7 @@ class bibox(Exchange):
                 'price': price,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -986,7 +1148,7 @@ class bibox(Exchange):
                 'orders_id': id,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1017,7 +1179,7 @@ class bibox(Exchange):
                 'account_type': 0,  # 0 = spot account
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1137,7 +1299,7 @@ class bibox(Exchange):
                 'size': size,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1197,7 +1359,7 @@ class bibox(Exchange):
                 'size': limit,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1260,7 +1422,7 @@ class bibox(Exchange):
                 'currency_symbol': market['quoteId'],
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1310,7 +1472,7 @@ class bibox(Exchange):
                 'coin_symbol': currency['id'],
             }, params),
         }
-        response = await self.privatePostTransfer(request)
+        response = await self.v1PrivatePostTransfer(request)
         #
         #     {
         #         "result":[
@@ -1374,7 +1536,7 @@ class bibox(Exchange):
         }
         if tag is not None:
             request['address_remark'] = tag
-        response = await self.privatePostTransfer({
+        response = await self.v1PrivatePostTransfer({
             'cmd': 'transfer/transferOut',
             'body': self.extend(request, params),
         })
@@ -1415,7 +1577,7 @@ class bibox(Exchange):
                     'coin_symbol': currency['id'],
                 }, params),
             }
-            response = await self.privatePostTransfer(request)
+            response = await self.v1PrivatePostTransfer(request)
             #     {
             #         "result":[
             #             {
@@ -1449,44 +1611,63 @@ class bibox(Exchange):
             'deposit': {},
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_hostname(self.urls['api']) + '/' + self.version + '/' + path
-        cmds = self.json([params])
-        if api == 'public':
+    def sign(self, path, api='v1Public', method='GET', params={}, headers=None, body=None):
+        version, access = api
+        v1 = (version == 'v1')
+        v4 = (version == 'v4')
+        prefix = '/api' if v4 else ''
+        url = self.implode_hostname(self.urls['api']) + prefix + '/' + version + '/' + path
+        json_params = self.json([params]) if v1 else self.json(params)
+        headers = {'content-type': 'application/json'}
+        if access == 'public':
             if method != 'GET':
-                body = {'cmds': cmds}
+                if v1:
+                    body = {'cmds': json_params}
+                else:
+                    body = {'body': json_params}
             elif params:
                 url += '?' + self.urlencode(params)
-        elif api == 'v2private':
-            self.check_required_credentials()
-            url = self.implode_hostname(self.urls['api']) + '/v2/' + path
-            json_params = self.json(params)
-            body = {
-                'body': json_params,
-                'apikey': self.apiKey,
-                'sign': self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5),
-            }
         else:
             self.check_required_credentials()
-            body = {
-                'cmds': cmds,
-                'apikey': self.apiKey,
-                'sign': self.hmac(self.encode(cmds), self.encode(self.secret), hashlib.md5),
-            }
+            if version == 'v3' or version == 'v3.1' or version == 'v4':
+                timestamp = self.number_to_string(self.milliseconds())
+                strToSign = timestamp
+                if json_params != '{}':
+                    strToSign += json_params
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.md5)
+                headers['bibox-api-key'] = self.apiKey
+                headers['bibox-api-sign'] = sign
+                headers['bibox-timestamp'] = timestamp
+                if method == 'GET':
+                    url += '?' + self.urlencode(params)
+                else:
+                    if json_params != '{}':
+                        body = params
+            else:
+                sign = self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5)
+                body = {
+                    'apikey': self.apiKey,
+                    'sign': sign,
+                }
+                if v1:
+                    body['cmds'] = json_params
+                else:
+                    body['body'] = json_params
         if body is not None:
             body = self.json(body, {'convertArraysToObjects': True})
-        headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
+        if 'state' in response:
+            if self.safe_number(response, 'state') == 0:
+                return
+            raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:
             if 'code' in response['error']:
                 code = self.safe_string(response['error'], 'code')
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)

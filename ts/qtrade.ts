@@ -436,8 +436,8 @@ export default class qtrade extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
-        const request = { 'market_string': marketId };
+        const market = this.market (symbol);
+        const request = { 'market_string': market['id'] };
         const response = await (this as any).publicGetOrderbookMarketString (this.extend (request, params));
         //
         //     {
@@ -475,7 +475,7 @@ export default class qtrade extends Exchange {
             orderbook[side] = result;
         }
         const timestamp = this.safeIntegerProduct (data, 'last_change', 0.001);
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -835,7 +835,7 @@ export default class qtrade extends Exchange {
         const marketData = this.safeValue (data, 'market', {});
         return {
             'info': marketData,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': this.safeNumber (marketData, 'maker_fee'),
             'taker': this.safeNumber (marketData, 'taker_fee'),
             'percentage': true,
@@ -919,9 +919,9 @@ export default class qtrade extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.amountToPrecision (market['symbol'], amount),
             'market_id': market['numericId'],
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.priceToPrecision (market['symbol'], price),
         };
         const method = (side === 'sell') ? 'privatePostSellLimit' : 'privatePostBuyLimit';
         const response = await this[method] (this.extend (request, params));

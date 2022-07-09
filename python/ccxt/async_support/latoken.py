@@ -786,7 +786,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -809,7 +809,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -1446,7 +1446,7 @@ class latoken(Exchange):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'id'),
-            'timestamp': self.safe_number(transfer),
+            'timestamp': self.safe_integer(transfer, 'timestamp'),
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(transfer, 'transferringFunds'),

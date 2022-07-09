@@ -676,7 +676,7 @@ class kucoinfutures extends kucoin {
         //
         $data = $this->safe_value($response, 'data', array());
         $timestamp = intval($this->safe_integer($data, 'ts') / 1000000);
-        $orderbook = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
+        $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
         return $orderbook;
     }
@@ -1215,7 +1215,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        return array_merge($this->parseModifyMargin ($data, $market), array(
+        return array_merge($this->parse_margin_modification($data, $market), array(
             'amount' => $this->amount_to_precision($symbol, $amount),
             'direction' => 'in',
         ));
@@ -1445,13 +1445,14 @@ class kucoinfutures extends kucoin {
     public function fetch_funding_rate($symbol, $params = array ()) {
         /**
          * fetch the current funding rate
-         * @param {str} $symbol unified market $symbol
+         * @param {str} $symbol unified $market $symbol
          * @param {dict} $params extra parameters specific to the kucoinfutures api endpoint
          * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         $response = $this->futuresPublicGetFundingRateSymbolCurrent (array_merge($request, $params));
         //
@@ -1470,7 +1471,7 @@ class kucoinfutures extends kucoin {
         $fundingTimestamp = $this->safe_number($data, 'timePoint');
         return array(
             'info' => $data,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => null,

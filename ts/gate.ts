@@ -60,6 +60,7 @@ export default class gate extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
@@ -84,6 +85,7 @@ export default class gate extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -94,6 +96,7 @@ export default class gate extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -104,6 +107,7 @@ export default class gate extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -2662,7 +2666,7 @@ export default class gate extends Exchange {
         let timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
         timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
@@ -2673,19 +2677,24 @@ export default class gate extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
         const fees = [];
-        if (feeAmount && feeAmount !== '0') {
+        if (feeAmount !== undefined && !Precise.stringEq (feeAmount, '0')) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString (market, 'settle');
+            }
             fees.push ({
                 'cost': feeAmount,
-                'currency': this.safeString (trade, 'fee_currency'),
+                'currency': feeCurrencyCode,
             });
         }
-        if (gtFee && gtFee !== '0') {
+        if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
             fees.push ({
                 'cost': gtFee,
                 'currency': 'GT',
             });
         }
-        if (pointFee && pointFee !== '0') {
+        if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
             fees.push ({
                 'cost': pointFee,
                 'currency': 'POINT',
@@ -2697,7 +2706,7 @@ export default class gate extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -4363,6 +4372,234 @@ export default class gate extends Exchange {
             floor = cap;
         }
         return tiers;
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.mode 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {str} params.id '34267567' loan id, extra parameter required for isolated margin
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privateMarginPostCrossRepayments';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
+            const mode = this.safeString (params, 'mode'); // 'all' or 'partial'
+            if (mode === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
+            }
+            const id = this.safeString2 (params, 'loan_id', 'id');
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
+            }
+            method = 'privateMarginPostLoansLoanIdRepayment';
+            request['currency_pair'] = market['id'];
+            request['mode'] = mode;
+            request['loan_id'] = id;
+        }
+        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     [
+        //         {
+        //             "id": "17",
+        //             "create_time": 1620381696159,
+        //             "update_time": 1620381696159,
+        //             "currency": "EOS",
+        //             "amount": "110.553635",
+        //             "text": "web",
+        //             "status": 2,
+        //             "repaid": "110.506649705159",
+        //             "repaid_interest": "0.046985294841",
+        //             "unpaid_interest": "0.0000074393366667"
+        //         }
+        //     ]
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "finished",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
+        //         "days": 10,
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
+        //         "left": "0",
+        //         "repaid": "100",
+        //         "paid_interest": "0.003333333333",
+        //         "unpaid_interest": "0"
+        //     }
+        //
+        if (marginMode === 'cross') {
+            response = response[0];
+        }
+        return this.parseMarginLoan (response, currency);
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
+        let method = 'privateMarginPostCrossLoans';
+        if (marginMode === 'isolated') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
+            request['currency_pair'] = market['id'];
+            const rate = this.safeString (params, 'rate');
+            if (rate === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
+            }
+            request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.
+            request['side'] = 'borrow';
+            method = 'privateMarginPostLoans';
+        }
+        params = this.omit (params, [ 'marginMode', 'rate' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "loaned",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
+        //         "days": 10,
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0.003333333333"
+        //     }
+        //
+        return this.parseMarginLoan (response, currency);
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // Cross
+        //
+        //     {
+        //         "id": "17",
+        //         "create_time": 1620381696159,
+        //         "update_time": 1620381696159,
+        //         "currency": "EOS",
+        //         "amount": "110.553635",
+        //         "text": "web",
+        //         "status": 2,
+        //         "repaid": "110.506649705159",
+        //         "repaid_interest": "0.046985294841",
+        //         "unpaid_interest": "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id": "34267567",
+        //         "create_time": "1656394778",
+        //         "expire_time": "1657258778",
+        //         "status": "loaned",
+        //         "side": "borrow",
+        //         "currency": "USDT",
+        //         "rate": "0.0002",
+        //         "amount": "100",
+        //         "days": 10,
+        //         "auto_renew": false,
+        //         "currency_pair": "LTC_USDT",
+        //         "left": "0",
+        //         "repaid": "0",
+        //         "paid_interest": "0",
+        //         "unpaid_interest": "0.003333333333"
+        //     }
+        //
+        const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        let timestamp = this.safeInteger (info, 'create_time');
+        if (marginMode === 'isolated') {
+            timestamp = this.safeTimestamp (info, 'create_time');
+        }
+        const currencyId = this.safeString (info, 'currency');
+        const marketId = this.safeString (info, 'currency_pair');
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (info, 'amount'),
+            'symbol': this.safeSymbol (marketId, undefined),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

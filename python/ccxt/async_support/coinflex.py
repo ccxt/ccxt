@@ -110,7 +110,6 @@ class coinflex(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
-                'loadMarkets': True,
                 'privateAPI': True,
                 'publicAPI': True,
                 'reduceMargin': None,

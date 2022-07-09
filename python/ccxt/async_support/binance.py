@@ -65,12 +65,12 @@ class binance(Exchange):
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': True,
                 'fetchBorrowRate': True,
-                'fetchBorrowRateHistories': None,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': False,
-                'fetchClosedOrder': None,
+                'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
@@ -83,15 +83,13 @@ class binance(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchL3OrderBook': None,
+                'fetchL3OrderBook': False,
                 'fetchLedger': None,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
-                'fetchMyBuys': None,
-                'fetchMySells': None,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': True,
@@ -124,6 +122,7 @@ class binance(Exchange):
                 'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': True,
                 'setPositionMode': True,
                 'signIn': False,
@@ -240,6 +239,7 @@ class binance(Exchange):
                         'margin/isolatedMarginData': {'cost': 0.1, 'noCoin': 1},
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
+                        'margin/dribblet': 0.1,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
@@ -260,7 +260,7 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -468,6 +468,9 @@ class binance(Exchange):
                     'get': {
                         'sub-account/assets': 1,
                     },
+                    'post': {
+                        'asset/getUserAsset': 0.5,
+                    },
                 },
                 # deprecated
                 'wapi': {
@@ -509,6 +512,7 @@ class binance(Exchange):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'openInterest': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -588,6 +592,7 @@ class binance(Exchange):
                         'indexInfo': 1,
                         'apiTradingStatus': {'cost': 1, 'noSymbol': 10},
                         'lvtKlines': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -5686,6 +5691,15 @@ class binance(Exchange):
         }
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -5718,6 +5732,15 @@ class binance(Exchange):
         })
 
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:

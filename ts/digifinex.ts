@@ -604,7 +604,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (response, 'date');
-        return this.parseOrderBook (response, symbol, timestamp);
+        return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -979,14 +979,14 @@ export default class digifinex extends Exchange {
         const request = {
             'market': orderType,
             'symbol': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.amountToPrecision (market['symbol'], amount),
             // 'post_only': 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
         };
         let suffix = '';
         if (type === 'market') {
             suffix = '_market';
         } else {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         request['type'] = side + suffix;
         const response = await (this as any).privatePostMarketOrderNew (this.extend (request, params));
@@ -998,7 +998,7 @@ export default class digifinex extends Exchange {
         //
         const result = this.parseOrder (response, market);
         return this.extend (result, {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'type': type,
             'amount': amount,

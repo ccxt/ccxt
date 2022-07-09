@@ -206,7 +206,7 @@ export default class coinspot extends Exchange {
             'cointype': market['id'],
         };
         const orderbook = await (this as any).privatePostOrders (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -360,8 +360,9 @@ export default class coinspot extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
+        const market = this.market (symbol);
         const request = {
-            'cointype': this.marketId (symbol),
+            'cointype': market['id'],
             'amount': amount,
             'rate': price,
         };

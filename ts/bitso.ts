@@ -538,13 +538,14 @@ export default class bitso extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'book': this.marketId (symbol),
+            'book': market['id'],
         };
         const response = await (this as any).publicGetOrderBook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'payload');
         const timestamp = this.parse8601 (this.safeString (orderbook, 'updated_at'));
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -948,14 +949,15 @@ export default class bitso extends Exchange {
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'book': this.marketId (symbol),
+            'book': market['id'],
             'side': side,
             'type': type,
-            'major': this.amountToPrecision (symbol, amount),
+            'major': this.amountToPrecision (market['symbol'], amount),
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await (this as any).privatePostOrders (this.extend (request, params));
         const id = this.safeString (response['payload'], 'oid');

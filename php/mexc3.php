@@ -64,6 +64,7 @@ class mexc3 extends Exchange {
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => null,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -77,6 +78,7 @@ class mexc3 extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
@@ -95,13 +97,12 @@ class mexc3 extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
-                'loadMarkets' => null,
                 'privateAPI' => true,
                 'publicAPI' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => null,
-                'setPositionMode' => null,
+                'setPositionMode' => true,
                 'signIn' => null,
                 'transfer' => null,
                 'withdraw' => true,
@@ -203,6 +204,7 @@ class mexc3 extends Exchange {
                             'position/list/history_positions' => 2,
                             'position/open_positions' => 2,
                             'position/funding_records' => 2,
+                            'position/position_mode' => 2,
                             'order/list/open_orders/{symbol}' => 2,
                             'order/list/history_orders' => 2,
                             'order/external/{symbol}/{external_oid}' => 2,
@@ -219,6 +221,7 @@ class mexc3 extends Exchange {
                         'post' => array(
                             'position/change_margin' => 2,
                             'position/change_leverage' => 2,
+                            'position/change_position_mode' => 2,
                             'order/submit' => 2,
                             'order/submit_batch' => 40,
                             'order/cancel' => 2,
@@ -3892,6 +3895,36 @@ class mexc3 extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_transaction($data, $currency);
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        $request = array(
+            'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        );
+        $response = $this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params));
+        //
+        //     {
+        //         "success":true,
+        //         "code":0
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_position_mode($symbol = null, $params = array ()) {
+        $response = $this->contractPrivateGetPositionPositionMode ($params);
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":2
+        //     }
+        //
+        $positionMode = $this->safe_integer($response, 'data');
+        return array(
+            'info' => $response,
+            'hedged' => ($positionMode === 1),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

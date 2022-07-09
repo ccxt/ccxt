@@ -300,13 +300,14 @@ export default class bitbank extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await (this as any).publicGetPairDepth (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -722,8 +723,8 @@ export default class bitbank extends Exchange {
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            request['pair'] = market['id'];
             market = this.market (symbol);
+            request['pair'] = market['id'];
         }
         if (limit !== undefined) {
             request['count'] = limit;
