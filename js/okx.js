@@ -2024,7 +2024,7 @@ module.exports = class okx extends Exchange {
             margin = this.safeValue (params, 'margin', false);
         }
         if (margin === true && market['spot'] && !market['margin']) {
-            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + 'market');
+            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
         }
         if (spot) {
             if (margin) {
