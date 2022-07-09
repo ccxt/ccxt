@@ -2666,7 +2666,7 @@ export default class gate extends Exchange {
         let timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
         timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
@@ -2677,19 +2677,24 @@ export default class gate extends Exchange {
         const gtFee = this.safeString (trade, 'gt_fee');
         const pointFee = this.safeString (trade, 'point_fee');
         const fees = [];
-        if (feeAmount && feeAmount !== '0') {
+        if (feeAmount !== undefined && !Precise.stringEq (feeAmount, '0')) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString (market, 'settle');
+            }
             fees.push ({
                 'cost': feeAmount,
-                'currency': this.safeString (trade, 'fee_currency'),
+                'currency': feeCurrencyCode,
             });
         }
-        if (gtFee && gtFee !== '0') {
+        if (gtFee !== undefined && !Precise.stringEq (gtFee, '0')) {
             fees.push ({
                 'cost': gtFee,
                 'currency': 'GT',
             });
         }
-        if (pointFee && pointFee !== '0') {
+        if (pointFee !== undefined && !Precise.stringEq (pointFee, '0')) {
             fees.push ({
                 'cost': pointFee,
                 'currency': 'POINT',
@@ -2701,7 +2706,7 @@ export default class gate extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,
@@ -4370,6 +4375,20 @@ export default class gate extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.mode 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {str} params.id '34267567' loan id, extra parameter required for isolated margin
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let market = undefined;
@@ -4447,6 +4466,19 @@ export default class gate extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the gate api endpoint
+         * @param {str} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         let market = undefined;
@@ -4467,7 +4499,7 @@ export default class gate extends Exchange {
             }
             request['currency_pair'] = market['id'];
             const rate = this.safeString (params, 'rate');
-            if (symbol === undefined) {
+            if (rate === undefined) {
                 throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
             }
             request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.

@@ -233,6 +233,10 @@ export default class ftx extends Exchange {
                         'stats/latency_stats': 1,
                         // pnl
                         'pnl/historical_changes': 1,
+                        // support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/count_unread': 1,
                     },
                     'post': {
                         // subaccounts
@@ -277,6 +281,11 @@ export default class ftx extends Exchange {
                         'nft/gallery_settings': 1,
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/orders': 1,
+                        // support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/{ticketId}/status': 1,
+                        'support/tickets/{ticketId}/mark_as_read': 1,
                     },
                     'delete': {
                         // subaccounts
@@ -2399,7 +2408,7 @@ export default class ftx extends Exchange {
         const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const unrealizedPnlString = this.safeString (position, 'recentPnl');
+        const unrealizedPnlString = this.safeString2 (position, 'unrealizedPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
         let difference = undefined;

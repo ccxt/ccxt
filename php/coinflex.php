@@ -105,7 +105,6 @@ class coinflex extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
-                'loadMarkets' => true,
                 'privateAPI' => true,
                 'publicAPI' => true,
                 'reduceMargin' => null,

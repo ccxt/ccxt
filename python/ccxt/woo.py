@@ -286,9 +286,9 @@ class woo(Exchange):
             market = data[i]
             marketId = self.safe_string(market, 'symbol')
             parts = marketId.split('_')
-            marketTypeVal = self.safe_string_lower(parts, 0)
-            isSpot = marketTypeVal == 'spot'
-            isSwap = marketTypeVal == 'perp'
+            marketType = self.safe_string_lower(parts, 0)
+            isSpot = marketType == 'spot'
+            isSwap = marketType == 'perp'
             baseId = self.safe_string(parts, 1)
             quoteId = self.safe_string(parts, 2)
             base = self.safe_currency_code(baseId)
@@ -297,11 +297,14 @@ class woo(Exchange):
             settle = None
             symbol = base + '/' + quote
             contractSize = None
+            linear = None
             if isSwap:
                 settleId = self.safe_string(parts, 2)
                 settle = self.safe_currency_code(settleId)
                 symbol = base + '/' + quote + ':' + settle
                 contractSize = self.parse_number('1')
+                marketType = 'swap'
+                linear = True
             result.append({
                 'id': marketId,
                 'symbol': symbol,
@@ -311,7 +314,7 @@ class woo(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': marketTypeVal,
+                'type': marketType,
                 'spot': isSpot,
                 'margin': True,
                 'swap': isSwap,
@@ -319,7 +322,7 @@ class woo(Exchange):
                 'option': False,
                 'active': None,
                 'contract': isSwap,
-                'linear': None,
+                'linear': linear,
                 'inverse': None,
                 'contractSize': contractSize,
                 'expiry': None,
@@ -1322,7 +1325,7 @@ class woo(Exchange):
             'account': self.safe_string(item, 'account'),
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(item, 'status'),
+            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
             'amount': amount,
             'before': None,
             'after': None,
@@ -1568,6 +1571,15 @@ class woo(Exchange):
         return self.safe_string(statuses, status, status)
 
     def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://docs.woo.org/#repay-interest
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: not used by woo.repayMargin()
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:

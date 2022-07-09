@@ -6833,6 +6833,46 @@ Borrow Interest Structure
        info: { ... }                           // Unparsed exchange response
    }
 
+Borrow and Repay Margin
+-----------------------
+
+ *margin only*
+
+To borrow and repay currency as a margin loan use ``borrowMargin`` and ``repayMargin``.
+
+.. code-block:: Javascript
+
+   borrowMargin (code, amount, symbol = undefined, params = {})
+   repayMargin (code, amount, symbol = undefined, params = {})
+
+Parameters
+
+
+ * **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. ``"USDT"``\ )
+ * **amount** (Float) *required* The amount of margin to borrow or repay (e.g. ``20.92``\ )
+ * **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. ``"BTC/USDT"``\ )
+ * **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. ``{"rate": 0.002}``\ )
+
+Returns
+
+
+ * A :ref:`margin loan structure <margin loan structure>`
+
+Margin Loan Structure
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: JavaScript
+
+   {
+       id: '1234323',                          // integer, the transaction id
+       currency: 'USDT',                       // string, the currency that is borrowed or repaid
+       amount: 5.81,                           // float, the amount of currency that was borrowed or repaid
+       symbol: 'BTC/USDT:USDT',                // string, unified market symbol
+       timestamp: 1648699200000,               // integer, the timestamp of when the transaction was made
+       datetime: '2022-03-31T04:00:00.000Z',   // string, the datetime of when the transaction was made
+       info: { ... }                           // Unparsed exchange response
+   }
+
 Margin
 ------
 

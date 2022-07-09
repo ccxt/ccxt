@@ -11,7 +11,7 @@ export default async (exchange, symbol) => {
     }
     if (exchange.has[method]) {
         const fee = await exchange[method] (symbol)
-        testTradingFee (exchange, symbol, fee)
+        testTradingFee (symbol, fee)
         return fee
     } else {
         console.log (method + '() is not supported')

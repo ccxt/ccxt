@@ -90,7 +90,6 @@ export default class bkex extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
-                'loadMarkets': true,
                 'privateAPI': true,
                 'publicAPI': true,
                 'reduceMargin': undefined,

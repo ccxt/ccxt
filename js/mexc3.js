@@ -92,7 +92,6 @@ export default class mexc3 extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
-                'loadMarkets': undefined,
                 'privateAPI': true,
                 'publicAPI': true,
                 'reduceMargin': true,

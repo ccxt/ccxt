@@ -1435,8 +1435,8 @@ export default class xena extends Exchange {
         const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
-            // 'from': this.iso8601 (since) * 1000000,
-            // 'to': this.iso8601 (this.milliseconds ()) * 1000000, // max range is 7 days
+            // 'from': since * 1000000,
+            // 'to': this.milliseconds () * 1000000, // max range is 7 days
             // 'symbol': market['id'],
             // 'limit': 100,
         };
@@ -1446,7 +1446,7 @@ export default class xena extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['from'] = this.iso8601 (since) * 1000000;
+            request['from'] = since * 1000000;
         }
         if (limit !== undefined) {
             request['limit'] = limit;

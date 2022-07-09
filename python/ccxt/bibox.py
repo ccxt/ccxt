@@ -91,6 +91,7 @@ class bibox(Exchange):
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -1612,8 +1613,10 @@ class bibox(Exchange):
 
     def sign(self, path, api='v1Public', method='GET', params={}, headers=None, body=None):
         version, access = api
-        url = self.implode_hostname(self.urls['api']) + '/' + version + '/' + path
         v1 = (version == 'v1')
+        v4 = (version == 'v4')
+        prefix = '/api' if v4 else ''
+        url = self.implode_hostname(self.urls['api']) + prefix + '/' + version + '/' + path
         json_params = self.json([params]) if v1 else self.json(params)
         headers = {'content-type': 'application/json'}
         if access == 'public':
@@ -1667,6 +1670,4 @@ class bibox(Exchange):
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in response):
             raise ExchangeError(self.id + ' ' + body)

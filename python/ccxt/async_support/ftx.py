@@ -249,6 +249,10 @@ class ftx(Exchange):
                         'stats/latency_stats': 1,
                         # pnl
                         'pnl/historical_changes': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/count_unread': 1,
                     },
                     'post': {
                         # subaccounts
@@ -293,6 +297,11 @@ class ftx(Exchange):
                         'nft/gallery_settings': 1,
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/orders': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/{ticketId}/status': 1,
+                        'support/tickets/{ticketId}/mark_as_read': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -2262,7 +2271,7 @@ class ftx(Exchange):
         initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        unrealizedPnlString = self.safe_string(position, 'recentPnl')
+        unrealizedPnlString = self.safe_string_2(position, 'unrealizedPnl')
         percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
         entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
         difference = None

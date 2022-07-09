@@ -459,7 +459,7 @@ export default class tidex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const symbol = this.safeSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id]);
+            result[symbol] = this.parseOrderBook (response[id], symbol);
         }
         return result;
     }

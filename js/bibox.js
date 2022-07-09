@@ -75,6 +75,7 @@ export default class bibox extends Exchange {
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -1699,8 +1700,10 @@ export default class bibox extends Exchange {
 
     sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ version, access ] = api;
-        let url = this.implodeHostname (this.urls['api']) + '/' + version + '/' + path;
         const v1 = (version === 'v1');
+        const v4 = (version === 'v4');
+        const prefix = v4 ? '/api' : '';
+        let url = this.implodeHostname (this.urls['api']) + prefix + '/' + version + '/' + path;
         const json_params = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {
@@ -1768,9 +1771,6 @@ export default class bibox extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
             }
-            throw new ExchangeError (this.id + ' ' + body);
-        }
-        if (!('result' in response)) {
             throw new ExchangeError (this.id + ' ' + body);
         }
     }

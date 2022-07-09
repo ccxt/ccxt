@@ -1216,7 +1216,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        return array_merge($this->parseModifyMargin ($data, $market), array(
+        return array_merge($this->parse_margin_modification($data, $market), array(
             'amount' => $this->amount_to_precision($symbol, $amount),
             'direction' => 'in',
         ));

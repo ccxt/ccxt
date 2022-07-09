@@ -4,7 +4,7 @@ import assert from 'assert';
 
 //  ---------------------------------------------------------------------------
 
-function testTradingFee (exchange = undefined, symbol, fee) {
+function testTradingFee (symbol, fee) {
     assert (fee, 'fee is undefined')
     const sampleFee = {
         'info': { 'a': 1, 'b': 2, 'c': 3 },
