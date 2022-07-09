@@ -2,14 +2,14 @@
 /* eslint-disable */
 import ololog from 'ololog'
 import { strictEqual, deepEqual } from 'assert' // for easier debugging
-import { functions } from '../../../ccxt'
+import { functions } from '../../../ccxt.js'
 
-import './functions/test.generic'
-import './functions/test.time'
-import './functions/test.type'
-import './functions/test.number'
-import './functions/test.datetime'
-import './functions/test.crypto'
+import './functions/test.generic.js'
+import './functions/test.time.js'
+import './functions/test.type.js'
+import './functions/test.number.js'
+import './functions/test.datetime.js'
+import './functions/test.crypto.js'
 
 const { Exchange, index, aggregate, unCamelCase } = functions
 
