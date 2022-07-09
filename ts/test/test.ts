@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Agent } from 'https';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import ccxt from '../../ccxt.js.js';
+import ccxt from '../../ccxt.js';
 
 // ----------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ for (const property of filtered) {
 }
 // ToDO: check this out
 let errors = await import ('../base/errorHierarchy.js');
-errors = errors['errorHierarchy'];
+errors = errors['default'];
 const filteredErrors = Object.keys (errors)
 // eslint-disable-next-line no-path-concat
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'));
