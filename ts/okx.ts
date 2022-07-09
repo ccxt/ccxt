@@ -3679,7 +3679,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
+        const response = await (this as any).privateGetAssetDepositHistory (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const deposit = this.safeValue (data, 0, {});
         return this.parseTransaction (deposit, currency);
@@ -3779,7 +3779,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
+        const response = await (this as any).privateGetAssetWithdrawalHistory (this.extend (request, params));
         //
         //    {
         //        code: '0',

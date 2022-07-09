@@ -648,7 +648,7 @@ export default class ascendex extends Exchange {
         const request = {
             'requestTime': this.milliseconds (),
         };
-        const response = await this.v1PublicGetExchangeInfo (this.extend (request, params));
+        const response = await (this as any).v1PublicGetExchangeInfo (this.extend (request, params));
         //
         //    {
         //        "code": 0,

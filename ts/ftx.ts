@@ -2408,7 +2408,7 @@ export default class ftx extends Exchange {
         const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const unrealizedPnlString = this.safeString2 (position, 'unrealizedPnl');
+        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
         let difference = undefined;

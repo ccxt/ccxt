@@ -4173,7 +4173,7 @@ export default class zb extends Exchange {
             'positionMode': hedged ? 2 : 1,
             'futuresAccountType': accountType, // 1: USDT perpetual swaps, 2: QC perpetual futures
         };
-        const response = await this.contractV2PrivatePostSettingSetPositionsMode (this.extend (request, params));
+        const response = await (this as any).contractV2PrivatePostSettingSetPositionsMode (this.extend (request, params));
         //
         //     {
         //         "code": 10000,

@@ -3976,7 +3976,7 @@ export default class mexc3 extends Exchange {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
-        const response = await this.contractPrivatePostPositionChangePositionMode (this.extend (request, params));
+        const response = await (this as any).contractPrivatePostPositionChangePositionMode (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -3987,7 +3987,7 @@ export default class mexc3 extends Exchange {
     }
 
     async fetchPositionMode (symbol = undefined, params = {}) {
-        const response = await this.contractPrivateGetPositionPositionMode (params);
+        const response = await (this as any).contractPrivateGetPositionPositionMode (params);
         //
         //     {
         //         "success":true,
