@@ -33,4 +33,3 @@ python/LICENSE.txt
 .env
 *.swp
 .cache
-js/*
