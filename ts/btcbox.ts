@@ -259,7 +259,7 @@ export default class btcbox extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -490,7 +490,7 @@ export default class btcbox extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
@@ -504,7 +504,7 @@ export default class btcbox extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the btcbox api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }

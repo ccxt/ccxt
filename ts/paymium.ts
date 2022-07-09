@@ -275,7 +275,7 @@ export default class paymium extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the paymium api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);

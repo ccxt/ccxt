@@ -634,7 +634,7 @@ export default class gate extends Exchange {
          * @name gate#fetchMarkets
          * @description retrieves data on all markets for gate
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         let result = [];
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
@@ -2285,7 +2285,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {number|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -2377,7 +2377,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2457,7 +2457,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -2504,7 +2504,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} params.offset *contract only* list offset, starting from 0
          * @param {string|undefined} params.last_id *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {number|undefined} params.count_total *contract only* whether to return total number matched, default to 0(no return)
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -2719,7 +2719,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2749,7 +2749,7 @@ export default class gate extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -3481,7 +3481,7 @@ export default class gate extends Exchange {
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
@@ -3498,7 +3498,7 @@ export default class gate extends Exchange {
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
@@ -3782,7 +3782,7 @@ export default class gate extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
@@ -4085,7 +4085,7 @@ export default class gate extends Exchange {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {string} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} params.type swap or future, if not provided this.options['defaultType'] is used
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);

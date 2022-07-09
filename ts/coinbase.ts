@@ -440,7 +440,7 @@ export default class coinbase extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
@@ -455,7 +455,7 @@ export default class coinbase extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the coinbase api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
@@ -659,7 +659,7 @@ export default class coinbase extends Exchange {
          * @name coinbase#fetchMarkets
          * @description retrieves data on all markets for coinbase
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await (this as any).fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});

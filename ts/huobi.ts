@@ -1341,7 +1341,7 @@ export default class huobi extends Exchange {
          * @name huobi#fetchMarkets
          * @description retrieves data on all markets for huobi
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         const options = this.safeValue (this.options, 'fetchMarkets', {});
         const types = this.safeValue (options, 'types', {});
@@ -2211,7 +2211,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderTrades', undefined, params);
@@ -2241,7 +2241,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -2389,7 +2389,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3465,7 +3465,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -3494,7 +3494,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -3519,7 +3519,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -4430,7 +4430,7 @@ export default class huobi extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -4679,7 +4679,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         if (limit === undefined || limit > 100) {
             limit = 100;
@@ -4713,7 +4713,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         if (limit === undefined || limit > 100) {
             limit = 100;
@@ -5096,7 +5096,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since not used by huobi, but filtered internally by ccxt
          * @param {number|undefined} limit not used by huobi, but filtered internally by ccxt
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -5297,7 +5297,7 @@ export default class huobi extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch borrrow interest for
          * @param {number|undefined} limit the maximum number of structures to retrieve
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
+         * @returns {[object]} a list of [borrow interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure}
          */
         await this.loadMarkets ();
         const defaultMargin = this.safeString (params, 'marginMode', 'cross'); // cross or isolated
@@ -5831,7 +5831,7 @@ export default class huobi extends Exchange {
          * @description fetch all open positions
          * @param {[str]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');

@@ -149,7 +149,7 @@ export default class zaif extends Exchange {
          * @name zaif#fetchMarkets
          * @description retrieves data on all markets for zaif
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         const markets = await (this as any).publicGetCurrencyPairsAll (params);
         //
@@ -413,7 +413,7 @@ export default class zaif extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the zaif api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -542,7 +542,7 @@ export default class zaif extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the zaif api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -567,7 +567,7 @@ export default class zaif extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch orders for
          * @param {number|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the zaif api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
         let market = undefined;

@@ -388,7 +388,7 @@ export default class currencycom extends Exchange {
          * @name currencycom#fetchMarkets
          * @description retrieves data on all markets for currencycom
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await (this as any).publicGetV2ExchangeInfo (params);
         //
@@ -1079,7 +1079,7 @@ export default class currencycom extends Exchange {
          * @param {number|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {number|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1367,7 +1367,7 @@ export default class currencycom extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch open orders for
          * @param {number|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1456,7 +1456,7 @@ export default class currencycom extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch trades for
          * @param {number|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -1500,7 +1500,7 @@ export default class currencycom extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch deposits for
          * @param {number|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
@@ -1514,7 +1514,7 @@ export default class currencycom extends Exchange {
          * @param {number|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {number|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
@@ -1823,7 +1823,7 @@ export default class currencycom extends Exchange {
          * @description fetch all open positions
          * @param {[str]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the currencycom api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const response = await (this as any).privateGetV2TradingPositions (params);
