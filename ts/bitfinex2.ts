@@ -1908,7 +1908,7 @@ export default class bitfinex2 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderId = this.parseInt (id);
+        const orderId = this.parseIntSafe (id);
         const request = {
             'id': orderId,
             'symbol': market['id'],

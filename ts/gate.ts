@@ -2252,12 +2252,12 @@ export default class gate extends Exchange {
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
-            until = this.parseInt (until / 1000);
+            until = this.parseIntSafe (until / 1000);
             params = this.omit (params, 'until');
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = this.parseInt (since / 1000);
+            request['from'] = this.parseIntSafe (since / 1000);
             const toTimestamp = this.sum (request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds ();
             const to = Math.min (toTimestamp, currentTimestamp);
@@ -2413,7 +2413,7 @@ export default class gate extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined && (market['contract'])) {
-            request['from'] = this.parseInt (since / 1000);
+            request['from'] = this.parseIntSafe (since / 1000);
         }
         const response = await this[method] (this.extend (request, query));
         //
@@ -2528,10 +2528,10 @@ export default class gate extends Exchange {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined) {
-            request['from'] = this.parseInt (since / 1000);
+            request['from'] = this.parseIntSafe (since / 1000);
         }
         if (until !== undefined) {
-            request['to'] = this.parseInt (until / 1000);
+            request['to'] = this.parseIntSafe (until / 1000);
         }
         const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
@@ -2732,7 +2732,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = this.parseInt (since / 1000);
+            const start = this.parseIntSafe (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
@@ -2762,7 +2762,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = this.parseInt (since / 1000);
+            const start = this.parseIntSafe (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
@@ -2956,7 +2956,7 @@ export default class gate extends Exchange {
         if (contract) {
             const amountToPrecision = this.amountToPrecision (symbol, amount);
             const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
-            amount = this.parseInt (signedAmount);
+            amount = this.parseIntSafe (signedAmount);
             if (isMarketOrder) {
                 if ((timeInForce === 'poc') || (timeInForce === 'gtc')) {
                     throw new ExchangeError (this.id + ' createOrder () timeInForce for market orders must be "IOC"');
@@ -3519,7 +3519,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined && spot) {
-            request['from'] = this.parseInt (since / 1000);
+            request['from'] = this.parseIntSafe (since / 1000);
         }
         let methodTail = stop ? 'PriceOrders' : 'Orders';
         const openSpotOrders = spot && (status === 'open') && !stop;

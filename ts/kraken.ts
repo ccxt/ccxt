@@ -857,7 +857,7 @@ export default class kraken extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['since'] = this.parseInt ((since - 1) / 1000);
+            request['since'] = this.parseIntSafe ((since - 1) / 1000);
         }
         const response = await (this as any).publicGetOHLC (this.extend (request, params));
         //
@@ -922,7 +922,7 @@ export default class kraken extends Exchange {
         const time = this.safeNumber (item, 'time');
         let timestamp = undefined;
         if (time !== undefined) {
-            timestamp = this.parseInt (time * 1000);
+            timestamp = this.parseIntSafe (time * 1000);
         }
         const fee = {
             'cost': this.safeNumber (item, 'fee'),
@@ -970,7 +970,7 @@ export default class kraken extends Exchange {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start'] = this.parseInt (since / 1000);
+            request['start'] = this.parseIntSafe (since / 1000);
         }
         const response = await (this as any).privatePostLedgers (this.extend (request, params));
         // {  error: [],
@@ -1598,7 +1598,7 @@ export default class kraken extends Exchange {
         const options = this.safeValue (this.options, 'fetchOrderTrades', {});
         const batchSize = this.safeInteger (options, 'batchSize', 20);
         const numTradeIds = tradeIds.length;
-        let numBatches = this.parseInt (numTradeIds / batchSize);
+        let numBatches = this.parseIntSafe (numTradeIds / batchSize);
         numBatches = this.sum (numBatches, 1);
         let result = [];
         for (let j = 0; j < numBatches; j++) {
@@ -1684,7 +1684,7 @@ export default class kraken extends Exchange {
             // 'ofs' = result offset
         };
         if (since !== undefined) {
-            request['start'] = this.parseInt (since / 1000);
+            request['start'] = this.parseIntSafe (since / 1000);
         }
         const response = await (this as any).privatePostTradesHistory (this.extend (request, params));
         //
@@ -1806,7 +1806,7 @@ export default class kraken extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start'] = this.parseInt (since / 1000);
+            request['start'] = this.parseIntSafe (since / 1000);
         }
         let query = params;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
@@ -1838,7 +1838,7 @@ export default class kraken extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start'] = this.parseInt (since / 1000);
+            request['start'] = this.parseIntSafe (since / 1000);
         }
         let query = params;
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');

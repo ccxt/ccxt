@@ -868,10 +868,10 @@ export default class tidex extends Exchange {
             request['pair'] = market['id'];
         }
         if (limit !== undefined) {
-            request['count'] = this.parseInt (limit);
+            request['count'] = this.parseIntSafe (limit);
         }
         if (since !== undefined) {
-            request['since'] = this.parseInt (since / 1000);
+            request['since'] = this.parseIntSafe (since / 1000);
         }
         const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
         const trades = this.safeValue (response, 'return', []);

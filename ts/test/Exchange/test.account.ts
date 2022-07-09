@@ -1,6 +1,6 @@
 import assert from 'assert';
 
-function testAccount (exchange, account, method = undefined) {
+function testAccount (exchange, account, method) {
     const format = {
         'info': {},
         'code': 'BTC',

@@ -1,4 +1,6 @@
+
 // @ts-nocheck
+// eslint-disable-next-line
 import { functions } from '../../../../ccxt.js';
 import { Precise } from '../../../base/Precise.js'
 import assert from 'assert';

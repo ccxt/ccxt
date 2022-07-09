@@ -1383,7 +1383,7 @@ export default class therock extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodInSeconds = this.parseTimeframe (timeframe);
-        const periodInMinutes = this.parseInt (periodInSeconds / 60);
+        const periodInMinutes = this.parseIntSafe (periodInSeconds / 60);
         const request = {
             'id': market['id'],
             'period': periodInMinutes,

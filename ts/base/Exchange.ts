@@ -686,12 +686,12 @@ export class Exchange {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
-            , intMajor1 = this.parseInt (major1)
-            , intMinor1 = this.parseInt (minor1)
-            , intPatch1 = this.parseInt (patch1)
-            , intMajor2 = this.parseInt (major2)
-            , intMinor2 = this.parseInt (minor2)
-            , intPatch2 = this.parseInt (patch2)
+            , intMajor1 = this.parseIntSafe (major1)
+            , intMinor1 = this.parseIntSafe (minor1)
+            , intPatch1 = this.parseIntSafe (patch1)
+            , intMajor2 = this.parseIntSafe (major2)
+            , intMinor2 = this.parseIntSafe (minor2)
+            , intPatch2 = this.parseIntSafe (patch2)
         if (intMajor1 > intMajor2) {
             result = false
         }
@@ -1161,11 +1161,6 @@ export class Exchange {
             return undefined;
         }
 
-        // Solve Common parseInt misuse ex: parseInt (since / 1000)
-        parseInt (number) {
-            return parseInt(number.toString())
-        }
-
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
@@ -1208,6 +1203,12 @@ export class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    parseIntSafe (number) {
+        // Solve Common parseInt misuse ex: parseInt (since / 1000)
+        const stringifiedNumber = number.toString ();
+        return parseInt (stringifiedNumber);
+    }
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
@@ -1910,7 +1911,7 @@ export class Exchange {
         result[close] = [];
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
-            const ts = ms ? ohlcvs[i][0] : this.parseInt (ohlcvs[i][0] / 1000);
+            const ts = ms ? ohlcvs[i][0] : this.parseIntSafe (ohlcvs[i][0] / 1000);
             result[timestamp].push (ts);
             result[open].push (ohlcvs[i][1]);
             result[high].push (ohlcvs[i][2]);
@@ -2441,8 +2442,10 @@ export class Exchange {
         return this.fetchTransactionFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}): Promise<any> {
+    async fetchTransactionFees (codes = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
+        // eslint-disable-next-line
+        return undefined;
     }
 
     getSupportedMapping (key, mapping = {}) {
@@ -2861,7 +2864,7 @@ export class Exchange {
     }
 
     parseDepositAddresses (addresses, codes = undefined, indexed = true, params = {}) {
-        let result = [] as any;
+        let result = undefined;
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend ((this as any).parseDepositAddress (addresses[i]), params);
             result.push (address);

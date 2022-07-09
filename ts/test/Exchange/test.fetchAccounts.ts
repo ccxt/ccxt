@@ -13,7 +13,7 @@ async function testFetchAccounts (exchange) {
     }
     console.log ('fetching accounts...');
     const accounts = await exchange[method] ();
-    Object.values (accounts).forEach ((account) => testAccount (exchange, account));
+    Object.values (accounts).forEach ((account) => testAccount (exchange, account, undefined));
     return accounts;
 }
 

@@ -807,7 +807,7 @@ export default class stex extends Exchange {
             request['timeEnd'] = this.seconds ();
             request['timeStart'] = request['timeEnd'] - timerange;
         } else {
-            request['timeStart'] = this.parseInt (since / 1000);
+            request['timeStart'] = this.parseIntSafe (since / 1000);
             request['timeEnd'] = this.sum (request['timeStart'], timerange);
         }
         const response = await (this as any).publicGetChartCurrencyPairIdCandlesType (this.extend (request, params));
@@ -906,7 +906,7 @@ export default class stex extends Exchange {
         }
         if (since !== undefined) {
             request['sort'] = 'ASC'; // needed to make the from param work
-            request['from'] = this.parseInt (since / 1000);
+            request['from'] = this.parseIntSafe (since / 1000);
         }
         const response = await (this as any).publicGetTradesCurrencyPairId (this.extend (request, params));
         //

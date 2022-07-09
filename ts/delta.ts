@@ -1031,7 +1031,7 @@ export default class delta extends Exchange {
             request['end'] = end;
             request['start'] = end - limit * duration;
         } else {
-            const start = this.parseInt (since / 1000);
+            const start = this.parseIntSafe (since / 1000);
             request['start'] = start;
             request['end'] = this.sum (start, limit * duration);
         }
@@ -1345,7 +1345,7 @@ export default class delta extends Exchange {
             // 'size': this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = this.parseInt (this.amountToPrecision (symbol, amount));
+            request['size'] = this.parseIntSafe (this.amountToPrecision (symbol, amount));
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);

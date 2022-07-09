@@ -436,7 +436,7 @@ export default class bigone extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseInt (timestamp / 1000000);
+        return this.parseIntSafe (timestamp / 1000000);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

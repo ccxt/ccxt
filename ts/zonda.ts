@@ -1089,7 +1089,7 @@ export default class zonda extends Exchange {
             request['to'] = this.milliseconds ();
             request['from'] = request['to'] - timerange;
         } else {
-            request['from'] = this.parseInt (since);
+            request['from'] = this.parseIntSafe (since);
             request['to'] = this.sum (request['from'], timerange);
         }
         const response = await (this as any).v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));

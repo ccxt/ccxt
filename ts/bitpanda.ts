@@ -798,7 +798,7 @@ export default class bitpanda extends Exchange {
         const durationInSeconds = this.parseTimeframe (timeframe);
         const duration = durationInSeconds * 1000;
         const timestamp = this.parse8601 (this.safeString (ohlcv, 'time'));
-        const alignedTimestamp = duration * this.parseInt (timestamp / duration);
+        const alignedTimestamp = duration * this.parseIntSafe (timestamp / duration);
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [

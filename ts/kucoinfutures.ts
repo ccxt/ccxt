@@ -665,7 +665,7 @@ export default class kucoinfutures extends kucoin {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.parseInt (this.safeInteger (data, 'ts') / 1000000);
+        const timestamp = this.parseIntSafe (this.safeInteger (data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
@@ -1015,7 +1015,7 @@ export default class kucoinfutures extends kucoin {
         if (amount < 1) {
             throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
-        const preciseAmount = this.parseInt (this.amountToPrecision (symbol, amount));
+        const preciseAmount = this.parseIntSafe (this.amountToPrecision (symbol, amount));
         const request = {
             'clientOid': clientOrderId,
             'side': side,
@@ -1795,7 +1795,7 @@ export default class kucoinfutures extends kucoin {
         const takerOrMaker = this.safeString (trade, 'liquidity');
         let timestamp = this.safeInteger (trade, 'ts');
         if (timestamp !== undefined) {
-            timestamp = this.parseInt (timestamp / 1000000);
+            timestamp = this.parseIntSafe (timestamp / 1000000);
         } else {
             timestamp = this.safeInteger (trade, 'createdAt');
             // if it's a historical v1 trade, the exchange returns timestamp in seconds

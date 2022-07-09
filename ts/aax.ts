@@ -1113,7 +1113,7 @@ export default class aax extends Exchange {
             request['start'] = end - duration * limit;
             request['end'] = end;
         } else {
-            const start = this.parseInt (since / 1000);
+            const start = this.parseIntSafe (since / 1000);
             request['start'] = start;
             request['end'] = this.sum (start, duration * limit);
         }
@@ -1302,13 +1302,13 @@ export default class aax extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         request['orderType'] = orderType;
-        let method: string | undefined = undefined;
+        let method = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
         } else if (market['contract']) {
             method = 'privatePostFuturesOrders';
         }
-        const response = await this[method as any] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -2299,7 +2299,7 @@ export default class aax extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            const startTime = this.parseInt (since / 1000);
+            const startTime = this.parseIntSafe (since / 1000);
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
@@ -2347,7 +2347,7 @@ export default class aax extends Exchange {
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            const startTime = this.parseInt (since / 1000);
+            const startTime = this.parseIntSafe (since / 1000);
             request['startTime'] = startTime;
             request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
         }
@@ -2598,12 +2598,12 @@ export default class aax extends Exchange {
             'symbol': market['id'],
         };
         if (since !== undefined) {
-            request['startTime'] = this.parseInt (since / 1000);
+            request['startTime'] = this.parseIntSafe (since / 1000);
         }
         const till = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
         params = this.omit (params, [ 'till', 'until' ]);
         if (till !== undefined) {
-            request['endTime'] = this.parseInt (till / 1000);
+            request['endTime'] = this.parseIntSafe (till / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

@@ -1420,7 +1420,7 @@ export default class crex24 extends Exchange {
             'ids': [],
         };
         for (let i = 0; i < ids.length; i++) {
-            const id = this.parseInt (ids[i]);
+            const id = this.parseIntSafe (ids[i]);
             request['ids'].push (id);
         }
         const response = await (this as any).tradingPostCancelOrdersById (this.extend (request, params));

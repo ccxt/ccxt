@@ -1,4 +1,5 @@
 // @ts-nocheck
+/* eslint-disable */
 import ccxt from '../../../../ccxt.js';
 import assert from 'assert';
 import { functions } from '../../../../ccxt.js';

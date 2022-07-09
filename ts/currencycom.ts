@@ -1378,7 +1378,7 @@ export default class currencycom extends Exchange {
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
             const symbols = this.symbols;
             const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = this.parseInt (numSymbols / 2);
+            const fetchOpenOrdersRateLimit = this.parseIntSafe (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         const response = await (this as any).privateGetV2OpenOrders (this.extend (request, params));

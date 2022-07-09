@@ -354,12 +354,12 @@ export default class bl3p extends Exchange {
         const market = this.market (symbol);
         const order = {
             'market': market['id'],
-            'amount_int': this.parseInt (amount * 100000000),
+            'amount_int': this.parseIntSafe (amount * 100000000),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit') {
-            order['price_int'] = this.parseInt (price * 100000.0);
+            order['price_int'] = this.parseIntSafe (price * 100000.0);
         }
         const response = await (this as any).privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');

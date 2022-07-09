@@ -1,9 +1,6 @@
 import assert from 'assert';
 
-//---
-
-// eslint-disable-next-line
-function testOHLCV (exchange, ohlcv, symbol, now) {
+function testOHLCV (exchange, ohlcv, symbol, since) {
     const json = exchange.json (ohlcv);
     assert (ohlcv);
     assert (Array.isArray (ohlcv), json);

@@ -301,7 +301,7 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            request['date'] = this.parseInt (since);
+            request['date'] = this.parseIntSafe (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000

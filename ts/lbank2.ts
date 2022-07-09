@@ -680,7 +680,7 @@ export default class lbank2 extends Exchange {
         const request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'time': this.parseInt (since / 1000),
+            'time': this.parseIntSafe (since / 1000),
             'size': limit, // max 2000
         };
         const response = await (this as any).publicGetKline (this.extend (request, params));
@@ -2027,7 +2027,7 @@ export default class lbank2 extends Exchange {
     convertSecretToPem (secret) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
-        let numLines = this.parseInt (secretLength / lineLength);
+        let numLines = this.parseIntSafe (secretLength / lineLength);
         numLines = this.sum (numLines, 1);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i < numLines; i++) {

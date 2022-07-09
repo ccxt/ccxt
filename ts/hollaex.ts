@@ -183,7 +183,7 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': this.parseInt (this.timeout / 1000),
+                'api-expires': this.parseIntSafe (this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ETH': 'eth',
@@ -770,10 +770,10 @@ export default class hollaex extends Exchange {
             }
         } else {
             if (limit === undefined) {
-                request['from'] = this.parseInt (since / 1000);
+                request['from'] = this.parseIntSafe (since / 1000);
                 request['to'] = this.seconds ();
             } else {
-                const start = this.parseInt (since / 1000);
+                const start = this.parseIntSafe (since / 1000);
                 request['from'] = start;
                 request['to'] = this.sum (start, duration * limit);
             }
@@ -1718,7 +1718,7 @@ export default class hollaex extends Exchange {
 
     normalizeNumberIfNeeded (number) {
         if (number % 1 === 0) {
-            number = this.parseInt (number);
+            number = this.parseIntSafe (number);
         }
         return number;
     }
@@ -1734,7 +1734,7 @@ export default class hollaex extends Exchange {
         const url = this.urls['api']['rest'] + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseInt (this.timeout / 1000));
+            const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseIntSafe (this.timeout / 1000));
             const expires = this.sum (this.seconds (), defaultExpires);
             const expiresString = expires.toString ();
             let auth = method + path + expiresString;
