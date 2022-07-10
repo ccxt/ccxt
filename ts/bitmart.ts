@@ -1285,12 +1285,12 @@ export default class bitmart extends Exchange {
             }
             limit = Math.min (maxLimit, limit);
             if (since === undefined) {
-                const end = this.parseIntSafe (this.milliseconds () / 1000);
+                const end = this.parseToInt (this.milliseconds () / 1000);
                 const start = end - limit * duration;
                 request['from'] = start;
                 request['to'] = end;
             } else {
-                const start = this.parseIntSafe (since / 1000) - 1;
+                const start = this.parseToInt (since / 1000) - 1;
                 const end = this.sum (start, limit * duration);
                 request['from'] = start;
                 request['to'] = end;
@@ -1837,7 +1837,7 @@ export default class bitmart extends Exchange {
         const market = this.market (symbol);
         const request = {};
         if (market['spot']) {
-            request['order_id'] = this.parseIntSafe (id);
+            request['order_id'] = this.parseToInt (id);
             request['symbol'] = market['id'];
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');

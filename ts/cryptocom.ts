@@ -923,7 +923,7 @@ export default class cryptocom extends Exchange {
         if (marketType === 'spot') {
             request['order_id'] = id.toString ();
         } else {
-            request['order_id'] = this.parseIntSafe (id);
+            request['order_id'] = this.parseToInt (id);
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
@@ -1075,7 +1075,7 @@ export default class cryptocom extends Exchange {
             request['instrument_name'] = market['id'];
             request['order_id'] = id.toString ();
         } else {
-            request['order_id'] = this.parseIntSafe (id);
+            request['order_id'] = this.parseToInt (id);
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',

@@ -825,7 +825,7 @@ export default class cex extends Exchange {
             timestamp = this.parse8601 (timestamp);
         } else {
             // either integer or string integer
-            timestamp = this.parseIntSafe (timestamp);
+            timestamp = this.parseToInt (timestamp);
         }
         let symbol = undefined;
         if (market === undefined) {

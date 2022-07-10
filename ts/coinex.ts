@@ -3758,8 +3758,8 @@ export default class coinex extends Exchange {
             const toId = this.safeString (accountsById, toAccount, toAccount);
             // fromAccount and toAccount must be integers for margin transfers
             // spot is 0, use fetchBalance() to find the margin account id
-            request['from_account'] = this.parseIntSafe (fromId);
-            request['to_account'] = this.parseIntSafe (toId);
+            request['from_account'] = this.parseToInt (fromId);
+            request['to_account'] = this.parseToInt (toId);
             method = 'privatePostMarginTransfer';
         }
         const response = await this[method] (this.extend (request, params));

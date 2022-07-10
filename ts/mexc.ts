@@ -1269,7 +1269,7 @@ export default class mexc extends Exchange {
         if (market['spot']) {
             method = 'spotPublicGetMarketKline';
             if (since !== undefined) {
-                request['start_time'] = this.parseIntSafe (since / 1000);
+                request['start_time'] = this.parseToInt (since / 1000);
             }
             if (limit !== undefined) {
                 request['limit'] = limit; // default 100
@@ -1277,7 +1277,7 @@ export default class mexc extends Exchange {
         } else if (market['swap']) {
             method = 'contractPublicGetKlineSymbol';
             if (since !== undefined) {
-                request['start'] = this.parseIntSafe (since / 1000);
+                request['start'] = this.parseToInt (since / 1000);
             }
             // request['end'] = this.seconds ();
         }

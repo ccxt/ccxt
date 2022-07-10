@@ -608,7 +608,7 @@ export default class novadax extends Exchange {
             request['from'] = now - limit * duration;
             request['to'] = now;
         } else {
-            const startFrom = this.parseIntSafe (since / 1000);
+            const startFrom = this.parseToInt (since / 1000);
             request['from'] = startFrom;
             request['to'] = this.sum (startFrom, limit * duration);
         }

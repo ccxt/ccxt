@@ -617,7 +617,7 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
-        const timestamp = this.parseIntSafe (microtimestamp / 1000);
+        const timestamp = this.parseToInt (microtimestamp / 1000);
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
@@ -848,7 +848,7 @@ export default class bitstamp extends Exchange {
                 timestamp = this.parse8601 (datetimeString);
             } else {
                 // string unix epoch in seconds
-                timestamp = this.parseIntSafe (datetimeString);
+                timestamp = this.parseToInt (datetimeString);
                 timestamp = timestamp * 1000;
             }
         }
@@ -984,14 +984,14 @@ export default class bitstamp extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
             } else {
                 limit = 1000;
-                const start = this.parseIntSafe (since / 1000);
+                const start = this.parseToInt (since / 1000);
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
                 request['limit'] = limit;
             }
         } else {
             if (since !== undefined) {
-                const start = this.parseIntSafe (since / 1000);
+                const start = this.parseToInt (since / 1000);
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
             }

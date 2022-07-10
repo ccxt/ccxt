@@ -959,18 +959,18 @@ export default class ftx extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
         if (since !== undefined) {
-            const startTime = this.parseIntSafe (since / 1000);
+            const startTime = this.parseToInt (since / 1000);
             request['start_time'] = startTime;
             const duration = this.parseTimeframe (timeframe);
             const endTime = this.sum (startTime, limit * duration);
             request['end_time'] = Math.min (endTime, this.seconds ());
             if (duration > 86400) {
-                const wholeDaysInTimeframe = this.parseIntSafe (duration / 86400);
+                const wholeDaysInTimeframe = this.parseToInt (duration / 86400);
                 request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
             }
         }
         if (until !== undefined) {
-            request['end_time'] = this.parseIntSafe (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
         }
         let method = 'publicGetMarketsMarketNameCandles';
         if (price === 'index') {
@@ -1168,7 +1168,7 @@ export default class ftx extends Exchange {
             // for a proper pagination, fetch the most recent trades first
             // then set the end_time parameter to the timestamp of the last trade
             // start_time and end_time must be in seconds, divided by a thousand
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             // start_time doesn't work without end_time
             request['end_time'] = this.seconds ();
         }
@@ -1348,12 +1348,12 @@ export default class ftx extends Exchange {
             request['future'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         const until = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
         params = this.omit (params, [ 'until', 'till' ]);
         if (until !== undefined) {
-            request['end_time'] = this.parseIntSafe (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
         }
         const response = await (this as any).publicGetFundingRates (this.extend (request, params));
         //
@@ -1896,7 +1896,7 @@ export default class ftx extends Exchange {
         const stop = this.safeValue (params, 'stop');
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
-            request['order_id'] = this.parseIntSafe (id);
+            request['order_id'] = this.parseToInt (id);
             if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
                 method = 'privateDeleteConditionalOrdersOrderId';
             }
@@ -2073,7 +2073,7 @@ export default class ftx extends Exchange {
             request['limit'] = limit; // default 100, max 100
         }
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         // support for canceling conditional orders
         // https://github.com/ccxt/ccxt/issues/6669
@@ -2156,11 +2156,11 @@ export default class ftx extends Exchange {
         }
         const until = this.safeInteger2 (params, 'until', 'till');
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             request['end_time'] = this.seconds ();
         }
         if (until !== undefined) {
-            request['end_time'] = this.parseIntSafe (until / 1000);
+            request['end_time'] = this.parseToInt (until / 1000);
             params = this.omit (params, [ 'until', 'till' ]);
         }
         if (limit !== undefined) {
@@ -2401,7 +2401,7 @@ export default class ftx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const leverage = this.parseIntSafe (Precise.stringDiv ('1', initialMarginPercentage, 0));
+        const leverage = this.parseToInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
@@ -2833,12 +2833,12 @@ export default class ftx extends Exchange {
             request['future'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             request['end_time'] = this.seconds ();
         }
         const till = this.safeInteger (params, 'till');
         if (till !== undefined) {
-            request['end_time'] = this.parseIntSafe (till / 1000);
+            request['end_time'] = this.parseToInt (till / 1000);
             params = this.omit (params, 'till');
         }
         const response = await (this as any).privateGetFundingPayments (this.extend (request, params));
@@ -2981,7 +2981,7 @@ export default class ftx extends Exchange {
         }
         const millisecondsPerHour = 3600000;
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
             if (endTime === undefined) {
                 const now = this.milliseconds ();
                 const sinceLimit = (limit === undefined) ? 2 : limit;
@@ -2994,11 +2994,11 @@ export default class ftx extends Exchange {
                     endTime = this.milliseconds ();
                 }
                 const startTime = this.sum ((endTime - millisecondsPerHour * limit), 1000);
-                request['start_time'] = this.parseIntSafe (startTime / 1000);
+                request['start_time'] = this.parseToInt (startTime / 1000);
             }
         }
         if (endTime !== undefined) {
-            request['end_time'] = this.parseIntSafe (endTime / 1000);
+            request['end_time'] = this.parseToInt (endTime / 1000);
         }
         const response = await (this as any).publicGetSpotMarginHistory (this.extend (request, params));
         //
@@ -3114,7 +3114,7 @@ export default class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['start_time'] = this.parseIntSafe (since / 1000);
+            request['start_time'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).privateGetSpotMarginBorrowHistory (this.extend (request, params));
         //

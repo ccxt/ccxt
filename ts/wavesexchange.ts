@@ -908,7 +908,7 @@ export default class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = this.parseIntSafe (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = this.parseToInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
@@ -1175,15 +1175,15 @@ export default class wavesexchange extends Exchange {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const difference = market['precision']['amount'] - market['precision']['price'];
-        return this.parseIntSafe (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
+        return this.parseToInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
     }
 
     amountToPrecision (symbol, amount) {
-        return this.parseIntSafe (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
+        return this.parseToInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
     currencyToPrecision (code, amount, networkCode = undefined) {
-        return this.parseIntSafe (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
+        return this.parseToInt (parseFloat (this.toPrecision (amount, this.currencies[code]['precision'])));
     }
 
     fromPrecision (amount, scale) {
@@ -1297,7 +1297,7 @@ export default class wavesexchange extends Exchange {
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
             if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
-                matcherFee = this.parseIntSafe (rawMatcherFee);
+                matcherFee = this.parseToInt (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
             }
@@ -1307,12 +1307,12 @@ export default class wavesexchange extends Exchange {
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
             if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
-                matcherFee = this.parseIntSafe (baseMatcherFee);
+                matcherFee = this.parseToInt (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
                 if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
-                    matcherFee = this.parseIntSafe (discountMatcherFee);
+                    matcherFee = this.parseToInt (discountMatcherFee);
                 }
             }
         }

@@ -1969,7 +1969,7 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = this.parseIntSafe (since / 1000);
+            request['start_t'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).v1PublicGetFundingRateHistory (this.extend (request, params));
         //

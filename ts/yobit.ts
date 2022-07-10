@@ -1071,10 +1071,10 @@ export default class yobit extends Exchange {
             'pair': market['id'],
         };
         if (limit !== undefined) {
-            request['count'] = this.parseIntSafe (limit);
+            request['count'] = this.parseToInt (limit);
         }
         if (since !== undefined) {
-            request['since'] = this.parseIntSafe (since / 1000);
+            request['since'] = this.parseToInt (since / 1000);
         }
         const response = await (this as any).privatePostTradeHistory (this.extend (request, params));
         //

@@ -1216,7 +1216,7 @@ export default class mexc3 extends Exchange {
             candles = response;
         } else if (market['swap']) {
             if (since !== undefined) {
-                request['start'] = this.parseIntSafe (since / 1000);
+                request['start'] = this.parseToInt (since / 1000);
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');

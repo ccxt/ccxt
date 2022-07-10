@@ -877,7 +877,7 @@ export default class btcmarkets extends Exchange {
          */
         await this.loadMarkets ();
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = this.parseIntSafe (ids[i]);
+            ids[i] = this.parseToInt (ids[i]);
         }
         const request = {
             'ids': ids,

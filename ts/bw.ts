@@ -193,7 +193,7 @@ export default class bw extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'marketId');
-            const numericId = this.parseIntSafe (id);
+            const numericId = this.parseToInt (id);
             const name = this.safeStringUpper (market, 'name');
             let [ base, quote ] = name.split ('_');
             base = this.safeCurrencyCode (base);

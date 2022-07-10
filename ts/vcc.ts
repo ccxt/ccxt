@@ -464,7 +464,7 @@ export default class vcc extends Exchange {
             request['to'] = end;
             request['from'] = end - limit * duration;
         } else {
-            const start = this.parseIntSafe (since / 1000);
+            const start = this.parseToInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, limit * duration);
         }

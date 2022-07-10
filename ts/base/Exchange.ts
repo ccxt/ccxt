@@ -688,12 +688,12 @@ export class Exchange {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
-            , intMajor1 = this.parseIntSafe (major1)
-            , intMinor1 = this.parseIntSafe (minor1)
-            , intPatch1 = this.parseIntSafe (patch1)
-            , intMajor2 = this.parseIntSafe (major2)
-            , intMinor2 = this.parseIntSafe (minor2)
-            , intPatch2 = this.parseIntSafe (patch2)
+            , intMajor1 = this.parseToInt (major1)
+            , intMinor1 = this.parseToInt (minor1)
+            , intPatch1 = this.parseToInt (patch1)
+            , intMajor2 = this.parseToInt (major2)
+            , intMinor2 = this.parseToInt (minor2)
+            , intPatch2 = this.parseToInt (patch2)
         if (intMajor1 > intMajor2) {
             result = false
         }
@@ -1206,8 +1206,9 @@ export class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    parseIntSafe (number) {
+    parseToInt (number) {
         // Solve Common parseInt misuse ex: parseInt (since / 1000)
+        // using a number as parameter which is not valid in ts
         const stringifiedNumber = number.toString ();
         return parseInt (stringifiedNumber);
     }
@@ -1913,7 +1914,7 @@ export class Exchange {
         result[close] = [];
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
-            const ts = ms ? ohlcvs[i][0] : this.parseIntSafe (ohlcvs[i][0] / 1000);
+            const ts = ms ? ohlcvs[i][0] : this.parseToInt (ohlcvs[i][0] / 1000);
             result[timestamp].push (ts);
             result[open].push (ohlcvs[i][1]);
             result[high].push (ohlcvs[i][2]);

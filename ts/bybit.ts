@@ -1519,7 +1519,7 @@ export default class bybit extends Exchange {
                 sinceTimestamp = now - limit * duration;
             }
         } else {
-            sinceTimestamp = this.parseIntSafe (since / 1000);
+            sinceTimestamp = this.parseToInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
