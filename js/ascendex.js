@@ -2216,7 +2216,7 @@ module.exports = class ascendex extends Exchange {
         if (numAddresses > 1) {
             const addressesByBlockchain = this.indexBy (addresses, 'blockchain');
             if (blockchain === undefined) {
-                const blockchains = Object.keys (addressesByChainName);
+                const blockchains = Object.keys (addressesByBlockchain);
                 const chains = blockchains.join (', ');
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a blockchain parameter is required, one of ' + chains);
             }
