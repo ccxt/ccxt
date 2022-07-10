@@ -2134,22 +2134,16 @@ module.exports = class ascendex extends Exchange {
         //     {
         //         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
         //         destTag: "",
-        //         tagType: "",
-        //         tagId: "",
-        //         chainName: "ERC20",
-        //         numConfirmations: 20,
-        //         withdrawalFee: 1,
-        //         nativeScale: 4,
-        //         tips: []
+        //         blockchain: "ERC20",
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        const tagId = this.safeString (depositAddress, 'tagId');
-        const tag = this.safeString (depositAddress, tagId);
+        const destTag = this.safeString (depositAddress, 'destTag');
+        const tag = this.safeString (depositAddress, destTag);
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const chainName = this.safeString (depositAddress, 'chainName');
-        const network = this.safeNetwork (chainName);
+        const blockchain = this.safeString (depositAddress, 'blockchain');
+        const network = this.safeNetwork (blockchain);
         return {
             'currency': code,
             'address': address,
@@ -2188,8 +2182,8 @@ module.exports = class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainName = this.safeString (params, 'chainName');
-        params = this.omit (params, 'chainName');
+        const blockchain = this.safeString (params, 'blockchain');
+        params = this.omit (params, 'blockchain');
         const request = {
             'asset': currency['id'],
         };
@@ -2204,24 +2198,12 @@ module.exports = class ascendex extends Exchange {
         //                 {
         //                     "address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
         //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"Omni",
-        //                     "numConfirmations":3,
-        //                     "withdrawalFee":4.7,
-        //                     "nativeScale":4,
-        //                     "tips":[]
+        //                     "blockchain":"Omni",
         //                 },
         //                 {
         //                     "address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
         //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"ERC20",
-        //                     "numConfirmations":20,
-        //                     "withdrawalFee":1.0,
-        //                     "nativeScale":4,
-        //                     "tips":[]
+        //                     "blockchain":"ERC20",
         //                 }
         //             ]
         //         }
@@ -2232,13 +2214,13 @@ module.exports = class ascendex extends Exchange {
         const numAddresses = addresses.length;
         let address = undefined;
         if (numAddresses > 1) {
-            const addressesByChainName = this.indexBy (addresses, 'chainName');
-            if (chainName === undefined) {
-                const chainNames = Object.keys (addressesByChainName);
-                const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
+            const addressesByBlockchain = this.indexBy (addresses, 'blockchain');
+            if (blockchain === undefined) {
+                const blockchains = Object.keys (addressesByChainName);
+                const chains = blockchains.join (', ');
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a blockchain parameter is required, one of ' + chains);
             }
-            address = this.safeValue (addressesByChainName, chainName, {});
+            address = this.safeValue (addressesByBlockchain, blockchain, {});
         } else {
             // first address
             address = this.safeValue (addresses, 0, {});
