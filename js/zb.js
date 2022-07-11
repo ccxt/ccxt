@@ -2764,7 +2764,7 @@ module.exports = class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        let result = undefined;
+        let result = response;
         if (swap) {
             const data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'list', []);
