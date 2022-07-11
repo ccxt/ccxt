@@ -284,6 +284,10 @@ module.exports = class bittrex extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
+    millisecondsRoundDown (milliseconds) {
+        return Math.floor (milliseconds / 1000) * 1000;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -1398,7 +1402,7 @@ module.exports = class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startDate'] = this.iso8601 (since);
+            request['startDate'] = this.iso8601 (this.millisecondsRoundDown (since));
         }
         if (limit !== undefined) {
             request['pageSize'] = limit;
@@ -1480,7 +1484,7 @@ module.exports = class bittrex extends Exchange {
             request['currencySymbol'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startDate'] = this.iso8601 (since);
+            request['startDate'] = this.iso8601 (this.millisecondsRoundDown (since));
         }
         if (limit !== undefined) {
             request['pageSize'] = limit;
