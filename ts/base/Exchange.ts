@@ -985,7 +985,7 @@ export class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined, key: string | number = 'timestamp', tail = false) {
+    filterBySinceLimit (array: object[], since: number = undefined, limit: number = undefined, key: string | number = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
             array = array.filter ((entry) => entry[key] >= since)
@@ -996,7 +996,7 @@ export class Exchange {
         return array
     }
 
-    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByValueSinceLimit (array: object[], field: string | number, value: string | number = undefined, since: number = undefined, limit: number = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
         // single-pass filter for both symbol and since
@@ -1023,14 +1023,14 @@ export class Exchange {
         }
     }
 
-    hashMessage (message) {
+    hashMessage (message: string) {
         // takes a hex encoded message
         const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: string, privateKey: string) {
         const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), 'secp256k1', undefined)
         return {
             'r': '0x' + signature['r'],
@@ -1039,7 +1039,7 @@ export class Exchange {
         }
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: string, privateKey: string) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
@@ -2753,7 +2753,7 @@ export class Exchange {
         return this.options['timeDifference'];
     }
 
-    implodeHostname (url) {
+    implodeHostname (url: string) {
         return this.implodeParams (url, { 'hostname': this.hostname });
     }
 

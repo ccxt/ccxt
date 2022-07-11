@@ -615,7 +615,12 @@ class Transpiler {
         // currently they can't be mixin with the ones above
         return [
             [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
-            [ /:\s\w+\s*(\|\s*\w+)?/g, ""], // remove parameters type
+            // remove param types
+            // Currently supported: single name (object, number, mytype, etc)
+            // optional params (string | number)
+            [ /:\s\w+(\s*\|\s*\w+)?(?=\s|,|\))/g, ""], // remove parameters type
+            // array types: string[] or (string|number)[]
+            [ /:\s\(?\w+(\s*\|\s*\w+)?\)?\[]/g, ""], // remove parameters type
         ]
     }
 
