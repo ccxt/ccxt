@@ -1999,8 +1999,8 @@ class okx extends Exchange {
             $marginMode = $defaultMarginMode;
             $margin = $this->safe_value($params, 'margin', false);
         }
-        if ($margin === true && !$market['margin']) {
-            throw new NotSupported($this->id . ' does not support $margin trading for ' . $symbol . 'market');
+        if ($margin === true && $market['spot'] && !$market['margin']) {
+            throw new NotSupported($this->id . ' does not support $margin trading for ' . $symbol . ' market');
         }
         if ($spot) {
             if ($margin) {

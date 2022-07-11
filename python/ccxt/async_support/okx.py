@@ -1946,8 +1946,8 @@ class okx(Exchange):
         else:
             marginMode = defaultMarginMode
             margin = self.safe_value(params, 'margin', False)
-        if margin is True and not market['margin']:
-            raise NotSupported(self.id + ' does not support margin trading for ' + symbol + 'market')
+        if margin is True and market['spot'] and not market['margin']:
+            raise NotSupported(self.id + ' does not support margin trading for ' + symbol + ' market')
         if spot:
             if margin:
                 defaultCurrency = market['quote'] if (side == 'buy') else market['base']
