@@ -2662,7 +2662,7 @@ class mexc(Exchange):
         })
 
     def parse_margin_modification(self, data, market=None):
-        statusRaw = self.safe_string(data, 'success')
+        statusRaw = self.safe_value(data, 'success')
         status = 'ok' if (statusRaw is True) else 'failed'
         return {
             'info': data,

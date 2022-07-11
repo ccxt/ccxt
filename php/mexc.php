@@ -2798,7 +2798,7 @@ class mexc extends Exchange {
     }
 
     public function parse_margin_modification($data, $market = null) {
-        $statusRaw = $this->safe_string($data, 'success');
+        $statusRaw = $this->safe_value($data, 'success');
         $status = ($statusRaw === true) ? 'ok' : 'failed';
         return array(
             'info' => $data,
