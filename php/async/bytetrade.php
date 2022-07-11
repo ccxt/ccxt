@@ -902,8 +902,8 @@ class bytetrade extends Exchange {
         $defaultDappId = 'Sagittarius';
         $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
         $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
-        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', 8);
-        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', 1);
+        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', '8');
+        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', '1');
         $fee = $this->safe_string($params, 'fee', $defaultFee);
         $eightBytes = '18446744073709551616'; // 2 ** 64
         $allByteStringArray = array(

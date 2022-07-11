@@ -386,7 +386,7 @@ class independentreserve(Exchange):
                 orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_string(order, 'VolumeFilled')
+        filled = self.safe_number(order, 'VolumeFilled')
         remaining = self.safe_string(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None

@@ -2180,14 +2180,14 @@ class gate extends Exchange {
                 $symbol = $this->safe_symbol($marketId, null, '_');
                 $base = $this->safe_value($entry, 'base', array());
                 $quote = $this->safe_value($entry, 'quote', array());
-                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency', array()));
-                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency', array()));
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
                 $subResult[$baseCode] = $this->fetch_balance_helper($base);
                 $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
                 $result[$symbol] = $this->safe_balance($subResult);
             } else {
-                $code = $this->safe_currency_code($this->safe_string($entry, 'currency', array()));
+                $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                 $result[$code] = $this->fetch_balance_helper($entry);
             }
         }

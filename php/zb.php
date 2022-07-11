@@ -2736,7 +2736,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $result = null;
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->safe_value($data, 'list', array());

@@ -412,8 +412,7 @@ module.exports = class btcalpha extends Exchange {
         //          "status": 20
         //      }
         //
-        let timestamp = this.safeTimestamp (transaction, 'timestamp');
-        timestamp = Precise.stringMul (timestamp, '1000');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const statusId = this.safeString (transaction, 'status');
         return {

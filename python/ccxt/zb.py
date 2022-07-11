@@ -2638,7 +2638,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        result = None
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'list', [])
