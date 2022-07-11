@@ -605,7 +605,6 @@ class Transpiler {
 
     getTypescriptRemovalRegexes() {
         return [
-            [/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/g, "$1 $2" ], // remove function return type - order matters!!
             [ /\(this as any\)/g, 'this'], // remove this as any
             [ /\sas any/g, ''], // remove any "as any"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
