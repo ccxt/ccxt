@@ -499,10 +499,11 @@ class bybit(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'feeSide': 'get',
+                    'tierBased': True,
                     'percentage': True,
                     'taker': 0.00075,
-                    'maker': -0.00025,
+                    'maker': 0.0001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -724,8 +725,8 @@ class bybit(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
+                'taker': self.parse_number('0.001'),
+                'maker': self.parse_number('0.001'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
