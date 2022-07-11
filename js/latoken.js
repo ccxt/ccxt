@@ -1599,7 +1599,7 @@ module.exports = class latoken extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeString (response, 'error');
+        const error = this.safeValue (response, 'error');
         const errorMessage = this.safeString (error, 'message');
         if ((error !== undefined) || (errorMessage !== undefined)) {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
