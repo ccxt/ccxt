@@ -605,8 +605,8 @@ class Transpiler {
 
     getTypescriptRemovalRegexes() {
         return [
-            [ /\(this as any\)/g, 'this'], // remove this as any
-            [ /\sas any/g, ''], // remove any "as any"
+            [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
+            [ /\sas \w+/g, ''], // remove any "as any" or "as number" 
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
     }

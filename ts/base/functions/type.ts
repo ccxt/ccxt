@@ -35,7 +35,11 @@ const safeFloat = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) 
 const safeInteger = (o, k, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? n : $default);
 const safeIntegerProduct = (o, k, $factor, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
 const safeTimestamp = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
-const safeValue = (o, k, $default?, x = prop (o, k)) => (hasProps (x) ? x : $default);
+
+const safeValue = (o: object, k: string | number, $default?) => {
+    const x = prop (o, k);
+    return hasProps (x) ? x : $default;
+}
 
 const safeString = (o: object, k: string | number, $default?): string => {
     const x = prop (o, k);

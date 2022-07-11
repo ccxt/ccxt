@@ -1207,8 +1207,8 @@ export class Exchange {
         // Solve Common parseInt misuse ex: parseInt (since / 1000)
         // using a number as parameter which is not valid in ts
         const stringifiedNumber = number.toString ();
-        const convertedNumber = parseFloat (stringifiedNumber);
-        return parseInt (convertedNumber as any);
+        const convertedNumber = parseFloat (stringifiedNumber) as any;
+        return parseInt (convertedNumber);
     }
 
     safeLedgerEntry (entry: object, currency: string = undefined) {

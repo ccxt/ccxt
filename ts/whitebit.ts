@@ -1773,8 +1773,8 @@ export default class whitebit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        const version = this.safeValue (api, 0);
-        const accessibility = this.safeValue (api, 1);
+        const version = this.safeValue (api as any, 0);
+        const accessibility = this.safeValue (api as any, 1);
         const pathWithParams = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
