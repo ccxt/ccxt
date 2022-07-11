@@ -5267,7 +5267,7 @@ export default class binance extends Exchange {
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional': this.safeNumber2 (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,
