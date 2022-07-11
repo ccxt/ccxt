@@ -414,7 +414,7 @@ class hollaex(Exchange):
             orderbook = response[marketId]
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], timestamp)
+            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
