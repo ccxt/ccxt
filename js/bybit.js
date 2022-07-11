@@ -712,6 +712,7 @@ module.exports = class bybit extends Exchange {
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'showStatus');
             const quotePrecision = this.safeNumber (market, 'quotePrecision');
+            const fees = this.safeValue (this.fees, 'trading', {});
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -731,8 +732,8 @@ module.exports = class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.safeNumber (this.fees, 'taker'),
-                'maker': this.safeNumber (this.fees, 'maker'),
+                'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
