@@ -1012,7 +1012,7 @@ export class Exchange {
         return
     }
 
-    remove0xPrefix (hexData) {
+    remove0xPrefix (hexData: string) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2)
         } else {
@@ -1088,7 +1088,7 @@ export class Exchange {
             return undefined;
         }
     
-        async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        async fetchTrades (symbol: string, since: number = undefined, limit: number = undefined, params = {}) {
             return undefined;
         }
     
@@ -1203,12 +1203,13 @@ export class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    parseToInt (number) {
+    parseToInt (number: string | number) {
         // Solve Common parseInt misuse ex: parseInt (since / 1000)
         // using a number as parameter which is not valid in ts
-        let stringifiedNumber = number.toString ();
-        stringifiedNumber = parseFloat (number);
-        return parseInt (stringifiedNumber);
+        const stringifiedNumber = number.toString ();
+        const convertedNumber = parseFloat (stringifiedNumber);
+        const convertedNumberString = convertedNumber.toString ();
+        return parseInt (convertedNumberString);
     }
 
     safeLedgerEntry (entry, currency = undefined) {
