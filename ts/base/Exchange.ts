@@ -1212,7 +1212,7 @@ export class Exchange {
         return parseInt (convertedNumberString);
     }
 
-    safeLedgerEntry (entry, currency = undefined) {
+    safeLedgerEntry (entry: object, currency: string = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
@@ -1336,7 +1336,7 @@ export class Exchange {
         return this.markets;
     }
 
-    safeBalance (balance) {
+    safeBalance (balance: object) {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
         balance['free'] = {};
@@ -1366,7 +1366,7 @@ export class Exchange {
         return balance;
     }
 
-    safeOrder (order, market = undefined) {
+    safeOrder (order: object, market: object = undefined) {
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -1567,7 +1567,7 @@ export class Exchange {
         });
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseOrders (orders: object, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}) {
         //
         // the value of orders is either a dict or a list
         //
@@ -1649,7 +1649,7 @@ export class Exchange {
         };
     }
 
-    safeTrade (trade, market = undefined) {
+    safeTrade (trade: object, market: object = undefined) {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
@@ -2390,7 +2390,7 @@ export class Exchange {
         }
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchBalance() is not supported yet');
     }
 
