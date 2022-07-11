@@ -484,11 +484,14 @@ module.exports = class bybit extends Exchange {
                 'brokerId': 'CCXT',
             },
             'fees': {
+                // spot only because the other markets
+                // have this info returned by the api
                 'trading': {
-                    'tierBased': false,
+                    'feeSide': 'get',
+                    'tierBased': true,
                     'percentage': true,
-                    'taker': 0.00075,
-                    'maker': -0.00025,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -728,8 +731,8 @@ module.exports = class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': this.safeNumber (this.fees, 'taker'),
+                'maker': this.safeNumber (this.fees, 'maker'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
