@@ -41,7 +41,7 @@ const safeValue = (o: object, k: string | number, $default?) => {
     return hasProps (x) ? x : $default;
 }
 
-const safeString = (o: object, k: string | number, $default?): string => {
+const safeString = (o: object, k: string | number, $default?: string): string => {
     const x = prop (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 }

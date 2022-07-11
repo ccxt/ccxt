@@ -2202,14 +2202,14 @@ export default class gate extends Exchange {
                 const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeValue (entry, 'base', {});
                 const quote = this.safeValue (entry, 'quote', {});
-                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency', {}));
-                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency', {}));
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
                 subResult[baseCode] = this.fetchBalanceHelper (base);
                 subResult[quoteCode] = this.fetchBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
             } else {
-                const code = this.safeCurrencyCode (this.safeString (entry, 'currency', {}));
+                const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
                 result[code] = this.fetchBalanceHelper (entry);
             }
         }
