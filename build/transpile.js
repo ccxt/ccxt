@@ -1322,7 +1322,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = signature.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
 
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
