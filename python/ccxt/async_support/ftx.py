@@ -2271,7 +2271,7 @@ class ftx(Exchange):
         initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
-        unrealizedPnlString = self.safe_string_2(position, 'unrealizedPnl')
+        unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMargin, 4), '100'))
         entryPriceString = self.safe_string(position, 'recentAverageOpenPrice')
         difference = None
