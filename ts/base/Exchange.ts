@@ -1211,7 +1211,6 @@ export class Exchange {
         // using a number as parameter which is not valid in ts
         let stringifiedNumber = number.toString ();
         stringifiedNumber = parseFloat (number);
-        stringifiedNumber = stringifiedNumber.toString ();
         return parseInt (stringifiedNumber);
     }
 
