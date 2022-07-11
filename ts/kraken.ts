@@ -405,10 +405,10 @@ export default class kraken extends Exchange {
             const altname = this.safeString (market, 'altname');
             const makerFees = this.safeValue (market, 'fees_maker', []);
             const firstMakerFee = this.safeValue (makerFees, 0, []);
-            const firstMakerFeeRate = this.safeNumber (firstMakerFee, 1);
+            const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
-                maker = parseFloat (firstMakerFeeRate.toString ()) / 100;
+                maker = parseFloat (firstMakerFeeRate) / 100;
             }
             const takerFees = this.safeValue (market, 'fees', []);
             const firstTakerFee = this.safeValue (takerFees, 0, []);
