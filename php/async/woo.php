@@ -1372,7 +1372,7 @@ class woo extends Exchange {
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
         $amount = $this->safe_number($item, 'amount');
-        $side = $this->safe_number($item, 'token_side');
+        $side = $this->safe_string($item, 'token_side');
         $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
         $timestamp = $this->safe_timestamp($item, 'created_time');
         $fee = $this->parse_token_and_fee_temp($item, 'fee_token', 'fee_amount');
