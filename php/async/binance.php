@@ -5205,7 +5205,7 @@ class binance extends Exchange {
                 'tier' => $this->safe_number($bracket, 'bracket'),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional' => $this->safe_number($bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
                 'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
                 'info' => $bracket,
