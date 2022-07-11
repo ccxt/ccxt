@@ -2728,8 +2728,8 @@ export class Exchange {
         }
     }
 
-    safeNumber (object, key, d = undefined) {
-        const value = this.safeString (object, key);
+    safeNumber (dict: object, key: string | number, d: string | number = undefined): number {
+        const value = this.safeString (dict, key);
         return this.parseNumber (value, d);
     }
 

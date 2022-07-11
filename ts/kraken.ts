@@ -408,14 +408,14 @@ export default class kraken extends Exchange {
             const firstMakerFeeRate = this.safeNumber (firstMakerFee, 1);
             let maker = undefined;
             if (firstMakerFeeRate !== undefined) {
-                maker = parseFloat (firstMakerFeeRate) / 100;
+                maker = parseFloat (firstMakerFeeRate.toString ()) / 100;
             }
             const takerFees = this.safeValue (market, 'fees', []);
             const firstTakerFee = this.safeValue (takerFees, 0, []);
             const firstTakerFeeRate = this.safeNumber (firstTakerFee, 1);
             let taker = undefined;
             if (firstTakerFeeRate !== undefined) {
-                taker = parseFloat (firstTakerFeeRate) / 100;
+                taker = parseFloat (firstTakerFeeRate.toString ()) / 100;
             }
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;

@@ -241,9 +241,8 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
-            [ /\(this as any\)/g, 'this'], // typescript regex
-            [ /\sas any/g, ''], // typescript regex
-        ]
+
+        ].concat(this.getTypescriptRemovalRegexes())
     }
 
     getPythonRegexes () {
@@ -602,6 +601,15 @@ class Transpiler {
             [ /\sdelete\s([^\n]+)\;/g, ' unset($1);' ],
             [ /\~([\]\[\|@\.\s+\:\/#\-a-zA-Z0-9_-]+?)\~/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
         ])
+    }
+
+    getTypescriptRemovalRegexes() {
+        return [
+            [/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/g, "$1 $2" ], // remove function return type - order matters!!
+            [ /\(this as any\)/g, 'this'], // remove this as any
+            [ /\sas any/g, ''], // remove any "as any"
+            [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
+        ]
     }
 
     getBaseClass () {
@@ -1303,15 +1311,12 @@ class Transpiler {
 
             // Typescript types trim from signature
             // will be improved in the future
-            
-            // remove return type
+            // Here we will be removing return type:
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
-            signature = signature.replace(/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" )
-
-            // remove parameters types
+            // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = signature.replace(/:\s\w+\s*\|\s*\w+/g, "" )
-
+            signature = signature.replace(/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" )
+            signature = signature.replace(/:\s\w+\s*(\|\s*\w+)?/g, "" )
 
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
