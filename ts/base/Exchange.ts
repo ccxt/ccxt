@@ -1043,7 +1043,7 @@ export class Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 
-    signMessageString (message, privateKey) {
+    signMessageString (message: string, privateKey: string) {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
         const signature = this.signMessage (message, privateKey)
@@ -2029,12 +2029,12 @@ export class Exchange {
         }
     }
 
-    safeNumber2 (dictionary, key1, key2, d = undefined) {
+    safeNumber2 (dictionary: object, key1: string | number, key2: string | number, d: number = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: number | string = 0, amountKey: number | string = 1) {
+    parseOrderBook (orderbook: object, symbol: string, timestamp: number = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: number | string = 0, amountKey: number | string = 1) {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {
@@ -2047,7 +2047,7 @@ export class Exchange {
         };
     }
 
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: number = undefined) {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
