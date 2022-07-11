@@ -2914,7 +2914,7 @@ export default class ascendex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
         const access = api[1];
-        const type = this.safeString (api, 2);
+        const type = this.safeString (api as any, 2);
         let url = '';
         const accountCategory = (type === 'accountCategory');
         if (accountCategory || (type === 'accountGroup')) {

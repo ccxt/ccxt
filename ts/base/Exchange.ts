@@ -1080,7 +1080,7 @@ export class Exchange {
 
         // method to override
 
-        sign (path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
+        sign (path, api: string | object, method = 'GET', params = {}, headers = undefined, body = undefined) {
             return {};
         }
     

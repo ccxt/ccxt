@@ -36,7 +36,12 @@ const safeInteger = (o, k, $default?, n = asInteger (prop (o, k))) => (isNumber 
 const safeIntegerProduct = (o, k, $factor, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
 const safeTimestamp = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
 const safeValue = (o, k, $default?, x = prop (o, k)) => (hasProps (x) ? x : $default);
-const safeString = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x) : $default);
+
+const safeString = (o: object, k: string | number, $default?): string => {
+    const x = prop (o, k);
+    return isStringCoercible (x) ? String (x) : $default;
+}
+
 const safeStringLower = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
 const safeStringUpper = (o, k, $default?, x = prop (o, k)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
 /*  .............................................   */

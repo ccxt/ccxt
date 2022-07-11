@@ -2845,7 +2845,7 @@ export default class mexc extends Exchange {
     }
 
     parseMarginModification (data, market = undefined) {
-        const statusRaw = this.safeString (data, 'success');
+        const statusRaw = this.safeValue (data, 'success');
         const status = (statusRaw === true) ? 'ok' : 'failed';
         return {
             'info': data,

@@ -634,8 +634,8 @@ export default class coinfalcon extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'operation_type');
         if (type !== undefined) {
-            type = type.split ('_');
-            type = type[0];
+            const typeParts = type.split ('_');
+            type = typeParts[0];
         }
         const side = this.safeString (order, 'order_type');
         const postOnly = this.safeValue (order, 'post_only');

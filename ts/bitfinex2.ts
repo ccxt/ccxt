@@ -1473,7 +1473,7 @@ export default class bitfinex2 extends Exchange {
             price = undefined;
             stopPrice = this.safeNumber (order, 16);
             if (orderType === 'EXCHANGE STOP LIMIT') {
-                price = this.safeNumber (order, 19);
+                price = this.safeString (order, 19);
             }
         }
         let status = undefined;

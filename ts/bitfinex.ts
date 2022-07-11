@@ -1522,7 +1522,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const response = this.safeValue (responses, 0, {});
-        const id = this.safeString (response, 'withdrawal_id');
+        const id = this.safeNumber (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
         const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {

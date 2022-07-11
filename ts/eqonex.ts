@@ -1343,9 +1343,9 @@ export default class eqonex extends Exchange {
         const type = this.safeString (transaction, 'type');
         let amount = this.safeNumber (transaction, 'balance_change');
         if (amount === undefined) {
-            amount = this.safeString (transaction, 'quantity');
+            const amountString = this.safeString (transaction, 'quantity');
             const amountScale = this.safeInteger (transaction, 'quantity_scale');
-            amount = this.parseNumber (this.convertFromScale (amount, amountScale));
+            amount = this.parseNumber (this.convertFromScale (amountString, amountScale));
         }
         const currencyId = this.safeString (transaction, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
