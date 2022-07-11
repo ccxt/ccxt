@@ -257,6 +257,20 @@ module.exports = class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'networkIdsByCodes': {
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20 (BSC)',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'Bitcoin ABC',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Matic Network',
+                    'SOL': 'Solana',
+                    'STAKE': 'xDai',
+                    'AKT': 'Akash',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -2177,6 +2191,10 @@ module.exports = class ascendex extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
+    networkIdFiltered (networkCode) {
+        return this.safeString (this.options['networkIdsByCodes'], networkCode, networkCode);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
@@ -2188,8 +2206,8 @@ module.exports = class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainName = this.safeString (params, 'chainName');
-        params = this.omit (params, 'chainName');
+        const chainName = this.safeString2 (params, 'network', 'chainName');
+        params = this.omit (params, [ 'network', 'chainName' ]);
         const request = {
             'asset': currency['id'],
         };
@@ -2227,18 +2245,50 @@ module.exports = class ascendex extends Exchange {
         //         }
         //     }
         //
+        // Note, as if 2022.07.12, the response format seems different (todo: needs revision from exchange side, to know if they've changed existing API or whether it's an misbehavior)
+        //
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //            "asset": "USDT",
+        //            "assetName": "Tether",
+        //            "address": [
+        //                {
+        //                    "address": "0xaa9f2c949f56ad1cf3cee7c314da8d06b44c8c4a",
+        //                    "destTag": "",
+        //                    "blockchain": "ERC20"
+        //                },
+        //                {
+        //                    "address": "TQHUYde57KkP9qvm8LvSjfCNHZkWLPc6nQ",
+        //                    "destTag": "",
+        //                    "blockchain": "TRC20"
+        //                },
+        //                {
+        //                    "address": "C74H7RdBsPnzKNJUnmWJPp37GRzG8Myv8LJSsvrkgD1M",
+        //                    "destTag": "",
+        //                    "blockchain": "Solana"
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         const data = this.safeValue (response, 'data', {});
         const addresses = this.safeValue (data, 'address', []);
         const numAddresses = addresses.length;
         let address = undefined;
         if (numAddresses > 1) {
-            const addressesByChainName = this.indexBy (addresses, 'chainName');
-            if (chainName === undefined) {
-                const chainNames = Object.keys (addressesByChainName);
-                const chains = chainNames.join (', ');
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address, a chainName parameter is required, one of ' + chains);
+            let addressesByChainName = this.indexBy (addresses, 'chainName');
+            const indexedAddressesLength = Object.keys (addressesByChainName).length;
+            if (indexedAddressesLength === 0) {
+                addressesByChainName = this.indexBy (addresses, 'blockchain');
             }
-            address = this.safeValue (addressesByChainName, chainName, {});
+            if (chainName === undefined) {
+                const chainIds = Object.keys (addressesByChainName);
+                const unifiedChainCodes = Object.keys (this.options['networkIdsByCodes']);
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address. Specify "networkCode" parameter from ' + chainIds.join (', ') + '. Matching aliases are also supported from this list: ' + unifiedChainCodes.join (', '));
+            }
+            const chainId = this.networkIdFiltered (chainName);
+            address = this.safeValue (addressesByChainName, chainId, {});
         } else {
             // first address
             address = this.safeValue (addresses, 0, {});
