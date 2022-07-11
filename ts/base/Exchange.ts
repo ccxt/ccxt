@@ -1208,8 +1208,7 @@ export class Exchange {
         // using a number as parameter which is not valid in ts
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber);
-        const convertedNumberString = convertedNumber.toString ();
-        return parseInt (convertedNumberString);
+        return parseInt (convertedNumber as any);
     }
 
     safeLedgerEntry (entry: object, currency: string = undefined) {
