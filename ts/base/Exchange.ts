@@ -1050,7 +1050,7 @@ export class Exchange {
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
-    parseNumber (value, d = undefined) {
+    parseNumber (value: string | number, d: number = undefined) {
         if (value === undefined) {
             return d
         } else {
@@ -2729,14 +2729,14 @@ export class Exchange {
         }
     }
 
-    safeNumber (dict: object, key: string | number, d: string | number = undefined): number {
-        const value = this.safeString (dict, key);
-        return this.parseNumber (value, d);
+    safeNumber (obj: object, key: string | number, defaultNumber: number = undefined): number {
+        const value = this.safeString (obj, key);
+        return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (object, arr, d = undefined) {
+    safeNumberN (object: object, arr: (string | number)[], defaultNumber: number = undefined): number {
         const value = this.safeStringN (object, arr);
-        return this.parseNumber (value, d);
+        return this.parseNumber (value, defaultNumber);
     }
 
     parsePrecision (precision) {

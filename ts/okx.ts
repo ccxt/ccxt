@@ -4217,14 +4217,14 @@ export default class okx extends Exchange {
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
-        let maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
+        const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notionalString);
         if (initialMarginPercentage === undefined) {
             initialMarginPercentage = this.parseNumber (Precise.stringDiv (initialMarginString, notionalString, 4));
         } else if (initialMarginString === undefined) {
             initialMarginString = Precise.stringMul (initialMarginPercentage, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
-        maintenanceMarginPercentage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
+        const maintenanceMarginPercentageString = this.parseNumber (Precise.stringDiv (Precise.stringAdd (maintenanceMarginPercentage, rounder), '1', 4));
         const liquidationPrice = this.safeNumber (position, 'liqPx');
         const percentageString = this.safeString (position, 'uplRatio');
         const percentage = this.parseNumber (Precise.stringMul (percentageString, '100'));
@@ -4247,7 +4247,7 @@ export default class okx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'maintenanceMarginPercentage': maintenanceMarginPercentageString,
             'collateral': this.parseNumber (collateralString),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
