@@ -756,7 +756,6 @@ module.exports = class bitmart extends Exchange {
         let quoteVolume = this.safeString (ticker, 'quote_volume_24h');
         quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
-        const price = this.safeString (ticker, 'depth_price', ticker);
         const high = this.safeString2 (ticker, 'high_24h', 'high_price');
         const low = this.safeString2 (ticker, 'low_24h', 'low_price');
         return this.safeTicker ({
@@ -765,9 +764,9 @@ module.exports = class bitmart extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': this.safeString (price, 'best_bid'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': this.safeString (ticker, 'best_bid_size'),
-            'ask': this.safeString (price, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'open_24h'),

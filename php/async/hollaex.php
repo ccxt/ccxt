@@ -414,7 +414,7 @@ class hollaex extends Exchange {
             $orderbook = $response[$marketId];
             $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-            $result[$symbol] = $this->parse_order_book($response[$marketId], $timestamp);
+            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, $timestamp);
         }
         return $result;
     }

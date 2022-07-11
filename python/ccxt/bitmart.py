@@ -748,7 +748,6 @@ class bitmart(Exchange):
         quoteVolume = self.safe_string(ticker, 'quote_volume_24h')
         quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
         average = self.safe_string_2(ticker, 'avg_price', 'index_price')
-        price = self.safe_string(ticker, 'depth_price', ticker)
         high = self.safe_string_2(ticker, 'high_24h', 'high_price')
         low = self.safe_string_2(ticker, 'low_24h', 'low_price')
         return self.safe_ticker({
@@ -757,9 +756,9 @@ class bitmart(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
-            'bid': self.safe_string(price, 'best_bid'),
+            'bid': self.safe_string(ticker, 'best_bid'),
             'bidVolume': self.safe_string(ticker, 'best_bid_size'),
-            'ask': self.safe_string(price, 'best_ask'),
+            'ask': self.safe_string(ticker, 'best_ask'),
             'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
             'open': self.safe_string(ticker, 'open_24h'),

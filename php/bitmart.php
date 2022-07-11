@@ -752,7 +752,6 @@ class bitmart extends Exchange {
         $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'volume_24h', $quoteVolume);
         $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
-        $price = $this->safe_string($ticker, 'depth_price', $ticker);
         $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
         $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
         return $this->safe_ticker(array(
@@ -761,9 +760,9 @@ class bitmart extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
-            'bid' => $this->safe_string($price, 'best_bid'),
+            'bid' => $this->safe_string($ticker, 'best_bid'),
             'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
-            'ask' => $this->safe_string($price, 'best_ask'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
             'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open_24h'),

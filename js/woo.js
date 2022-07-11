@@ -1403,7 +1403,7 @@ module.exports = class woo extends Exchange {
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
         const amount = this.safeNumber (item, 'amount');
-        const side = this.safeNumber (item, 'token_side');
+        const side = this.safeString (item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
         const timestamp = this.safeTimestamp (item, 'created_time');
         const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
