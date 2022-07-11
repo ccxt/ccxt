@@ -1315,7 +1315,7 @@ class woo(Exchange):
         currencyDefined = self.get_currency_from_chaincode(networkizedCode, currency)
         code = currencyDefined['code']
         amount = self.safe_number(item, 'amount')
-        side = self.safe_number(item, 'token_side')
+        side = self.safe_string(item, 'token_side')
         direction = 'in' if (side == 'DEPOSIT') else 'out'
         timestamp = self.safe_timestamp(item, 'created_time')
         fee = self.parse_token_and_fee_temp(item, 'fee_token', 'fee_amount')

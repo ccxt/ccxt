@@ -484,10 +484,11 @@ export default class bybit extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
+                    'feeSide': 'get',
+                    'tierBased': true,
                     'percentage': true,
                     'taker': 0.00075,
-                    'maker': -0.00025,
+                    'maker': 0.0001,
                 },
                 'funding': {
                     'tierBased': false,
@@ -727,8 +728,8 @@ export default class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': this.parseNumber ('0.001'),
+                'maker': this.parseNumber ('0.001'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,

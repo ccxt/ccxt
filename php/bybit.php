@@ -491,10 +491,11 @@ class bybit extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'tierBased' => false,
+                    'feeSide' => 'get',
+                    'tierBased' => true,
                     'percentage' => true,
                     'taker' => 0.00075,
-                    'maker' => -0.00025,
+                    'maker' => 0.0001,
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -727,8 +728,8 @@ class bybit extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
+                'taker' => $this->parse_number('0.001'),
+                'maker' => $this->parse_number('0.001'),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
