@@ -4955,7 +4955,7 @@ class binance(Exchange):
                 'tier': self.safe_number(bracket, 'bracket'),
                 'currency': market['quote'],
                 'minNotional': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional': self.safe_number(bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional': self.safe_number_2(bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
                 'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
                 'info': bracket,
