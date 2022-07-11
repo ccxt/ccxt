@@ -417,7 +417,7 @@ export default class hollaex extends Exchange {
             const orderbook = response[marketId];
             const symbol = this.safeSymbol (marketId, undefined, '-');
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
-            result[symbol] = this.parseOrderBook (response[marketId], timestamp);
+            result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp);
         }
         return result;
     }
