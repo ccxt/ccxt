@@ -1210,7 +1210,8 @@ export class Exchange {
         // Solve Common parseInt misuse ex: parseInt (since / 1000)
         // using a number as parameter which is not valid in ts
         let stringifiedNumber = number.toString ();
-        stringifiedNumber = parseFloat (number).toString ();
+        stringifiedNumber = parseFloat (number);
+        stringifiedNumber = stringifiedNumber.toString ();
         return parseInt (stringifiedNumber);
     }
 
