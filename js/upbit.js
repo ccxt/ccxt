@@ -1267,8 +1267,9 @@ module.exports = class upbit extends Exchange {
         const address = undefined; // not present in the data structure received from the exchange
         const tag = undefined; // not present in the data structure received from the exchange
         const txid = this.safeString (transaction, 'txid');
-        const updated = this.parse8601 (this.safeString (transaction, 'done_at'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updated));
+        const updatedRaw = this.safeString (transaction, 'done_at');
+        const updated = this.parse8601 (updatedRaw);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updatedRaw));
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
