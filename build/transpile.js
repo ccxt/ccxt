@@ -611,6 +611,14 @@ class Transpiler {
         ]
     }
 
+    getTypescripSignaturetRemovalRegexes() {
+        // currently they can't be mixin with the ones above
+        return [
+            [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
+            [ /:\s\w+\s*(\|\s*\w+)?/g, ""], // remove parameters type
+        ]
+    }
+
     getBaseClass () {
         return new Exchange ()
     }
@@ -1314,8 +1322,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = signature.replace(/(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" )
-            signature = signature.replace(/:\s\w+\s*(\|\s*\w+)?/g, "" )
+            signature = signature.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
 
             let methodSignatureRegex = /(async |)([\S]+)\s\(([^)]*)\)\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
