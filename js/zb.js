@@ -2048,7 +2048,7 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const orderType = this.safeInteger (params, 'orderType');
         if (orderType !== undefined) {
-            throw new ExchangeError (this.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead');
+            throw new ExchangeError (this.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead');
         }
         const swap = market['swap'];
         const request = {
