@@ -17,7 +17,7 @@ module.exports = class bitmart extends Exchange {
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
             // most requestst is 150 per 5 seconds => 30 per second
             // rateLimit = 1000ms / 30 ~= 33.334
-            'rateLimit': 33.34, // testing
+            'rateLimit': 33.34,
             'version': 'v2',
             'certified': true,
             'pro': true,
@@ -104,7 +104,7 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/currencies': 7.5,
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
-                        'spot/v1/ticker': 5, // Check
+                        'spot/v1/ticker': 5,
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
                         'spot/v1/symbols/book': 5,
