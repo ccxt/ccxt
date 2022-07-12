@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
@@ -31,6 +32,7 @@ class bitmart extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => null, // has but unimplemented
                 'option' => null,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -74,6 +76,7 @@ class bitmart extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -144,15 +147,23 @@ class bitmart extends Exchange {
                     ),
                     'spot' => array(
                         'get' => array(
-                            'wallet' => 0.5,
-                            'order_detail' => 0.1,
+                            'margin/isolated/account' => 0.5,
+                            'margin/isolated/borrow_record' => 0.1,
+                            'margin/isolated/pairs' => 1,
+                            'margin/isolated/repay_record' => 0.1,
                             'orders' => 0.5,
+                            'order_detail' => 0.1,
                             'trades' => 0.5,
+                            'wallet' => 0.5,
                         ),
                         'post' => array(
                             'submit_order' => 0.1, // https://api-cloud.bitmart.com/spot/v1/submit_order
                             'cancel_order' => 0.1, // https://api-cloud.bitmart.com/spot/v2/cancel_order
                             'cancel_orders' => 0.1,
+                            'margin/isolated/borrow' => 1,
+                            'margin/isolated/repay' => 1,
+                            'margin/isolated/transfer' => 1,
+                            'margin/submit_order' => 0.1,
                         ),
                     ),
                 ),
@@ -2486,6 +2497,124 @@ class bitmart extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
+        );
+    }
+
+    public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {str} $amount the $amount to repay
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
+        }
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode);
+        if ($marginMode !== 'isolated') {
+            throw new BadRequest($this->id . ' repayMargin() is only available for isolated margin');
+        }
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'symbol' => $market['id'],
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $params = $this->omit($params, 'marginMode');
+        $response = yield $this->privateSpotPostMarginIsolatedRepay (array_merge($request, $params));
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "b0a60b4c-e986-4b54-a190-8f7c05ddf685",
+        //         "data" => {
+        //             "repay_id" => "2afcc16d99bd4707818c5a355dc89bed"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->parse_margin_loan($data, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {str} $amount the $amount to borrow
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitmart api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
+        }
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'isolated');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode);
+        if ($marginMode !== 'isolated') {
+            throw new BadRequest($this->id . ' borrowMargin() is only available for isolated margin');
+        }
+        $market = $this->market($symbol);
+        $currency = $this->currency($code);
+        $request = array(
+            'symbol' => $market['id'],
+            'currency' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $params = $this->omit($params, 'marginMode');
+        $response = yield $this->privateSpotPostMarginIsolatedBorrow (array_merge($request, $params));
+        //
+        //     {
+        //         "message" => "OK",
+        //         "code" => 1000,
+        //         "trace" => "e6fda683-181e-4e78-ac9c-b27c4c8ba035",
+        //         "data" => {
+        //             "borrow_id" => "629a7177a4ed4cf09869c6a4343b788c"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->parse_margin_loan($data, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "borrow_id" => "629a7177a4ed4cf09869c6a4343b788c",
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "repay_id" => "2afcc16d99bd4707818c5a355dc89bed",
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        return array(
+            'id' => $this->safe_string_2($info, 'borrow_id', 'repay_id'),
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
         );
     }
 

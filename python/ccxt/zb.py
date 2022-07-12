@@ -1963,7 +1963,7 @@ class zb(Exchange):
         market = self.market(symbol)
         orderType = self.safe_integer(params, 'orderType')
         if orderType is not None:
-            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead')
+            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
@@ -2418,8 +2418,8 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         })
-        if orderType is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead')
+        if swap and (orderType is None):
+            raise ExchangeError(self.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead')
         if swap:
             # a status of 2 would mean canceled and could also be valid
             request['status'] = 5  # complete
