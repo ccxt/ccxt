@@ -111,7 +111,7 @@ try {
 
     //withdrawal
     $params = array( 'beneficiary' => $withdrawal_beneficiary );
-    $result = $exchange->withdraw("BTC", 0.01, "", null, $params);
+    $result = $exchange->withdraw("BTC", 0.01, null, null, $params);
     printf("Canceled all open orders" . "\n");
     var_dump( $result );
     printf("\n--------------------------------------------------------------\n");

@@ -73,7 +73,7 @@ require('ansicolor').nice
 
             // withdrawal
             const params = { 'beneficiary': withdrawal_beneficiary }
-            let btcWithdraw = await exchange.withdraw("BTC", 0.01, "", undefined, params)
+            let btcWithdraw = await exchange.withdraw("BTC", 0.01, null, undefined, params)
             log('BTC withdrawal'.green, btcWithdraw)
 
         } catch (e) {

@@ -84,5 +84,5 @@ print(canceledOrders)
 print("\n")
 
 params = { 'beneficiary': withdrawal_beneficiary }
-btcWithdraw = exchange.withdraw("BTC", amount, "", None, params)
+btcWithdraw = exchange.withdraw("BTC", amount, None, None, params)
 print(btcWithdraw)
