@@ -544,9 +544,8 @@ module.exports = class phemex extends ccxt.phemex {
             // skip delisted  markets
             if (marketId in this.markets_by_id) {
                 const parsed = this.parseTrade (rawTrade);
-                const trade = parsed[i];
-                cachedTrades.append (trade);
-                const symbol = trade['symbol'];
+                cachedTrades.append (parsed);
+                const symbol = parsed['symbol'];
                 const market = this.market (symbol);
                 if (type === undefined) {
                     type = market['type'];
