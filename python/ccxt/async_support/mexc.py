@@ -341,6 +341,7 @@ class mexc(Exchange):
                     '30004': InsufficientFunds,  # Insufficient balance
                     '30005': InvalidOrder,  # Oversell error
                     '30010': InvalidOrder,  # Price out of allowed range
+                    '30014': BadSymbol,  # {"msg":"invalid symbol","code":30014}
                     '30016': BadSymbol,  # Market is closed
                     '30019': InvalidOrder,  # Orders count over limit for batch processing
                     '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
