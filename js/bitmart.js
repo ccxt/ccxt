@@ -73,7 +73,7 @@ module.exports = class bitmart extends Exchange {
                 'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
@@ -2665,6 +2665,86 @@ module.exports = class bitmart extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitmart#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        const symbol = this.safeString (params, 'symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const request = {
+            'amount': amountToPrecision,
+            'currency': currency['id'],
+            'symbol': market['id'],
+        };
+        if ((fromAccount === 'spot') && (toAccount === 'margin')) {
+            request['side'] = 'in';
+        } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
+            request['side'] = 'out';
+        }
+        const response = await this.privateSpotPostMarginIsolatedTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data": {
+        //             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': this.parseNumber (amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '1000': 'ok',
+            'OK': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "b26cecec-ef5a-47d9-9531-2bd3911d3d55",
+        //         "data": {
+        //             "transfer_id": "ca90d97a621e47d49774f19af6b029f5"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (transfer, 'data', {});
+        return {
+            'id': this.safeString (data, 'transfer_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (this.safeString2 (transfer, 'code', 'message')),
         };
     }
 
