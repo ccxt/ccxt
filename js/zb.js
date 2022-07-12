@@ -2533,7 +2533,7 @@ module.exports = class zb extends Exchange {
             'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         });
-        if (orderType === undefined) {
+        if (swap && (orderType === undefined)) {
             throw new ExchangeError (this.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead');
         }
         if (swap) {
