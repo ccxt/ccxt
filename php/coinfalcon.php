@@ -842,7 +842,7 @@ class coinfalcon extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
-            'currency' => $this->safeStingLower ($currency, 'id'),
+            'currency' => $this->safe_string_lower($currency, 'id'),
             'address' => $address,
             'amount' => $amount,
             // 'tag' => 'string', // withdraw tag/memo

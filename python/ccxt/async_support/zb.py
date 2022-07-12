@@ -276,6 +276,7 @@ class zb(Exchange):
                                 'Positions/updateAppendUSDValue': 3.334,
                                 'Positions/updateMargin': 3.334,
                                 'setting/setLeverage': 3.334,
+                                'setting/setPositionsMode': 3.334,
                                 'trade/batchOrder': 3.334,
                                 'trade/batchCancelOrder': 3.334,
                                 'trade/cancelAlgos': 3.334,
@@ -2639,7 +2640,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        result = None
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'list', [])
@@ -3920,7 +3921,61 @@ class zb(Exchange):
             })
         return rates
 
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol argument')
+        market = self.market(symbol)
+        accountType = None
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setPositionMode() supports swap contracts only')
+        else:
+            accountType = 1
+        request = {
+            'marketId': market['id'],
+            'positionMode': 2 if hedged else 1,
+            'futuresAccountType': accountType,  # 1: USDT perpetual swaps, 2: QC perpetual futures
+        }
+        response = await self.contractV2PrivatePostSettingSetPositionsMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "success",
+        #         "data": {
+        #             "userId": 111,
+        #             "marketId": 100,
+        #             "leverage": 20,
+        #             "marginMode": 1,
+        #             "positionsMode": 2,
+        #             "enableAutoAppend": 1,
+        #             "maxAppendAmount": "11212",
+        #             "marginCoins": "qc,usdt,eth",
+        #             "id": 6737268451833817088,
+        #             "createTime": 1606289971312,
+        #             "modifyTime": 0,
+        #             "extend": null
+        #         }
+        #     }
+        #
+        return response
+
     async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['safePwd']: transaction password, extra parameter required for cross margin
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
         await self.load_markets()
         market = None
         if symbol is not None:

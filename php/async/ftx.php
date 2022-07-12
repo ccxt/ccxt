@@ -239,6 +239,10 @@ class ftx extends Exchange {
                         'stats/latency_stats' => 1,
                         // pnl
                         'pnl/historical_changes' => 1,
+                        // support tickets
+                        'support/tickets' => 1,
+                        'support/tickets/{ticketId}/messages' => 1,
+                        'support/tickets/count_unread' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -283,6 +287,11 @@ class ftx extends Exchange {
                         'nft/gallery_settings' => 1,
                         // ftx pay
                         'ftxpay/apps/{user_specific_id}/orders' => 1,
+                        // support tickets
+                        'support/tickets' => 1,
+                        'support/tickets/{ticketId}/messages' => 1,
+                        'support/tickets/{ticketId}/status' => 1,
+                        'support/tickets/{ticketId}/mark_as_read' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -2361,7 +2370,7 @@ class ftx extends Exchange {
         $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
         $difference = null;

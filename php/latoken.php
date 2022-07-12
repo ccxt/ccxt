@@ -1498,7 +1498,7 @@ class latoken extends Exchange {
         return array(
             'info' => $transfer,
             'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_number($transfer),
+            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($transfer, 'transferringFunds'),
@@ -1563,7 +1563,7 @@ class latoken extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        $error = $this->safe_string($response, 'error');
+        $error = $this->safe_value($response, 'error');
         $errorMessage = $this->safe_string($error, 'message');
         if (($error !== null) || ($errorMessage !== null)) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

@@ -80,6 +80,7 @@ class bibox extends Exchange {
                 'doc' => array(
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral' => 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
@@ -611,7 +612,7 @@ class bibox extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default = 200
         }
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         return $this->parse_order_book($response['result'], $market['symbol'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -1666,8 +1667,10 @@ class bibox extends Exchange {
 
     public function sign($path, $api = 'v1Public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         list($version, $access) = $api;
-        $url = $this->implode_hostname($this->urls['api']) . '/' . $version . '/' . $path;
         $v1 = ($version === 'v1');
+        $v4 = ($version === 'v4');
+        $prefix = $v4 ? '/api' : '';
+        $url = $this->implode_hostname($this->urls['api']) . $prefix . '/' . $version . '/' . $path;
         $json_params = $v1 ? $this->json(array( $params )) : $this->json($params);
         $headers = array( 'content-type' => 'application/json' );
         if ($access === 'public') {
@@ -1735,9 +1738,6 @@ class bibox extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
                 throw new ExchangeError($feedback);
             }
-            throw new ExchangeError($this->id . ' ' . $body);
-        }
-        if (!(is_array($response) && array_key_exists('result', $response))) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
     }

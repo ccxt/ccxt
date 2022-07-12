@@ -1418,7 +1418,7 @@ class bitfinex(Exchange):
         #     ]
         #
         response = self.safe_value(responses, 0, {})
-        id = self.safe_string(response, 'withdrawal_id')
+        id = self.safe_number(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:

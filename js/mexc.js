@@ -2839,13 +2839,13 @@ module.exports = class mexc extends Exchange {
         //
         const type = (addOrReduce === 'ADD') ? 'add' : 'reduce';
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.safeNumber (amount),
+            'amount': this.parseNumber (amount),
             'type': type,
         });
     }
 
     parseMarginModification (data, market = undefined) {
-        const statusRaw = this.safeString (data, 'success');
+        const statusRaw = this.safeValue (data, 'success');
         const status = (statusRaw === true) ? 'ok' : 'failed';
         return {
             'info': data,

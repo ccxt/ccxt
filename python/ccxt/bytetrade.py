@@ -863,8 +863,8 @@ class bytetrade(Exchange):
         defaultDappId = 'Sagittarius'
         dappId = self.safe_string(params, 'dappId', defaultDappId)
         defaultFee = self.safe_string(self.options, 'fee', '300000000000000')
-        totalFeeRate = self.safe_string(params, 'totalFeeRate', 8)
-        chainFeeRate = self.safe_string(params, 'chainFeeRate', 1)
+        totalFeeRate = self.safe_string(params, 'totalFeeRate', '8')
+        chainFeeRate = self.safe_string(params, 'chainFeeRate', '1')
         fee = self.safe_string(params, 'fee', defaultFee)
         eightBytes = '18446744073709551616'  # 2 ** 64
         allByteStringArray = [

@@ -28,18 +28,20 @@ module.exports = class okx extends Exchange {
                 'option': undefined,
                 'addMargin': true,
                 'borrowMargin': true,
-                'cancelAllOrders': undefined,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
-                'createReduceOnlyOrder': undefined,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
@@ -51,7 +53,7 @@ module.exports = class okx extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': undefined,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
@@ -59,7 +61,7 @@ module.exports = class okx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
-                'fetchL3OrderBook': undefined,
+                'fetchL3OrderBook': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
@@ -74,9 +76,10 @@ module.exports = class okx extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': undefined,
-                'fetchOrders': undefined,
+                'fetchOrderBooks': false,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
@@ -87,11 +90,11 @@ module.exports = class okx extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
-                'fetchTransactionFees': undefined,
-                'fetchTransactions': undefined,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
+                'fetchTransactions': false,
                 'fetchTransfer': true,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
@@ -100,6 +103,7 @@ module.exports = class okx extends Exchange {
                 'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
@@ -1967,6 +1971,8 @@ module.exports = class okx extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the okx api endpoint
+         * @param {bool|undefined} params.reduceOnly MARGIN orders only, or swap/future orders in net mode
+         * @param {bool|undefined} params.postOnly true to place a post only order
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1983,7 +1989,7 @@ module.exports = class okx extends Exchange {
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
             'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
-            // 'reduceOnly': false, // MARGIN orders only
+            // 'reduceOnly': false,
             //
             // 'triggerPx': 10, // stopPrice (trigger orders)
             // 'orderPx': 10, // Order price if -1, the order will be executed at the market price. (trigger orders)
@@ -2008,15 +2014,32 @@ module.exports = class okx extends Exchange {
         const slOrdPx = this.safeValue (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
+        let margin = false;
+        if ((marginMode !== undefined) && (marginMode !== 'cash')) {
+            margin = true;
+        } else {
+            marginMode = defaultMarginMode;
+            margin = this.safeValue (params, 'margin', false);
+        }
+        if (margin === true && market['spot'] && !market['margin']) {
+            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
+        }
         if (spot) {
-            request['tdMode'] = 'cash';
+            if (margin) {
+                const defaultCurrency = (side === 'buy') ? market['quote'] : market['base'];
+                const currency = this.safeString (params, 'ccy', defaultCurrency);
+                request['ccy'] = this.safeCurrencyCode (currency);
+            }
+            const tradeMode = margin ? marginMode : 'cash';
+            request['tdMode'] = tradeMode;
         } else if (contract) {
-            const marginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-            request['tdMode'] = this.safeStringLower (params, 'tdMode', marginMode); // not ommited so as to be extended into the request
+            request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, type === 'post_only', params);
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx' ]);
+        params = this.omit (params, [ 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin' ]);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
@@ -2025,7 +2048,7 @@ module.exports = class okx extends Exchange {
         const defaultMethod = this.safeString (this.options, 'createOrder', 'privatePostTradeBatchOrders');
         const defaultTgtCcy = this.safeString (this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString (params, 'tgtCcy', defaultTgtCcy);
-        if (!market['contract']) {
+        if ((!contract) && (!margin)) {
             request['tgtCcy'] = tgtCcy;
         }
         let method = defaultMethod;
@@ -5075,6 +5098,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
          * @param {str} symbol unified market symbol
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
@@ -5084,11 +5108,16 @@ module.exports = class okx extends Exchange {
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
         if (!uly) {
-            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
+            if (type !== 'MARGIN') {
+                throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
+            }
         }
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString2 (params, 'marginMode', 'tdMode', defaultMarginMode);
+        params = this.omit (params, 'marginMode');
         const request = {
             'instType': type,
-            'tdMode': this.safeString (params, 'tdMode', 'isolated'),
+            'tdMode': marginMode,
             'uly': uly,
         };
         if (type === 'MARGIN') {
@@ -5242,6 +5271,17 @@ module.exports = class okx extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol not used by okx.borrowMargin ()
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -5276,6 +5316,17 @@ module.exports = class okx extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol not used by okx.repayMargin ()
+         * @param {dict} params extra parameters specific to the okx api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

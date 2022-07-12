@@ -393,7 +393,6 @@ class btcalpha(Exchange):
         #      }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp')
-        timestamp = Precise.string_mul(timestamp, '1000')
         currencyId = self.safe_string(transaction, 'currency')
         statusId = self.safe_string(transaction, 'status')
         return {

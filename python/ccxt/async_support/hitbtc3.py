@@ -2275,7 +2275,7 @@ class hitbtc3(Exchange):
         #     }
         #
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 

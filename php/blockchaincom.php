@@ -873,10 +873,11 @@ class blockchaincom extends Exchange {
         return $result;
     }
 
-    public function fetch_withdrawal_whitelist_by_currency($currency, $params = array ()) {
+    public function fetch_withdrawal_whitelist_by_currency($code, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $this->currencyId ($currency),
+            'currency' => $currency['id'],
         );
         $response = $this->privateGetWhitelistCurrency (array_merge($request, $params));
         $result = array();

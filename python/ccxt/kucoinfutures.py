@@ -1184,7 +1184,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        return self.extend(self.parseModifyMargin(data, market), {
+        return self.extend(self.parse_margin_modification(data, market), {
             'amount': self.amount_to_precision(symbol, amount),
             'direction': 'in',
         })

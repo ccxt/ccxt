@@ -442,7 +442,7 @@ class deribit(Exchange):
         #         "testnet": False
         #     }
         #
-        result = self.safe_string(response, 'result')
+        result = self.safe_value(response, 'result')
         locked = self.safe_string(result, 'locked')
         updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
         return {

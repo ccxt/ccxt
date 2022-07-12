@@ -1346,8 +1346,8 @@ class xena(Exchange):
         accountId = self.get_account_id(params)
         request = {
             'accountId': accountId,
-            # 'from': self.iso8601(since) * 1000000,
-            # 'to': self.iso8601(self.milliseconds()) * 1000000,  # max range is 7 days
+            # 'from': since * 1000000,
+            # 'to': self.milliseconds() * 1000000,  # max range is 7 days
             # 'symbol': market['id'],
             # 'limit': 100,
         }
@@ -1356,7 +1356,7 @@ class xena(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['from'] = self.iso8601(since) * 1000000
+            request['from'] = since * 1000000
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetTradingAccountsAccountIdLastOrderStatuses(self.extend(request, params))

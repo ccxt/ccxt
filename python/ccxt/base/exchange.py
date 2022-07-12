@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.89.99'
+__version__ = '1.90.64'
 
 # -----------------------------------------------------------------------------
 
@@ -240,7 +240,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'publicAPI': True,
+        'publxicAPI': True,
         'privateAPI': True,
         'CORS': None,
         'spot': None,
@@ -319,7 +319,6 @@ class Exchange(object):
         'fetchTransfers': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
-        'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
         'setMargin': None,

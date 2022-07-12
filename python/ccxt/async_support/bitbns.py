@@ -1118,7 +1118,7 @@ class bitbns(Exchange):
         #
         code = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        error = (code is not None) and (code != '200')
+        error = (code is not None) and (code != '200') and (code != '204')
         if error or (message is not None):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)

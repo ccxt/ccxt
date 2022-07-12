@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.89.99';
+$version = '1.90.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.89.99';
+    const VERSION = '1.90.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -113,7 +113,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
-        'coinflex',
         'coinmate',
         'coinone',
         'coinspot',
@@ -1346,7 +1345,6 @@ class Exchange {
             'fetchTransfers' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
-            'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
             'setMargin' => null,

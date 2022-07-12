@@ -216,6 +216,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
+                        'margin/dribblet': 0.1,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
@@ -236,7 +237,7 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
-                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -444,6 +445,9 @@ module.exports = class binance extends Exchange {
                     'get': {
                         'sub-account/assets': 1,
                     },
+                    'post': {
+                        'asset/getUserAsset': 0.5,
+                    },
                 },
                 // deprecated
                 'wapi': {
@@ -485,6 +489,7 @@ module.exports = class binance extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'openInterest': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -564,6 +569,7 @@ module.exports = class binance extends Exchange {
                         'indexInfo': 1,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
+                        'pmExchangeInfo': 1,
                     },
                 },
                 'fapiData': {
@@ -5262,7 +5268,7 @@ module.exports = class binance extends Exchange {
                 'tier': this.safeNumber (bracket, 'bracket'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
-                'maxNotional': this.safeNumber (bracket, 'notionalCap', 'qtyCap'),
+                'maxNotional': this.safeNumber2 (bracket, 'notionalCap', 'qtyCap'),
                 'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                 'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                 'info': bracket,
@@ -6121,6 +6127,17 @@ module.exports = class binance extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -6157,6 +6174,17 @@ module.exports = class binance extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the binance api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

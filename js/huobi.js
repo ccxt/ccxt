@@ -6596,6 +6596,18 @@ module.exports = class huobi extends Exchange {
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, required for isolated margin
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -6639,6 +6651,17 @@ module.exports = class huobi extends Exchange {
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the huobi api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');

@@ -2792,13 +2792,13 @@ class mexc extends Exchange {
         //
         $type = ($addOrReduce === 'ADD') ? 'add' : 'reduce';
         return array_merge($this->parse_margin_modification($response, $market), array(
-            'amount' => $this->safe_number($amount),
+            'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }
 
     public function parse_margin_modification($data, $market = null) {
-        $statusRaw = $this->safe_string($data, 'success');
+        $statusRaw = $this->safe_value($data, 'success');
         $status = ($statusRaw === true) ? 'ok' : 'failed';
         return array(
             'info' => $data,

@@ -254,6 +254,7 @@ class bybit(Exchange):
                         'asset/v1/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'asset/v1/private/universal/transfer/list': 50,
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
@@ -317,6 +318,8 @@ class bybit(Exchange):
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
                         'asset/v1/private/withdraw/cancel': 50,
+                        'asset/v1/private/transferable-subs/save': 3000,
+                        'asset/v1/private/universal/transfer': 1500,
                         # USDC endpoints
                         # option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -345,6 +348,7 @@ class bybit(Exchange):
                         'perpetual/usdc/openapi/private/v1/cancel-all': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/leverage/save': 2.5,
                         'option/usdc/openapi/private/v1/session-settlement': 2.5,
+                        'option/usdc/private/asset/account/setMarginMode': 2.5,
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
                         # 'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
@@ -495,10 +499,11 @@ class bybit(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'feeSide': 'get',
+                    'tierBased': True,
                     'percentage': True,
                     'taker': 0.00075,
-                    'maker': -0.00025,
+                    'maker': 0.0001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -720,8 +725,8 @@ class bybit(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
+                'taker': self.parse_number('0.001'),
+                'maker': self.parse_number('0.001'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,

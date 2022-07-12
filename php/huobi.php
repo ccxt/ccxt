@@ -6520,6 +6520,16 @@ class huobi extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -6563,6 +6573,15 @@ class huobi extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the huobi api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-$loan-structure margin $loan structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');

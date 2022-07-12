@@ -2179,14 +2179,14 @@ class gate extends Exchange {
                 $symbol = $this->safe_symbol($marketId, null, '_');
                 $base = $this->safe_value($entry, 'base', array());
                 $quote = $this->safe_value($entry, 'quote', array());
-                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency', array()));
-                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency', array()));
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
                 $subResult[$baseCode] = $this->fetch_balance_helper($base);
                 $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
                 $result[$symbol] = $this->safe_balance($subResult);
             } else {
-                $code = $this->safe_currency_code($this->safe_string($entry, 'currency', array()));
+                $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
                 $result[$code] = $this->fetch_balance_helper($entry);
             }
         }
@@ -2633,7 +2633,7 @@ class gate extends Exchange {
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
         $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
@@ -2644,19 +2644,24 @@ class gate extends Exchange {
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $pointFee = $this->safe_string($trade, 'point_fee');
         $fees = array();
-        if ($feeAmount && $feeAmount !== '0') {
+        if ($feeAmount !== null && !Precise::string_eq($feeAmount, '0')) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            if ($feeCurrencyCode === null) {
+                $feeCurrencyCode = $this->safe_string($market, 'settle');
+            }
             $fees[] = array(
                 'cost' => $feeAmount,
-                'currency' => $this->safe_string($trade, 'fee_currency'),
+                'currency' => $feeCurrencyCode,
             );
         }
-        if ($gtFee && $gtFee !== '0') {
+        if ($gtFee !== null && !Precise::string_eq($gtFee, '0')) {
             $fees[] = array(
                 'cost' => $gtFee,
                 'currency' => 'GT',
             );
         }
-        if ($pointFee && $pointFee !== '0') {
+        if ($pointFee !== null && !Precise::string_eq($pointFee, '0')) {
             $fees[] = array(
                 'cost' => $pointFee,
                 'currency' => 'POINT',
@@ -2668,7 +2673,7 @@ class gate extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -4310,6 +4315,18 @@ class gate extends Exchange {
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {str} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {str} $params->mode 'all' or 'partial' payment $mode, extra parameter required for isolated margin
+         * @param {str} $params->id '34267567' loan $id, extra parameter required for isolated margin
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $market = null;
@@ -4387,6 +4404,17 @@ class gate extends Exchange {
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/apiv4/en/#lend-or-borrow
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the gate api endpoint
+         * @param {str} $params->rate '0.0002' or '0.002' extra parameter required for isolated margin
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $market = null;
@@ -4407,7 +4435,7 @@ class gate extends Exchange {
             }
             $request['currency_pair'] = $market['id'];
             $rate = $this->safe_string($params, 'rate');
-            if ($symbol === null) {
+            if ($rate === null) {
                 throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $rate parameter for isolated margin');
             }
             $request['rate'] = $rate; // Only rates '0.0002', '0.002' are supported.

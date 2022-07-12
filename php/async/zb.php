@@ -262,6 +262,7 @@ class zb extends Exchange {
                                 'Positions/updateAppendUSDValue' => 3.334,
                                 'Positions/updateMargin' => 3.334,
                                 'setting/setLeverage' => 3.334,
+                                'setting/setPositionsMode' => 3.334,
                                 'trade/batchOrder' => 3.334,
                                 'trade/batchCancelOrder' => 3.334,
                                 'trade/cancelAlgos' => 3.334,
@@ -2737,7 +2738,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $result = null;
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->safe_value($data, 'list', array());
@@ -4091,7 +4092,64 @@ class zb extends Exchange {
         return $rates;
     }
 
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set the level of leverage for a $market
+         * @param {float} leverage the rate of leverage
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @return {dict} $response from the exchange
+         */
+        yield $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $accountType = null;
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setPositionMode() supports swap contracts only');
+        } else {
+            $accountType = 1;
+        }
+        $request = array(
+            'marketId' => $market['id'],
+            'positionMode' => $hedged ? 2 : 1,
+            'futuresAccountType' => $accountType, // 1 => USDT perpetual swaps, 2 => QC perpetual futures
+        );
+        $response = yield $this->contractV2PrivatePostSettingSetPositionsMode (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "success",
+        //         "data" => {
+        //             "userId" => 111,
+        //             "marketId" => 100,
+        //             "leverage" => 20,
+        //             "marginMode" => 1,
+        //             "positionsMode" => 2,
+        //             "enableAutoAppend" => 1,
+        //             "maxAppendAmount" => "11212",
+        //             "marginCoins" => "qc,usdt,eth",
+        //             "id" => 6737268451833817088,
+        //             "createTime" => 1606289971312,
+        //             "modifyTime" => 0,
+        //             "extend" => null
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {str} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {str|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {str} $params->safePwd $transaction $password, extra parameter required for cross margin
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         yield $this->load_markets();
         $market = null;
         if ($symbol !== null) {

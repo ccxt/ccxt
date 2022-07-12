@@ -1534,7 +1534,7 @@ module.exports = class latoken extends Exchange {
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'id'),
-            'timestamp': this.safeNumber (transfer),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (transfer, 'transferringFunds'),
@@ -1599,7 +1599,7 @@ module.exports = class latoken extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeString (response, 'error');
+        const error = this.safeValue (response, 'error');
         const errorMessage = this.safeString (error, 'message');
         if ((error !== undefined) || (errorMessage !== undefined)) {
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
