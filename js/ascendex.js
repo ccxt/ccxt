@@ -257,7 +257,11 @@ module.exports = class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
-                'networkIdsByCodes': {
+                'defaultNetworks': {
+                    'USDT': undefined,
+                    'ETH': undefined,
+                },
+                'networks': {
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
@@ -270,6 +274,20 @@ module.exports = class ascendex extends Exchange {
                     'SOL': 'Solana',
                     'STAKE': 'xDai',
                     'AKT': 'Akash',
+                },
+                'networksById': {
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'GO20': 'GO20',
+                    'BEP2': 'BEP2',
+                    'BEP20 (BSC)': 'BEP20',
+                    'Bitcoin': 'BTC',
+                    'Bitcoin ABC': 'BCH',
+                    'Litecoin': 'LTC',
+                    'Matic Network': 'MATIC',
+                    'Solana': 'SOL',
+                    'xDai': 'STAKE',
+                    'Akash': 'AKT',
                 },
             },
             'exceptions': {
@@ -290,7 +308,7 @@ module.exports = class ascendex extends Exchange {
                     '100005': BadRequest, // INVALID_WS_REQUEST_DATA Websocket request contains invalid field or argument
                     '100006': BadRequest, // INVALID_ARGUMENT The arugment is invalid
                     '100007': BadRequest, // ENCRYPTION_ERROR Something wrong with data encryption
-                    '100008': BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request
+                    '100008': BadSymbol, // SYMBOL_ERROR Symbol does not exist or not valid for the request | {"code":100008,"message":"Invalid blockchain.","reason":"SYMBOL_ERROR"}
                     '100009': AuthenticationError, // AUTHORIZATION_NEEDED Authorization is require for the API access or request
                     '100010': BadRequest, // INVALID_OPERATION The action is invalid or not allowed for the account
                     '100011': BadRequest, // INVALID_TIMESTAMP Not a valid timestamp
@@ -337,7 +355,9 @@ module.exports = class ascendex extends Exchange {
                     '510001': ExchangeError, // SERVER_ERROR Something wrong with server.
                     '900001': ExchangeError, // HUMAN_CHALLENGE Human change do not pass
                 },
-                'broad': {},
+                'broad': {
+                    'Invalid blockchain.': BadRequest, // {"code":100008,"message":"Invalid blockchain.","reason":"SYMBOL_ERROR"}
+                },
             },
             'commonCurrencies': {
                 'BOND': 'BONDED',
@@ -2163,7 +2183,7 @@ module.exports = class ascendex extends Exchange {
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
         const chainName = this.safeString (depositAddress, 'chainName');
-        const network = this.safeNetwork (chainName);
+        const network = this.safeNetworkCode (chainName);
         return {
             'currency': code,
             'address': address,
@@ -2173,26 +2193,12 @@ module.exports = class ascendex extends Exchange {
         };
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'TRC20': 'TRC20',
-            'ERC20': 'ERC20',
-            'GO20': 'GO20',
-            'BEP2': 'BEP2',
-            'BEP20 (BSC)': 'BEP20',
-            'Bitcoin': 'BTC',
-            'Bitcoin ABC': 'BCH',
-            'Litecoin': 'LTC',
-            'Matic Network': 'MATIC',
-            'Solana': 'SOL',
-            'xDai': 'STAKE',
-            'Akash': 'AKT',
-        };
-        return this.safeString (networksById, networkId, networkId);
+    safeNetworkCode (networkId) {
+        return this.safeString (this.options['networksById'], networkId, networkId);
     }
 
-    networkIdFiltered (networkCode) {
-        return this.safeString (this.options['networkIdsByCodes'], networkCode, networkCode);
+    correctedNetworkId (networkCode) {
+        return this.safeString (this.options['networks'], networkCode, networkCode);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -2206,46 +2212,15 @@ module.exports = class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const chainName = this.safeString2 (params, 'network', 'chainName');
-        params = this.omit (params, [ 'network', 'chainName' ]);
         const request = {
             'asset': currency['id'],
         };
+        const networkCode = this.safeString (params, 'network');
+        if (networkCode !== undefined) {
+            request['blockchain'] = this.correctedNetworkId (networkCode);
+            params = this.omit (params, 'network');
+        }
         const response = await this.v1PrivateGetWalletDepositAddress (this.extend (request, params));
-        //
-        //     {
-        //         "code":0,
-        //         "data":{
-        //             "asset":"USDT",
-        //             "assetName":"Tether",
-        //             "address":[
-        //                 {
-        //                     "address":"1N22odLHXnLPCjC8kwBJPTayarr9RtPod6",
-        //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"Omni",
-        //                     "numConfirmations":3,
-        //                     "withdrawalFee":4.7,
-        //                     "nativeScale":4,
-        //                     "tips":[]
-        //                 },
-        //                 {
-        //                     "address":"0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //                     "destTag":"",
-        //                     "tagType":"",
-        //                     "tagId":"",
-        //                     "chainName":"ERC20",
-        //                     "numConfirmations":20,
-        //                     "withdrawalFee":1.0,
-        //                     "nativeScale":4,
-        //                     "tips":[]
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        // Note, as if 2022.07.12, the response format seems different (todo: needs revision from exchange side, to know if they've changed existing API or whether it's an misbehavior)
         //
         //    {
         //        "code": "0",
@@ -2282,12 +2257,12 @@ module.exports = class ascendex extends Exchange {
             if (indexedAddressesLength === 0) {
                 addressesByChainName = this.indexBy (addresses, 'blockchain');
             }
-            if (chainName === undefined) {
+            if (networkCode === undefined) {
                 const chainIds = Object.keys (addressesByChainName);
-                const unifiedChainCodes = Object.keys (this.options['networkIdsByCodes']);
+                const unifiedChainCodes = Object.keys (this.options['networks']);
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() returned more than one address. Specify "networkCode" parameter from ' + chainIds.join (', ') + '. Matching aliases are also supported from this list: ' + unifiedChainCodes.join (', '));
             }
-            const chainId = this.networkIdFiltered (chainName);
+            const chainId = this.correctedNetworkId (networkCode);
             address = this.safeValue (addressesByChainName, chainId, {});
         } else {
             // first address
