@@ -2534,7 +2534,7 @@ module.exports = class zb extends Exchange {
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         });
         if (swap && (orderType === undefined)) {
-            throw new ExchangeError (this.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead');
+            throw new ExchangeError (this.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead');
         }
         if (swap) {
             // a status of 2 would mean canceled and could also be valid
