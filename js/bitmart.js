@@ -2698,6 +2698,7 @@ module.exports = class bitmart extends Exchange {
         } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
             request['side'] = 'out';
         }
+        params = this.omit (params, 'symbol');
         const response = await this.privateSpotPostMarginIsolatedTransfer (this.extend (request, params));
         //
         //     {
