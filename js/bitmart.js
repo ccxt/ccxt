@@ -104,10 +104,10 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/currencies': 7.5,
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
-                        'spot/v1/ticker': 5, // should be 5
+                        'spot/v1/ticker': 5, // Check
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
-                        'spot/v1/symbols/book': 5, // 30 times in 5 seconds
+                        'spot/v1/symbols/book': 5,
                         'spot/v1/symbols/trades': 5,
                         // contract markets
                         'contract/v1/tickers': 15,
@@ -115,38 +115,38 @@ module.exports = class bitmart extends Exchange {
                 },
                 'private': {
                     'get': {
-                        // sub-account TODO weights
-                        'account/sub-account/v1/transfer/list': 100,
-                        'account/sub-account/v1/transfer-history': 100,
-                        'account/sub-account/main/v1/wallet': 100,
-                        'account/sub-account/main/v1/subaccount-list': 100,
-                        // account TODO weights
+                        // sub-account
+                        'account/sub-account/v1/transfer-list': 7.5,
+                        'account/sub-account/v1/transfer-history': 7.5,
+                        'account/sub-account/main/v1/wallet': 5,
+                        'account/sub-account/main/v1/subaccount-list': 7.5,
+                        // account
                         'account/v1/wallet': 5,
-                        'account/v1/currencies': 100,
+                        'account/v1/currencies': 30,
                         'spot/v1/wallet': 5,
-                        'account/v1/deposit/address': 100,
-                        'account/v1/withdraw/charge': 32, // should be 30
-                        'account/v1/withdraw/apply': 100,
-                        'account/v2/deposit-withdraw/history': 100,
-                        'account/v1/deposit/withdraw/detail': 100,
-                        // order TODO weights
-                        'spot/v1/order_detail': 100,
-                        'spot/v2/orders': 100,
+                        'account/v1/deposit/address': 30,
+                        'account/v1/withdraw/charge': 32, // should be 30 but errors
+                        'account/v2/deposit-withdraw/history': 7.5,
+                        'account/v1/deposit-withdraw/detail': 7.5,
+                        // order
+                        'spot/v1/order_detail': 1,
+                        'spot/v2/orders': 5,
                         'spot/v1/trades': 5,
                     },
                     'post': {
-                        // sub-account endpoints TODO weights
-                        'account/sub-account/main/v1/sub-to-main': 100,
-                        'account/sub-account/sub/v1/sub-to-main': 100,
-                        'account/sub-account/main/v1/main-to-sub': 100,
-                        'account/sub-account/sub/v1/sub-to-sub': 100,
-                        'account/sub-account/main/v1/sub-to-sub': 100,
-                        'account/sub-account/main/v1/transfer-list': 100,
-                        // transaction and trading TODO weights
-                        'spot/v1/submit_order': 100,
-                        'spot/v1/batch_orders': 100,
-                        'spot/v2/cancel_order': 100,
-                        'spot/v1/cancel_orders': 100,
+                        // sub-account endpoints
+                        'account/sub-account/main/v1/sub-to-main': 30,
+                        'account/sub-account/sub/v1/sub-to-main': 30,
+                        'account/sub-account/main/v1/main-to-sub': 30,
+                        'account/sub-account/sub/v1/sub-to-sub': 30,
+                        'account/sub-account/main/v1/sub-to-sub': 30,
+                        // account
+                        'account/v1/withdraw/apply': 7.5,
+                        // transaction and trading
+                        'spot/v1/submit_order': 1,
+                        'spot/v1/batch_orders': 1,
+                        'spot/v2/cancel_order': 1,
+                        'spot/v1/cancel_orders': 15,
                     },
                 },
             },
@@ -1768,7 +1768,7 @@ module.exports = class bitmart extends Exchange {
             request['symbol'] = market['id'];
             request['side'] = side;
             request['type'] = type;
-            method = 'privateSpotPostSubmitOrder';
+            method = 'privatePostSpotV1SubmitOrder';
             if (isLimitOrder) {
                 request['size'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
@@ -1841,7 +1841,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' cancelOrder () does not accept swap or future orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotPostCancelOrder (this.extend (request, params));
+        const response = await this.privatePostSpotV2CancelOrder (this.extend (request, params));
         //
         // spot
         //
@@ -1922,7 +1922,7 @@ module.exports = class bitmart extends Exchange {
             'symbol': market['id'],
             'side': side, // 'buy' or 'sell'
         };
-        const response = await this.privateSpotPostCancelOrders (this.extend (request, params));
+        const response = await this.privatePostSpotV1CancelOrders (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1948,7 +1948,7 @@ module.exports = class bitmart extends Exchange {
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['offset'] = 1; // max offset * limit < 500
-            request['limit'] = 100; // max limit is 100
+            request['N'] = 100; // max limit is 100
             //  1 = Order failure
             //  2 = Placing order
             //  3 = Order failure, Freeze failure
@@ -1971,7 +1971,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrdersByStatus () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrders (this.extend (request, query));
+        const response = await this.privateGetSpotV2Orders (this.extend (request, query));
         //
         // spot
         //
@@ -2105,7 +2105,7 @@ module.exports = class bitmart extends Exchange {
         } else if (market['swap'] || market['future']) {
             throw new NotSupported (this.id + ' fetchOrder () does not support swap or futures orders, only spot orders are allowed');
         }
-        const response = await this.privateSpotGetOrderDetail (this.extend (request, query));
+        const response = await this.privateGetSpotV1OrderDetail (this.extend (request, query));
         //
         // spot
         //
@@ -2198,7 +2198,7 @@ module.exports = class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountGetDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2273,7 +2273,7 @@ module.exports = class bitmart extends Exchange {
                 params = this.omit (params, 'network');
             }
         }
-        const response = await this.privateAccountPostWithdrawApply (this.extend (request, params));
+        const response = await this.privatePostAccountV1WithdrawApply (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -2301,14 +2301,14 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'operation_type': type, // deposit or withdraw
             'offset': 1,
-            'limit': limit,
+            'N': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.privateAccountGetDepositWithdrawHistory (this.extend (request, params));
+        const response = await this.privateGetAccountV2DepositWithdrawHistory (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2352,7 +2352,7 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateAccountGetDepositWithdrawDetail (this.extend (request, params));
+        const response = await this.privateGetAccountV1DepositWithdrawDetail (this.extend (request, params));
         //
         //     {
         //         "message":"OK",
@@ -2529,8 +2529,8 @@ module.exports = class bitmart extends Exchange {
             'type': type,
             'updated': undefined,
             'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp !== 0 ? timestamp : undefined,
+            'datetime': timestamp !== 0 ? this.iso8601 (timestamp) : undefined,
             'fee': fee,
         };
     }
