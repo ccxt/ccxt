@@ -679,6 +679,10 @@ module.exports = class phemex extends ccxt.phemex {
             const closed = this.safeValue (message, 'closed', []);
             const open = this.safeValue (message, 'open', []);
             const orders = this.arrayConcat (open, closed);
+            const ordersLength = orders.length;
+            if (ordersLength === 0) {
+                return;
+            }
             const fills = this.safeValue (message, 'fills', []);
             trades = fills;
             parsedOrders = this.parseOrders (orders);
