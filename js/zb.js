@@ -2373,7 +2373,7 @@ module.exports = class zb extends Exchange {
             if (orderType === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders');
             }
-            const side = this.safeInteger (params, 'side');
+            const side = this.safeValue (params, 'side');
             const bizType = this.safeInteger (params, 'bizType');
             if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
