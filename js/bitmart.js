@@ -350,7 +350,7 @@ module.exports = class bitmart extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
-                'defaultType': 'spot', // 'spot', 'swap'
+                'defaultType': 'spot', // 'spot', 'swap', 'margin'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'contract', 'account'
                 },
@@ -1754,6 +1754,8 @@ module.exports = class bitmart extends Exchange {
          * @method
          * @name bitmart#createOrder
          * @description create a trade order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @param {str} symbol unified symbol of the market to create an order in
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
@@ -1813,9 +1815,19 @@ module.exports = class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if ((defaultType === 'margin') || (market['type'] === 'margin')) {
+            method = 'privateSpotPostMarginSubmitOrder';
+            const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
+            const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
+            if (marginMode !== 'isolated') {
+                throw new BadRequest (this.id + ' createOrder() is only available for isolated margin');
+            }
+            params = this.omit (params, 'marginMode');
+        }
         const response = await this[method] (this.extend (request, params));
         //
-        // spot and contract
+        // spot and margin
         //
         //     {
         //         "code": 1000,
@@ -1827,7 +1839,13 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrder (data, market);
+        const order = this.parseOrder (data, market);
+        return this.extend (order, {
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
