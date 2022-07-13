@@ -34,7 +34,11 @@ const asInteger = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? M
 const safeFloat = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? n : $default);
 const safeInteger = (o, k, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? n : $default);
 const safeIntegerProduct = (o, k, $factor, $default?, n = asInteger (prop (o, k))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
-const safeTimestamp = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
+
+const safeTimestamp = (o: object, k: string | number, $default?: number) => {
+    const n = asFloat (prop (o, k));
+    return isNumber (n) ? parseInt (n * 1000 as any) : $default;
+};
 
 const safeValue = (o: object, k: string | number, $default?) => {
     const x = prop (o, k);
