@@ -3853,9 +3853,10 @@ export default class binance extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
-        let internal = this.safeInteger (transaction, 'transferType');
+        const internal = this.safeInteger (transaction, 'transferType');
+        let booleanInternal = undefined;
         if (internal !== undefined) {
-            internal = internal ? true : false;
+            booleanInternal = internal ? true : false;
         }
         const network = this.safeString (transaction, 'network');
         return {
@@ -3876,7 +3877,7 @@ export default class binance extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
-            'internal': internal,
+            'internal': booleanInternal,
             'fee': fee,
         };
     }

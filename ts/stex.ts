@@ -2369,12 +2369,14 @@ export default class stex extends Exchange {
             request['additional_address_parameter'] = tag;
         }
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeInteger (networks, network, network); // handle ERC20>ETH alias
+        const networkKey = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        const network = this.safeInteger (networks, networkKey); // handle ERC20>ETH alias
         if (network !== undefined) {
             request['protocol_id'] = network;
-            params = this.omit (params, 'network');
+        } else {
+            request['protocol_id'] = networkKey;
         }
+        params = this.omit (params, 'network');
         const response = await (this as any).profilePostWithdraw (this.extend (request, params));
         //
         //     {

@@ -845,14 +845,15 @@ export default class probit extends Exchange {
             const iso8601 = this.iso8601 (timestamp);
             const parts = iso8601.split ('-');
             const year = this.safeString (parts, 0);
-            let month = this.safeInteger (parts, 1);
+            const rawMonth = this.safeInteger (parts, 1);
+            let month = undefined;
             if (after) {
                 month = this.sum (month, 1);
             }
-            if (month < 10) {
-                month = '0' + month.toString ();
+            if (rawMonth < 10) {
+                month = '0' + rawMonth.toString ();
             } else {
-                month = month.toString ();
+                month = rawMonth.toString ();
             }
             return year + '-' + month + '-01T00:00:00.000Z';
         } else if (timeframe === '1w') {

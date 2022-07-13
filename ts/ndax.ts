@@ -1854,7 +1854,7 @@ export default class ndax extends Exchange {
             market = this.market (symbol);
         }
         const request = {
-            'OMSId': parseInt (omsId),
+            'OMSId': omsId,
             // 'AccountId': accountId,
             'OrderId': parseInt (id),
         };

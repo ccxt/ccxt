@@ -2691,9 +2691,9 @@ export default class bitmex extends Exchange {
                 'api-key': this.apiKey,
             };
             expires = this.sum (this.seconds (), expires);
-            expires = expires.toString ();
-            auth += expires;
-            headers['api-expires'] = expires;
+            const expiresString = expires.toString ();
+            auth += expiresString;
+            headers['api-expires'] = expiresString;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                 if (Object.keys (params).length) {
                     body = this.json (params);

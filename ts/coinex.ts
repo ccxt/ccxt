@@ -1658,10 +1658,11 @@ export default class coinex extends Exchange {
             feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let side = this.safeInteger (order, 'side');
-        if (side === 1) {
+        const rawSide = this.safeInteger (order, 'side');
+        let side = undefined;
+        if (rawSide === 1) {
             side = 'sell';
-        } else if (side === 2) {
+        } else if (rawSide === 2) {
             side = 'buy';
         } else {
             side = this.safeString (order, 'type');
