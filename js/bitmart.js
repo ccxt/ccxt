@@ -659,6 +659,106 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
+    async fetchMarginMarkets (params = {}) {
+        const response = await this.privateSpotGetMarginIsolatedPairs (params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "62f568ab-c368-4404-af1d-894d0fd25ee8",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "MANA_USDT",
+        //                     "max_leverage": "5",
+        //                     "symbol_enabled": false,
+        //                     "base": {
+        //                         "currency": "MANA",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "300000.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "0.00000000"
+        //                     },
+        //                     "quote": {
+        //                         "currency": "USDT",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "50000.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "0.00000000"
+        //                     }
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = symbols[i];
+            const id = this.safeString (market, 'symbol');
+            const baseData = this.safeValue (market, 'base', {});
+            const quoteData = this.safeValue (market, 'quote', {});
+            const baseId = this.safeString (baseData, 'currency');
+            const quoteId = this.safeString (quoteData, 'currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'numericId': undefined,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'margin',
+                'spot': false,
+                'margin': true,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'max_leverage'),
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -669,7 +769,9 @@ module.exports = class bitmart extends Exchange {
          */
         const spot = await this.fetchSpotMarkets (params);
         const contract = await this.fetchContractMarkets (params);
-        return this.arrayConcat (spot, contract);
+        const margin = await this.fetchMarginMarkets (params);
+        const spotContract = this.arrayConcat (spot, contract);
+        return this.arrayConcat (spotContract, margin);
     }
 
     async fetchTransactionFee (code, params = {}) {
