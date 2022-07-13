@@ -32,7 +32,10 @@ const asFloat = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? par
 const asInteger = (x) => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
 
-const safeFloat = (o, k, $default?, n = asFloat (prop (o, k))) => (isNumber (n) ? n : $default);
+const safeFloat = (o: object, k: string | number, $default?: number): number => {
+    const n = asFloat (prop (o, k));
+    return isNumber (n) ? n : $default;
+};
 
 const safeInteger = (o: object, k: string | number, $default?: number): number => {
     const n = asInteger (prop (o, k));
@@ -63,17 +66,36 @@ const safeStringLower = (o: object, k: string | number, $default?: string) => {
     const x = prop (o, k);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default
 };
+
 const safeStringUpper = (o:object, k: string | number, $default?: string): string => {
     const x = prop (o, k)
     return isStringCoercible (x) ? String (x).toUpperCase () : $default
 };
 /*  .............................................   */
-const safeFloat2 = (o, k1, k2, $default?, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
-const safeInteger2 = (o, k1, k2, $default?, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? n : $default);
+
+const safeFloat2 = (o: object, k1: string | number, k2: string | number, $default?): number => {
+    const n = asFloat (prop2 (o, k1, k2));
+    return isNumber (n) ? n : $default;
+};
+
+const safeInteger2 = (o: object, k1: string | number, k2: string | number, $default?): number => {
+    const n = asInteger (prop2 (o, k1, k2));
+    return isNumber (n) ? n : $default;
+};
+
 const safeIntegerProduct2 = (o, k1, k2, $factor, $default?, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * $factor as any) : $default);
 const safeTimestamp2 = (o, k1, k2, $default?, n = asFloat (prop2 (o, k1, k2))) => (isNumber (n) ? parseInt (n * 1000 as any) : $default);
-const safeValue2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (hasProps (x) ? x : $default);
-const safeString2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x) : $default);
+
+const safeValue2 = (o: object, k1: string | number, k2: string | number, $default?) => {
+    const x = prop2 (o, k1, k2);
+    return hasProps (x) ? x : $default;
+};
+
+const safeString2 = (o: object, k1: string | number, k2: string | number, $default?) => {
+    const x = prop2 (o, k1, k2);
+    return isStringCoercible (x) ? String (x) : $default;
+};
+
 const safeStringLower2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toLowerCase () : $default);
 const safeStringUpper2 = (o, k1, k2, $default?, x = prop2 (o, k1, k2)) => (isStringCoercible (x) ? String (x).toUpperCase () : $default);
 const safeFloatN = (o, k, $default?, n = asFloat (getValueFromKeysInArray (o, k))) => (isNumber (n) ? n : $default);

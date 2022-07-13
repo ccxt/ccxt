@@ -533,8 +533,8 @@ export default class bibox extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
-        let side = this.safeInteger2 (trade, 'side', 'order_side');
-        side = (side === 1) ? 'buy' : 'sell';
+        const rawSide = this.safeInteger2 (trade, 'side', 'order_side');
+        const side = (rawSide === 1) ? 'buy' : 'sell';
         let marketId = this.safeString (trade, 'pair');
         if (marketId === undefined) {
             const baseId = this.safeString (trade, 'coin_symbol');
