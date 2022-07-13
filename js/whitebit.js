@@ -1811,7 +1811,7 @@ module.exports = class whitebit extends Exchange {
         if (response !== undefined) {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
-            const status = this.safeInteger (response, 'status');
+            const status = this.safeString (response, 'status');
             // {"code":10,"message":"Unauthorized request."}
             const message = this.safeString (response, 'message');
             // For these cases where we have a generic code variable error key
