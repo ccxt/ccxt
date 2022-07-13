@@ -1241,25 +1241,100 @@ module.exports = class kraken extends Exchange {
          * @param {dict} params extra parameters specific to the kraken api endpoint
          * @param {str} params.timeInForce 'IOC' 'GTC' 'PO'
          * @param {bool} params.postOnly true for maker / postOnly orders
-         * @param {float} params.triggerPrice -> type 1.
          * @param {float} params.stopLossPrice -> type 2.
          * @param {float} params.takeProfitPrice -> type 2.
+         * @param {dict} params.stopLoss -> type 3.
+         * @param {dict} params.takeProfit -> type 3.
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            // 'userref': userref is an optional user-specified integer id that can be associated with any number of orders.
+            // 'ordertype': market, limit, stop-loss, take-profit, stop-loss-limit, take-profit-limit or settle-position
             'type': side,
             'volume': this.amountToPrecision (symbol, amount),
-            // 'close': dict (optional) {"price": , "price2": , "ordertype": } Type 2. defined inside here as a dict. for the conditional order
+            'pair': market['id'],
+            // 'price': Limit price for limit orders, trigger price for stop-loss, stop-loss-limit, take-profit and take-profit-limit orders
+            // 'price2': Limit price for stop-loss-limit and take-profit-limit orders
+            // 'trigger': last or index, Price signal used to trigger stop-loss, stop-loss-limit, take-profit and take-profit-limit orders.
+            // 'leverage': default = none
+            // 'stp_type': cancel-newest cancel-oldest cancel-both
+            // 'oflags': Comma delimited list of order flags: post, fcib, fciq, nompp, viqc
+            // 'timeInForce': GTC, IOC or GTD
+            // 'starttm': Scheduled start time
+            // 'expiretm': expiration time
+            // 'close': {       // optional dictionary defining an conditional close order
+            //          'ordertype': limit stop-loss take-profit stop-loss-limit take-profit-limit
+            //          'price': Conditional close order price
+            //          'price2': Conditional close order price2
+            //          }
+            // 'deadline': timestamp after which to reject the order request
+            // 'validate': validate inputs only, do not submit order
         };
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            throw new ExchangeError (this.id + ' createOrder () does not support timeInForce of FOK, only IOC, GTC, and PO are allowed');
+        }
+        let reduceOnly = this.safeValue (params, 'reduceOnly');
+        const oflags = this.safeString (params, 'oflags').split (',');
+        const exchangeSpecificParam = oflags.indexOf ('post') !== -1;
+        const isMarketOrder = (type === 'market');
+        const isLimitOrder = (type === 'limit');
+        const postOnly = this.isPostOnly (type === 'market', exchangeSpecificParam, params);
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice'); // type 2
+        const stopLoss = this.safeValue (params, 'stopLoss'); // type 3
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice'); // type 2
+        const takeProfit = this.safeValue (params, 'takeProfit'); // type 3
+        const isStopLoss = stopLossPrice !== undefined;
+        const isStopLossConditional = stopLoss !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isTakeProfitConditional = takeProfit !== undefined;
+        const isTriggerOrder = triggerPrice !== undefined;
+        if (this.sum (isStopLoss, isTakeProfit, isTriggerOrder)) {
+            throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
+        }
+        const isStopOrder = isStopLoss || isTakeProfit || isTriggerOrder;
+        if (this.sum (isStopLossConditional, isTakeProfitConditional)) {
+            throw new ExchangeError (this.id + ' createOrder() stopLoss and takeProfit Conditional Orders cannot both be defined');
+        }
+        const isConditionalOrderAttached = isStopLossConditional || isTakeProfitConditional;
         //
-        // Parse the kind of order which it is
+        if (isStopOrder) {
+            // populate stop orders ...
+            if (isMarketOrder) {
+                // stop-loss and take-profit
+            } else {
+                // stop-loss-limit and take-profit-limit
+            }
+        } else {
+            // populate vanilla orders ...
+            if (isMarketOrder) {
+                // market
+            } else {
+                // limit
+            }
+        }
         //
-        // if type 1. -> ...
+        if (isConditionalOrderAttached) {
+            // conditional order can be attached to any order type
+            // populate the 'close' dict param ...
+            if (isStopLoss) {
+
+            } else if (isTakeProfit) {
+
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
         //
-        // if type 2. -> ... (populate the 'close' dict param)
+        // REMOVE AFTER TESTING
+        request['validate'] = true;
+        //
+        const query = this.omit (params, [ 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'stopLoss', 'takeProfit','postOnly', 'reduceOnly', 'orderType', 'triggerPrice', 'clientOrderId' ]);
         const response = await this.privatePostAddOrder (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         return this.parseOrder (result);
