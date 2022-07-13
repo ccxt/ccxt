@@ -15,7 +15,7 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            // 50 per 5 seconds = 30 per second
+            // 150 per 5 seconds = 30 per second
             // rateLimit = 1000ms / 30 ~= 33.334
             'rateLimit': 33.34,
             'version': 'v2',
@@ -134,6 +134,10 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
                         'spot/v1/trades': 5,
+                        // margin
+                        'spot/v1/margin/isolated/borrow_record': 1,
+                        'spot/v1/margin/isolated/repay_record': 1,
+                        'spot/v1/margin/isolated/pairs': 1,
                     },
                     'post': {
                         // sub-account endpoints
@@ -149,6 +153,10 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/batch_orders': 1,
                         'spot/v2/cancel_order': 1,
                         'spot/v1/cancel_orders': 15,
+                        // margin
+                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/isolated/borrow': 6,
+                        'spot/v1/margin/isolated/repay': 6,
                     },
                 },
             },
