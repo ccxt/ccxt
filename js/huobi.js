@@ -1521,7 +1521,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
         // private spot subjects
         const privateParts = ch.split ('#');
-        const privateType = this.safeString (privateParts, 0);
+        const privateType = this.safeString (privateParts, 0, '');
         if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
             return;
