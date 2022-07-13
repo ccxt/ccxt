@@ -15,7 +15,7 @@ module.exports = class bitmart extends Exchange {
             'id': 'bitmart',
             'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
-            // most requestst is 150 per 5 seconds => 30 per second
+            // 50 per 5 seconds = 30 per second
             // rateLimit = 1000ms / 30 ~= 33.334
             'rateLimit': 33.34,
             'version': 'v2',
