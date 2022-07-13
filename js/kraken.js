@@ -1228,6 +1228,43 @@ module.exports = class kraken extends Exchange {
         return this.parseBalance (response);
     }
 
+    async crateOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#createOrder
+         * @description create a trade order
+         * @param {str} symbol unified symbol of the market to create an order in
+         * @param {str} type 'market' or 'limit'
+         * @param {str} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {dict} params extra parameters specific to the kraken api endpoint
+         * @param {str} params.timeInForce 'IOC' 'GTC' 'PO'
+         * @param {bool} params.postOnly true for maker / postOnly orders
+         * @param {float} params.triggerPrice -> type 1.
+         * @param {float} params.stopLossPrice -> type 2.
+         * @param {float} params.takeProfitPrice -> type 2.
+         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'type': side,
+            'volume': this.amountToPrecision (symbol, amount),
+            // 'close': dict (optional) {"price": , "price2": , "ordertype": } Type 2. defined inside here as a dict. for the conditional order
+        };
+        //
+        // Parse the kind of order which it is
+        //
+        // if type 1. -> ...
+        //
+        // if type 2. -> ... (populate the 'close' dict param)
+        const response = await this.privatePostAddOrder (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
