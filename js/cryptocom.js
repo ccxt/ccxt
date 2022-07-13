@@ -19,15 +19,21 @@ module.exports = class cryptocom extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully implemented
+                'margin': true,
                 'swap': undefined, // has but not fully implemented
                 'future': undefined, // has but not fully implemented
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -57,6 +63,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': true,
@@ -222,6 +229,7 @@ module.exports = class cryptocom extends Exchange {
                 'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
+                    'margin': 'MARGIN',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
@@ -581,12 +589,13 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //     {
         //       id: 1641026542065,
         //       method: 'private/get-order-history',
@@ -842,6 +851,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
+            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
@@ -861,6 +871,42 @@ module.exports = class cryptocom extends Exchange {
         //                     "currency": "CRO"
         //                 }
         //             ]
+        //         }
+        //     }
+        //
+        // margin
+        //     {
+        //         "id": 1656529728178,
+        //         "method": "private/margin/get-account-summary",
+        //         "code": 0,
+        //         "result": {
+        //             "accounts": [
+        //                 {
+        //                     "balance": 0,
+        //                     "available": 0,
+        //                     "order": 0,
+        //                     "borrowed": 0,
+        //                     "position": 0,
+        //                     "positionHomeCurrency": 0,
+        //                     "positionBtc": 0,
+        //                     "lastPriceHomeCurrency": 20111.38,
+        //                     "lastPriceBtc": 1,
+        //                     "currency": "BTC",
+        //                     "accrued_interest": 0,
+        //                     "liquidation_price": 0
+        //                 },
+        //             ],
+        //             "is_liquidating": false,
+        //             "total_balance": 16,
+        //             "total_balance_btc": 0.00079556,
+        //             "equity_value": 16,
+        //             "equity_value_btc": 0.00079556,
+        //             "total_borrowed": 0,
+        //             "total_borrowed_btc": 0,
+        //             "total_accrued_interest": 0,
+        //             "total_accrued_interest_btc": 0,
+        //             "margin_score": "GOOD",
+        //             "currency": "USDT"
         //         }
         //     }
         //
@@ -899,6 +945,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const parser = this.getSupportedMapping (marketType, {
             'spot': 'parseSpotBalance',
+            'margin': 'parseSpotBalance',
             'future': 'parseSwapBalance',
             'swap': 'parseSwapBalance',
         });
@@ -921,13 +968,14 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'spot')) {
             request['order_id'] = id.toString ();
         } else {
             request['order_id'] = parseInt (id);
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         });
@@ -1006,6 +1054,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
+            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         });
@@ -1038,7 +1087,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
             }
@@ -1046,6 +1095,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelAllOrders',
+            'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         });
@@ -1069,7 +1119,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const request = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
             }
@@ -1080,6 +1130,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
+            'margin': 'spotPrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
@@ -1112,6 +1163,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
+            'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         });
@@ -1195,6 +1247,7 @@ module.exports = class cryptocom extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
+            'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
@@ -1503,7 +1556,11 @@ module.exports = class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        const repsonse = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        let method = 'spotPrivatePostPrivateDerivTransfer';
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            method = 'spotPrivatePostPrivateMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "id": 11,
@@ -1511,7 +1568,7 @@ module.exports = class cryptocom extends Exchange {
         //         "code": 0
         //     }
         //
-        return this.parseTransfer (repsonse, currency);
+        return this.parseTransfer (response, currency);
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1537,7 +1594,18 @@ module.exports = class cryptocom extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.spotPrivatePostPrivateDerivGetTransferHistory (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (defaultType === 'margin') {
+            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //       id: '1641032709328',
@@ -1557,9 +1625,11 @@ module.exports = class cryptocom extends Exchange {
         //       }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const transferList = this.safeValue (result, 'transfer_list', []);
-        return this.parseTransfers (transferList, currency, since, limit, params);
+        const transfer = [];
+        transfer.push ({
+            'response': response,
+        });
+        return this.parseTransfers (transfer, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
@@ -1572,32 +1642,69 @@ module.exports = class cryptocom extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //     {
-        //       direction: 'IN',
-        //       time: '1641025185223',
-        //       amount: '109.56',
-        //       status: 'COMPLETED',
-        //       information: 'From Spot Wallet',
-        //       currency: 'USDC'
+        //   {
+        //     response: {
+        //       id: '1641032709328',
+        //       method: 'private/deriv/get-transfer-history',
+        //       code: '0',
+        //       result: {
+        //         transfer_list: [
+        //           {
+        //             direction: 'IN',
+        //             time: '1641025185223',
+        //             amount: '109.56',
+        //             status: 'COMPLETED',
+        //             information: 'From Spot Wallet',
+        //             currency: 'USDC'
+        //           }
+        //         ]
+        //       }
         //     }
+        //   }
         //
-        const timestamp = this.safeInteger (transfer, 'time');
-        const amount = this.safeNumber (transfer, 'amount');
-        const currencyId = this.safeString (transfer, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const information = this.safeString (transfer, 'information');
+        const response = this.safeValue (transfer, 'response', {});
+        const result = this.safeValue (response, 'result', {});
+        const transferList = this.safeValue (result, 'transfer_list', []);
+        let timestamp = undefined;
+        let amount = undefined;
+        let code = undefined;
+        let information = undefined;
+        let status = undefined;
+        for (let i = 0; i < transferList.length; i++) {
+            const entry = transferList[i];
+            timestamp = this.safeInteger (entry, 'time');
+            amount = this.safeNumber (entry, 'amount');
+            const currencyId = this.safeString (entry, 'currency');
+            code = this.safeCurrencyCode (currencyId);
+            information = this.safeString (entry, 'information');
+            const rawStatus = this.safeString (entry, 'status');
+            status = this.parseTransferStatus (rawStatus);
+        }
         let fromAccount = undefined;
         let toAccount = undefined;
         if (information !== undefined) {
             const parts = information.split (' ');
-            fromAccount = this.safeStringLower (parts, 1);
-            toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
+            const direction = this.safeStringLower (parts, 0);
+            const method = this.safeString (response, 'method');
+            if (direction === 'from') {
+                fromAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    toAccount = 'margin';
+                } else {
+                    toAccount = 'derivative';
+                }
+            } else if (direction === 'to') {
+                toAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    fromAccount = 'margin';
+                } else {
+                    fromAccount = 'derivative';
+                }
+            }
         }
-        const rawStatus = this.safeString (transfer, 'status');
-        const status = this.parseTransferStatus (rawStatus);
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
+            'info': transferList,
+            'id': this.safeString (response, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
@@ -1967,6 +2074,239 @@ module.exports = class cryptocom extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
+         * @param {str} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {str|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
+         * @param {str} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {str|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let currency = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656705829020,
+        //         "method": "private/margin/get-interest-history",
+        //         "code": 0,
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "loan_id": "2643528867803765921",
+        //                     "currency": "USDT",
+        //                     "interest": 0.00000004,
+        //                     "time": 1656702899559,
+        //                     "stake_amount": 6,
+        //                     "interest_rate": 0.000025
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rows = this.safeValue (data, 'list', []);
+        let interest = undefined;
+        for (let i = 0; i < rows.length; i++) {
+            interest = this.parseBorrowInterests (rows, market);
+        }
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "loan_id": "2643528867803765921",
+        //         "currency": "USDT",
+        //         "interest": 0.00000004,
+        //         "time": 1656702899559,
+        //         "stake_amount": 6,
+        //         "interest_rate": 0.000025
+        //     },
+        //
+        const timestamp = this.safeInteger (info, 'time');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'symbol': symbol,
+            'marginMode': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interest_rate'), // hourly interest rate
+            'amountBorrowed': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @returns {dict} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.spotPrivatePostPrivateMarginGetUserConfig (params);
+        //
+        //     {
+        //         "id": 1656707947456,
+        //         "method": "private/margin/get-user-config",
+        //         "code": 0,
+        //         "result": {
+        //             "stake_amount": 6,
+        //             "currency_configs": [
+        //                 {
+        //                     "currency": "AGLD",
+        //                     "hourly_rate": 0.00003334,
+        //                     "max_borrow_limit": 342.4032393,
+        //                     "min_borrow_limit": 30
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rates = this.safeValue (data, 'currency_configs', []);
+        return this.parseBorrowRates (rates, 'currency');
+    }
+
+    parseBorrowRates (info, codeKey) {
+        //
+        //     {
+        //         "currency": "AGLD",
+        //         "hourly_rate": 0.00003334,
+        //         "max_borrow_limit": 342.4032393,
+        //         "min_borrow_limit": 30
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const rates = [];
+        for (let i = 0; i < info.length; i++) {
+            const entry = info[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'rate': this.safeNumber (entry, 'hourly_rate'),
+                'period': 3600000, // 1-Hour
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {
