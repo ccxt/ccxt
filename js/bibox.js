@@ -256,6 +256,7 @@ module.exports = class bibox extends Exchange {
                             'userdata/ledger',
                             'userdata/order',
                             'userdata/orders',
+                            'userdata/fills',
                         ],
                         'post': [
                             'userdata/order',
@@ -1779,13 +1780,19 @@ module.exports = class bibox extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
         if ('error' in response) {
-            if ('code' in response['error']) {
-                const code = this.safeString (response['error'], 'code');
+            if (typeof response['error'] === 'object') {
+                if ('code' in response['error']) {
+                    const code = this.safeString (response['error'], 'code');
+                    const feedback = this.id + ' ' + body;
+                    this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                    throw new ExchangeError (feedback);
+                }
+                throw new ExchangeError (this.id + ' ' + body);
+            } else {
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
             }
-            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };
