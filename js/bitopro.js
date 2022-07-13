@@ -90,7 +90,9 @@ module.exports = class bitopro extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg',
-                'api': 'https://api.bitopro.com/v3',
+                'api': {
+                    'rest': 'https://api.bitopro.com/v3',
+                },
                 'www': 'https://www.bitopro.com',
                 'doc': [
                     'https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md',
@@ -1619,7 +1621,7 @@ module.exports = class bitopro extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
