@@ -1527,7 +1527,7 @@ class huobi extends \ccxt\async\huobi {
         }
         // private spot subjects
         $privateParts = explode('#', $ch);
-        $privateType = $this->safe_string($privateParts, 0);
+        $privateType = $this->safe_string($privateParts, 0, '');
         if ($privateType === 'trade.clearing') {
             $this->handle_my_trade($client, $message);
             return;

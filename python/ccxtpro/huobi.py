@@ -1434,7 +1434,7 @@ class huobi(Exchange, ccxt.huobi):
                 return method(client, message)
         # private spot subjects
         privateParts = ch.split('#')
-        privateType = self.safe_string(privateParts, 0)
+        privateType = self.safe_string(privateParts, 0, '')
         if privateType == 'trade.clearing':
             self.handle_my_trade(client, message)
             return
