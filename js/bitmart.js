@@ -138,6 +138,7 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/margin/isolated/borrow_record': 1,
                         'spot/v1/margin/isolated/repay_record': 1,
                         'spot/v1/margin/isolated/pairs': 1,
+                        'spot/v1/margin/isolated/account': 6,
                     },
                     'post': {
                         // sub-account endpoints
@@ -157,6 +158,7 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/margin/submit_order': 1,
                         'spot/v1/margin/isolated/borrow': 6,
                         'spot/v1/margin/isolated/repay': 6,
+                        'spot/v1/margin/isolated/transfer': 6,
                     },
                 },
             },
