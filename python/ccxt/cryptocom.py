@@ -32,15 +32,21 @@ class cryptocom(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but not fully implemented
+                'margin': True,
                 'swap': None,  # has but not fully implemented
                 'future': None,  # has but not fully implemented
                 'option': None,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
+                'fetchBorrowInterest': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
@@ -70,6 +76,7 @@ class cryptocom(Exchange):
                 'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'repayMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': True,
@@ -235,6 +242,7 @@ class cryptocom(Exchange):
                 'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
+                    'margin': 'MARGIN',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
@@ -572,12 +580,13 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         })
         response = getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #     {
         #       id: 1641026542065,
         #       method: 'private/get-order-history',
@@ -814,6 +823,7 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
+            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         })
@@ -833,6 +843,42 @@ class cryptocom(Exchange):
         #                     "currency": "CRO"
         #                 }
         #             ]
+        #         }
+        #     }
+        #
+        # margin
+        #     {
+        #         "id": 1656529728178,
+        #         "method": "private/margin/get-account-summary",
+        #         "code": 0,
+        #         "result": {
+        #             "accounts": [
+        #                 {
+        #                     "balance": 0,
+        #                     "available": 0,
+        #                     "order": 0,
+        #                     "borrowed": 0,
+        #                     "position": 0,
+        #                     "positionHomeCurrency": 0,
+        #                     "positionBtc": 0,
+        #                     "lastPriceHomeCurrency": 20111.38,
+        #                     "lastPriceBtc": 1,
+        #                     "currency": "BTC",
+        #                     "accrued_interest": 0,
+        #                     "liquidation_price": 0
+        #                 },
+        #             ],
+        #             "is_liquidating": False,
+        #             "total_balance": 16,
+        #             "total_balance_btc": 0.00079556,
+        #             "equity_value": 16,
+        #             "equity_value_btc": 0.00079556,
+        #             "total_borrowed": 0,
+        #             "total_borrowed_btc": 0,
+        #             "total_accrued_interest": 0,
+        #             "total_accrued_interest_btc": 0,
+        #             "margin_score": "GOOD",
+        #             "currency": "USDT"
         #         }
         #     }
         #
@@ -871,6 +917,7 @@ class cryptocom(Exchange):
         #
         parser = self.get_supported_mapping(marketType, {
             'spot': 'parseSpotBalance',
+            'margin': 'parseSpotBalance',
             'future': 'parseSwapBalance',
             'swap': 'parseSwapBalance',
         })
@@ -889,12 +936,13 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if marketType == 'spot':
+        if (marketType == 'spot') or (marketType == 'spot'):
             request['order_id'] = str(id)
         else:
             request['order_id'] = int(id)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         })
@@ -968,6 +1016,7 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
+            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         })
@@ -996,12 +1045,13 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        if marketType == 'spot':
+        if (marketType == 'spot') or (marketType == 'margin'):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCancelAllOrders',
+            'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         })
@@ -1021,7 +1071,7 @@ class cryptocom(Exchange):
             market = self.market(symbol)
         request = {}
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        if marketType == 'spot':
+        if (marketType == 'spot') or (marketType == 'margin'):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
@@ -1030,6 +1080,7 @@ class cryptocom(Exchange):
             request['order_id'] = int(id)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
+            'margin': 'spotPrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         })
@@ -1057,6 +1108,7 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
+            'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         })
@@ -1134,6 +1186,7 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
+            'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         })
@@ -1411,7 +1464,10 @@ class cryptocom(Exchange):
             'from': fromId,
             'to': toId,
         }
-        repsonse = self.spotPrivatePostPrivateDerivTransfer(self.extend(request, params))
+        method = 'spotPrivatePostPrivateDerivTransfer'
+        if (fromAccount == 'margin') or (toAccount == 'margin'):
+            method = 'spotPrivatePostPrivateMarginTransfer'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "id": 11,
@@ -1419,7 +1475,7 @@ class cryptocom(Exchange):
         #         "code": 0
         #     }
         #
-        return self.parse_transfer(repsonse, currency)
+        return self.parse_transfer(response, currency)
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         """
@@ -1440,7 +1496,15 @@ class cryptocom(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        response = self.spotPrivatePostPrivateDerivGetTransferHistory(self.extend(request, params))
+        if since is not None:
+            request['start_ts'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        method = 'spotPrivatePostPrivateDerivGetTransferHistory'
+        defaultType = self.safe_string(self.options, 'defaultType')
+        if defaultType == 'margin':
+            method = 'spotPrivatePostPrivateMarginGetTransferHistory'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #       id: '1641032709328',
@@ -1460,9 +1524,11 @@ class cryptocom(Exchange):
         #       }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        transferList = self.safe_value(result, 'transfer_list', [])
-        return self.parse_transfers(transferList, currency, since, limit, params)
+        transfer = []
+        transfer.append({
+            'response': response,
+        })
+        return self.parse_transfers(transfer, currency, since, limit, params)
 
     def parse_transfer_status(self, status):
         statuses = {
@@ -1473,31 +1539,64 @@ class cryptocom(Exchange):
 
     def parse_transfer(self, transfer, currency=None):
         #
-        #     {
-        #       direction: 'IN',
-        #       time: '1641025185223',
-        #       amount: '109.56',
-        #       status: 'COMPLETED',
-        #       information: 'From Spot Wallet',
-        #       currency: 'USDC'
+        #   {
+        #     response: {
+        #       id: '1641032709328',
+        #       method: 'private/deriv/get-transfer-history',
+        #       code: '0',
+        #       result: {
+        #         transfer_list: [
+        #           {
+        #             direction: 'IN',
+        #             time: '1641025185223',
+        #             amount: '109.56',
+        #             status: 'COMPLETED',
+        #             information: 'From Spot Wallet',
+        #             currency: 'USDC'
+        #           }
+        #         ]
+        #       }
         #     }
+        #   }
         #
-        timestamp = self.safe_integer(transfer, 'time')
-        amount = self.safe_number(transfer, 'amount')
-        currencyId = self.safe_string(transfer, 'currency')
-        code = self.safe_currency_code(currencyId)
-        information = self.safe_string(transfer, 'information')
+        response = self.safe_value(transfer, 'response', {})
+        result = self.safe_value(response, 'result', {})
+        transferList = self.safe_value(result, 'transfer_list', [])
+        timestamp = None
+        amount = None
+        code = None
+        information = None
+        status = None
+        for i in range(0, len(transferList)):
+            entry = transferList[i]
+            timestamp = self.safe_integer(entry, 'time')
+            amount = self.safe_number(entry, 'amount')
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            information = self.safe_string(entry, 'information')
+            rawStatus = self.safe_string(entry, 'status')
+            status = self.parse_transfer_status(rawStatus)
         fromAccount = None
         toAccount = None
         if information is not None:
             parts = information.split(' ')
-            fromAccount = self.safe_string_lower(parts, 1)
-            toAccount = 'derivative' if (fromAccount == 'spot') else 'spot'
-        rawStatus = self.safe_string(transfer, 'status')
-        status = self.parse_transfer_status(rawStatus)
+            direction = self.safe_string_lower(parts, 0)
+            method = self.safe_string(response, 'method')
+            if direction == 'from':
+                fromAccount = self.safe_string_lower(parts, 1)
+                if method == 'private/margin/get-transfer-history':
+                    toAccount = 'margin'
+                else:
+                    toAccount = 'derivative'
+            elif direction == 'to':
+                toAccount = self.safe_string_lower(parts, 1)
+                if method == 'private/margin/get-transfer-history':
+                    fromAccount = 'margin'
+                else:
+                    fromAccount = 'derivative'
         return {
-            'info': transfer,
-            'id': self.safe_string(transfer, 'id'),
+            'info': transferList,
+            'id': self.safe_string(response, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': code,
@@ -1850,6 +1949,219 @@ class cryptocom(Exchange):
             'internal': None,
             'fee': fee,
         }
+
+    def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str|None symbol: unified market symbol, not used by cryptocom.repayMargin()
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.spotPrivatePostPrivateMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1656620104211,
+        #         "method": "private/margin/repay",
+        #         "code": 0,
+        #         "result": {
+        #             "badDebt": 0
+        #         }
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+        })
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, not used by cryptocom.repayMargin()
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = self.spotPrivatePostPrivateMarginBorrow(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1656619578559,
+        #         "method": "private/margin/borrow",
+        #         "code": 0
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        # borrowMargin
+        #
+        #     {
+        #         "id": 1656619578559,
+        #         "method": "private/margin/borrow",
+        #         "code": 0
+        #     }
+        #
+        # repayMargin
+        #
+        #     {
+        #         "id": 1656620104211,
+        #         "method": "private/margin/repay",
+        #         "code": 0,
+        #         "result": {
+        #             "badDebt": 0
+        #         }
+        #     }
+        #
+        return {
+            'id': self.safe_integer(info, 'id'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
+
+    def fetch_borrow_interest(self, code=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        currency = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_ts'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.spotPrivatePostPrivateMarginGetInterestHistory(self.extend(request, params))
+        #
+        #     {
+        #         "id": 1656705829020,
+        #         "method": "private/margin/get-interest-history",
+        #         "code": 0,
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "loan_id": "2643528867803765921",
+        #                     "currency": "USDT",
+        #                     "interest": 0.00000004,
+        #                     "time": 1656702899559,
+        #                     "stake_amount": 6,
+        #                     "interest_rate": 0.000025
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        rows = self.safe_value(data, 'list', [])
+        interest = None
+        for i in range(0, len(rows)):
+            interest = self.parse_borrow_interests(rows, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info, market=None):
+        #
+        #     {
+        #         "loan_id": "2643528867803765921",
+        #         "currency": "USDT",
+        #         "interest": 0.00000004,
+        #         "time": 1656702899559,
+        #         "stake_amount": 6,
+        #         "interest_rate": 0.000025
+        #     },
+        #
+        timestamp = self.safe_integer(info, 'time')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'symbol': symbol,
+            'marginMode': None,
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'interest_rate'),  # hourly interest rate
+            'amountBorrowed': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
+        self.load_markets()
+        response = self.spotPrivatePostPrivateMarginGetUserConfig(params)
+        #
+        #     {
+        #         "id": 1656707947456,
+        #         "method": "private/margin/get-user-config",
+        #         "code": 0,
+        #         "result": {
+        #             "stake_amount": 6,
+        #             "currency_configs": [
+        #                 {
+        #                     "currency": "AGLD",
+        #                     "hourly_rate": 0.00003334,
+        #                     "max_borrow_limit": 342.4032393,
+        #                     "min_borrow_limit": 30
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        rates = self.safe_value(data, 'currency_configs', [])
+        return self.parse_borrow_rates(rates, 'currency')
+
+    def parse_borrow_rates(self, info, codeKey):
+        #
+        #     {
+        #         "currency": "AGLD",
+        #         "hourly_rate": 0.00003334,
+        #         "max_borrow_limit": 342.4032393,
+        #         "min_borrow_limit": 30
+        #     },
+        #
+        timestamp = self.milliseconds()
+        rates = []
+        for i in range(0, len(info)):
+            entry = info[i]
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(entry, 'currency')),
+                'rate': self.safe_number(entry, 'hourly_rate'),
+                'period': 3600000,  # 1-Hour
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     def nonce(self):
         return self.milliseconds()

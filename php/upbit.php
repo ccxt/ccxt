@@ -1243,8 +1243,9 @@ class upbit extends Exchange {
         $address = null; // not present in the data structure received from the exchange
         $tag = null; // not present in the data structure received from the exchange
         $txid = $this->safe_string($transaction, 'txid');
-        $updated = $this->parse8601($this->safe_string($transaction, 'done_at'));
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at', $updated));
+        $updatedRaw = $this->safe_string($transaction, 'done_at');
+        $updated = $this->parse8601($updatedRaw);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at', $updatedRaw));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';

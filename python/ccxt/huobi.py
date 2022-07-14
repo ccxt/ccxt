@@ -3686,12 +3686,16 @@ class huobi(Exchange):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
-        amount = self.safe_string_2(order, 'volume', 'amount')
-        filled = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        filled = self.safe_string(order, 'trade_volume', filled)
+        cost = None
+        amount = None
+        if (type is not None) and (type.find('market') >= 0):
+            # for market orders amount is in quote currency, meaning it is the cost
+            cost = self.safe_string(order, 'amount')
+        else:
+            amount = self.safe_string_2(order, 'volume', 'amount')
+            cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo
+        filled = self.safe_string_n(order, ['filled-amount', 'field-amount', 'trade_volume'])  # typo in their API, filled amount
         price = self.safe_string(order, 'price')
-        cost = self.safe_string_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
-        cost = self.safe_string(order, 'trade_turnover', cost)
         feeCost = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled feeSide
         feeCost = self.safe_string(order, 'fee', feeCost)
         fee = None
@@ -5152,7 +5156,14 @@ class huobi(Exchange):
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
                 if method == 'POST':
-                    body = self.json(query)
+                    bodyLength = 0
+                    # php fix
+                    if body is not None:
+                        bodyLength = len(body)
+                    if bodyLength == 0:
+                        body = '{}'
+                    else:
+                        body = self.json(query)
                     headers = {
                         'Content-Type': 'application/json',
                     }

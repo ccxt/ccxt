@@ -1197,8 +1197,9 @@ class upbit(Exchange):
         address = None  # not present in the data structure received from the exchange
         tag = None  # not present in the data structure received from the exchange
         txid = self.safe_string(transaction, 'txid')
-        updated = self.parse8601(self.safe_string(transaction, 'done_at'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updated))
+        updatedRaw = self.safe_string(transaction, 'done_at')
+        updated = self.parse8601(updatedRaw)
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updatedRaw))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'

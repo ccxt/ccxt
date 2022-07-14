@@ -689,7 +689,7 @@ class bitrue(Exchange):
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', [])
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')

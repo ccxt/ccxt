@@ -612,7 +612,7 @@ class bibox extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit; // default = 200
         }
-        $response = yield $this->publicGetMdata (array_merge($request, $params));
+        $response = yield $this->v1PublicGetMdata (array_merge($request, $params));
         return $this->parse_order_book($response['result'], $market['symbol'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 

@@ -1469,7 +1469,7 @@ class bitfinex2(Exchange):
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id

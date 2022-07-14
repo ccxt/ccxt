@@ -434,7 +434,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $result = $this->safe_string($response, 'result');
+        $result = $this->safe_value($response, 'result');
         $locked = $this->safe_string($result, 'locked');
         $updateTime = $this->safe_integer_product($response, 'usIn', 0.001, $this->milliseconds());
         return array(

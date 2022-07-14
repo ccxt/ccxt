@@ -3848,12 +3848,17 @@ class huobi extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
         $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
-        $amount = $this->safe_string_2($order, 'volume', 'amount');
-        $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
-        $filled = $this->safe_string($order, 'trade_volume', $filled);
+        $cost = null;
+        $amount = null;
+        if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
+            // for $market orders $amount is in quote currency, meaning it is the $cost
+            $cost = $this->safe_string($order, 'amount');
+        } else {
+            $amount = $this->safe_string_2($order, 'volume', 'amount');
+            $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo
+        }
+        $filled = $this->safe_string_n($order, array( 'filled-amount', 'field-amount', 'trade_volume' )); // typo in their API, $filled $amount
         $price = $this->safe_string($order, 'price');
-        $cost = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        $cost = $this->safe_string($order, 'trade_turnover', $cost);
         $feeCost = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled feeSide
         $feeCost = $this->safe_string($order, 'fee', $feeCost);
         $fee = null;
@@ -5441,7 +5446,16 @@ class huobi extends Exchange {
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
                 if ($method === 'POST') {
-                    $body = $this->json($query);
+                    $bodyLength = 0;
+                    // php fix
+                    if ($body !== null) {
+                        $bodyLength = is_array($body) ? count($body) : 0;
+                    }
+                    if ($bodyLength === 0) {
+                        $body = '{}';
+                    } else {
+                        $body = $this->json($query);
+                    }
                     $headers = array(
                         'Content-Type' => 'application/json',
                     );

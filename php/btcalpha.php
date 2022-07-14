@@ -406,7 +406,6 @@ class btcalpha extends Exchange {
         //      }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
-        $timestamp = Precise::string_mul($timestamp, '1000');
         $currencyId = $this->safe_string($transaction, 'currency');
         $statusId = $this->safe_string($transaction, 'status');
         return array(

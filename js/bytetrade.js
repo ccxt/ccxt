@@ -919,8 +919,8 @@ export default class bytetrade extends Exchange {
         const defaultDappId = 'Sagittarius';
         const dappId = this.safeString (params, 'dappId', defaultDappId);
         const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
-        const totalFeeRate = this.safeString (params, 'totalFeeRate', 8);
-        const chainFeeRate = this.safeString (params, 'chainFeeRate', 1);
+        const totalFeeRate = this.safeString (params, 'totalFeeRate', '8');
+        const chainFeeRate = this.safeString (params, 'chainFeeRate', '1');
         const fee = this.safeString (params, 'fee', defaultFee);
         const eightBytes = '18446744073709551616'; // 2 ** 64
         const allByteStringArray = [

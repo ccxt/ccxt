@@ -1544,7 +1544,7 @@ export default class bitfinex2 extends Exchange {
         const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ]);
         let amountString = this.amountToPrecision (symbol, amount);
-        amountString = (side === 'buy') ? amountString : Precise.stringNeg (amount);
+        amountString = (side === 'buy') ? amountString : Precise.stringNeg (amountString);
         const request = {
             // 'gid': 0123456789, // int32,  optional group id for the order
             // 'cid': 0123456789, // int32 client order id

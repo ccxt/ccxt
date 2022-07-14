@@ -407,7 +407,7 @@ export default class independentreserve extends Exchange {
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const amount = this.safeString2 (order, 'VolumeOrdered', 'Volume');
-        const filled = this.safeString (order, 'VolumeFilled');
+        const filled = this.safeNumber (order, 'VolumeFilled');
         const remaining = this.safeString (order, 'Outstanding');
         const feeRate = this.safeNumber (order, 'FeePercent');
         let feeCost = undefined;

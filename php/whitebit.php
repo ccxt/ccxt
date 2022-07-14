@@ -1768,7 +1768,7 @@ class whitebit extends Exchange {
         if ($response !== null) {
             // For cases where we have a meaningful $status
             // array("response":null,"status":422,"errors":array("orderId":["Finished order id 435453454535 not found on your account"]),"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null)
-            $status = $this->safe_integer($response, 'status');
+            $status = $this->safe_string($response, 'status');
             // array("code":10,"message":"Unauthorized request.")
             $message = $this->safe_string($response, 'message');
             // For these cases where we have a generic $code variable error key

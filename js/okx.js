@@ -5097,6 +5097,7 @@ export default class okx extends Exchange {
          * @method
          * @name okx#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-position-tiers
          * @param {str} symbol unified market symbol
          * @param {dict} params extra parameters specific to the okx api endpoint
          * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
@@ -5106,11 +5107,16 @@ export default class okx extends Exchange {
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
         if (!uly) {
-            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
+            if (type !== 'MARGIN') {
+                throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
+            }
         }
+        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
+        const marginMode = this.safeString2 (params, 'marginMode', 'tdMode', defaultMarginMode);
+        params = this.omit (params, 'marginMode');
         const request = {
             'instType': type,
-            'tdMode': this.safeString (params, 'tdMode', 'isolated'),
+            'tdMode': marginMode,
             'uly': uly,
         };
         if (type === 'MARGIN') {
