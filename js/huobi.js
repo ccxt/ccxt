@@ -3878,7 +3878,7 @@ module.exports = class huobi extends Exchange {
         const clientOrderId = this.safeString2 (order, 'client_order_id', 'client-order-id');
         let cost = undefined;
         let amount = undefined;
-        if (type.indexOf ('market') >= 0) {
+        if ((type !== undefined) && (type.indexOf ('market') >= 0)) {
             // for market orders amount is in quote currency, meaning it is the cost
             cost = this.safeString (order, 'amount');
         } else {
