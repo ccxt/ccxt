@@ -1744,7 +1744,6 @@ module.exports = class binance extends Exchange {
         return account;
     }
 
-
     parseBalance (response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
