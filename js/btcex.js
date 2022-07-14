@@ -53,7 +53,7 @@ module.exports = class btcex extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
-                'fetchFundingFees': undefined,
+                'fetchTransactionFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,

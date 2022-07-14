@@ -1123,7 +1123,7 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseFundingFees (balance) {
+    parseTransactionFees (balance) {
         const withdraw = {};
         const ids = Object.keys (balance);
         for (let i = 0; i < ids.length; i++) {
@@ -1152,7 +1152,7 @@ module.exports = class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const balance = await this.privatePostBalance (params);
-        return this.parseFundingFees (balance);
+        return this.parseTransactionFees (balance);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
