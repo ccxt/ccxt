@@ -3175,8 +3175,7 @@ module.exports = class okx extends Exchange {
             // 'before': 'id', // return records newer than the requested bill id
             // 'limit': 100, // default 100, max 100
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode');
-        const marginMode = this.safeString2 (params, 'mgnMode', 'marginMode', defaultMarginMode);
+        const marginMode = this.safeString2 (params, 'mgnMode', 'marginMode');
         if (marginMode !== undefined) {
             request['mgnMode'] = marginMode;
         }
