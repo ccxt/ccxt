@@ -5046,6 +5046,11 @@ module.exports = class huobi extends Exchange {
         //        'print-log': true
         //    }
         //
+        const success = this.safeValue (response, 'success');
+        if (!success) {
+            const message = this.safeString (response, 'message');
+            throw new Error (message);
+        }
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
             'amount': amount,
