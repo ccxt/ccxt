@@ -4995,25 +4995,42 @@ module.exports = class huobi extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {string} params.subType 'linear' or 'inverse', only used when transfering to/from swap accounts
+         * @param {string} params.marginAcount 'cross' or the unified market code for an isolated market
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            fromAccount = fromAccount.toLowerCase (); // pro, futures
-            toAccount = toAccount.toLowerCase (); // pro, futures
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromId + '-to-' + toId;
-        }
+        fromAccount = fromAccount.toLowerCase ();
+        toAccount = toAccount.toLowerCase ();
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
-            'type': type,
         };
-        const response = await this.spotPrivatePostFuturesTransfer (this.extend (request, params));
+        if (fromAccount === 'swap' || toAccount === 'swap') {
+            const defaultSubType = this.safeStringLower2 (this.options, 'defaultSubType', 'subType');
+            const subType = this.safeStringLower (params, 'subType', defaultSubType);
+            if (subType === 'linear') {
+                if (fromAccount === 'swap') {
+                    fromAccount = 'linear-swap';
+                } else {
+                    toAccount = 'linear-swap';
+                }
+                const marginAccount = this.safeStringUpper2 (params, 'marginAccount', 'margin-account');
+                if (marginAccount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires params["marginAccount"] when type is swap and subType is linear');
+                } else if (marginAccount === 'CROSS' || marginAccount === 'USDT') {
+                    request['margin-account'] = 'USDT';
+                } else {
+                    const market = this.market (marginAccount);
+                    request['margin-account'] = market['id'];
+                }
+            }
+            params = this.omit (params, [ 'subType', 'marginAccount' ]);
+        }
+        request['from'] = fromAccount;
+        request['to'] = toAccount;
+        const response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
         //
         //     {
         //         "data": 12345,
