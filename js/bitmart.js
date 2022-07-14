@@ -350,7 +350,7 @@ module.exports = class bitmart extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
-                'defaultType': 'spot', // 'spot', 'swap', 'margin'
+                'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'contract', 'account'
                 },
@@ -1815,16 +1815,14 @@ module.exports = class bitmart extends Exchange {
         if (ioc) {
             request['type'] = 'ioc';
         }
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if ((defaultType === 'margin') || (market['type'] === 'margin')) {
-            method = 'privateSpotPostMarginSubmitOrder';
-            const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'isolated');
-            const marginMode = this.safeString (params, 'marginMode', defaultMarginMode);
+        const marginMode = this.safeString (params, 'marginMode');
+        if ((marginMode === 'cross') || (marginMode === 'isolated')) {
             if (marginMode !== 'isolated') {
                 throw new BadRequest (this.id + ' createOrder() is only available for isolated margin');
             }
-            params = this.omit (params, 'marginMode');
+            method = 'privateSpotPostMarginSubmitOrder';
         }
+        params = this.omit (params, 'marginMode');
         const response = await this[method] (this.extend (request, params));
         //
         // spot and margin
