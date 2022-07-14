@@ -36,6 +36,7 @@ module.exports = class bitmart extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -2662,6 +2663,106 @@ module.exports = class bitmart extends Exchange {
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'symbol': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRate (code, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bitmart api endpoint
+         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code in this.markets) {
+            market = this.market (code);
+        } else {
+            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
+            if (code === 'USDT') {
+                market = this.market ('BTC' + '/' + defaultSettle);
+            } else {
+                market = this.market (code + '/' + defaultSettle);
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateSpotGetMarginIsolatedPairs (this.extend (request, params));
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0985a130-a5ae-4fc1-863f-4704e214f585",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "max_leverage": "5",
+        //                     "symbol_enabled": true,
+        //                     "base": {
+        //                         "currency": "BTC",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "2.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "0.00670810"
+        //                     },
+        //                     "quote": {
+        //                         "currency": "USDT",
+        //                         "daily_interest": "0.00055000",
+        //                         "hourly_interest": "0.00002291",
+        //                         "max_borrow_amount": "50000.00000000",
+        //                         "min_borrow_amount": "0.00000001",
+        //                         "borrowable_amount": "135.12575038"
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const symbols = this.safeValue (data, 'symbols', []);
+        const currency = (code === 'USDT') ? market['quote'] : market['base'];
+        return this.parseBorrowRate (symbols, currency);
+    }
+
+    parseBorrowRate (info, currency = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "max_leverage": "5",
+        //         "symbol_enabled": true,
+        //         "base": {
+        //             "currency": "BTC",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "2.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "0.00670810"
+        //         },
+        //         "quote": {
+        //             "currency": "USDT",
+        //             "daily_interest": "0.00055000",
+        //             "hourly_interest": "0.00002291",
+        //             "max_borrow_amount": "50000.00000000",
+        //             "min_borrow_amount": "0.00000001",
+        //             "borrowable_amount": "135.12575038"
+        //         }
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const currencyData = (currency === 'USDT') ? this.safeValue (info[0], 'quote', {}) : this.safeValue (info[0], 'base', {});
+        return {
+            'currency': this.safeCurrencyCode (currency),
+            'rate': this.safeNumber (currencyData, 'hourly_interest'),
+            'period': 3600000, // 1-Hour
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
