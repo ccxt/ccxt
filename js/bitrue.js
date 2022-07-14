@@ -693,7 +693,7 @@ module.exports = class bitrue extends Exchange {
             'info': response,
         };
         const timestamp = this.safeInteger (response, 'updateTime');
-        const balances = this.safeValue2 (response, 'balances', []);
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
