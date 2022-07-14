@@ -3000,11 +3000,11 @@ module.exports = class bybit extends Exchange {
         }
         if (isTakeProfitOrder) {
             request['tp_trigger_by'] = 'LastPrice';
-            request['take_profit'] = parseFloat (takeProfitPrice);
+            request['take_profit'] = parseFloat (this.priceToPrecision (symbol, takeProfitPrice));
         }
         if (isStopLossOrder) {
             request['sl_trigger_by'] = 'LastPrice';
-            request['sl_trigger_by'] = parseFloat (takeProfitPrice);
+            request['stop_loss'] = parseFloat (this.priceToPrecision (symbol, stopLossPrice));
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
