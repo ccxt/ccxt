@@ -41,10 +41,12 @@ class bl3p extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -99,6 +101,7 @@ class bl3p extends Exchange {
                 'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
                 'LTC/EUR' => array( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'LTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025, 'type' => 'spot', 'spot' => true ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
@@ -156,7 +159,7 @@ class bl3p extends Exchange {
         );
         $response = yield $this->publicGetMarketOrderbook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'data');
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price_int', 'amount_int');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -274,6 +277,11 @@ class bl3p extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bl3p api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->privatePostGENMKTMoneyInfo ($params);
         //
@@ -329,7 +337,7 @@ class bl3p extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bl3p api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */

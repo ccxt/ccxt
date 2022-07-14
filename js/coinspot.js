@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -26,6 +27,9 @@ module.exports = class coinspot extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -39,10 +43,12 @@ module.exports = class coinspot extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -122,6 +128,7 @@ module.exports = class coinspot extends Exchange {
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'precisionMode': TICK_SIZE,
         });
     }
 
@@ -200,7 +207,7 @@ module.exports = class coinspot extends Exchange {
             'cointype': market['id'],
         };
         const orderbook = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
+        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -345,7 +352,7 @@ module.exports = class coinspot extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinspot api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -354,8 +361,9 @@ module.exports = class coinspot extends Exchange {
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
+        const market = this.market (symbol);
         const request = {
-            'cointype': this.marketId (symbol),
+            'cointype': market['id'],
             'amount': amount,
             'rate': price,
         };

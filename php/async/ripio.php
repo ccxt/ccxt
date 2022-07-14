@@ -46,6 +46,7 @@ class ripio extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenInterestHistory' => false,
@@ -54,6 +55,7 @@ class ripio extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -293,7 +295,6 @@ class ripio extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $active = $this->safe_value($currency, 'enabled', true);
-            $precision = $this->safe_integer($currency, 'decimal_places');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -303,7 +304,7 @@ class ripio extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimal_places'))),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -445,14 +446,15 @@ class ripio extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the ripio api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = yield $this->publicGetOrderbookPair (array_merge($request, $params));
         //
@@ -470,7 +472,7 @@ class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        $orderbook = $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
+        $orderbook = $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         $orderbook['nonce'] = $this->safe_integer($response, 'updated_id');
         return $orderbook;
     }
@@ -590,6 +592,11 @@ class ripio extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {dict} $params extra parameters specific to the ripio api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetPair ($params);
         //
@@ -686,7 +693,7 @@ class ripio extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the ripio api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -835,6 +842,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the ripio api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -882,6 +897,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the ripio api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'status' => 'OPEN,PART',
         );
@@ -889,6 +912,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the ripio api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array(
             'status' => 'CLOS,CANC,COMP',
         );
@@ -1029,6 +1060,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the ripio api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }

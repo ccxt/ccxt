@@ -35,12 +35,14 @@ class latoken extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -177,6 +179,7 @@ class latoken extends Exchange {
                     'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // array("message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE")
                     'ORDER_VALIDATION' => '\\ccxt\\InvalidOrder', // array("message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE")
+                    'BAD_TICKS' => '\\ccxt\\InvalidOrder', // array("status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false)
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
@@ -417,8 +420,6 @@ class latoken extends Exchange {
             $id = $this->safe_string($currency, 'id');
             $tag = $this->safe_string($currency, 'tag');
             $code = $this->safe_currency_code($tag);
-            $decimals = $this->safe_string($currency, 'decimals');
-            $precision = $this->parse_number('1e-' . $decimals);
             $fee = $this->safe_number($currency, 'fee');
             $currencyType = $this->safe_string($currency, 'type');
             $parts = explode('_', $currencyType);
@@ -438,7 +439,7 @@ class latoken extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'minTransferAmount'),
@@ -770,6 +771,12 @@ class latoken extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a market
+         * @param {str} $symbol unified market $symbol
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $method = $this->safe_string($params, 'method');
         $params = $this->omit($params, 'method');
         if ($method === null) {
@@ -797,7 +804,7 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );
@@ -821,13 +828,21 @@ class latoken extends Exchange {
         //
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $this->safe_number($response, 'makerFee'),
             'taker' => $this->safe_number($response, 'takerFee'),
         );
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $market['baseId'],
@@ -1000,6 +1015,14 @@ class latoken extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -1036,6 +1059,14 @@ class latoken extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $market['baseId'],
@@ -1122,7 +1153,7 @@ class latoken extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the latoken api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1186,6 +1217,12 @@ class latoken extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {str} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $market['baseId'],
@@ -1210,6 +1247,14 @@ class latoken extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch history of deposits and withdrawals
+         * @param {str|null} $code unified $currency $code for the $currency of the transactions, default is null
+         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+         * @param {int|null} $limit max number of transactions to return, default is null
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->load_markets();
         $request = array(
             // 'page' => '1',
@@ -1327,6 +1372,14 @@ class latoken extends Exchange {
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a history of internal $transfers made on an account
+         * @param {str|null} $code unified $currency $code of the $currency transferred
+         * @param {int|null} $since the earliest time in ms to fetch $transfers for
+         * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $response = $this->privateGetAuthTransfer ($params);
@@ -1366,6 +1419,15 @@ class latoken extends Exchange {
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {str} $fromAccount account to transfer from
+         * @param {str} $toAccount account to transfer to
+         * @param {dict} $params extra parameters specific to the latoken api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $method = null;
@@ -1436,7 +1498,7 @@ class latoken extends Exchange {
         return array(
             'info' => $transfer,
             'id' => $this->safe_string($transfer, 'id'),
-            'timestamp' => $this->safe_number($transfer),
+            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($transfer, 'transferringFunds'),
@@ -1501,7 +1563,7 @@ class latoken extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        $error = $this->safe_string($response, 'error');
+        $error = $this->safe_value($response, 'error');
         $errorMessage = $this->safe_string($error, 'message');
         if (($error !== null) || ($errorMessage !== null)) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

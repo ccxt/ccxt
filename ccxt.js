@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.85.2'
+const version = '1.90.68'
 
 Exchange.ccxtVersion = version
 
@@ -78,6 +78,7 @@ const exchanges = {
     'blockchaincom':           require ('./js/blockchaincom.js'),
     'btcalpha':                require ('./js/btcalpha.js'),
     'btcbox':                  require ('./js/btcbox.js'),
+    'btcex':                   require ('./js/btcex.js'),
     'btcmarkets':              require ('./js/btcmarkets.js'),
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
@@ -93,7 +94,6 @@ const exchanges = {
     'coincheck':               require ('./js/coincheck.js'),
     'coinex':                  require ('./js/coinex.js'),
     'coinfalcon':              require ('./js/coinfalcon.js'),
-    'coinflex':                require ('./js/coinflex.js'),
     'coinmate':                require ('./js/coinmate.js'),
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
@@ -109,6 +109,7 @@ const exchanges = {
     'fmfwio':                  require ('./js/fmfwio.js'),
     'ftx':                     require ('./js/ftx.js'),
     'ftxus':                   require ('./js/ftxus.js'),
+    'gate':                    require ('./js/gate.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),

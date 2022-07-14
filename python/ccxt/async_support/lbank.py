@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -31,6 +32,9 @@ class lbank(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -45,6 +49,7 @@ class lbank(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -54,6 +59,7 @@ class lbank(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -88,7 +94,7 @@ class lbank(Exchange):
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://www.lbank.info/fees.html',
-                'referral': 'https://www.lbex.io/invite?icode=7QCY',
+                'referral': 'https://www.lbank.info/invitevip?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -132,6 +138,7 @@ class lbank(Exchange):
             'options': {
                 'cacheSecretAsPem': True,
             },
+            'precisionMode': TICK_SIZE,
         })
 
     async def fetch_markets(self, params={}):
@@ -194,8 +201,8 @@ class lbank(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'quantityAccuracy'),
-                    'price': self.safe_integer(market, 'priceAccuracy'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityAccuracy'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceAccuracy'))),
                 },
                 'limits': {
                     'leverage': {
@@ -323,12 +330,13 @@ class lbank(Exchange):
         size = 60
         if limit is not None:
             size = min(limit, size)
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'size': size,
         }
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_trade(self, trade, market=None):
         market = self.safe_market(None, market)
@@ -553,7 +561,7 @@ class lbank(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -618,6 +626,14 @@ class lbank(Exchange):
             return orders
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the lbank api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         if limit is None:
             limit = 100
@@ -632,6 +648,14 @@ class lbank(Exchange):
         return self.parse_orders(data, None, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the lbank api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
@@ -643,6 +667,15 @@ class lbank(Exchange):
         return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the lbank api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # mark and fee are optional params, mark is a note and must be less than 255 characters
         self.check_address(address)

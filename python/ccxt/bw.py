@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bw(Exchange):
@@ -36,6 +37,9 @@ class bw(Exchange):
                 'createLimitOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -45,6 +49,7 @@ class bw(Exchange):
                 'fetchDeposits': True,
                 'fetchL2OrderBook': None,
                 'fetchLedger': None,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
@@ -53,6 +58,7 @@ class bw(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -95,6 +101,7 @@ class bw(Exchange):
                 'funding': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
@@ -230,8 +237,8 @@ class bw(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountDecimal'),
-                    'price': self.safe_integer(market, 'priceDecimal'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -502,7 +509,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -587,6 +594,11 @@ class bw(Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId()
         #
@@ -749,7 +761,7 @@ class bw(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bw api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -939,6 +951,14 @@ class bw(Exchange):
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
@@ -983,6 +1003,14 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
@@ -1000,6 +1028,14 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
@@ -1077,6 +1113,12 @@ class bw(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1184,6 +1226,14 @@ class bw(Exchange):
         }
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
@@ -1225,6 +1275,14 @@ class bw(Exchange):
         return self.parse_transactions(deposits, code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         self.load_markets()

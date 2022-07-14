@@ -29,6 +29,9 @@ module.exports = class itbit extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -43,6 +46,7 @@ module.exports = class itbit extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
@@ -51,6 +55,7 @@ module.exports = class itbit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -139,11 +144,12 @@ module.exports = class itbit extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        return this.parseOrderBook (orderbook, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -358,6 +364,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code not used by itbit fetchTransactions ()
+         * @param {int|undefined} since not used by itbit fetchTransactions ()
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
@@ -427,6 +443,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const walletId = this.safeString (params, 'walletId');
         if (walletId === undefined) {
@@ -558,6 +584,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'status': 'open',
         };
@@ -565,6 +601,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'status': 'filled',
         };
@@ -572,6 +618,16 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name itbit#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the itbit api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -674,7 +730,7 @@ module.exports = class itbit extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the itbit api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */

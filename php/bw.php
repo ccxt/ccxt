@@ -32,6 +32,9 @@ class bw extends Exchange {
                 'createLimitOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -41,6 +44,7 @@ class bw extends Exchange {
                 'fetchDeposits' => true,
                 'fetchL2OrderBook' => null,
                 'fetchLedger' => null,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
@@ -49,6 +53,7 @@ class bw extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -91,6 +96,7 @@ class bw extends Exchange {
                 'funding' => array(
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '999' => '\\ccxt\\AuthenticationError',
@@ -227,8 +233,8 @@ class bw extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amountDecimal'),
-                    'price' => $this->safe_integer($market, 'priceDecimal'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountDecimal'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimal'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -509,7 +515,7 @@ class bw extends Exchange {
         //
         $orderbook = $this->safe_value($response, 'datas', array());
         $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -600,6 +606,11 @@ class bw extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
         //
@@ -770,7 +781,7 @@ class bw extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bw api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -969,6 +980,14 @@ class bw extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
@@ -1016,6 +1035,14 @@ class bw extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
@@ -1037,6 +1064,14 @@ class bw extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -1125,6 +1160,12 @@ class bw extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1239,6 +1280,14 @@ class bw extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $deposits for
+         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
@@ -1283,6 +1332,14 @@ class bw extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bw api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }

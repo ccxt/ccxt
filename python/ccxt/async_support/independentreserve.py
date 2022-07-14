@@ -27,6 +27,9 @@ class independentreserve(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -41,6 +44,7 @@ class independentreserve(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -49,6 +53,7 @@ class independentreserve(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -243,7 +248,7 @@ class independentreserve(Exchange):
         }
         response = await self.publicGetGetOrderBook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
-        return self.parse_order_book(response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         # {
@@ -381,7 +386,7 @@ class independentreserve(Exchange):
                 orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'CreatedTimestampUtc'))
         amount = self.safe_string_2(order, 'VolumeOrdered', 'Volume')
-        filled = self.safe_string(order, 'VolumeFilled')
+        filled = self.safe_number(order, 'VolumeFilled')
         remaining = self.safe_string(order, 'Outstanding')
         feeRate = self.safe_number(order, 'FeePercent')
         feeCost = None
@@ -450,6 +455,14 @@ class independentreserve(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the independentreserve api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = self.ordered({})
         market = None
@@ -466,6 +479,14 @@ class independentreserve(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the independentreserve api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         request = self.ordered({})
         market = None
@@ -482,6 +503,14 @@ class independentreserve(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=50, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the independentreserve api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
         if limit is None:
@@ -553,6 +582,11 @@ class independentreserve(Exchange):
         return self.parse_trades(response['Trades'], market, since, limit)
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the independentreserve api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostGetBrokerageFees(params)
         #
@@ -596,7 +630,7 @@ class independentreserve(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the independentreserve api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

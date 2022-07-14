@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, ExchangeError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -27,6 +28,9 @@ module.exports = class bitstamp1 extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -39,12 +43,14 @@ module.exports = class bitstamp1 extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -95,6 +101,7 @@ module.exports = class bitstamp1 extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'markets': {
                 'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
                 'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'maker': 0.005, 'taker': 0.005, 'type': 'spot', 'spot': true },
@@ -292,7 +299,7 @@ module.exports = class bitstamp1 extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -349,6 +356,16 @@ module.exports = class bitstamp1 extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp1#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the bitstamp1 api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {

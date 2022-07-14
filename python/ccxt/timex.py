@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -38,6 +39,9 @@ class timex(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -54,6 +58,7 @@ class timex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -63,6 +68,7 @@ class timex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -189,6 +195,7 @@ class timex(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -550,7 +557,7 @@ class timex(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the timex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -672,6 +679,13 @@ class timex(Exchange):
         return self.cancel_orders([id], symbol, params)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: unified market symbol, default is None
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': ids,
@@ -753,6 +767,14 @@ class timex(Exchange):
         return self.parse_order(self.extend(order, {'trades': trades}))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchOpenOrders', {})
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
@@ -795,6 +817,14 @@ class timex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchClosedOrders', {})
         defaultSort = self.safe_value(options, 'sort', 'createdAt,asc')
@@ -841,6 +871,14 @@ class timex(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         options = self.safe_value(self.options, 'fetchMyTrades', {})
         defaultSort = self.safe_value(options, 'sort', 'timestamp,asc')
@@ -906,6 +944,12 @@ class timex(Exchange):
         }
 
     def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the timex api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -981,8 +1025,8 @@ class timex(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+                'amount': self.safe_number(market, 'quantityIncrement'),
+                'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1046,7 +1090,6 @@ class timex(Exchange):
         id = self.safe_string(currency, 'symbol')
         code = self.safe_currency_code(id)
         name = self.safe_string(currency, 'name')
-        precision = self.safe_integer(currency, 'decimals')
         depositEnabled = self.safe_value(currency, 'depositEnabled')
         withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
         isActive = self.safe_value(currency, 'active')
@@ -1077,7 +1120,7 @@ class timex(Exchange):
             'deposit': depositEnabled,
             'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
                 'withdraw': {'min': fee, 'max': None},
                 'amount': {'min': None, 'max': None},

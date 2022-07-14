@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -44,7 +45,6 @@ class zb(Exchange):
             # previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667(16.666666...)
             'rateLimit': 6,
             'version': 'v1',
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -54,6 +54,7 @@ class zb(Exchange):
                 'future': None,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,
@@ -273,6 +274,7 @@ class zb(Exchange):
                                 'Positions/updateAppendUSDValue': 3.334,
                                 'Positions/updateMargin': 3.334,
                                 'setting/setLeverage': 3.334,
+                                'setting/setPositionsMode': 3.334,
                                 'trade/batchOrder': 3.334,
                                 'trade/batchCancelOrder': 3.334,
                                 'trade/cancelAlgos': 3.334,
@@ -330,6 +332,7 @@ class zb(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'ws': {
                     # '1000': ExchangeError,  # The call is successful.
@@ -564,7 +567,6 @@ class zb(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        markets = self.spotV1PublicGetMarkets(params)
         #
         #     {
         #         "zb_qc":{
@@ -575,13 +577,9 @@ class zb(Exchange):
         #         },
         #     }
         #
-        contracts = None
-        try:
-            # https://github.com/ZBFuture/docs_en/blob/main/API%20V2%20_en.md#7-public-markethttp
-            # https://fapi.zb.com/Server/api/v2/config/marketList 502 Bad Gateway
-            contracts = self.contractV2PublicGetConfigMarketList(params)
-        except Exception as e:
-            contracts = {}
+        promises = [self.spotV1PublicGetMarkets(params), self.contractV2PublicGetConfigMarketList(params)]
+        markets = promises[0]
+        contracts = promises[1]
         #
         #     {
         #         BTC_USDT: {
@@ -655,8 +653,6 @@ class zb(Exchange):
             linear = True if swap else None
             active = True
             symbol = base + '/' + quote
-            amountPrecisionString = self.safe_string_2(market, 'amountScale', 'amountDecimal')
-            pricePrecisionString = self.safe_string_2(market, 'priceScale', 'priceDecimal')
             if swap:
                 status = self.safe_string(market, 'status')
                 active = (status == '1')
@@ -686,8 +682,8 @@ class zb(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(amountPrecisionString),
-                    'price': int(pricePrecisionString),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string_2(market, 'amountScale', 'amountDecimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string_2(market, 'priceScale', 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -756,7 +752,6 @@ class zb(Exchange):
             id = ids[i]
             currency = currencies[id]
             code = self.safe_currency_code(id)
-            precision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
             fees = {}
@@ -775,7 +770,7 @@ class zb(Exchange):
                 'id': id,
                 'name': None,
                 'code': code,
-                'precision': precision,
+                'precision': None,
                 'info': currency,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -1214,6 +1209,12 @@ class zb(Exchange):
         return self.parse_deposit_addresses(datas, codes)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1505,6 +1506,7 @@ class zb(Exchange):
         if limit is None:
             limit = 1000
         request = {
+            'size': limit,
             # 'market': market['id'],  # spot only
             # 'symbol': market['id'],  # swap only
             # 'type': timeframeValue,  # spot only
@@ -1530,8 +1532,6 @@ class zb(Exchange):
         elif spot:
             if since is not None:
                 request['since'] = since
-        if limit is not None:
-            request['size'] = limit
         response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
@@ -1747,7 +1747,7 @@ class zb(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the zb api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1757,8 +1757,17 @@ class zb(Exchange):
         spot = market['spot']
         timeInForce = self.safe_string(params, 'timeInForce')
         reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
-        stopPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isTriggerOrder = triggerPrice is not None
+        if self.sum(isStopLoss, isTakeProfit, isTriggerOrder):
+            raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
+        isStopOrder = isStopLoss or isTakeProfit or isTriggerOrder
+        if isStopOrder and spot:
+            raise ExchangeError(self.id + ' createOrder() it is not possible to make a stop order on spot markets')
         if type == 'market':
             raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
         method = self.get_supported_mapping(market['type'], {
@@ -1776,76 +1785,65 @@ class zb(Exchange):
             # 'priceType': 1,  # Stop Loss Take Profit, 1: Mark price, 2: Last price
             # 'bizType': 1,  # Stop Loss Take Profit, 1: TP, 2: SL
         }
-        if stop or stopPrice:
-            method = 'contractV2PrivatePostTradeOrderAlgo'
-            orderType = self.safe_integer(params, 'orderType')
-            priceType = self.safe_integer(params, 'priceType')
-            bizType = self.safe_integer(params, 'bizType')
-            algoPrice = self.safe_number(params, 'algoPrice')
-            request['symbol'] = market['id']
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if type == 'trigger' or orderType == 1:
+        if spot:
+            exchangeSpecificParam = self.safe_integer(params, 'orderType', type) == 1
+            postOnly = self.is_post_only(False, exchangeSpecificParam, params)
+            request['tradeType'] = 1 if (side == 'buy') else 0
+            request['currency'] = market['id']
+            if postOnly:
                 request['orderType'] = 1
-            elif type == 'stop loss' or type == 'take profit' or orderType == 2 or priceType or bizType:
+            elif timeInForce == 'IOC':
                 request['orderType'] = 2
-                request['priceType'] = priceType
-                request['bizType'] = bizType
-            request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-            request['algoPrice'] = self.price_to_precision(symbol, algoPrice)
-        else:
-            if price:
+            if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
-            if spot:
-                request['tradeType'] = '1' if (side == 'buy') else '0'
-                request['currency'] = market['id']
-                if timeInForce is not None:
-                    if timeInForce == 'PO':
-                        request['orderType'] = 1
-                    elif timeInForce == 'IOC':
-                        request['orderType'] = 2
-                    else:
-                        raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow ' + timeInForce + ' orders')
-            elif swap:
-                if side == 'sell' and reduceOnly:
-                    request['side'] = 3  # close long
-                elif side == 'buy' and reduceOnly:
-                    request['side'] = 4  # close short
-                elif side == 'buy':
-                    request['side'] = 1  # open long
-                elif side == 'sell':
-                    request['side'] = 2  # open short
-                if type == 'limit':
-                    request['action'] = 1
-                elif timeInForce == 'IOC':
+        elif swap:
+            exchangeSpecificParam = self.safe_integer(params, 'action', type) == 4
+            postOnly = self.is_post_only(False, exchangeSpecificParam, params)
+            # the default mode on zb is one way mode
+            # currently ccxt does not support hedge mode natively
+            if isStopLoss or isTakeProfit:
+                reduceOnly = True
+            if reduceOnly:
+                request['side'] = 0
+            else:
+                request['side'] = 5 if (side == 'buy') else 6
+            if isStopOrder:
+                method = 'contractV2PrivatePostTradeOrderAlgo'
+                if isStopLoss:
+                    request['orderType'] = 2
+                    request['bizType'] = 2
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                elif isTakeProfit:
+                    request['orderType'] = 2
+                    request['bizType'] = 1
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                elif isTriggerOrder:
+                    request['orderType'] = 1
+                    request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['algoPrice'] = self.price_to_precision(symbol, price)
+                request['pricetype'] = 2
+            else:
+                if timeInForce == 'IOC':
                     request['action'] = 3
-                elif timeInForce == 'PO':
+                elif postOnly:
                     request['action'] = 4
                 elif timeInForce == 'FOK':
                     request['action'] = 5
+                elif type == 'limit':
+                    request['action'] = 1
                 else:
                     request['action'] = type
-                request['symbol'] = market['id']
-                clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
-                if clientOrderId is not None:
-                    request['clientOrderId'] = clientOrderId
-                # using self.extend as name causes issues in python
-                extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-                if extendOrderAlgos is not None:
-                    request['extend'] = extendOrderAlgos
-        query = self.omit(params, ['reduceOnly', 'stop', 'stopPrice', 'orderType', 'triggerPrice', 'algoPrice', 'priceType', 'bizType', 'clientOrderId', 'extend'])
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            request['symbol'] = market['id']
+            clientOrderId = self.safe_string(params, 'clientOrderId')  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
+            # using self.extend as name causes issues in python
+            extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            if extendOrderAlgos is not None:
+                request['extend'] = extendOrderAlgos
+        query = self.omit(params, ['takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend'])
         response = getattr(self, method)(self.extend(request, query))
         #
         # Spot
@@ -1875,15 +1873,10 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if (swap) and (not stop) and (stopPrice is None):
-            response = self.safe_value(response, 'data')
-            response['timeInForce'] = timeInForce
-            tradeType = self.safe_string(response, 'tradeType')
-            if tradeType is None:
-                response['type'] = tradeType
-            response['total_amount'] = amount
-            response['price'] = price
-        return self.parse_order(response, market)
+        result = response
+        if swap and not isStopOrder:
+            result = self.safe_value(response, 'data')
+        return self.parse_order(result, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -1932,6 +1925,12 @@ class zb(Exchange):
         return self.parse_order(response, market)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
@@ -1961,8 +1960,9 @@ class zb(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
+        if orderType is not None:
+            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
@@ -1987,34 +1987,7 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetOrder',
             'swap': 'contractV2PrivateGetTradeGetOrder',
         })
-        if stop:
-            method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = getattr(self, method)(self.extend(request, query))
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2103,27 +2076,25 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if stop:
-            data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-            result = []
-            for i in range(0, len(response)):
-                entry = response[i]
-                algoId = self.safe_string(entry, 'id')
-                if id == algoId:
-                    result.append(entry)
-            response = result[0]
-        if swap and not stop:
-            response = self.safe_value(response, 'data', {})
-        return self.parse_order(response, market)
+        result = response
+        if swap:
+            result = self.safe_value(response, 'data')
+        return self.parse_order(result, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
         swap = market['swap']
         request = {
             'pageSize': limit,  # default pageSize is 50 for spot, 30 for swap
@@ -2155,40 +2126,9 @@ class zb(Exchange):
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
-        if stop:
+        if orderType is not None:
             method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = None
-        try:
-            response = getattr(self, method)(self.extend(request, query))
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                return []
-            raise e
+        response = getattr(self, method)(self.extend(request, params))
         # Spot
         #
         #     [
@@ -2288,12 +2228,21 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=10, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
         self.load_markets()
@@ -2431,12 +2380,20 @@ class zb(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        swap = market['swap']
+        orderType = self.safe_integer(params, 'orderType')
         request = {
             'pageSize': limit,  # SPOT and STOP, default pageSize is 10, doesn't work with other values now
             # 'currency': market['id'],  # SPOT
@@ -2454,36 +2411,18 @@ class zb(Exchange):
         request[marketIdField] = market['id']
         pageNumField = 'pageIndex' if market['spot'] else 'pageNum'
         request[pageNumField] = 1
-        method = 'spotV1PrivateGetGetFinishedAndPartialOrders'
-        if stop:
-            method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-            request['status'] = 5
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
-        response = getattr(self, method)(self.extend(request, query))
+        if swap and (since is not None):
+            request['startTime'] = since
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
+            'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
+        })
+        if swap and (orderType is None):
+            raise ExchangeError(self.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead')
+        if swap:
+            # a status of 2 would mean canceled and could also be valid
+            request['status'] = 5  # complete
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2544,18 +2483,26 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        if stop:
+        result = response
+        if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
-        stop = self.safe_value(params, 'stop')
+        orderType = self.safe_integer(params, 'orderType')
         swap = market['swap']
         request = {
             # 'pageSize': limit,  # default pageSize is 10 for spot, 30 for swap
@@ -2584,44 +2531,14 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
             'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
         })
-        if stop:
+        if orderType is not None:
             method = 'contractV2PrivateGetTradeGetOrderAlgos'
-            orderType = self.safe_integer(params, 'orderType')
-            if orderType is None:
-                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
-            bizType = self.safe_integer(params, 'bizType')
-            if side == 'sell' and reduceOnly:
-                request['side'] = 3  # close long
-            elif side == 'buy' and reduceOnly:
-                request['side'] = 4  # close short
-            elif side == 'buy':
-                request['side'] = 1  # open long
-            elif side == 'sell':
-                request['side'] = 2  # open short
-            elif side == 5:
-                request['side'] = 5  # one way position buy
-            elif side == 6:
-                request['side'] = 6  # one way position sell
-            elif side == 0:
-                request['side'] = 0  # one way position close only
-            if orderType == 1:
-                request['orderType'] = 1
-            elif orderType == 2 or bizType:
-                request['orderType'] = 2
-                request['bizType'] = bizType
-            request['status'] = 1
-        query = self.omit(params, ['reduceOnly', 'stop', 'side', 'orderType', 'bizType'])
+            # value 3 would mean triggered but still open orders
+            request['status'] = 1  # untriggered
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
-        response = None
-        try:
-            response = getattr(self, method)(self.extend(request, query))
-        except Exception as e:
-            if isinstance(e, OrderNotFound):
-                return []
-            raise e
+        response = getattr(self, method)(self.extend(request, params))
         #
         # Spot
         #
@@ -2720,10 +2637,11 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
-            response = self.safe_value(data, 'list', [])
-        return self.parse_orders(response, market, since, limit)
+            result = self.safe_value(data, 'list', [])
+        return self.parse_orders(result, market, since, limit)
 
     def parse_order(self, order, market=None):
         #
@@ -2832,15 +2750,22 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
+        orderId = self.safe_string_2(order, 'orderId', 'data') if market['swap'] else self.safe_string(order, 'id')
         if orderId is None:
             orderId = self.safe_value(order, 'id')
         side = self.safe_integer_2(order, 'type', 'side')
         if side is None:
             side = None
         else:
-            if market['type'] == 'spot':
+            if market['spot']:
                 side = 'buy' if (side == 1) else 'sell'
+            elif market['swap']:
+                if side == 0:
+                    side = None
+                elif (side == 1) or (side == 4) or (side == 5):
+                    side = 'buy'
+                elif (side == 2) or (side == 3) or (side == 6):
+                    side = 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
         if timestamp is None:
             timestamp = self.safe_integer(order, 'createTime')
@@ -2881,7 +2806,7 @@ class zb(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'stopPrice': self.safe_number(order, 'triggerPrice'),
             'average': self.safe_string(order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
@@ -2906,7 +2831,7 @@ class zb(Exchange):
                 '1': 'open',
                 '2': 'canceled',
                 '3': 'open',  # stop order triggered
-                '4': 'failed',
+                '4': 'rejected',
                 '5': 'closed',
             }
         return self.safe_string(statuses, status, status)
@@ -3006,6 +2931,13 @@ class zb(Exchange):
         }
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
@@ -3031,6 +2963,7 @@ class zb(Exchange):
         :param int|None since: timestamp in ms of the earliest funding rate to fetch
         :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
         :param dict params: extra parameters specific to the zb api endpoint
+        :param int|None params['until']: timestamp in ms of the latest funding rate to fetch
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         self.load_markets()
@@ -3046,13 +2979,10 @@ class zb(Exchange):
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since
-        till = self.safe_integer(params, 'till')
-        endTime = self.safe_string(params, 'endTime')
-        params = self.omit(params, ['endTime', 'till'])
-        if till is not None:
-            request['endTime'] = till
-        elif endTime is not None:
-            request['endTime'] = endTime
+        until = self.safe_integer_2(params, 'until', 'till')
+        params = self.omit(params, ['endTime', 'till', 'until'])
+        if until is not None:
+            request['endTime'] = until
         if limit is not None:
             request['limit'] = limit
         response = self.contractV2PublicGetFundingRate(self.extend(request, params))
@@ -3075,7 +3005,7 @@ class zb(Exchange):
             entry = data[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'fundingTime')
+            timestamp = self.safe_integer(entry, 'fundingTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3087,6 +3017,12 @@ class zb(Exchange):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -3151,7 +3087,13 @@ class zb(Exchange):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rates(self, symbols, params={}):
+    def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetch the funding rate for multiple markets
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure>`, indexe by market symbols
+        """
         self.load_markets()
         response = self.contractV2PublicGetPremiumIndex(params)
         #
@@ -3174,6 +3116,15 @@ class zb(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         password = self.safe_string(params, 'safePwd', self.password)
         if password is None:
@@ -3212,6 +3163,14 @@ class zb(Exchange):
         })
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': currency['id'],
@@ -3257,6 +3216,14 @@ class zb(Exchange):
         return self.parse_transactions(withdrawals, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': currency['id'],
@@ -3304,6 +3271,12 @@ class zb(Exchange):
         return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -3369,6 +3342,12 @@ class zb(Exchange):
         return self.parse_position(firstPosition, market)
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         request = {
             'futuresAccountType': 1,  # 1: USDT-M Perpetual Futures
@@ -3578,7 +3557,7 @@ class zb(Exchange):
         #         },
         #     ],
         #
-        timestamp = self.safe_string(item, 'createTime')
+        timestamp = self.safe_integer(item, 'createTime')
         direction = None
         changeDirection = self.safe_number(item, 'isIn')
         if changeDirection == 1:
@@ -3611,6 +3590,14 @@ class zb(Exchange):
         }
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
         self.load_markets()
@@ -3657,6 +3644,15 @@ class zb(Exchange):
         return self.parse_ledger(list, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         marketType, query = self.handle_market_type_and_params('transfer', None, params)
         currency = self.currency(code)
@@ -3811,16 +3807,36 @@ class zb(Exchange):
         }
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 1, params)
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
         return self.modify_margin_helper(symbol, amount, 0, params)
 
     def fetch_borrow_rate(self, code, params={}):
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -3857,6 +3873,11 @@ class zb(Exchange):
         }
 
     def fetch_borrow_rates(self, params={}):
+        """
+        fetch the borrow interest rates of all currencies
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
+        """
         if params['coin'] is None:
             raise ArgumentsRequired(self.id + ' fetchBorrowRates() requires a coin argument in the params')
         self.load_markets()
@@ -3896,6 +3917,113 @@ class zb(Exchange):
                 'info': entry,
             })
         return rates
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the zb api endpoint
+        :returns dict: response from the exchange
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol argument')
+        market = self.market(symbol)
+        accountType = None
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setPositionMode() supports swap contracts only')
+        else:
+            accountType = 1
+        request = {
+            'marketId': market['id'],
+            'positionMode': 2 if hedged else 1,
+            'futuresAccountType': accountType,  # 1: USDT perpetual swaps, 2: QC perpetual futures
+        }
+        response = self.contractV2PrivatePostSettingSetPositionsMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "success",
+        #         "data": {
+        #             "userId": 111,
+        #             "marketId": 100,
+        #             "leverage": 20,
+        #             "marginMode": 1,
+        #             "positionsMode": 2,
+        #             "enableAutoAppend": 1,
+        #             "maxAppendAmount": "11212",
+        #             "marginCoins": "qc,usdt,eth",
+        #             "id": 6737268451833817088,
+        #             "createTime": 1606289971312,
+        #             "modifyTime": 0,
+        #             "extend": null
+        #         }
+        #     }
+        #
+        return response
+
+    def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str|None symbol: unified market symbol, required for isolated margin
+        :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['safePwd']: transaction password, extra parameter required for cross margin
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        password = self.safe_string(params, 'safePwd', self.password)
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        method = None
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            method = 'spotV1PrivateGetBorrow'
+            request['marketName'] = market['id']
+        elif marginMode == 'cross':
+            method = 'spotV1PrivateGetDoCrossLoan'
+            request['safePwd'] = password  # transaction password
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功"
+        #     }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def nonce(self):
         return self.milliseconds()

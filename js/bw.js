@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { RateLimitExceeded, BadSymbol, OrderNotFound, ExchangeError, AuthenticationError, ArgumentsRequired, ExchangeNotAvailable } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -29,6 +30,9 @@ module.exports = class bw extends Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -38,6 +42,7 @@ module.exports = class bw extends Exchange {
                 'fetchDeposits': true,
                 'fetchL2OrderBook': undefined,
                 'fetchLedger': undefined,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
@@ -46,6 +51,7 @@ module.exports = class bw extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
+                'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -88,6 +94,7 @@ module.exports = class bw extends Exchange {
                 'funding': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
@@ -226,8 +233,8 @@ module.exports = class bw extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amountDecimal'),
-                    'price': this.safeInteger (market, 'priceDecimal'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimal'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimal'))),
                 },
                 'limits': {
                     'leverage': {
@@ -516,7 +523,7 @@ module.exports = class bw extends Exchange {
         //
         const orderbook = this.safeValue (response, 'datas', []);
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTrade (trade, market = undefined) {
@@ -609,6 +616,13 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bw#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ();
         //
@@ -785,7 +799,7 @@ module.exports = class bw extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bw api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -988,6 +1002,16 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1035,6 +1059,16 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -1056,6 +1090,16 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
@@ -1144,6 +1188,14 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1258,6 +1310,16 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
         }
@@ -1302,6 +1364,16 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bw#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bw api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
         }

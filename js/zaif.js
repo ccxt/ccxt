@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -132,6 +133,7 @@ module.exports = class zaif extends Exchange {
                     'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}
@@ -182,7 +184,6 @@ module.exports = class zaif extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
-            const itemUnitStep = this.safeString (market, 'item_unit_step');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -210,8 +211,8 @@ module.exports = class zaif extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': Precise.stringMul (itemUnitStep, '-1e10'),
-                    'price': this.safeInteger (market, 'aux_unit_point'),
+                    'amount': this.safeNumber (market, 'item_unit_step'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'aux_unit_point'))),
                 },
                 'limits': {
                     'leverage': {
@@ -288,11 +289,12 @@ module.exports = class zaif extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this.publicGetDepthPair (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -452,7 +454,7 @@ module.exports = class zaif extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the zaif api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -460,8 +462,9 @@ module.exports = class zaif extends Exchange {
         if (type !== 'limit') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
+        const market = this.market (symbol);
         const request = {
-            'currency_pair': this.marketId (symbol),
+            'currency_pair': market['id'],
             'action': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
             'price': price,
@@ -534,6 +537,16 @@ module.exports = class zaif extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zaif#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the zaif api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -549,6 +562,16 @@ module.exports = class zaif extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zaif#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the zaif api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -570,6 +593,17 @@ module.exports = class zaif extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name zaif#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the zaif api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

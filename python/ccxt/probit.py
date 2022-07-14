@@ -42,6 +42,9 @@ class probit(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -59,6 +62,7 @@ class probit(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -68,6 +72,7 @@ class probit(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -281,10 +286,6 @@ class probit(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             closed = self.safe_value(market, 'closed', False)
-            amountPrecision = self.safe_string(market, 'quantity_precision')
-            costPrecision = self.safe_string(market, 'cost_precision')
-            amountTickSize = self.parse_precision(amountPrecision)
-            costTickSize = self.parse_precision(costPrecision)
             takerFeeRate = self.safe_string(market, 'taker_fee_rate')
             taker = Precise.string_div(takerFeeRate, '100')
             makerFeeRate = self.safe_string(market, 'maker_fee_rate')
@@ -316,9 +317,9 @@ class probit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(amountTickSize),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
                     'price': self.safe_number(market, 'price_increment'),
-                    'cost': self.parse_number(costTickSize),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'cost_precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -416,7 +417,6 @@ class probit(Exchange):
             platforms = self.safe_value(currency, 'platform', [])
             platformsByPriority = self.sort_by(platforms, 'priority')
             platform = self.safe_value(platformsByPriority, 0, {})
-            precision = self.safe_integer(platform, 'precision')
             depositSuspended = self.safe_value(platform, 'deposit_suspended')
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
             deposit = not depositSuspended
@@ -444,7 +444,7 @@ class probit(Exchange):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(platform, 'precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -525,7 +525,7 @@ class probit(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         dataBySide = self.group_by(data, 'side')
-        return self.parse_order_book(dataBySide, symbol, None, 'buy', 'sell', 'price', 'quantity')
+        return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -638,6 +638,14 @@ class probit(Exchange):
         }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         request = {
@@ -916,6 +924,14 @@ class probit(Exchange):
         ]
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         since = self.parse8601(since)
         request = {}
@@ -928,6 +944,14 @@ class probit(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         request = {
             'start_time': self.iso8601(0),
@@ -1051,7 +1075,7 @@ class probit(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the probit api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1158,6 +1182,12 @@ class probit(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1182,6 +1212,12 @@ class probit(Exchange):
         return self.parse_deposit_address(firstAddress, currency)
 
     def fetch_deposit_addresses(self, codes=None, params={}):
+        """
+        fetch deposit addresses for multiple currencies and chain types
+        :param [str]|None codes: list of unified currency codes, default is None
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a list of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         request = {}
         if codes:
@@ -1195,6 +1231,15 @@ class probit(Exchange):
         return self.parse_deposit_addresses(data)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
         # you need to allow API withdrawal from the API Settings Page, and
@@ -1322,6 +1367,11 @@ class probit(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the probit api endpoint
+        :returns: response from exchange
+        """
         self.check_required_credentials()
         request = {
             'grant_type': 'client_credentials',  # the only supported value

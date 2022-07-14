@@ -46,6 +46,7 @@ class bittrex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -53,6 +54,7 @@ class bittrex extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
@@ -62,9 +64,10 @@ class bittrex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => 'emulated',
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -72,6 +75,7 @@ class bittrex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -83,6 +87,7 @@ class bittrex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
+                'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -149,6 +154,7 @@ class bittrex extends Exchange {
                         'deposits/closed',
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
+                        'executions',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -196,6 +202,7 @@ class bittrex extends Exchange {
                     'percentage' => false,
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'BAD_REQUEST' => '\\ccxt\\BadRequest', // array("code":"BAD_REQUEST","detail":"Refer to the data field for specific field validation failures.","data":array("invalidRequestParameter":"day"))
@@ -235,6 +242,12 @@ class bittrex extends Exchange {
                 ),
                 'fetchTickers' => array(
                     'method' => 'publicGetMarketsTickers', // publicGetMarketsSummaries
+                ),
+                'fetchDeposits' => array(
+                    'status' => 'ok',
+                ),
+                'fetchWithdrawals' => array(
+                    'status' => 'ok',
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
@@ -276,12 +289,8 @@ class bittrex extends Exchange {
         ));
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
-    }
-
     public function fee_to_precision($symbol, $fee) {
-        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function fetch_markets($params = array ()) {
@@ -347,8 +356,8 @@ class bittrex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval('8'),
-                    'price' => $this->safe_integer($market, 'precision', 8),
+                    'amount' => $this->parse_number('0.00000001'),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision', '8'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -404,14 +413,15 @@ class bittrex extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'marketSymbol' => $this->market_id($symbol),
+            'marketSymbol' => $market['id'],
         );
         if ($limit !== null) {
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -435,7 +445,7 @@ class bittrex extends Exchange {
         //     }
         //
         $sequence = $this->safe_integer($this->last_response_headers, 'Sequence');
-        $orderbook = $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'rate', 'quantity');
+        $orderbook = $this->parse_order_book($response, $market['symbol'], null, 'bid', 'ask', 'rate', 'quantity');
         $orderbook['nonce'] = $sequence;
         return $orderbook;
     }
@@ -469,7 +479,7 @@ class bittrex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
-            $precision = 8; // default $precision, todo => fix "magic constants"
+            $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
             $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
             $isActive = $this->safe_string($currency, 'status');
             $result[$code] = array(
@@ -486,7 +496,7 @@ class bittrex extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => 1 / pow(10, $precision),
+                        'min' => $precision,
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -642,6 +652,28 @@ class bittrex extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
+    public function fetch_bids_asks($symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {dict} $params extra parameters specific to the binance api endpoint
+         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetMarketsTickers ($params);
+        //
+        //     array(
+        //       {
+        //         "symbol":"ETH-BTC",
+        //         "lastTradeRate":"0.03284496",
+        //         "bidRate":"0.03284523",
+        //         "askRate":"0.03286857"
+        //       }
+        //     )
+        //
+        return $this->parse_tickers($response, $symbols);
+    }
+
     public function parse_trade($trade, $market = null) {
         //
         // public fetchTrades
@@ -731,7 +763,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'marketSymbol' => $this->market_id($symbol),
+            'marketSymbol' => $market['id'],
         );
         $response = $this->publicGetMarketsMarketSymbolTrades (array_merge($request, $params));
         //
@@ -749,6 +781,12 @@ class bittrex extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -766,6 +804,11 @@ class bittrex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         $this->load_markets();
         $response = $this->privateGetAccountFeesTrading ($params);
         //
@@ -888,6 +931,14 @@ class bittrex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
@@ -949,6 +1000,15 @@ class bittrex extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {str} $id order $id
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             'orderId' => $id,
@@ -968,7 +1028,7 @@ class bittrex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bittrex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1225,6 +1285,12 @@ class bittrex extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open $orders
+         * @param {str|null} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
@@ -1265,7 +1331,35 @@ class bittrex extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
+    public function fetch_deposit($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency deposit via the deposit $id
+         * @param {str} $id deposit $id
+         * @param {str|null} $code filter by currency $code
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'txId' => $id,
+        );
+        $response = $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
+        $transactions = $this->parse_transactions($response, $code, null, null);
+        return $this->safe_value($transactions, 0);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
         $request = array();
@@ -1274,14 +1368,75 @@ class bittrex extends Exchange {
             $currency = $this->currency($code);
             $request['currencySymbol'] = $currency['id'];
         }
-        $response = $this->privateGetDepositsClosed (array_merge($request, $params));
+        if ($since !== null) {
+            $startDate = intval($since / 1000) * 1000;
+            $request['startDate'] = $this->iso8601($startDate);
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $method = null;
+        $options = $this->safe_value($this->options, 'fetchDeposits', array());
+        $defaultStatus = $this->safe_string($options, 'status', 'ok');
+        $status = $this->safe_string($params, 'status', $defaultStatus);
+        if ($status === 'pending') {
+            $method = 'privateGetDepositsOpen';
+        } else {
+            $method = 'privateGetDepositsClosed';
+        }
+        $params = $this->omit($params, 'status');
+        $response = $this->$method (array_merge($request, $params));
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return $this->parse_transactions($response, $currency, $since, $limit);
         return $this->parse_transactions($response, $currency, null, $limit);
     }
 
+    public function fetch_pending_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all pending deposits made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        return $this->fetch_deposits($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
+    }
+
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str|null} $code filter by currency $code
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'txId' => $id,
+        );
+        $response = $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
+        $transactions = $this->parse_transactions($response, $code, null, null);
+        return $this->safe_value($transactions, 0);
+    }
+
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
         $request = array();
@@ -1290,42 +1445,75 @@ class bittrex extends Exchange {
             $currency = $this->currency($code);
             $request['currencySymbol'] = $currency['id'];
         }
-        $response = $this->privateGetWithdrawalsClosed (array_merge($request, $params));
+        if ($since !== null) {
+            $startDate = intval($since / 1000) * 1000;
+            $request['startDate'] = $this->iso8601($startDate);
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $method = null;
+        $options = $this->safe_value($this->options, 'fetchWithdrawals', array());
+        $defaultStatus = $this->safe_string($options, 'status', 'ok');
+        $status = $this->safe_string($params, 'status', $defaultStatus);
+        if ($status === 'pending') {
+            $method = 'privateGetWithdrawalsOpen';
+        } else {
+            $method = 'privateGetWithdrawalsClosed';
+        }
+        $params = $this->omit($params, 'status');
+        $response = $this->$method (array_merge($request, $params));
         return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_pending_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all pending withdrawals made from an account
+         * @param {str|null} $code unified currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @param {int|null} $params->endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {str|null} $params->nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {str|null} $params->previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "id" => "d00fdf2e-df9e-48f1-....",
-        //         "currencySymbol" => "BTC",
-        //         "quantity" => "0.00550000",
-        //         "cryptoAddress" => "1PhmYjnJPZH5NUwV8AU...",
-        //         "txId" => "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        //         "confirmations" => 2,
-        //         "updatedAt" => "2020-01-12T16:49:30.41Z",
-        //         "completedAt" => "2020-01-12T16:49:30.41Z",
-        //         "status" => "COMPLETED",
-        //         "source" => "BLOCKCHAIN"
-        //     }
+        //      {
+        //          "id" => "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        //          "currencySymbol" => "ETH",
+        //          "quantity" => "0.36487773",
+        //          "cryptoAddress" => "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        //          "txId" => "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        //          "confirmations" => 44,
+        //          "updatedAt" => "2017-12-28T13:57:42.753Z",
+        //          "completedAt" => "2017-12-28T13:57:42.753Z",
+        //          "status" => "COMPLETED",
+        //          "source" => "BLOCKCHAIN"
+        //      }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
+        //      {
+        //          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        //          "currencySymbol":"OMG",
+        //          "quantity":"2.67000000",
+        //          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        //          "cryptoAddressTag":"",
+        //          "txCost":"0.10000000",
+        //          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        //          "status":"COMPLETED",
+        //          "createdAt":"2017-12-16T20:46:22.5Z",
+        //          "completedAt":"2017-12-16T20:48:03.887Z",
+        //          "target":"BLOCKCHAIN"
+        //      }
         //
         // withdraw
         //
@@ -1341,6 +1529,14 @@ class bittrex extends Exchange {
         $id = $this->safe_string_2($transaction, 'id', 'clientWithdrawalId');
         $amount = $this->safe_number($transaction, 'quantity');
         $address = $this->safe_string($transaction, 'cryptoAddress');
+        $addressTo = null;
+        $addressFrom = null;
+        $isDeposit = $this->safe_string($transaction, 'source') === 'BLOCKCHAIN';
+        if ($isDeposit) {
+            $addressFrom = $address;
+        } else {
+            $addressTo = $address;
+        }
         $txid = $this->safe_string($transaction, 'txId');
         $updated = $this->parse8601($this->safe_string($transaction, 'updatedAt'));
         $opened = $this->parse8601($this->safe_string($transaction, 'createdAt'));
@@ -1389,8 +1585,8 @@ class bittrex extends Exchange {
             'amount' => $amount,
             'network' => null,
             'address' => $address,
-            'addressTo' => null,
-            'addressFrom' => null,
+            'addressTo' => $addressTo,
+            'addressFrom' => $addressFrom,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
@@ -1604,36 +1800,15 @@ class bittrex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function order_to_trade($order) {
-        // this entire method should be moved to the base class
-        $timestamp = $this->safe_integer_2($order, 'lastTradeTimestamp', 'timestamp');
-        return array(
-            'id' => $this->safe_string($order, 'id'),
-            'side' => $this->safe_string($order, 'side'),
-            'order' => $this->safe_string($order, 'id'),
-            'type' => $this->safe_string($order, 'type'),
-            'price' => $this->safe_number($order, 'average'),
-            'amount' => $this->safe_number($order, 'filled'),
-            'cost' => $this->safe_number($order, 'cost'),
-            'symbol' => $this->safe_string($order, 'symbol'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'fee' => $this->safe_value($order, 'fee'),
-            'info' => $order,
-            'takerOrMaker' => null,
-        );
-    }
-
-    public function orders_to_trades($orders) {
-        // this entire method should be moved to the base class
-        $result = array();
-        for ($i = 0; $i < count($orders); $i++) {
-            $result[] = $this->order_to_trade($orders[$i]);
-        }
-        return $result;
-    }
-
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array();
         if ($limit !== null) {
@@ -1646,22 +1821,22 @@ class bittrex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            // because of this line we will have to rethink the entire v3
-            // in other words, markets define all the rest of the API
-            // and v3 $market ids are reversed in comparison to v1
-            // v3 has to be a completely separate implementation
-            // otherwise we will have to shuffle symbols and currencies everywhere
-            // which is prone to errors, as was shown here
-            // https://github.com/ccxt/ccxt/pull/5219#issuecomment-499646209
-            $request['marketSymbol'] = $market['base'] . '-' . $market['quote'];
+            $request['marketSymbol'] = $market['id'];
         }
-        $response = $this->privateGetOrdersClosed (array_merge($request, $params));
-        $orders = $this->parse_orders($response, $market);
-        $trades = $this->orders_to_trades($orders);
+        $response = $this->privateGetExecutions (array_merge($request, $params));
+        $trades = $this->parse_trades($response, $market);
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $stop = $this->safe_value($params, 'stop');
         $request = array();
@@ -1736,6 +1911,12 @@ class bittrex extends Exchange {
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a $currency deposit $address
+         * @param {str} $code unified $currency $code of the $currency for the deposit $address
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1770,6 +1951,12 @@ class bittrex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1805,6 +1992,15 @@ class bittrex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bittrex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();

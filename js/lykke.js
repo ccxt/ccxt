@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -28,6 +29,9 @@ module.exports = class lykke extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -43,6 +47,7 @@ module.exports = class lykke extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -53,6 +58,7 @@ module.exports = class lykke extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -132,6 +138,7 @@ module.exports = class lykke extends Exchange {
                     'taker': 0,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '1001': ExchangeError,
@@ -230,7 +237,7 @@ module.exports = class lykke extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': this.safeInteger (currency, 'accuracy'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'accuracy'))),
                 'limits': {
                     'withdraw': {
                         'min': this.safeValue (currency, 'cashoutMinimalAmount'),
@@ -285,10 +292,6 @@ module.exports = class lykke extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'priceAccuracy'),
-                'amount': this.safeInteger (market, 'baseAssetAccuracy'),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -314,7 +317,10 @@ module.exports = class lykke extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': precision,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetAccuracy'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'priceAccuracy'))),
+                },
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'minVolume'),
@@ -504,8 +510,9 @@ module.exports = class lykke extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'assetPairId': this.marketId (symbol),
+            'assetPairId': market['id'],
         };
         if (limit !== undefined) {
             request['depth'] = limit; // default 0
@@ -536,8 +543,8 @@ module.exports = class lykke extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (payload, 0, {});
-        const timestamp = this.safeString (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
     parseTrade (trade, market) {
@@ -774,7 +781,7 @@ module.exports = class lykke extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the lykke api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -783,10 +790,10 @@ module.exports = class lykke extends Exchange {
         const query = {
             'assetPairId': market['id'],
             'side': this.capitalize (side),
-            'volume': parseFloat (this.amountToPrecision (symbol, amount)),
+            'volume': parseFloat (this.amountToPrecision (market['symbol'], amount)),
         };
         if (type === 'limit') {
-            query['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            query['price'] = parseFloat (this.priceToPrecision (market['symbol'], price));
         }
         const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
@@ -822,7 +829,7 @@ module.exports = class lykke extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
@@ -860,6 +867,14 @@ module.exports = class lykke extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'side': 'Buy',
@@ -916,6 +931,16 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -955,6 +980,16 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
@@ -994,6 +1029,16 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'side': 'buy',
@@ -1045,6 +1090,14 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1133,6 +1186,16 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'offset': 0,
@@ -1166,6 +1229,17 @@ module.exports = class lykke extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name lykke#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the lykke api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);

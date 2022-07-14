@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -41,10 +42,12 @@ class bl3p(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -99,6 +102,7 @@ class bl3p(Exchange):
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
                 'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response):
@@ -151,7 +155,7 @@ class bl3p(Exchange):
         }
         response = await self.publicGetMarketOrderbook(self.extend(request, params))
         orderbook = self.safe_value(response, 'data')
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price_int', 'amount_int')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -264,6 +268,11 @@ class bl3p(Exchange):
         return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bl3p api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostGENMKTMoneyInfo(params)
         #
@@ -317,7 +326,7 @@ class bl3p(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bl3p api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

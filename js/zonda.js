@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,7 +23,10 @@ module.exports = class zonda extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -31,6 +35,10 @@ module.exports = class zonda extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDeposit': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -39,23 +47,36 @@ module.exports = class zonda extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
+                'fetchTransactions': undefined,
+                'fetchTransfer': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': undefined,
                 'reduceMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -130,9 +151,11 @@ module.exports = class zonda extends Exchange {
                 },
                 'v1_01Private': {
                     'get': [
+                        'api_payments/deposits/crypto/addresses',
                         'payments/withdrawal/{detailId}',
                         'payments/deposit/{detailId}',
                         'trading/offer',
+                        'trading/stop/offer',
                         'trading/config/{symbol}',
                         'trading/history/transactions',
                         'balances/BITBAY/history',
@@ -142,6 +165,7 @@ module.exports = class zonda extends Exchange {
                     ],
                     'post': [
                         'trading/offer/{symbol}',
+                        'trading/stop/offer/{symbol}',
                         'trading/config/{symbol}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
@@ -149,6 +173,7 @@ module.exports = class zonda extends Exchange {
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
                     ],
                     'put': [
                         'balances/BITBAY/balance/{id}',
@@ -222,6 +247,7 @@ module.exports = class zonda extends Exchange {
                     'fillResponseFromRequest': true,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '400': ExchangeError, // At least one parameter wasn't set
                 '401': InvalidOrder, // Invalid order type
@@ -249,6 +275,7 @@ module.exports = class zonda extends Exchange {
                 'UNDER_MAINTENANCE': OnMaintenance,
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+                'INVALID_STOP_RATE': InvalidOrder,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -331,8 +358,8 @@ module.exports = class zonda extends Exchange {
                 'optionType': undefined,
                 'strike': undefined,
                 'precision': {
-                    'amount': this.safeInteger (first, 'scale'),
-                    'price': this.safeInteger (second, 'scale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -359,6 +386,16 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol not used by zonda fetchOpenOrders
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
@@ -417,6 +454,16 @@ module.exports = class zonda extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbol) {
@@ -495,8 +542,9 @@ module.exports = class zonda extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
         //
@@ -520,7 +568,7 @@ module.exports = class zonda extends Exchange {
         const rawAsks = this.safeValue (response, 'sell', []);
         const timestamp = this.safeInteger (response, 'timestamp');
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
             'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
@@ -601,7 +649,46 @@ module.exports = class zonda extends Exchange {
         return this.parseTicker (stats, market);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1_01PublicGetTradingStats (params);
+        //
+        //     {
+        //         status: 'Ok',
+        //         items: {
+        //             'DAI-PLN': {
+        //                 m: 'DAI-PLN',
+        //                 h: '4.41',
+        //                 l: '4.37',
+        //                 v: '8.71068087',
+        //                 r24h: '4.36'
+        //             }
+        //         }
+        //     }
+        //
+        const items = this.safeValue (response, 'items');
+        return this.parseTickers (items, symbols);
+    }
+
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         const balanceCurrencies = [];
         if (code !== undefined) {
             const currency = this.currency (code);
@@ -1137,7 +1224,7 @@ module.exports = class zonda extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the zonda api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1147,15 +1234,33 @@ module.exports = class zonda extends Exchange {
         amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': tradingSymbol,
-            'offerType': side,
+            'offerType': side.toUpperCase (),
             'amount': amount,
-            'mode': type,
         };
-        if (type === 'limit') {
-            request['rate'] = price;
-            price = parseFloat (this.priceToPrecision (symbol, price));
+        const stopLossPrice = this.safeValue2 (params, 'stopPrice', 'stopLossPrice');
+        const isStopLossPrice = stopLossPrice !== undefined;
+        const isLimitOrder = type === 'limit';
+        const isMarketOrder = type === 'market';
+        const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
+        const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
+        const isStopOrder = isStopLimit || isStopMarket;
+        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
+        if (isLimitOrder || isStopLimit) {
+            request['rate'] = this.priceToPrecision (symbol, price);
+            request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
+        } else if (isMarketOrder || isStopMarket) {
+            request['mode'] = isStopMarket ? 'stop-market' : 'market';
+        } else {
+            throw new ExchangeError (this.id + ' createOrder() invalid type');
         }
-        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        if (isStopOrder) {
+            if (!isStopLossPrice) {
+                throw new ExchangeError (this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
+            }
+            request['stopRate'] = this.priceToPrecision (symbol, stopLossPrice);
+        }
+        params = this.omit (params, [ 'stopPrice', 'stopLossPrice' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         // unfilled (open order)
         //
@@ -1210,35 +1315,15 @@ module.exports = class zonda extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.milliseconds (); // the real timestamp is missing in the response
-        const id = this.safeString (response, 'offerId');
+        const id = this.safeString2 (response, 'offerId', 'stopOfferId');
         const completed = this.safeValue (response, 'completed', false);
         const status = completed ? 'closed' : 'open';
-        let filled = 0;
-        let cost = undefined;
         const transactions = this.safeValue (response, 'transactions');
-        let trades = undefined;
-        if (transactions !== undefined) {
-            trades = this.parseTrades (transactions, market, undefined, undefined, {
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'symbol': symbol,
-                'side': side,
-                'type': type,
-                'orderId': id,
-            });
-            cost = 0;
-            for (let i = 0; i < trades.length; i++) {
-                filled = this.sum (filled, trades[i]['amount']);
-                cost = this.sum (cost, trades[i]['cost']);
-            }
-        }
-        const remaining = amount - filled;
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -1246,14 +1331,14 @@ module.exports = class zonda extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': undefined,
+            'filled': undefined,
+            'remaining': undefined,
             'average': undefined,
             'fee': undefined,
-            'trades': trades,
+            'trades': transactions,
             'clientOrderId': undefined,
-        };
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1285,7 +1370,7 @@ module.exports = class zonda extends Exchange {
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -1297,7 +1382,102 @@ module.exports = class zonda extends Exchange {
         return this.safeValue (fiatCurrencies, currency, false);
     }
 
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //         "currency": "BTC",
+        //         "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //         "balanceEngine": "BITBAY",
+        //         "tag": null
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'tag'),
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @param {str|undefined} params.walletId Wallet id to filter deposit adresses.
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": [{
+        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency": "BTC",
+        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine": "BITBAY",
+        //                 "tag": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const first = this.safeValue (data, 0);
+        return this.parseDepositAddress (first, currency);
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": [{
+        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency": "BTC",
+        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine": "BITBAY",
+        //                 "tag": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddresses (data, codes);
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name zonda#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {str} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {str} fromAccount account to transfer from
+         * @param {str} toAccount account to transfer to
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1401,6 +1581,17 @@ module.exports = class zonda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the zonda api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

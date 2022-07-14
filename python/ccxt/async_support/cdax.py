@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -20,6 +19,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class cdax(Exchange):
@@ -48,6 +48,9 @@ class cdax(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -60,6 +63,7 @@ class cdax(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -69,6 +73,7 @@ class cdax(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -193,6 +198,7 @@ class cdax(Exchange):
                     'taker': self.parse_number('0.002'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
@@ -421,9 +427,9 @@ class cdax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount-precision'),
-                    'price': self.safe_integer(market, 'price-precision'),
-                    'cost': self.safe_integer(market, 'value-precision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount-precision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price-precision'))),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'value-precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -570,7 +576,7 @@ class cdax(Exchange):
                 raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_value(response, 'tick')
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
-            result = self.parse_order_book(tick, symbol, timestamp)
+            result = self.parse_order_book(tick, market['symbol'], timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
@@ -736,6 +742,15 @@ class cdax(Exchange):
         }, market)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -744,6 +759,14 @@ class cdax(Exchange):
         return self.parse_trades(response['data'], None, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         await self.load_markets()
         market = None
         request = {}
@@ -866,6 +889,11 @@ class cdax(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_accounts(self, params={}):
+        """
+        fetch all the accounts associated with a profile
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
+        """
         await self.load_markets()
         response = await self.privateGetAccountAccounts(params)
         return response['data']
@@ -925,7 +953,7 @@ class cdax(Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_value(currency, 'name')
-            precision = self.safe_integer(currency, 'withdraw-precision')
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
             code = self.safe_currency_code(id)
             depositEnabled = self.safe_value(currency, 'deposit-enabled')
             withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
@@ -949,16 +977,16 @@ class cdax(Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': precision,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'deposit-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw-min-amount'),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
                 'info': currency,
@@ -1045,9 +1073,25 @@ class cdax(Exchange):
         return self.parse_order(order)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
         return await getattr(self, method)(symbol, since, limit, params)
 
@@ -1057,6 +1101,14 @@ class cdax(Exchange):
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
     async def fetch_open_orders_v2(self, symbol=None, since=None, limit=None, params={}):
@@ -1205,7 +1257,7 @@ class cdax(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the cdax api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1218,11 +1270,7 @@ class cdax(Exchange):
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
-            request['client-order-id'] = brokerId + self.uuid()
-        else:
+        if clientOrderId is not None:
             request['client-order-id'] = clientOrderId
         params = self.omit(params, ['clientOrderId', 'client-order-id'])
         if (type == 'market') and (side == 'buy'):
@@ -1254,7 +1302,7 @@ class cdax(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,
@@ -1289,6 +1337,13 @@ class cdax(Exchange):
         })
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by cdax cancelOrders()
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
         params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
@@ -1333,6 +1388,12 @@ class cdax(Exchange):
         return response
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
@@ -1359,7 +1420,7 @@ class cdax(Exchange):
         return response
 
     def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'])
+        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], self.precisionMode)
 
     def safe_network(self, networkId):
         lastCharacterIndex = len(networkId) - 1
@@ -1398,6 +1459,14 @@ class cdax(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
@@ -1417,6 +1486,14 @@ class cdax(Exchange):
         return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
@@ -1533,6 +1610,15 @@ class cdax(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the cdax api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
         self.check_address(address)

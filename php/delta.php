@@ -38,6 +38,7 @@ class delta extends Exchange {
                 'fetchDeposits' => null,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -45,6 +46,7 @@ class delta extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -327,7 +329,6 @@ class delta extends Exchange {
             $depositsEnabled = ($depositStatus === 'enabled');
             $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
             $active = $depositsEnabled && $withdrawalsEnabled;
-            $precision = $this->safe_integer($currency, 'precision');
             $result[$code] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -338,7 +339,7 @@ class delta extends Exchange {
                 'deposit' => $depositsEnabled,
                 'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
-                'precision' => 1 / pow(10, $precision),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array(
@@ -373,13 +374,9 @@ class delta extends Exchange {
         $response = $this->publicGetProducts ($params);
         //
         //     {
-        //         "meta":array(
-        //             "after":null,
-        //             "before":null,
-        //             "limit":100,
-        //             "total_count":81
-        //         ),
+        //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
         //         "result":[
+        //             // the below $response represents item from perpetual $market
         //             array(
         //                 "annualized_funding":"5.475000000000000000",
         //                 "is_quanto":false,
@@ -438,6 +435,117 @@ class delta extends Exchange {
         //                 "funding_method":"mark_price",
         //                 "max_leverage_notional":"20000"
         //             ),
+        //             // the below $response represents item from $spot $market
+        //             array(
+        //                 "position_size_limit" => 10000000,
+        //                 "settlement_price" => null,
+        //                 "funding_method" => "mark_price",
+        //                 "settling_asset" => null,
+        //                 "impact_size" => 10,
+        //                 "id" => 32258,
+        //                 "auction_finish_time" => null,
+        //                 "description" => "Solana tether $spot $market",
+        //                 "trading_status" => "operational",
+        //                 "tick_size" => "0.01",
+        //                 "liquidation_penalty_factor" => "1",
+        //                 "spot_index" => array(
+        //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
+        //                     "constituent_exchanges" => array(
+        //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
+        //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
+        //                     ),
+        //                     "constituent_indices" => null,
+        //                     "description" => "Solana index from binance and huobi",
+        //                     "health_interval" => 300,
+        //                     "id" => 105,
+        //                     "impact_size" => "40.000000000000000000",
+        //                     "index_type" => "spot_pair",
+        //                     "is_composite" => false,
+        //                     "price_method" => "ltp",
+        //                     "quoting_asset_id" => 5,
+        //                     "symbol" => ".DESOLUSDT",
+        //                     "tick_size" => "0.000100000000000000",
+        //                     "underlying_asset_id" => 66
+        //                 ),
+        //                 "contract_type" => "spot",
+        //                 "launch_time" => "2022-02-03T10:18:11Z",
+        //                 "symbol" => "SOL_USDT",
+        //                 "disruption_reason" => null,
+        //                 "settlement_time" => null,
+        //                 "insurance_fund_margin_contribution" => "1",
+        //                 "is_quanto" => false,
+        //                 "maintenance_margin" => "5",
+        //                 "taker_commission_rate" => "0.0005",
+        //                 "auction_start_time" => null,
+        //                 "max_leverage_notional" => "10000000",
+        //                 "state" => "live",
+        //                 "annualized_funding" => "0",
+        //                 "notional_type" => "vanilla",
+        //                 "price_band" => "100",
+        //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
+        //                 "default_leverage" => "1.000000000000000000",
+        //                 "initial_margin" => "10",
+        //                 "maintenance_margin_scaling_factor" => "1",
+        //                 "ui_config" => array(
+        //                     "default_trading_view_candle" => "1d",
+        //                     "leverage_slider_values" => array(),
+        //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
+        //                     "show_bracket_orders" => false,
+        //                     "sort_priority" => 2,
+        //                     "tags" => array()
+        //                 ),
+        //                 "basis_factor_max_limit" => "10000",
+        //                 "contract_unit_currency" => "SOL",
+        //                 "strike_price" => null,
+        //                 "quoting_asset" => array(
+        //                     "base_withdrawal_fee" => "10.000000000000000000",
+        //                     "deposit_status" => "enabled",
+        //                     "id" => 5,
+        //                     "interest_credit" => false,
+        //                     "interest_slabs" => null,
+        //                     "kyc_deposit_limit" => "100000.000000000000000000",
+        //                     "kyc_withdrawal_limit" => "10000.000000000000000000",
+        //                     "min_withdrawal_amount" => "30.000000000000000000",
+        //                     "minimum_precision" => 2,
+        //                     "name" => "Tether",
+        //                     "networks" => array(
+        //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
+        //                     ),
+        //                     "precision" => 8,
+        //                     "sort_priority" => 1,
+        //                     "symbol" => "USDT",
+        //                     "variable_withdrawal_fee" => "0.000000000000000000",
+        //                     "withdrawal_status" => "enabled"
+        //                 ),
+        //                 "maker_commission_rate" => "0.0005",
+        //                 "initial_margin_scaling_factor" => "2",
+        //                 "underlying_asset" => array(
+        //                     "base_withdrawal_fee" => "0.000000000000000000",
+        //                     "deposit_status" => "enabled",
+        //                     "id" => 66,
+        //                     "interest_credit" => false,
+        //                     "interest_slabs" => null,
+        //                     "kyc_deposit_limit" => "0.000000000000000000",
+        //                     "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                     "min_withdrawal_amount" => "0.020000000000000000",
+        //                     "minimum_precision" => 4,
+        //                     "name" => "Solana",
+        //                     "networks" => array(
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
+        //                     ),
+        //                     "precision" => 8,
+        //                     "sort_priority" => 7,
+        //                     "symbol" => "SOL",
+        //                     "variable_withdrawal_fee" => "0.000000000000000000",
+        //                     "withdrawal_status" => "enabled"
+        //                 ),
+        //                 "barrier_price" => null,
+        //                 "contract_value" => "1",
+        //                 "short_description" => "SOL-USDT $spot $market"
+        //             ),
         //         ],
         //         "success":true
         //     }
@@ -451,6 +559,7 @@ class delta extends Exchange {
             $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
             $settlingAsset = $this->safe_value($market, 'settling_asset');
+            $productSpecs = $this->safe_value($market, 'product_specs', array());
             $baseId = $this->safe_string($underlyingAsset, 'symbol');
             $quoteId = $this->safe_string($quotingAsset, 'symbol');
             $settleId = $this->safe_string($settlingAsset, 'symbol');
@@ -470,6 +579,13 @@ class delta extends Exchange {
             $expiryDatetime = $this->safe_string($market, 'settlement_time');
             $expiry = $this->parse8601($expiryDatetime);
             $contractSize = $this->safe_number($market, 'contract_value');
+            $amountPrecision = null;
+            if ($spot) {
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
+            } else {
+                // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
+                $amountPrecision = $this->parse_number('1');
+            }
             $linear = ($settle === $base);
             $optionType = null;
             $symbol = $base . '/' . $quote;
@@ -527,7 +643,7 @@ class delta extends Exchange {
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
-                    'amount' => $this->parse_number('1'), // number of contracts
+                    'amount' => $amountPrecision,
                     'price' => $this->safe_number($market, 'tick_size'),
                 ),
                 'limits' => array(
@@ -689,14 +805,15 @@ class delta extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the delta api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
@@ -721,7 +838,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, $symbol, null, 'buy', 'sell', 'price', 'size');
+        return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -971,6 +1088,12 @@ class delta extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
+        /**
+         * fetch data on a single open contract trade position
+         * @param {str} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -992,6 +1115,12 @@ class delta extends Exchange {
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[str]|null} $symbols list of unified market $symbols
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
         $this->load_markets();
         $response = $this->privateGetPositionsMargined ($params);
         //
@@ -1119,7 +1248,7 @@ class delta extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the delta api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1128,8 +1257,8 @@ class delta extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            'size' => $this->amount_to_precision($symbol, $amount),
+            // 'limit_price' => $this->price_to_precision($market['symbol'], $price),
+            'size' => $this->amount_to_precision($market['symbol'], $amount),
             'side' => $side,
             'order_type' => $orderType,
             // 'client_order_id' => 'string',
@@ -1138,7 +1267,7 @@ class delta extends Exchange {
             // 'reduce_only' => 'false', // 'true',
         );
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
@@ -1282,6 +1411,12 @@ class delta extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {str} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
@@ -1303,10 +1438,26 @@ class delta extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
 
@@ -1362,6 +1513,14 @@ class delta extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             // 'product_ids' => $market['id'], // comma-separated
@@ -1434,6 +1593,14 @@ class delta extends Exchange {
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit max number of ledger entrys to return, default is null
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
         $this->load_markets();
         $request = array(
             // 'asset_id' => $currency['numericId'],
@@ -1550,6 +1717,12 @@ class delta extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the delta api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

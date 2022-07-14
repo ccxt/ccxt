@@ -24,7 +24,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -514,14 +513,14 @@ class okcoin(Exchange):
                     '32038': AuthenticationError,  # User does not exist
                     '32040': ExchangeError,  # User have open contract orders or position
                     '32044': ExchangeError,  # {"code": 32044, "message": "The margin ratio after submitting self order is lower than the minimum requirement({0}) for your tier."}
-                    '32045': ExchangeError,  # String of commission over 1 million
+                    '32045': ExchangeError,  # str of commission over 1 million
                     '32046': ExchangeError,  # Each user can hold up to 10 trade plans at the same time
                     '32047': ExchangeError,  # system error
                     '32048': InvalidOrder,  # Order strategy track range error
                     '32049': ExchangeError,  # Each user can hold up to 10 track plans at the same time
                     '32050': InvalidOrder,  # Order strategy rang error
                     '32051': InvalidOrder,  # Order strategy ice depth error
-                    '32052': ExchangeError,  # String of commission over 100 thousand
+                    '32052': ExchangeError,  # str of commission over 100 thousand
                     '32053': ExchangeError,  # Each user can hold up to 6 ice plans at the same time
                     '32057': ExchangeError,  # The order price is zero. Market-close-all function cannot be executed
                     '32054': ExchangeError,  # Trade not allow
@@ -1133,7 +1132,6 @@ class okcoin(Exchange):
                 currency = response[i]
                 id = self.safe_string(currency, 'currency')
                 code = self.safe_currency_code(id)
-                precision = 0.00000001  # default precision, todo: fix "magic constants"
                 name = self.safe_string(currency, 'name')
                 canDeposit = self.safe_integer(currency, 'can_deposit')
                 canWithdraw = self.safe_integer(currency, 'can_withdraw')
@@ -1150,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': precision,
+                    'precision': self.parse_number('0.00000001'),
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {
@@ -2029,7 +2027,7 @@ class okcoin(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2085,8 +2083,7 @@ class okcoin(Exchange):
                             raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter(the exchange-specific behaviour)")
                     else:
                         notional = amount if (notional is None) else notional
-                    precision = market['precision']['price']
-                    request['notional'] = self.decimal_to_precision(notional, TRUNCATE, precision, self.precisionMode)
+                    request['notional'] = self.cost_to_precision(symbol, notional)
                 else:
                     request['size'] = self.amount_to_precision(symbol, amount)
             method = 'marginPostOrders' if (marginTrading == '2') else 'spotPostOrders'
@@ -2506,6 +2503,14 @@ class okcoin(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         # '-2': failed,
         # '-1': cancelled,
         #  '0': open ,
@@ -2518,6 +2523,14 @@ class okcoin(Exchange):
         return self.fetch_orders_by_state('6', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         # '-2': failed,
         # '-1': cancelled,
         #  '0': open ,
@@ -2554,6 +2567,12 @@ class okcoin(Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         parts = code.split('-')
         currency = self.currency(parts[0])
@@ -2576,6 +2595,15 @@ class okcoin(Exchange):
         return address
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2655,6 +2683,15 @@ class okcoin(Exchange):
         return self.safe_string(statuses, status, 'failed')
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
@@ -2669,7 +2706,7 @@ class okcoin(Exchange):
             'to_address': address,
             'destination': '4',  # 2 = OKCoin International, 3 = OKEx 4 = others
             'amount': self.number_to_string(amount),
-            'fee': fee,  # String. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
+            'fee': fee,  # str. Network transaction fee ≥ 0. Withdrawals to OKCoin or OKEx are fee-free, please set as 0. Withdrawal to external digital asset address requires network transaction fee.
         }
         if 'password' in params:
             request['trade_pwd'] = params['password']
@@ -2692,6 +2729,14 @@ class okcoin(Exchange):
         return self.parse_transaction(response, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'accountGetDepositHistory'
@@ -2704,6 +2749,14 @@ class okcoin(Exchange):
         return self.parse_transactions(response, currency, since, limit, params)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {}
         method = 'accountGetWithdrawalHistory'
@@ -2988,6 +3041,14 @@ class okcoin(Exchange):
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         # okex actually returns ledger entries instead of fills here, so each fill in the order
         # is represented by two trades with opposite buy/sell sides, not one :\
         # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
@@ -3083,6 +3144,15 @@ class okcoin(Exchange):
         return self.parse_my_trades(response, market, since, limit, params)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         request = {
             # 'instrument_id': market['id'],
             'order_id': id,
@@ -3093,6 +3163,12 @@ class okcoin(Exchange):
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -3292,6 +3368,12 @@ class okcoin(Exchange):
         return response
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: not used by okcoin fetchPositions
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         method = None
         defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
@@ -3358,6 +3440,14 @@ class okcoin(Exchange):
         return response
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchLedger', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)

@@ -25,10 +25,16 @@ module.exports = class indodax extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -45,6 +51,7 @@ module.exports = class indodax extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
@@ -54,6 +61,7 @@ module.exports = class indodax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -63,6 +71,8 @@ module.exports = class indodax extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -70,6 +80,7 @@ module.exports = class indodax extends Exchange {
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
@@ -248,7 +259,7 @@ module.exports = class indodax extends Exchange {
                 'optionType': undefined,
                 'percentage': true,
                 'precision': {
-                    'amount': parseInt ('8'),
+                    'amount': this.parseNumber (this.parsePrecision ('8')),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_round'))),
                     'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_precision'))),
                 },
@@ -352,11 +363,12 @@ module.exports = class indodax extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const orderbook = await this.publicGetPairDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
+        return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -585,6 +597,16 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -616,6 +638,16 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
@@ -642,7 +674,7 @@ module.exports = class indodax extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the indodax api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -699,7 +731,51 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTransactionFee
+         * @description fetch the fee for a transaction
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'return', {});
+        const currencyId = this.safeString (data, 'currency');
+        return {
+            'info': response,
+            'rate': this.safeNumber (data, 'withdraw_fee'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+        };
+    }
+
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTransactions
+         * @description fetch history of deposits and withdrawals
+         * @param {str|undefined} code unified currency code for the currency of the transactions, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
+         * @param {int|undefined} limit max number of transactions to return, default is undefined
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {dict} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -791,6 +867,17 @@ module.exports = class indodax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the indodax api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -880,7 +967,7 @@ module.exports = class indodax extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
-                'cost': this.safeNumber ('fee'),
+                'cost': feeCost,
             };
         }
         return {

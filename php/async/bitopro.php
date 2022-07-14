@@ -47,6 +47,7 @@ class bitopro extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -57,6 +58,7 @@ class bitopro extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -178,6 +180,7 @@ class bitopro extends Exchange {
                     'TRC20' => 'TRX',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'Unsupported currency.' => '\\ccxt\\BadRequest', // array("error":"Unsupported currency.")
@@ -298,10 +301,6 @@ class bitopro extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'basePrecision'),
-            );
             $limits = array(
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minLimitBaseAmount'),
@@ -346,7 +345,10 @@ class bitopro extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'limits' => $limits,
-                'precision' => $precision,
+                'precision' => array(
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+                ),
                 'active' => $active,
                 'info' => $market,
             );
@@ -454,14 +456,15 @@ class bitopro extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitopro api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -487,7 +490,7 @@ class bitopro extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade($trade, $market) {
@@ -609,6 +612,11 @@ class bitopro extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetProvisioningLimitationsAndFees ($params);
         $tradingFeeRate = $this->safe_value($response, 'tradingFeeRate', array());
@@ -951,7 +959,7 @@ class bitopro extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the bitopro api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -1027,6 +1035,13 @@ class bitopro extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -1050,6 +1065,12 @@ class bitopro extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {str|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'pair' => $market['id'], // optional
@@ -1120,6 +1141,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires the $symbol argument');
         }
@@ -1180,6 +1209,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array(
             'statusKind' => 'DONE',
         );
@@ -1187,6 +1224,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires the $symbol argument');
         }
@@ -1313,6 +1358,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
         }
@@ -1355,6 +1408,14 @@ class bitopro extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {str} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
         }
@@ -1396,6 +1457,13 @@ class bitopro extends Exchange {
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch data on a $currency withdrawal via the withdrawal $id
+         * @param {str} $id withdrawal $id
+         * @param {str} $code unified $currency $code of the $currency withdrawn, default is null
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }
@@ -1427,6 +1495,15 @@ class bitopro extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the bitopro api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         yield $this->load_markets();
         $this->check_address($address);

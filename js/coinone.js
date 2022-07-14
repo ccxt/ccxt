@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -29,6 +30,9 @@ module.exports = class coinone extends Exchange {
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -44,6 +48,7 @@ module.exports = class coinone extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -52,6 +57,7 @@ module.exports = class coinone extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -113,10 +119,11 @@ module.exports = class coinone extends Exchange {
                 },
             },
             'precision': {
-                'price': 4,
-                'amount': 4,
-                'cost': 8,
+                'price': this.parseNumber ('0.0001'),
+                'amount': this.parseNumber ('0.0001'),
+                'cost': this.parseNumber ('0.00000001'),
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
                 '104': OrderNotFound, // {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
@@ -277,7 +284,7 @@ module.exports = class coinone extends Exchange {
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
         const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'qty');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -497,7 +504,7 @@ module.exports = class coinone extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the coinone api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -505,9 +512,10 @@ module.exports = class coinone extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'price': price,
-            'currency': this.marketId (symbol),
+            'currency': market['id'],
             'qty': amount,
         };
         const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
@@ -686,6 +694,16 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinone#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the coinone api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
@@ -719,6 +737,16 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinone#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the coinone api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -792,6 +820,14 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinone#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[str]|undefined} codes list of unified currency codes, default is undefined
+         * @param {dict} params extra parameters specific to the coinone api endpoint
+         * @returns {dict} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privatePostAccountDepositAddress (params);
         //

@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ module.exports = class kuna extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
                 'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -40,6 +42,7 @@ module.exports = class kuna extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -282,6 +285,7 @@ module.exports = class kuna extends Exchange {
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -421,7 +425,7 @@ module.exports = class kuna extends Exchange {
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
         const timestamp = this.safeTimestamp (orderbook, 'timestamp');
-        return this.parseOrderBook (orderbook, symbol, timestamp);
+        return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -506,6 +510,15 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {dict} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
@@ -674,13 +687,14 @@ module.exports = class kuna extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the kuna api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,
@@ -689,8 +703,6 @@ module.exports = class kuna extends Exchange {
             request['price'] = price.toString ();
         }
         const response = await this.privatePostOrders (this.extend (request, params));
-        const marketId = this.safeValue (response, 'market');
-        const market = this.safeValue (this.markets_by_id, marketId);
         return this.parseOrder (response, market);
     }
 
@@ -777,6 +789,16 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -793,6 +815,25 @@ module.exports = class kuna extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kuna#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the kuna api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetTradesMy (this.extend (request, params));
         //
         //      [
         //          {
@@ -808,15 +849,6 @@ module.exports = class kuna extends Exchange {
         //          },
         //      ]
         //
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        const response = await this.privateGetTradesMy (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 

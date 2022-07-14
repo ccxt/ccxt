@@ -26,6 +26,9 @@ class independentreserve extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -40,6 +43,7 @@ class independentreserve extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -48,6 +52,7 @@ class independentreserve extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -249,7 +254,7 @@ class independentreserve extends Exchange {
         );
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
-        return $this->parse_order_book($response, $symbol, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return $this->parse_order_book($response, $market['symbol'], $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -395,7 +400,7 @@ class independentreserve extends Exchange {
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
         $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
-        $filled = $this->safe_string($order, 'VolumeFilled');
+        $filled = $this->safe_number($order, 'VolumeFilled');
         $remaining = $this->safe_string($order, 'Outstanding');
         $feeRate = $this->safe_number($order, 'FeePercent');
         $feeCost = null;
@@ -469,6 +474,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = $this->ordered(array());
         $market = null;
@@ -488,6 +501,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $this->load_markets();
         $request = $this->ordered(array());
         $market = null;
@@ -507,6 +528,14 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = 50, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
         if ($limit === null) {
@@ -586,6 +615,11 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {dict} $params extra parameters specific to the independentreserve api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
         $this->load_markets();
         $response = $this->privatePostGetBrokerageFees ($params);
         //
@@ -632,7 +666,7 @@ class independentreserve extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the independentreserve api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */

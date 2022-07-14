@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -41,11 +42,13 @@ class btctradeua(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -89,9 +92,10 @@ class btctradeua(Exchange):
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'markets': {
                 'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}, 'type': 'spot', 'spot': True},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': self.parse_number('0.1')}, 'limits': {'amount': {'min': self.parse_number('0.0000000001')}}, 'type': 'spot', 'spot': True},
                 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
                 'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
@@ -125,6 +129,11 @@ class btctradeua(Exchange):
         })
 
     async def sign_in(self, params={}):
+        """
+        sign in, must be called prior to using other authenticated methods
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns: response from exchange
+        """
         return await self.privatePostAuth(params)
 
     def parse_balance(self, response):
@@ -174,7 +183,7 @@ class btctradeua(Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'currency_trade')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -371,7 +380,7 @@ class btctradeua(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the btctradeua api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -433,6 +442,14 @@ class btctradeua(Exchange):
         }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the btctradeua api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()

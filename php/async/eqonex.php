@@ -42,12 +42,14 @@ class eqonex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => null,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -124,6 +126,7 @@ class eqonex extends Exchange {
                 'secret' => true,
                 'uid' => true,
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'broad' => array(
                     'symbol not found' => '\\ccxt\\BadSymbol',
@@ -305,8 +308,8 @@ class eqonex extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->safe_integer($market, 'quantity_scale'),
-                'price' => $this->safe_integer($market, 'price_scale'),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_scale'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -379,9 +382,6 @@ class eqonex extends Exchange {
         $id = $this->safe_string($currency, 0);
         $uppercaseId = $this->safe_string($currency, 1);
         $code = $this->safe_currency_code($uppercaseId);
-        $priceScale = $this->safe_integer($currency, 2);
-        $amountScale = $this->safe_integer($currency, 3);
-        $precision = max ($priceScale, $amountScale);
         $name = $this->safe_string($currency, 6);
         $status = $this->safe_integer($currency, 4);
         $active = ($status === 1);
@@ -392,7 +392,7 @@ class eqonex extends Exchange {
             'uppercaseId' => $uppercaseId,
             'code' => $code,
             'name' => $name,
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 3))),
             'fee' => $fee,
             'active' => $active,
             'deposit' => null,
@@ -542,7 +542,7 @@ class eqonex extends Exchange {
         //         "auctionVolume":0.0
         //     }
         //
-        return $this->parse_order_book($response, $symbol, null, 'bids', 'asks', 0, 1, $market);
+        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 0, 1, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -621,7 +621,7 @@ class eqonex extends Exchange {
         $amountString = null;
         $fee = null;
         $marketId = null;
-        if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
+        if (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade))) {
             $id = $this->safe_string($trade, 3);
             $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
             $amountString = $this->convert_from_scale($this->safe_string($trade, 1), $market['precision']['amount']);
@@ -733,7 +733,7 @@ class eqonex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the eqonex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -974,6 +974,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         $request = array(
             'ordStatus' => '2', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         );
@@ -981,6 +989,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled orders made by the user
+         * @param {str|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since timestamp in ms of the earliest order, default is null
+         * @param {int|null} $limit max number of orders to return, default is null
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'ordStatus' => '4', // '0' = New, '1' = Partially filled, '2' = Filled, '4' = Cancelled, '8' = Rejected, 'C' = Expired
         );
@@ -988,6 +1004,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $market = null;
         $request = array(
@@ -1056,6 +1080,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $request = array(
             // 'account' => 123, // for institutional users
@@ -1107,6 +1139,12 @@ class eqonex extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {str} $code unified $currency $code
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         yield $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1149,6 +1187,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $deposits for
+         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $request = array();
         $currency = null;
@@ -1181,6 +1227,14 @@ class eqonex extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {str|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
+         * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         yield $this->load_markets();
         $request = array();
         $currency = null;
@@ -1298,6 +1352,15 @@ class eqonex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {str} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {str} $address the $address to withdraw to
+         * @param {str|null} $tag
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         yield $this->load_markets();
@@ -1334,6 +1397,11 @@ class eqonex extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading fees for multiple markets
+         * @param {dict} $params extra parameters specific to the eqonex api endpoint
+         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
         yield $this->load_markets();
         $response = yield $this->publicGetGetExchangeInfo ($params);
         //
@@ -1639,7 +1707,8 @@ class eqonex extends Exchange {
         return $this->parse8601($date . ' ' . $partTwo);
     }
 
-    public function convert_from_scale($number, $scale) {
+    public function convert_from_scale($number, $scaleInTicksize) {
+        $scale = $this->get_scale($scaleInTicksize);
         if (($number === null) || ($scale === null)) {
             return null;
         }

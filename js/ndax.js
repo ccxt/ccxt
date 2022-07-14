@@ -63,6 +63,7 @@ module.exports = class ndax extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -257,6 +258,13 @@ module.exports = class ndax extends Exchange {
     }
 
     async signIn (params = {}) {
+        /**
+         * @method
+         * @name ndax#signIn
+         * @description sign in, must be called prior to using other authenticated methods
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns response from exchange
+         */
         this.checkRequiredCredentials ();
         if (this.login === undefined || this.password === undefined) {
             throw new AuthenticationError (this.id + ' signIn() requires exchange.login, exchange.password');
@@ -339,7 +347,6 @@ module.exports = class ndax extends Exchange {
             const name = this.safeString (currency, 'ProductFullName');
             const type = this.safeString (currency, 'ProductType');
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
-            const precision = this.safeNumber (currency, 'TickSize');
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
             result[code] = {
@@ -347,7 +354,7 @@ module.exports = class ndax extends Exchange {
                 'name': name,
                 'code': code,
                 'type': type,
-                'precision': precision,
+                'precision': this.safeNumber (currency, 'TickSize'),
                 'info': currency,
                 'active': active,
                 'deposit': undefined,
@@ -961,6 +968,13 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
         if (!this.login) {
             throw new AuthenticationError (this.id + ' fetchAccounts() requires exchange.login email credential');
         }
@@ -1144,6 +1158,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1263,40 +1287,27 @@ module.exports = class ndax extends Exchange {
         //         "OMSId":1
         //     }
         //
-        const id = this.safeString2 (order, 'ReplacementOrderId', 'OrderId');
         const timestamp = this.safeInteger (order, 'ReceiveTime');
-        const lastTradeTimestamp = this.safeInteger (order, 'LastUpdatedTime');
         const marketId = this.safeString (order, 'Instrument');
-        const symbol = this.safeSymbol (marketId, market);
-        const side = this.safeStringLower (order, 'Side');
-        const type = this.safeStringLower (order, 'OrderType');
-        const clientOrderId = this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId');
-        const price = this.safeString (order, 'Price');
-        const amount = this.safeString (order, 'OrigQuantity');
-        const filled = this.safeString (order, 'QuantityExecuted');
-        const cost = this.safeString (order, 'GrossValueExecuted');
-        const average = this.safeString (order, 'AvgPrice');
-        const stopPrice = this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice')));
-        const status = this.parseOrderStatus (this.safeString (order, 'OrderState'));
         return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString2 (order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId': this.safeString2 (order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': this.safeInteger (order, 'LastUpdatedTime'),
+            'status': this.parseOrderStatus (this.safeString (order, 'OrderState')),
+            'symbol': this.safeSymbol (marketId, market),
+            'type': this.safeStringLower (order, 'OrderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'side': this.safeStringLower (order, 'Side'),
+            'price': this.safeString (order, 'Price'),
+            'stopPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
+            'cost': this.safeString (order, 'GrossValueExecuted'),
+            'amount': this.safeString (order, 'OrigQuantity'),
+            'filled': this.safeString (order, 'QuantityExecuted'),
+            'average': this.safeString (order, 'AvgPrice'),
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
@@ -1312,7 +1323,7 @@ module.exports = class ndax extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the ndax api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1410,6 +1421,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1488,6 +1509,14 @@ module.exports = class ndax extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1554,6 +1583,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1623,6 +1662,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1784,6 +1833,17 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {str} id order id
+         * @param {str|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1856,6 +1916,14 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1922,6 +1990,14 @@ module.exports = class ndax extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name ndax#createDepositAddress
+         * @description create a currency deposit address
+         * @param {str} code unified currency code of the currency for the deposit address
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         const request = {
             'GenerateNewKey': true,
         };
@@ -1929,6 +2005,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1969,6 +2055,16 @@ module.exports = class ndax extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -2158,6 +2254,17 @@ module.exports = class ndax extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the ndax api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         // this method required login, password and twofa key
         const sessionToken = this.safeString (this.options, 'sessionToken');

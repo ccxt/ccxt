@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -43,6 +44,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -53,6 +55,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -174,6 +177,7 @@ module.exports = class bitopro extends Exchange {
                     'TRC20': 'TRX',
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Unsupported currency.': BadRequest, // {"error":"Unsupported currency."}
@@ -298,10 +302,6 @@ module.exports = class bitopro extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'basePrecision'),
-            };
             const limits = {
                 'amount': {
                     'min': this.safeNumber (market, 'minLimitBaseAmount'),
@@ -346,7 +346,10 @@ module.exports = class bitopro extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'limits': limits,
-                'precision': precision,
+                'precision': {
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                },
                 'active': active,
                 'info': market,
             });
@@ -466,8 +469,9 @@ module.exports = class bitopro extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -493,7 +497,7 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market) {
@@ -617,6 +621,13 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const response = await this.publicGetProvisioningLimitationsAndFees (params);
         const tradingFeeRate = this.safeValue (response, 'tradingFeeRate', {});
@@ -965,7 +976,7 @@ module.exports = class bitopro extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the bitopro api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -1043,6 +1054,15 @@ module.exports = class bitopro extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#cancelOrders
+         * @description cancel multiple orders
+         * @param {[str]} ids order ids
+         * @param {str} symbol unified market symbol
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {dict} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -1066,6 +1086,14 @@ module.exports = class bitopro extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#cancelAllOrders
+         * @description cancel all open orders
+         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'pair': market['id'], // optional
@@ -1138,6 +1166,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires the symbol argument');
         }
@@ -1198,6 +1236,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const request = {
             'statusKind': 'DONE',
         };
@@ -1205,6 +1253,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {str} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires the symbol argument');
         }
@@ -1331,6 +1389,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {str} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
@@ -1373,6 +1441,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {str} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
@@ -1414,6 +1492,15 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {str} id withdrawal id
+         * @param {str} code unified currency code of the currency withdrawn, default is undefined
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
@@ -1445,6 +1532,17 @@ module.exports = class bitopro extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the bitopro api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);

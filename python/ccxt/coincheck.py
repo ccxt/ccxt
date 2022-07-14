@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadSymbol
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coincheck(Exchange):
@@ -41,12 +42,14 @@ class coincheck(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -148,6 +151,7 @@ class coincheck(Exchange):
                     'taker': self.parse_number('0'),
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'disabled API Key': AuthenticationError,  # {"success":false,"error":"disabled API Key"}'
@@ -183,6 +187,14 @@ class coincheck(Exchange):
         return self.parse_balance(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the coincheck api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         # Only BTC/JPY is meaningful
         market = None
@@ -258,7 +270,7 @@ class coincheck(Exchange):
             'pair': market['id'],
         }
         response = self.publicGetOrderBooks(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -420,6 +432,14 @@ class coincheck(Exchange):
         }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the coincheck api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -482,6 +502,11 @@ class coincheck(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the coincheck api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.privateGetAccounts(params)
         #
@@ -526,13 +551,14 @@ class coincheck(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the coincheck api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if type == 'market':
             order_type = type + '_' + side
@@ -564,6 +590,14 @@ class coincheck(Exchange):
         return self.privateDeleteExchangeOrdersId(self.extend(request, params))
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the coincheck api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = None
         request = {}
@@ -600,6 +634,14 @@ class coincheck(Exchange):
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the coincheck api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         currency = None
         if code is not None:

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class coinspot(Exchange):
@@ -29,6 +30,9 @@ class coinspot(Exchange):
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -42,10 +46,12 @@ class coinspot(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -125,6 +131,7 @@ class coinspot(Exchange):
             'options': {
                 'fetchBalance': 'private_post_my_balances',
             },
+            'precisionMode': TICK_SIZE,
         })
 
     def parse_balance(self, response):
@@ -192,7 +199,7 @@ class coinspot(Exchange):
             'cointype': market['id'],
         }
         orderbook = self.privatePostOrders(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'buyorders', 'sellorders', 'rate', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -326,7 +333,7 @@ class coinspot(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the coinspot api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -334,8 +341,9 @@ class coinspot(Exchange):
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
+        market = self.market(symbol)
         request = {
-            'cointype': self.market_id(symbol),
+            'cointype': market['id'],
             'amount': amount,
             'rate': price,
         }

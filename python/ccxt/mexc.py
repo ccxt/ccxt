@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -64,6 +63,7 @@ class mexc(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -75,6 +75,7 @@ class mexc(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
@@ -91,6 +92,7 @@ class mexc(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -339,6 +341,7 @@ class mexc(Exchange):
                     '30004': InsufficientFunds,  # Insufficient balance
                     '30005': InvalidOrder,  # Oversell error
                     '30010': InvalidOrder,  # Price out of allowed range
+                    '30014': BadSymbol,  # {"msg":"invalid symbol","code":30014}
                     '30016': BadSymbol,  # Market is closed
                     '30019': InvalidOrder,  # Orders count over limit for batch processing
                     '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
@@ -455,8 +458,6 @@ class mexc(Exchange):
                 isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
-                precisionDigits = self.safe_integer(chain, 'precision')
-                precision = 1 / math.pow(10, precisionDigits)
                 withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
                 withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
                 currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
@@ -477,7 +478,7 @@ class mexc(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -690,8 +691,6 @@ class mexc(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            priceScale = self.safe_string(market, 'price_scale')
-            quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
             active = False
             for j in range(0, len(symbols)):
@@ -726,8 +725,8 @@ class mexc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(quantityScale)),
-                    'price': self.parse_number(self.parse_precision(priceScale)),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_scale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -1151,6 +1150,11 @@ class mexc(Exchange):
         }, market)
 
     def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         self.load_markets()
         response = self.spotPublicGetMarketSymbols(params)
         #
@@ -1391,6 +1395,12 @@ class mexc(Exchange):
         }
 
     def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -1421,6 +1431,12 @@ class mexc(Exchange):
         return self.index_by(depositAddresses, 'network')
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         response = self.fetch_deposit_addresses_by_network(code, params)
@@ -1448,6 +1464,14 @@ class mexc(Exchange):
         return result
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'currency': currency['id'],
@@ -1496,6 +1520,14 @@ class mexc(Exchange):
         return self.parse_transactions(resultList, code, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         request = {
             # 'withdrawal_id': '4b450616042a48c99dd45cacb4b092a7',  # string
@@ -1628,6 +1660,12 @@ class mexc(Exchange):
         return self.safe_string(statuses, status, status)
 
     def fetch_position(self, symbol, params={}):
+        """
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in, default is None
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1638,6 +1676,12 @@ class mexc(Exchange):
         return self.parse_position(firstPosition, market)
 
     def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         self.load_markets()
         response = self.contractPrivateGetPositionOpenPositions(params)
         #
@@ -1741,7 +1785,7 @@ class mexc(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mexc api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -2180,6 +2224,14 @@ class mexc(Exchange):
         }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
@@ -2407,6 +2459,14 @@ class mexc(Exchange):
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
         self.load_markets()
@@ -2420,6 +2480,14 @@ class mexc(Exchange):
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
@@ -2431,6 +2499,12 @@ class mexc(Exchange):
         return self.fetch_orders_by_state(state, symbol, since, limit, params)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2477,6 +2551,14 @@ class mexc(Exchange):
         return response
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
@@ -2515,6 +2597,15 @@ class mexc(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all the trades made from a single order
+        :param str id: order id
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -2567,12 +2658,12 @@ class mexc(Exchange):
         #
         type = 'add' if (addOrReduce == 'ADD') else 'reduce'
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 
     def parse_margin_modification(self, data, market=None):
-        statusRaw = self.safe_string(data, 'success')
+        statusRaw = self.safe_value(data, 'success')
         status = 'ok' if (statusRaw is True) else 'failed'
         return {
             'info': data,
@@ -2584,12 +2675,33 @@ class mexc(Exchange):
         }
 
     def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'SUB', params)
 
     def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
     def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        :param float leverage: the rate of leverage
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: response from the exchange
+        """
         self.load_markets()
         request = {
             'leverage': leverage,
@@ -2631,6 +2743,14 @@ class mexc(Exchange):
         return self.parse_transfer(data)
 
     def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         request = {}
         currency = None
@@ -2668,6 +2788,15 @@ class mexc(Exchange):
         return self.parse_transfers(resultList, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2730,6 +2859,15 @@ class mexc(Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
@@ -2814,6 +2952,14 @@ class mexc(Exchange):
             raise ExchangeError(feedback)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch funding history for
+        :param int|None limit: the maximum number of funding history structures to retrieve
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
         self.load_markets()
         market = None
         request = {
@@ -2865,7 +3011,7 @@ class mexc(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
@@ -2877,7 +3023,7 @@ class mexc(Exchange):
             })
         return result
 
-    def parse_funding_rate(self, fundingRate, market=None):
+    def parse_funding_rate(self, contract, market=None):
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -2889,14 +3035,14 @@ class mexc(Exchange):
         #         "timestamp": 1643240373359
         #     }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
-        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextSettleTime')
-        marketId = self.safe_string(fundingRate, 'symbol')
+        nextFundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
+        marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(fundingRate, 'timestamp')
+        timestamp = self.safe_integer(contract, 'timestamp')
         datetime = self.iso8601(timestamp)
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': symbol,
             'markPrice': None,
             'indexPrice': None,
@@ -2916,6 +3062,12 @@ class mexc(Exchange):
         }
 
     def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2992,7 +3144,7 @@ class mexc(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3004,6 +3156,12 @@ class mexc(Exchange):
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the mexc api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
         self.load_markets()
         response = self.contractPublicGetDetail(params)
         #
@@ -3122,3 +3280,31 @@ class mexc(Exchange):
             maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
             floor = cap
         return tiers
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
+
+    def fetch_position_mode(self, symbol=None, params={}):
+        response = self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }

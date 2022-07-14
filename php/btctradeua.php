@@ -41,11 +41,13 @@ class btctradeua extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -89,9 +91,10 @@ class btctradeua extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'markets' => array(
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 )), 'type' => 'spot', 'spot' => true ),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => $this->parse_number('0.1') ), 'limits' => array( 'amount' => array( 'min' => $this->parse_number('0.0000000001') )), 'type' => 'spot', 'spot' => true ),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
                 'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
                 'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
@@ -126,6 +129,11 @@ class btctradeua extends Exchange {
     }
 
     public function sign_in($params = array ()) {
+        /**
+         * sign in, must be called prior to using other authenticated methods
+         * @param {dict} $params extra parameters specific to the btctradeua api endpoint
+         * @return response from exchange
+         */
         return $this->privatePostAuth ($params);
     }
 
@@ -183,7 +191,7 @@ class btctradeua extends Exchange {
                 $orderbook['asks'] = $asks['list'];
             }
         }
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -403,7 +411,7 @@ class btctradeua extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the btctradeua api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
@@ -469,6 +477,14 @@ class btctradeua extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the btctradeua api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }

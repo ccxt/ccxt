@@ -31,6 +31,9 @@ class timex extends Exchange {
                 'cancelOrders' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => false,
+                'createStopMarketOrder' => false,
+                'createStopOrder' => false,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
@@ -47,6 +50,7 @@ class timex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -56,6 +60,7 @@ class timex extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -182,6 +187,7 @@ class timex extends Exchange {
                     ),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     '0' => '\\ccxt\\ExchangeError',
@@ -561,7 +567,7 @@ class timex extends Exchange {
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
          * @param {dict} $params extra parameters specific to the timex api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
@@ -692,6 +698,13 @@ class timex extends Exchange {
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel multiple orders
+         * @param {[str]} $ids order $ids
+         * @param {str|null} $symbol unified market $symbol, default is null
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {dict} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $request = array(
             'id' => $ids,
@@ -775,6 +788,14 @@ class timex extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open $orders
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open $orders for
+         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
         $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
@@ -820,6 +841,14 @@ class timex extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @param {str|null} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
         $defaultSort = $this->safe_value($options, 'sort', 'createdAt,asc');
@@ -870,6 +899,14 @@ class timex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {str|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         yield $this->load_markets();
         $options = $this->safe_value($this->options, 'fetchMyTrades', array());
         $defaultSort = $this->safe_value($options, 'sort', 'timestamp,asc');
@@ -940,6 +977,12 @@ class timex extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {str} $symbol unified $market $symbol
+         * @param {dict} $params extra parameters specific to the timex api endpoint
+         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1016,8 +1059,8 @@ class timex extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'quantityIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'tickSize')),
+                'amount' => $this->safe_number($market, 'quantityIncrement'),
+                'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1082,7 +1125,6 @@ class timex extends Exchange {
         $id = $this->safe_string($currency, 'symbol');
         $code = $this->safe_currency_code($id);
         $name = $this->safe_string($currency, 'name');
-        $precision = $this->safe_integer($currency, 'decimals');
         $depositEnabled = $this->safe_value($currency, 'depositEnabled');
         $withdrawEnabled = $this->safe_value($currency, 'withdrawalEnabled');
         $isActive = $this->safe_value($currency, 'active');
@@ -1116,7 +1158,7 @@ class timex extends Exchange {
             'deposit' => $depositEnabled,
             'withdraw' => $withdrawEnabled,
             'fee' => $fee,
-            'precision' => $precision,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
                 'withdraw' => array( 'min' => $fee, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),

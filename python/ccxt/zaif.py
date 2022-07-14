@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -135,6 +136,7 @@ class zaif(Exchange):
                     'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
@@ -182,7 +184,6 @@ class zaif(Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
-            itemUnitStep = self.safe_string(market, 'item_unit_step')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -210,8 +211,8 @@ class zaif(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': Precise.string_mul(itemUnitStep, '-1e10'),
-                    'price': self.safe_integer(market, 'aux_unit_point'),
+                    'amount': self.safe_number(market, 'item_unit_step'),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'aux_unit_point'))),
                 },
                 'limits': {
                     'leverage': {
@@ -277,11 +278,12 @@ class zaif(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = self.publicGetDepthPair(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -428,15 +430,16 @@ class zaif(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the zaif api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
+        market = self.market(symbol)
         request = {
-            'currency_pair': self.market_id(symbol),
+            'currency_pair': market['id'],
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
@@ -504,6 +507,14 @@ class zaif(Exchange):
         }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the zaif api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         request = {
@@ -517,6 +528,14 @@ class zaif(Exchange):
         return self.parse_orders(response['return'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the zaif api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.load_markets()
         market = None
         request = {
@@ -536,6 +555,15 @@ class zaif(Exchange):
         return self.parse_orders(response['return'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the zaif api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()

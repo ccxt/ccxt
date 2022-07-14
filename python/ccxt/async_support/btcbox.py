@@ -13,6 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -48,6 +49,7 @@ class btcbox(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -55,6 +57,7 @@ class btcbox(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -104,6 +107,7 @@ class btcbox(Exchange):
                 'LTC/JPY': {'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
                 'BCH/JPY': {'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '104': AuthenticationError,
                 '105': PermissionDenied,
@@ -159,7 +163,7 @@ class btcbox(Exchange):
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -275,7 +279,7 @@ class btcbox(Exchange):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the btcbox api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -447,9 +451,25 @@ class btcbox(Exchange):
         return orders
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the btcbox api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.fetch_orders_by_type('all', symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the btcbox api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.fetch_orders_by_type('open', symbol, since, limit, params)
 
     def nonce(self):

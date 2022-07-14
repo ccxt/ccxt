@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, ArgumentsRequired } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -40,12 +41,14 @@ module.exports = class tidebit extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -149,6 +152,7 @@ module.exports = class tidebit extends Exchange {
                     'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -157,6 +161,14 @@ module.exports = class tidebit extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name tidebit#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {str} code unified currency code
+         * @param {dict} params extra parameters specific to the tidebit api endpoint
+         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -186,6 +198,24 @@ module.exports = class tidebit extends Exchange {
          * @returns {[dict]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
+        //
+        //    [
+        //        {
+        //            "id": "btchkd",
+        //            "name": "BTC/HKD",
+        //            "bid_fixed": "2",
+        //            "ask_fixed": "4",
+        //            "price_group_fixed": null
+        //        },
+        //        {
+        //            "id": "btcusdt",
+        //            "name": "BTC/USDT",
+        //            "bid_fixed": "2",
+        //            "ask_fixed": "3",
+        //            "price_group_fixed": null
+        //        },
+        // }
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -216,7 +246,10 @@ module.exports = class tidebit extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': this.precision,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'ask_fixed'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'bid_fixed'))),
+                },
                 'limits': this.extend ({
                     'leverage': {
                         'min': undefined,
@@ -573,13 +606,14 @@ module.exports = class tidebit extends Exchange {
          * @param {str} type 'market' or 'limit'
          * @param {str} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {dict} params extra parameters specific to the tidebit api endpoint
          * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,
@@ -615,6 +649,17 @@ module.exports = class tidebit extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name tidebit#withdraw
+         * @description make a withdrawal
+         * @param {str} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {str} address the address to withdraw to
+         * @param {str|undefined} tag
+         * @param {dict} params extra parameters specific to the tidebit api endpoint
+         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
