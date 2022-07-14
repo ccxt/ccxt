@@ -764,10 +764,10 @@ class kraken extends Exchange {
          * @param {dict} $params extra parameters specific to the kraken api endpoint
          * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
-        }
         yield $this->load_markets();
+        if ($symbols === null) {
+            $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+        }
         $marketIds = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];

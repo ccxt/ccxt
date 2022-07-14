@@ -764,10 +764,10 @@ module.exports = class kraken extends Exchange {
          * @param {dict} params extra parameters specific to the kraken api endpoint
          * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
-        }
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = Object.keys (this.markets);
+        }
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
