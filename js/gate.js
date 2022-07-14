@@ -3200,6 +3200,10 @@ module.exports = class gate extends Exchange {
             'cancelled': 'canceled',
             'liquidated': 'closed',
             'ioc': 'canceled',
+            'failed': 'canceled',
+            'expired': 'canceled',
+            'finished': 'closed',
+            'succeeded': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
