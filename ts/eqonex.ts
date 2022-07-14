@@ -1625,7 +1625,7 @@ export default class eqonex extends Exchange {
         const remainingScale = this.safeInteger (order, 'leavesQty_scale');
         remainingString = this.convertFromScale (remainingString, remainingScale);
         let fee = undefined;
-        const currencyId = this.safeInteger (order, 'feeInstrumentId');
+        const currencyId = this.safeString (order, 'feeInstrumentId');
         const feeCurrencyCode = this.safeCurrencyCode (currencyId);
         let feeCostString = undefined;
         let feeCost = this.safeString (order, 'feeTotal');

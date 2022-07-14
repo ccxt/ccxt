@@ -161,13 +161,10 @@ export {
     , isString
     , isStringCoercible
     , isDictionary
-
     , hasProps
     , prop
-
     , asFloat
     , asInteger
-
     , safeFloat
     , safeInteger
     , safeIntegerProduct

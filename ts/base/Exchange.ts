@@ -1047,7 +1047,7 @@ export class Exchange {
         return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
     }
 
-    parseNumber (value: string | number, d: number = undefined) {
+    parseNumber (value: string | number, d: number = undefined): number {
         if (value === undefined) {
             return d
         } else {
@@ -1608,7 +1608,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (results, symbol, since, limit, tail);
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -1804,7 +1804,7 @@ export class Exchange {
         return result;
     }
 
-    safeTicker (ticker, market = undefined) {
+    safeTicker (ticker: object, market = undefined) {
         let open = this.safeValue (ticker, 'open');
         let close = this.safeValue (ticker, 'close');
         let last = this.safeValue (ticker, 'last');
@@ -1861,7 +1861,7 @@ export class Exchange {
         });
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: number = undefined, limit: number = undefined, params = {}) {
         if (!this.has['fetchTrades']) {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported yet');
         }
@@ -1987,7 +1987,7 @@ export class Exchange {
         return ohlcv;
     }
 
-    getNetwork (network, code) {
+    getNetwork (network: string, code: string): string {
         network = network.toUpperCase ();
         const aliases = {
             'ETHEREUM': 'ETH',
@@ -2106,7 +2106,7 @@ export class Exchange {
         return result;
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTrades (trades, market: object = undefined, since: number = undefined, limit: number = undefined, params = {}) {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -2119,7 +2119,7 @@ export class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
     }
 
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTransactions (transactions, currency: string = undefined, since: number = undefined, limit: number = undefined, params = {}) {
         transactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -2132,7 +2132,7 @@ export class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit, tail);
     }
 
-    parseTransfers (transfers, currency = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTransfers (transfers, currency: string = undefined, since: number = undefined, limit: number = undefined, params = {}) {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -2172,7 +2172,7 @@ export class Exchange {
         return headers;
     }
 
-    marketId (symbol) {
+    marketId (symbol: string): string {
         const market = this.market (symbol);
         if (market !== undefined) {
             return market['id'];
@@ -2180,7 +2180,7 @@ export class Exchange {
         return symbol;
     }
 
-    symbol (symbol) {
+    symbol (symbol: string): string {
         const market = this.market (symbol);
         return this.safeString (market, 'symbol', symbol);
     }
@@ -2280,7 +2280,7 @@ export class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId, currency = undefined) {
+    safeCurrency (currencyId: string, currency: string = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -2297,7 +2297,7 @@ export class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+    safeMarket (marketId: string = undefined, market = undefined, delimiter = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2420,7 +2420,7 @@ export class Exchange {
         return this.status;
     }
 
-    async fetchFundingFee (code, params = {}) {
+    async fetchFundingFee (code: string, params = {}) {
         const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
@@ -2522,7 +2522,7 @@ export class Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol: string, params = {}) {
         if (this.has['fetchTickers']) {
             const tickers = await (this as any).fetchTickers ([ symbol ], params);
             const ticker = this.safeValue (tickers, symbol);
@@ -2615,14 +2615,14 @@ export class Exchange {
         };
     }
 
-    commonCurrencyCode (currency) {
+    commonCurrencyCode (currency: string) {
         if (!this.substituteCommonCurrencyCodes) {
             return currency;
         }
         return this.safeString (this.commonCurrencies, currency, currency);
     }
 
-    currency (code) {
+    currency (code: string) {
         if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
@@ -2636,7 +2636,7 @@ export class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol) {
+    market (symbol: string) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -2754,7 +2754,7 @@ export class Exchange {
         return this.implodeParams (url, { 'hostname': this.hostname });
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
+    async fetchMarketLeverageTiers (symbol: string, params = {}) {
         if (this.has['fetchLeverageTiers']) {
             const market = await (this as any).market (symbol);
             if (!market['contract']) {
@@ -2810,7 +2810,7 @@ export class Exchange {
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId, currency = undefined) {
+    safeCurrencyCode (currencyId: string, currency: string = undefined) {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
