@@ -113,22 +113,22 @@ const safeStringUpper2 = (o: object, k1: string | number, k2: string | number, $
     return isStringCoercible (x) ? String (x).toUpperCase () : $default;
 };
 
-const safeFloatN = (o: object, k: (string | number)[], $default?) => {
+const safeFloatN = (o: object, k: (string | number)[], $default?: number): number => {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerN = (o: object, k: (string | number)[], $default?) => {
+const safeIntegerN = (o: object, k: (string | number)[], $default?: number): number => {
     const n = asInteger (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerProductN = (o: object, k: (string | number)[], $factor, $default?) => {
+const safeIntegerProductN = (o: object, k: (string | number)[], $factor: number, $default?: number): number => {
     const n = asInteger (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
-const safeTimestampN = (o: object, k: (string | number)[], $default?) => {
+const safeTimestampN = (o: object, k: (string | number)[], $default?: number): number => {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
@@ -138,17 +138,17 @@ const safeValueN = (o: object, k: (string | number)[], $default?) => {
     return hasProps (x) ? x : $default;
 };
 
-const safeStringN = (o: object, k: (string | number)[], $default?) => {
+const safeStringN = (o: object, k: (string | number)[], $default?: string): string => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 };
 
-const safeStringLowerN = (o: object, k: (string | number)[], $default?) => {
+const safeStringLowerN = (o: object, k: (string | number)[], $default?: string): string => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default;
 };
 
-const safeStringUpperN = (o: object, k: (string | number)[], $default?) => {
+const safeStringUpperN = (o: object, k: (string | number)[], $default?: string): string => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x).toUpperCase () : $default;
 };
