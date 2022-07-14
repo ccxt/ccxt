@@ -932,7 +932,7 @@ module.exports = class blockchaincom extends Exchange {
          * @param {dict} params provide beneficiary attribute with whitelist id in params instead. This can be obtained through whitelist endpoint: https://api.blockchain.info/v3/exchange/whitelist
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
         */
-        if (address !== null) {
+        if (address !== undefined) {
             throw new ExchangeError ("This method doesn't support the address. Provide beneficiary attribute in params instead.");
         }
         await this.loadMarkets ();
