@@ -1249,13 +1249,15 @@ module.exports = class probit extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'destination_tag');
         const currencyId = this.safeString (depositAddress, 'currency_id');
-        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString (depositAddress, 'platform_id');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
             'info': depositAddress,
         };
     }
@@ -1273,14 +1275,34 @@ module.exports = class probit extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency_id': currency['id'],
+            // 'platform_id': 'TRON', (undocumented)
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['platform_id'] = network;
+            params = this.omit (params, 'platform_id');
+        }
         const response = await this.privateGetDepositAddress (this.extend (request, params));
         //
+        // without 'platform_id'
         //     {
         //         "data":[
         //             {
         //                 "currency_id":"ETH",
         //                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
+        //                 "destination_tag":null
+        //             }
+        //         ]
+        //     }
+        //
+        // with 'platform_id'
+        //     {
+        //         "data":[
+        //             {
+        //                 "platform_id":"TRON",
+        //                 "address":"TDQLMxBTa6MzuoZ6deSGZkqET3Ek8v7uC6",
         //                 "destination_tag":null
         //             }
         //         ]
