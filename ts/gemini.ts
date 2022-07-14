@@ -1110,13 +1110,13 @@ export default class gemini extends Exchange {
         let clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId === undefined) {
-            clientOrderId = this.nonce ();
+            clientOrderId = this.nonce ().toString ();
         }
         const market = this.market (symbol);
         const amountString = this.amountToPrecision (symbol, amount);
         const priceString = this.priceToPrecision (symbol, price);
         const request = {
-            'client_order_id': clientOrderId.toString (),
+            'client_order_id': clientOrderId,
             'symbol': market['id'],
             'amount': amountString,
             'price': priceString,

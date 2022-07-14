@@ -2470,7 +2470,7 @@ export class Exchange {
         return rate;
     }
 
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
