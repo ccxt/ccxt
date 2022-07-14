@@ -82,6 +82,7 @@ module.exports = class bitrue extends Exchange {
                     'v1': 'https://www.bitrue.com/api/v1',
                     'v2': 'https://www.bitrue.com/api/v2',
                     'kline': 'https://www.bitrue.com/kline-api',
+                    'open': 'https://open.bitrue.com',
                 },
                 'www': 'https://www.bitrue.com',
                 'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
@@ -138,6 +139,19 @@ module.exports = class bitrue extends Exchange {
                     'private': {
                         'get': {
                             'myTrades': 5,
+                        },
+                    },
+                },
+                'open': {
+                    'private': {
+                        'post': {
+                            'poseidon/api/v1/listenKey': 1,
+                        },
+                        'put': {
+                            'poseidon/api/v1/listenKey/{listenKey}': 1,
+                        },
+                        'delete': {
+                            'poseidon/api/v1/listenKey/{listenKey}': 1,
                         },
                     },
                 },
