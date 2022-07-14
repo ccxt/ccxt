@@ -1171,14 +1171,14 @@ export default class wavesexchange extends Exchange {
         return currencyId;
     }
 
-    priceToPrecision (symbol, price) {
+    customPriceToPrecision (symbol, price) {
         const market = this.markets[symbol];
         const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
         const difference = market['precision']['amount'] - market['precision']['price'];
         return this.parseToInt (parseFloat (this.toPrecision (price, wavesPrecision - difference)));
     }
 
-    amountToPrecision (symbol, amount) {
+    customAmountToPrecision (symbol, amount) {
         return this.parseToInt (parseFloat (this.toPrecision (amount, this.markets[symbol]['precision']['amount'])));
     }
 
@@ -1319,8 +1319,8 @@ export default class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             throw new InsufficientFunds (this.id + ' not enough funds on none of the eligible asset fees');
         }
-        amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
+        amount = this.customAmountToPrecision (symbol, amount);
+        price = this.customPriceToPrecision (symbol, price);
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),

@@ -2696,12 +2696,12 @@ export class Exchange {
         return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
-    priceToPrecision (symbol, price) {
+    priceToPrecision (symbol: string, price: number | string): string {
         const market = this.market (symbol);
         return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
-    amountToPrecision (symbol, amount) {
+    amountToPrecision (symbol: string, amount: string | number) {
         const market = this.market (symbol);
         return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
