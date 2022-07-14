@@ -4430,6 +4430,7 @@ class bybit extends Exchange {
             }
             $results[] = $this->parse_position($rawPosition, $market);
         }
+        $symbols = $this->market_symbols($symbols);
         return $this->filter_by_array($results, 'symbol', $symbols, false);
     }
 

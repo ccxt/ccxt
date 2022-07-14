@@ -1528,7 +1528,7 @@ class bitfinex2 extends Exchange {
         $clientOrderId = $this->safe_value_2($params, 'cid', 'clientOrderId');
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit' ));
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amount);
+        $amountString = ($side === 'buy') ? $amountString : Precise::string_neg($amountString);
         $request = array(
             // 'gid' => 0123456789, // int32,  optional group id for the $order
             // 'cid' => 0123456789, // int32 client $order id

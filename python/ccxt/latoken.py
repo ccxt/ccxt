@@ -1502,7 +1502,7 @@ class latoken(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        error = self.safe_string(response, 'error')
+        error = self.safe_value(response, 'error')
         errorMessage = self.safe_string(error, 'message')
         if (error is not None) or (errorMessage is not None):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

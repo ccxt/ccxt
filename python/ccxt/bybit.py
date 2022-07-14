@@ -4213,6 +4213,7 @@ class bybit(Exchange):
                 # futures only
                 rawPosition = self.safe_value(rawPosition, 'data')
             results.append(self.parse_position(rawPosition, market))
+        symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

@@ -689,7 +689,7 @@ class bitrue extends Exchange {
             'info' => $response,
         );
         $timestamp = $this->safe_integer($response, 'updateTime');
-        $balances = $this->safe_value_2($response, 'balances', array());
+        $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');

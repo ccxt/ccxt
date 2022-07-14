@@ -23,7 +23,6 @@ export default class zb extends Exchange {
             // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
             'rateLimit': 6,
             'version': 'v1',
-            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -2047,7 +2046,7 @@ export default class zb extends Exchange {
         const market = this.market (symbol);
         const orderType = this.safeInteger (params, 'orderType');
         if (orderType !== undefined) {
-            throw new ExchangeError (this.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead');
+            throw new ExchangeError (this.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead');
         }
         const swap = market['swap'];
         const request = {
@@ -2532,8 +2531,8 @@ export default class zb extends Exchange {
             'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         });
-        if (orderType === undefined) {
-            throw new ExchangeError (this.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead');
+        if (swap && (orderType === undefined)) {
+            throw new ExchangeError (this.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead');
         }
         if (swap) {
             // a status of 2 would mean canceled and could also be valid
@@ -2763,7 +2762,7 @@ export default class zb extends Exchange {
         //         "desc": "操作成功"
         //     }
         //
-        let result = undefined;
+        let result = response;
         if (swap) {
             const data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'list', []);

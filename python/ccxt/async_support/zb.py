@@ -46,7 +46,6 @@ class zb(Exchange):
             # previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667(16.666666...)
             'rateLimit': 6,
             'version': 'v1',
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -1965,7 +1964,7 @@ class zb(Exchange):
         market = self.market(symbol)
         orderType = self.safe_integer(params, 'orderType')
         if orderType is not None:
-            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead')
+            raise ExchangeError(self.id + ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead')
         swap = market['swap']
         request = {
             # 'currency': self.market_id(symbol),  # only applicable to SPOT
@@ -2275,7 +2274,7 @@ class zb(Exchange):
             orderType = self.safe_integer(params, 'orderType')
             if orderType is None:
                 raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
+            side = self.safe_value(params, 'side')
             bizType = self.safe_integer(params, 'bizType')
             if side == 'sell' and reduceOnly:
                 request['side'] = 3  # close long
@@ -2420,8 +2419,8 @@ class zb(Exchange):
             'spot': 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap': 'contractV2PrivateGetTradeGetOrderAlgos',
         })
-        if orderType is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders() it not possible to fetch closed swap orders, use fetchOrders instead')
+        if swap and (orderType is None):
+            raise ExchangeError(self.id + ' fetchClosedOrders() can not fetch swap orders, use fetchOrders instead')
         if swap:
             # a status of 2 would mean canceled and could also be valid
             request['status'] = 5  # complete
@@ -2640,7 +2639,7 @@ class zb(Exchange):
         #         "desc": "操作成功"
         #     }
         #
-        result = None
+        result = response
         if swap:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'list', [])

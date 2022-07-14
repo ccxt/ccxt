@@ -617,8 +617,8 @@ export default class bibox extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default = 200
         }
-        const response = await (this as any).publicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], symbol, this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        const response = await (this as any).v1PublicGetMdata (this.extend (request, params));
+        return this.parseOrderBook (response['result'], market['symbol'], this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     parseOHLCV (ohlcv, market = undefined) {

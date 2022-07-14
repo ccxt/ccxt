@@ -4369,7 +4369,7 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
@@ -5816,7 +5816,7 @@ class binance(Exchange):
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer_2(params, 'until', 'till')  # unified in milliseconds
-        endTime = self.safe_string(params, 'endTime', until)  # exchange-specific in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
         params = self.omit(params, ['endTime', 'until', 'till'])
         if endTime:
             request['endTime'] = endTime
