@@ -583,9 +583,6 @@ module.exports = class blockchaincom extends Exchange {
          */
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
-        if (ids !== null) {
-            throw new ExchangeError ('This method does not support a list of ids, just send null to cancel all open orders. If symbol is provided, it will cancel all open orders of specified symbol');
-        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': marketId,
@@ -929,13 +926,12 @@ module.exports = class blockchaincom extends Exchange {
          * @name blockchaincom#withdraw
          * @description Generate new withdraw.
          * @param {str} code currency
-         * @param {float} amount amount 
+         * @param {float} amount amount
          * @param {str} adress Blockchain does not support to provide addresses for withdrawals.
          * @param {str} tag
-         * @param {dict} params provide beneficiary attribute with whitelist id in params instead. 
-         * This can be obtained through whitelist endpoint: https://api.blockchain.info/v3/exchange/whitelist
+         * @param {dict} params provide beneficiary attribute with whitelist id in params instead. This can be obtained through whitelist endpoint: https://api.blockchain.info/v3/exchange/whitelist
          * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+        */
         if (address !== null) {
             throw new ExchangeError ("This method doesn't support the address. Provide beneficiary attribute in params instead.");
         }
