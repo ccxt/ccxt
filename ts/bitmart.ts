@@ -2575,7 +2575,7 @@ export default class bitmart extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         params = this.omit (params, 'marginMode');
-        const response = await this.privateSpotPostMarginIsolatedRepay (this.extend (request, params));
+        const response = await (this as any).privateSpotPostMarginIsolatedRepay (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
@@ -2623,7 +2623,7 @@ export default class bitmart extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         params = this.omit (params, 'marginMode');
-        const response = await this.privateSpotPostMarginIsolatedBorrow (this.extend (request, params));
+        const response = await (this as any).privateSpotPostMarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
@@ -2693,7 +2693,7 @@ export default class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateSpotGetMarginIsolatedPairs (this.extend (request, params));
+        const response = await (this as any).privateSpotGetMarginIsolatedPairs (this.extend (request, params));
         //
         //     {
         //         "message": "OK",
