@@ -4965,10 +4965,13 @@ module.exports = class huobi extends Exchange {
         //
         // transfer
         //
-        //     {
-        //         "data": 12345,
-        //         "status": "ok"
-        //     }
+        //    {
+        //        code: '200',
+        //        data: '650969068',
+        //        message: 'Succeed',
+        //        success: true,
+        //        'print-log': true
+        //    }
         //
         const id = this.safeString (transfer, 'data');
         const code = this.safeCurrencyCode (undefined, currency);
@@ -5034,10 +5037,13 @@ module.exports = class huobi extends Exchange {
         request['to'] = toAccount;
         const response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
         //
-        //     {
-        //         "data": 12345,
-        //         "status": "ok"
-        //     }
+        //    {
+        //        code: '200',
+        //        data: '650969068',
+        //        message: 'Succeed',
+        //        success: true,
+        //        'print-log': true
+        //    }
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
