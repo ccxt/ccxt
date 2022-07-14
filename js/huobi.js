@@ -5028,6 +5028,8 @@ module.exports = class huobi extends Exchange {
             }
             params = this.omit (params, [ 'subType', 'marginAccount' ]);
         }
+        fromAccount = (fromAccount === 'future') ? 'futures' : fromAccount;
+        toAccount = (toAccount === 'future') ? 'futures' : toAccount;
         request['from'] = fromAccount;
         request['to'] = toAccount;
         const response = await this.v2PrivatePostAccountTransfer (this.extend (request, params));
