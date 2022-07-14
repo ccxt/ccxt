@@ -2980,20 +2980,31 @@ module.exports = class bybit extends Exchange {
         } else if (timeInForce === 'ioc') {
             request['time_in_force'] = 'ImmediateOrCancel';
         }
-        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice', 'stop_px' ]);
+        const isTriggerOrder = triggerPrice !== undefined;
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
-        if (isStopOrder) {
+        const isSlTpOrder = isStopLossOrder || isTakeProfitOrder;
+        const isStopOrder = isSlTpOrder || isTriggerOrder;
+        if (isTriggerOrder) {
             request['trigger_by'] = 'LastPrice';
-            const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-            const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+            const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
             request['stop_px'] = parseFloat (preciseStopPrice);
-            const delta = this.numberToString (market['precision']['price']);
-            const basePriceString = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
-            request['base_price'] = parseFloat (basePriceString);
+            const basePrice = this.safeValue (params, 'base_price');
+            if (basePrice === undefined) {
+                throw new ArgumentsRequired (this.id + 'requires base_price for trigger orders. If you\'re expecting the price to rise to trigger your conditional order, make sure stop_px > max(market price, base_price) else, stop_px < min(market price, base_price)');
+            }
+            request['base_price'] = parseFloat (this.priceToPrecision (symbol, basePrice));
+        }
+        if (isTakeProfitOrder) {
+            request['tp_trigger_by'] = 'LastPrice';
+            request['take_profit'] = parseFloat (takeProfitPrice);
+        }
+        if (isStopLossOrder) {
+            request['sl_trigger_by'] = 'LastPrice';
+            request['sl_trigger_by'] = parseFloat (takeProfitPrice);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
