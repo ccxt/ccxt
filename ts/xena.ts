@@ -1750,8 +1750,8 @@ export default class xena extends Exchange {
         const accountId = await (this as any).getAccountId (params);
         const currency = this.currency (code);
         let uuid = this.uuid ();
-        uuid = uuid.split ('-');
-        uuid = uuid.join ('');
+        const uuidParts = uuid.split ('-');
+        uuid = uuidParts.join ('');
         const request = {
             'currency': currency['id'],
             'accountId': accountId,
