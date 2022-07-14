@@ -3019,6 +3019,10 @@ class gate(Exchange):
             'cancelled': 'canceled',
             'liquidated': 'closed',
             'ioc': 'canceled',
+            'failed': 'canceled',
+            'expired': 'canceled',
+            'finished': 'closed',
+            'succeeded': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
