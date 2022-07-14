@@ -3876,12 +3876,17 @@ module.exports = class huobi extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date' ]);
         const clientOrderId = this.safeString2 (order, 'client_order_id', 'client-order-id');
-        const amount = this.safeString2 (order, 'volume', 'amount');
-        let filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
-        filled = this.safeString (order, 'trade_volume', filled);
+        let cost = undefined;
+        let amount = undefined;
+        if (type.indexOf ('market') >= 0) {
+            // for market orders amount is in quote currency, meaning it is the cost
+            cost = this.safeString (order, 'amount');
+        } else {
+            amount = this.safeString2 (order, 'volume', 'amount');
+            cost = this.safeStringN (order, [ 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' ]); // same typo
+        }
+        const filled = this.safeStringN (order, [ 'filled-amount', 'field-amount', 'trade_volume' ]); // typo in their API, filled amount
         const price = this.safeString (order, 'price');
-        let cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        cost = this.safeString (order, 'trade_turnover', cost);
         let feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled feeSide
         feeCost = this.safeString (order, 'fee', feeCost);
         let fee = undefined;
