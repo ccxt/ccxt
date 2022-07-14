@@ -4993,13 +4993,14 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the huobi api endpoint
-         * @param {string} params.subType 'linear' or 'inverse', only used when transfering to/from swap accounts
-         * @param {string} params.marginAcount 'cross' or the unified market code for an isolated market
+         * @param {string|undefined} params.subType 'linear' or 'inverse', only used when transfering to/from swap accounts
+         * @param {string|undefined} params.marginAcount 'cross' or the unified market code for an isolated market
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
