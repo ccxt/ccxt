@@ -2274,7 +2274,7 @@ class zb(Exchange):
             orderType = self.safe_integer(params, 'orderType')
             if orderType is None:
                 raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an orderType parameter for stop orders')
-            side = self.safe_integer(params, 'side')
+            side = self.safe_value(params, 'side')
             bizType = self.safe_integer(params, 'bizType')
             if side == 'sell' and reduceOnly:
                 request['side'] = 3  # close long

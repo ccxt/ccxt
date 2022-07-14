@@ -2350,7 +2350,7 @@ class zb extends Exchange {
             if ($orderType === null) {
                 throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
             }
-            $side = $this->safe_integer($params, 'side');
+            $side = $this->safe_value($params, 'side');
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
