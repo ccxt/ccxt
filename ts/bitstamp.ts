@@ -1150,7 +1150,7 @@ export default class bitstamp extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
+        const balance = await (this as any).privatePostBalance (params);
         return this.parseTransactionFees (balance);
     }
 

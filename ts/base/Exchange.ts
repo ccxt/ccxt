@@ -106,6 +106,7 @@ const {
     , urlencodeNested
     , parseDate
     , ymd
+    , isArray
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -362,6 +363,7 @@ export class Exchange {
     urlencodeNested = urlencodeNested
     parseDate = parseDate
     ymd = ymd
+    isArray = isArray
 
     describe () {
         return {

@@ -1284,7 +1284,7 @@ export default class probit extends Exchange {
             request['platform_id'] = network;
             params = this.omit (params, 'platform_id');
         }
-        const response = await this.privateGetDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetDepositAddress (this.extend (request, params));
         //
         // without 'platform_id'
         //     {
