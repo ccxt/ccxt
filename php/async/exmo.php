@@ -178,9 +178,9 @@ class exmo extends Exchange {
                     'maker' => $this->parse_number('0.004'),
                     'taker' => $this->parse_number('0.004'),
                 ),
-                'funding' => array(
+                'transaction' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed funding fees for crypto, see fetchTransactionFees below
+                    'percentage' => false, // fixed transaction fees for crypto, see fetchTransactionFees below
                 ),
             ),
             'options' => array(
@@ -490,7 +490,7 @@ class exmo extends Exchange {
             }
         }
         // cache them for later use
-        $this->options['fundingFees'] = $result;
+        $this->options['transactionFees'] = $result;
         return $result;
     }
 
@@ -1715,11 +1715,11 @@ class exmo extends Exchange {
         }
         $fee = null;
         // fixed funding fees only (for now)
-        if (!$this->fees['funding']['percentage']) {
+        if (!$this->fees['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_number($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_number($this->options['fundingFees'][$key], $code);
+                $feeCost = $this->safe_number($this->options['transactionFees'][$key], $code);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');

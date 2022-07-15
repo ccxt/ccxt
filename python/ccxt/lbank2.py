@@ -200,7 +200,7 @@ class lbank2(Exchange):
                     'method': 'publicGetTrades',  # or 'publicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {
-                    'method': 'fetchPrivateFundingFees',  # or 'fetchPublicFundingFees'
+                    'method': 'fetchPrivateTransactionFees',  # or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault',  # or fetchDepositAddressSupplement
@@ -1755,13 +1755,13 @@ class lbank2(Exchange):
             params = self.omit(params, 'method')
             if method is None:
                 options = self.safe_value(self.options, 'fetchTransactionFees', {})
-                method = self.safe_string(options, 'method', 'fetchPrivateFundingFees')
+                method = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
             result = getattr(self, method)(params)
         else:
-            result = self.fetch_public_funding_fees(params)
+            result = self.fetch_public_transaction_fees(params)
         return result
 
-    def fetch_private_funding_fees(self, params={}):
+    def fetch_private_transaction_fees(self, params={}):
         # complete response
         # incl. for coins which None in public method
         self.load_markets()
@@ -1787,7 +1787,7 @@ class lbank2(Exchange):
             'info': response,
         }
 
-    def fetch_public_funding_fees(self, params={}):
+    def fetch_public_transaction_fees(self, params={}):
         # extremely incomplete response
         # vast majority fees None
         self.load_markets()

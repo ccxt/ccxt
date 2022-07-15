@@ -1065,7 +1065,7 @@ class bitstamp(Exchange):
         response = await self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_funding_fees(self, balance):
+    def parse_transaction_fees(self, balance):
         withdraw = {}
         ids = list(balance.keys())
         for i in range(0, len(ids)):
@@ -1089,7 +1089,7 @@ class bitstamp(Exchange):
         """
         await self.load_markets()
         balance = await self.privatePostBalance(params)
-        return self.parse_funding_fees(balance)
+        return self.parse_transaction_fees(balance)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """

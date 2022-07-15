@@ -1108,7 +1108,7 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_funding_fees($balance) {
+    public function parse_transaction_fees($balance) {
         $withdraw = array();
         $ids = is_array($balance) ? array_keys($balance) : array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -1135,7 +1135,7 @@ class bitstamp extends Exchange {
          */
         $this->load_markets();
         $balance = $this->privatePostBalance ($params);
-        return $this->parse_funding_fees($balance);
+        return $this->parse_transaction_fees($balance);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
