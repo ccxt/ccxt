@@ -486,6 +486,7 @@ class ascendex(Exchange):
         #         "data":[
         #             {
         #                 "symbol":"QTUM/BTC",
+        #                 "displayName":"QTUM/BTC",
         #                 "domain":"BTC",
         #                 "tradingStartTime":1569506400000,
         #                 "collapseDecimals":"0.0001,0.000001,0.00000001",
@@ -556,8 +557,9 @@ class ascendex(Exchange):
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
             status = self.safe_string(market, 'status')
+            domain = self.safe_string(market, 'domain')
             active = False
-            if (status == 'Normal') or (status == 'InternalTrading'):
+            if ((status == 'Normal') or (status == 'InternalTrading')) and (domain != 'LeveragedETF'):
                 active = True
             spot = settle is None
             swap = not spot
