@@ -2166,23 +2166,17 @@ module.exports = class ascendex extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //         destTag: "",
-        //         tagType: "",
-        //         tagId: "",
-        //         chainName: "ERC20",
-        //         numConfirmations: 20,
-        //         withdrawalFee: 1,
-        //         nativeScale: 4,
-        //         tips: []
+        //         "address": "0xaa9f2c949f56ad1cf3cee7c314da8d06b44c8c4a",
+        //         "destTag": "",
+        //         "blockchain": "ERC20"
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        const tagId = this.safeString (depositAddress, 'tagId');
+        const tagId = this.safeString (depositAddress, 'destTag');
         const tag = this.safeString (depositAddress, tagId);
         this.checkAddress (address);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const chainName = this.safeString (depositAddress, 'chainName');
+        const chainName = this.safeString (depositAddress, 'blockchain');
         const network = this.safeNetworkCode (chainName);
         return {
             'currency': code,
