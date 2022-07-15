@@ -691,7 +691,7 @@ class btcturk(Exchange):
         amountString = self.safe_string_2(order, 'amount', 'quantity')
         amount = Precise.string_abs(amountString)
         remaining = self.safe_string(order, 'leftAmount')
-        marketId = self.safe_number(order, 'pairSymbol')
+        marketId = self.safe_string(order, 'pairSymbol')
         symbol = self.safe_symbol(marketId, market)
         side = self.safe_string(order, 'type')
         type = self.safe_string(order, 'method')
