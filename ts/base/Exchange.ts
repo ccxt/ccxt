@@ -132,6 +132,16 @@ const {
 import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
 // ----------------------------------------------------------------------------
+// 
+
+export interface OrderBook {
+    symbol: string;
+    asks: [number, number][];
+    bids: [number, number][];
+    datetime: string;
+    timestamp: number;
+    nonce: number;
+}
 
 export class Exchange {
     options: {};
@@ -1096,7 +1106,7 @@ export class Exchange {
             return undefined;
         }
     
-        async fetchOrderBook (symbol, limit: number = undefined, params = {}) {
+        async fetchOrderBook (symbol, limit: number = undefined, params = {}): Promise<OrderBook> {
             return undefined;
         }
     
@@ -2031,7 +2041,7 @@ export class Exchange {
         return this.parseNumber (value, d);
     }
 
-    parseOrderBook (orderbook: object, symbol: string, timestamp: number = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: number | string = 0, amountKey: number | string = 1) {
+    parseOrderBook (orderbook: object, symbol: string, timestamp: number = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey: number | string = 0, amountKey: number | string = 1): OrderBook {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey);
         return {

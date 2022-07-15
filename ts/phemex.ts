@@ -894,7 +894,7 @@ export default class phemex extends Exchange {
         }
         result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
         result[asksKey] = this.sortBy (result[asksKey], 0);
-        return result;
+        return result as any;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
