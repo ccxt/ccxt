@@ -643,13 +643,13 @@ export default class gate extends Exchange {
         let result = [];
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot' || type === 'margin') {
-            result = await (this as any).fetchSpotMarkets (query);
+            result = await this.fetchSpotMarkets (query);
         }
         if (type === 'swap' || type === 'future') {
-            result = await (this as any).fetchContractMarkets (query); // futures and swaps
+            result = await this.fetchContractMarkets (query); // futures and swaps
         }
         if (type === 'option') {
-            result = await (this as any).fetchOptionMarkets (query);
+            result = await this.fetchOptionMarkets (query);
         }
         const resultLength = result.length;
         if (resultLength === 0) {

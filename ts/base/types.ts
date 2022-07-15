@@ -3,6 +3,29 @@ export interface MinMax {
     max: number | undefined;
 }
 
+export interface Ticker {
+    symbol: string;
+    info: any;
+    timestamp: number;
+    datetime: string;
+    high: number;
+    low: number;
+    bid: number;
+    bidVolume?: number;
+    ask: number;
+    askVolume?: number;
+    vwap?: number;
+    open?: number;
+    close?: number;
+    last?: number;
+    previousClose?: number;
+    change?: number;
+    percentage?: number;
+    average?: number;
+    quoteVolume?: number;
+    baseVolume?: number;
+}
+
 export interface Market {
         id: string;
         symbol: string;
@@ -77,19 +100,3 @@ export interface Trade {
     fee: Fee;
     fees?: Fee[];
 }
-
-// export interface RawTrade {
-//     amount: string;
-//     datetime: string;
-//     id: string;
-//     info: any;
-//     order?: string;
-//     price: string;
-//     timestamp: number;
-//     type?: string;
-//     side: 'buy' | 'sell';
-//     symbol: string;
-//     takerOrMaker: 'taker' | 'maker';
-//     cost: string;
-//     fee: Fee;
-// }

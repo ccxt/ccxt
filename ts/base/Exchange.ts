@@ -135,8 +135,8 @@ import { Precise } from './Precise.js'
 // 
 
 // import types
-import {Market, OrderBook, Trade, Fee} from './types'
-export {Market, OrderBook, Trade, Fee} from './types'
+import {Market, OrderBook, Trade, Fee, Ticker} from './types'
+export {Market, OrderBook, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
 export class Exchange {
@@ -1114,7 +1114,7 @@ export class Exchange {
             return undefined
         }
     
-        parseTicker (ticker, market = undefined) {
+        parseTicker (ticker: object, market = undefined): Ticker {
             return undefined;
         }
     
@@ -1122,7 +1122,7 @@ export class Exchange {
             return undefined;
         }
     
-        parseTrade (trade: Trade, market = undefined): Trade {
+        parseTrade (trade: object, market = undefined): Trade {
             return undefined;
         }
     
@@ -1810,7 +1810,7 @@ export class Exchange {
         return result;
     }
 
-    safeTicker (ticker: object, market = undefined) {
+    safeTicker (ticker: object, market = undefined): Ticker {
         let open = this.safeValue (ticker, 'open');
         let close = this.safeValue (ticker, 'close');
         let last = this.safeValue (ticker, 'last');
